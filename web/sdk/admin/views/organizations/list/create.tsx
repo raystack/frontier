@@ -11,7 +11,7 @@ import {
   Drawer,
   SidePanel,
   Text,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { ImageUpload } from "../../../../react/components/image-upload";
 import { z } from "zod";

@@ -1,5 +1,5 @@
 import { ComponentPropsWithRef, ReactNode } from 'react';
-import { Flex, Headline } from '@raystack/apsara-v1';
+import { Flex, Headline } from '@raystack/apsara';
 import logo from '~/react/assets/logo.png';
 import styles from './auth-header.module.css';
 

@@ -8,7 +8,7 @@ import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
-import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara";
 import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {

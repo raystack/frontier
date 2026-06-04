@@ -1,4 +1,4 @@
-import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara-v1";
+import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara";
 import type { Product } from "@raystack/proton/frontier";
 import { timestampToDate, TimeStamp } from "../../utils/connect-timestamp";
 import styles from "./products.module.css";

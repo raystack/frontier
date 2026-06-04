@@ -1,5 +1,2 @@
-export { default as SessionsPage } from './sessions-page';
-export type { SessionsPageProps } from './sessions-page';
-
-export { RevokeSessionDialog } from './revoke-session-dialog';
-export type { RevokeSessionDialogProps } from './revoke-session-dialog';
+export { SessionsView } from './sessions-view';
+export type { SessionsViewProps } from './sessions-view';

@@ -1,5 +1,5 @@
 import { ComponentProps, ReactNode } from 'react';
-import { Flex, Headline, Text } from '@raystack/apsara-v1';
+import { Flex, Headline, Text } from '@raystack/apsara';
 
 export interface ViewHeaderProps extends ComponentProps<typeof Flex> {
   title: string;

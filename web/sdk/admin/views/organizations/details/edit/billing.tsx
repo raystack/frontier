@@ -10,7 +10,7 @@ import {
   Drawer,
   SidePanel,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import styles from "./edit.module.css";
 import { useCallback, useContext, useEffect, useMemo } from "react";
 import { OrganizationContext } from "../contexts/organization-context";

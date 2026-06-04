@@ -3,7 +3,7 @@ import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import { FrontierServiceQueries, GetBillingBalanceRequestSchema } from '@raystack/proton/frontier';
 import { useFrontier } from '../contexts/FrontierContext';
-import { toast } from '@raystack/apsara';
+import { toastManager } from '@raystack/apsara';
 
 interface UseTokensReturn {
   tokenBalance: bigint;
@@ -34,7 +34,10 @@ export const useTokens = (): UseTokensReturn => {
   useEffect(() => {
     if (error) {
       console.error(error);
-      toast.error('Unable to fetch balance');
+      toastManager.add({
+        title: 'Unable to fetch balance',
+        type: 'error'
+      });
     }
   }, [error]);
 

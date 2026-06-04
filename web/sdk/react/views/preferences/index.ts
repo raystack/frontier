@@ -1,1 +1,2 @@
-export { default as PreferencesPage } from './preferences-page';
+export { PreferencesView } from './preferences-view';
+export { PreferenceRow } from './components/preference-row';

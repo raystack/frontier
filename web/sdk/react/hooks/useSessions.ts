@@ -7,7 +7,7 @@ import {
 } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
-import { toast } from '@raystack/apsara';
+import { toastManager } from '@raystack/apsara';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { timestampToDayjs } from '../../utils/timestamp';
@@ -86,11 +86,16 @@ export const useSessions = () => {
             cardinality: 'finite'
           })
         });
-        toast.success('Session revoked successfully');
+        toastManager.add({
+          title: 'Session revoked successfully',
+          type: 'success'
+        });
       },
       onError: (error: any) => {
-        toast.error('Failed to revoke session', {
-          description: getErrorMessage(error)
+        toastManager.add({
+          title: 'Failed to revoke session',
+          description: getErrorMessage(error),
+          type: 'error'
         });
       }
     }

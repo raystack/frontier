@@ -16,7 +16,7 @@ import {
   Flex,
   IconButton,
   Text
-} from '@raystack/apsara-v1';
+} from '@raystack/apsara';
 import 'react-image-crop/dist/ReactCrop.css';
 import styles from './image-upload.module.css';
 import { type SyntheticEvent, type ChangeEvent } from 'react';

@@ -5,8 +5,8 @@ import {
   Flex,
   Text,
   Menu,
-} from "@raystack/apsara-v1";
-import type { DataTableColumnDef } from "@raystack/apsara-v1";
+} from "@raystack/apsara";
+import type { DataTableColumnDef } from "@raystack/apsara";
 import type {
   SearchOrganizationProjectsResponse_OrganizationProject,
   User,

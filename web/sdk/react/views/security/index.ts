@@ -1,2 +1,2 @@
-export { SecurityPage } from './security-page';
-export type { SecurityPageProps } from './security-page';
+export { SecurityView } from './security-view';
+export type { SecurityViewProps } from './security-view';

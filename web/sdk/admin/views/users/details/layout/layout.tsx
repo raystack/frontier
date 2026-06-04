@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Flex } from "@raystack/apsara-v1";
+import { Flex } from "@raystack/apsara";
 import { UserDetailsSidePanel } from "./side-panel";
 import styles from "./layout.module.css";
 import { UserDetailsNavbar } from "./navbar";

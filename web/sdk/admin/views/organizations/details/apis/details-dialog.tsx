@@ -1,4 +1,4 @@
-import { Dialog, Flex, Skeleton, Tabs, Text, toastManager } from "@raystack/apsara-v1";
+import { Dialog, Flex, Skeleton, Tabs, Text, toastManager } from "@raystack/apsara";
 import styles from "./apis.module.css";
 import { useCallback, useEffect, useMemo } from "react";
 import dayjs from "dayjs";

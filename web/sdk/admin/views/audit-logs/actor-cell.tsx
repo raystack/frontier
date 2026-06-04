@@ -1,4 +1,4 @@
-import { Avatar, Flex, getAvatarColor, Text } from "@raystack/apsara-v1";
+import { Avatar, Flex, getAvatarColor, Text } from "@raystack/apsara";
 import { AuditRecordActor } from "@raystack/proton/frontier";
 import { ACTOR_TYPES, getAuditLogActorName } from "./util";
 import systemIcon from "../../assets/images/system.jpg";

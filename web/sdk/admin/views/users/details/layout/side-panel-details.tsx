@@ -1,4 +1,4 @@
-import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara-v1";
+import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import styles from "./side-panel.module.css";
 import { UserState, USER_STATES } from "../../util";

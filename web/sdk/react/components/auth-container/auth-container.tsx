@@ -1,5 +1,5 @@
 import { ComponentPropsWithRef, ReactNode } from 'react';
-import { Flex } from '@raystack/apsara-v1';
+import { Flex } from '@raystack/apsara';
 import { cx } from 'class-variance-authority';
 import styles from './auth-container.module.css';
 

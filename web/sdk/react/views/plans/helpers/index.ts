@@ -1,7 +1,5 @@
 import {
   IntervalKeys,
-  IntervalPricing,
-  IntervalPricingWithPlan,
   PlanIntervalPricing
 } from '~/src/types';
 import { getPlanPrice, makePlanSlug } from '~/react/utils';
@@ -30,7 +28,7 @@ export function groupPlansPricingByInterval(plans: Plan[]) {
       interval: planInterval,
       weightage: planMetadata?.weightage ? Number(planMetadata?.weightage) : 0,
       productNames: [],
-      trialDays: plan?.trialDays || '',
+      trialDays: plan?.trialDays ? String(plan.trialDays) : '',
       features: {},
       ...productPrices
     };
@@ -44,7 +42,7 @@ export function groupPlansPricingByInterval(plans: Plan[]) {
         plansMap[slug].intervals[planInterval].features[feature?.title || ''] =
           feature;
       });
-    }, {} as IntervalPricing) || ({} as IntervalPricing);
+    });
 
     plansMap[slug].weightage = Object.values(plansMap[slug].intervals).reduce(
       (acc, data) => acc + data.weightage,

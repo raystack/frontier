@@ -1,4 +1,4 @@
-import { ThemeProvider, Toast } from '@raystack/apsara-v1';
+import { Theme, Toast } from '@raystack/apsara';
 import { FrontierProviderProps } from '../../shared/types';
 import { FrontierContextProvider } from './FrontierContext';
 import { CustomizationProvider } from './CustomizationContext';
@@ -36,7 +36,7 @@ export const FrontierProvider = (props: FrontierProviderProps) => {
             config={config}
             {...options}
           >
-            <OptionalProvider provider={ThemeProvider} shouldRender={renderThemeProvider} providerProps={theme}>
+            <OptionalProvider provider={Theme} shouldRender={renderThemeProvider} providerProps={theme}>
               <OptionalProvider provider={Toast.Provider} shouldRender={renderToastProvider}>
                 {children}
               </OptionalProvider>

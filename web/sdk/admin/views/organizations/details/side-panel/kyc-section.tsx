@@ -1,11 +1,11 @@
-import { Flex, List, Text, Link, Tooltip } from "@raystack/apsara-v1";
+import { Flex, List, Text, Link, Tooltip } from "@raystack/apsara";
 import { useContext } from "react";
 import styles from "./side-panel.module.css";
 import Skeleton from "react-loading-skeleton";
 import {
   CheckCircleFilledIcon,
   CrossCircleFilledIcon,
-} from "@raystack/apsara-v1/icons";
+} from "@raystack/apsara/icons";
 import { Link2Icon } from "@radix-ui/react-icons";
 import { OrganizationContext } from "../contexts/organization-context";
 

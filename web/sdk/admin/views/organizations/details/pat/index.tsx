@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { LockClosedIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";

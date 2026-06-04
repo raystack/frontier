@@ -1,5 +1,5 @@
 import { ComponentProps } from 'react';
-import { Flex } from '@raystack/apsara-v1';
+import { Flex } from '@raystack/apsara';
 import styles from './view-container.module.css';
 import { cx } from 'class-variance-authority';
 

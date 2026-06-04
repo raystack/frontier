@@ -6,7 +6,7 @@ import {
   Radio,
   Text,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
   Role,

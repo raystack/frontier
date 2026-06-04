@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { List, Text, Flex } from "@raystack/apsara-v1";
+import { List, Text, Flex } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";

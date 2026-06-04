@@ -1,4 +1,4 @@
-import { Button, Text } from '@raystack/apsara-v1';
+import { Button, Text } from '@raystack/apsara';
 import { HTMLProps } from 'react';
 import GoogleLogo from '~/react/assets/logos/google-logo.svg';
 import { capitalize } from '~/utils';
