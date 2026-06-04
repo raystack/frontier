@@ -577,8 +577,8 @@ func buildAPIDependencies(
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
-		groupService, membershipService, policyService, roleService, invitationService, userService, serviceUserService,
-		customerService, subscriptionService, invoiceService,
+		groupService, membershipService, policyService, roleService, invitationService, userService, userPATService,
+		serviceUserService, customerService, subscriptionService, invoiceService,
 	)
 
 	// we should default it with a stdout logger repository as postgres can start to bloat really fast
