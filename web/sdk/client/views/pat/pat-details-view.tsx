@@ -17,7 +17,8 @@ import {
   Menu,
   Skeleton,
   Text,
-  toastManager
+  toastManager,
+  Tooltip
 } from '@raystack/apsara';
 import deleteIcon from '../../assets/delete.svg';
 import { useQuery } from '@connectrpc/connect-query';
