@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { ReactNode } from "react";
 import { getColumns } from "./columns";
 import styles from "./admins.module.css";

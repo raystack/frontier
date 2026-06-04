@@ -5,14 +5,18 @@ import {
   Flex,
   Text,
   Menu,
-} from "@raystack/apsara-v1";
+  IconButton,
+  AlertDialog,
+} from "@raystack/apsara";
 import type {
   SearchOrganizationUsersResponse_OrganizationUser,
   Role,
 } from "@raystack/proton/frontier";
+import type { UpdateRolePayload } from "./update-role";
 import styles from "./members.module.css";
 import dayjs from "dayjs";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { DeleteIcon } from "~/admin/assets/icons/DeleteIcon";
 import {
   isNullTimestamp,
   TimeStamp,
@@ -26,9 +30,10 @@ const MemberStates = {
 
 interface getColumnsOptions {
   roles: Role[];
-  handleAssignRoleAction: (
-    user: SearchOrganizationUsersResponse_OrganizationUser,
-  ) => void;
+  memberCount: number;
+  updateRoleHandle: ReturnType<
+    typeof AlertDialog.createHandle<UpdateRolePayload>
+  >;
   handleRemoveMemberAction: (
     user: SearchOrganizationUsersResponse_OrganizationUser,
   ) => void;
@@ -36,7 +41,8 @@ interface getColumnsOptions {
 
 export const getColumns = ({
   roles = [],
-  handleAssignRoleAction,
+  memberCount,
+  updateRoleHandle,
   handleRemoveMemberAction,
 }: getColumnsOptions): DataTableColumnDef<
   SearchOrganizationUsersResponse_OrganizationUser,
@@ -136,22 +142,54 @@ export const getColumns = ({
         cell: styles["table-action-column"],
       },
       cell: ({ row }) => {
+        // The last remaining member of an organization cannot be removed.
+        const canRemoveMember = memberCount > 1;
+        const userRoleIds = row.original.roleIds || [];
+        // Only offer roles the member doesn't already have.
+        const excludedRoles = roles.filter(
+          (role) => role.id && !userRoleIds.includes(role.id),
+        );
         return (
           <Menu>
-            <Menu.Trigger render={<DotsHorizontalIcon />} />
+            <Menu.Trigger
+              render={
+                <IconButton size={3} data-test-id="admin-members-action-menu">
+                  <DotsHorizontalIcon />
+                </IconButton>
+              }
+            />
             <Menu.Content className={styles["table-action-dropdown"]}>
-              <Menu.Item
-                onClick={() => handleAssignRoleAction(row.original)}
-                data-test-id="admin-assign-role-action"
-              >
-                Assign role...
-              </Menu.Item>
-              <Menu.Item
-                onClick={() => handleRemoveMemberAction(row.original)}
-                data-test-id="admin-remove-member-action"
-              >
-                Remove...
-              </Menu.Item>
+              {excludedRoles.map((role) => (
+                <Menu.Item
+                  key={role.id}
+                  leadingIcon={<UpdateIcon />}
+                  onClick={() =>
+                    updateRoleHandle.openWithPayload({
+                      user: row.original,
+                      role,
+                    })
+                  }
+                  data-test-id={`admin-assign-role-${role.name}-action`}
+                >
+                  Make {role.title}
+                </Menu.Item>
+              ))}
+              {canRemoveMember && (
+                <Menu.Item
+                  leadingIcon={
+                    <DeleteIcon
+                      style={{
+                        color: "var(--rs-color-foreground-danger-primary)",
+                      }}
+                    />
+                  }
+                  onClick={() => handleRemoveMemberAction(row.original)}
+                  data-test-id="admin-remove-member-action"
+                  style={{ color: "var(--rs-color-foreground-danger-primary)" }}
+                >
+                  Remove
+                </Menu.Item>
+              )}
             </Menu.Content>
           </Menu>
         );

@@ -8,7 +8,7 @@ import {
   Text,
   Input,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";

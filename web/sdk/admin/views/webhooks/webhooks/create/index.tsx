@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Button, Flex, Drawer, toastManager } from "@raystack/apsara-v1";
+import { Button, Flex, Drawer, toastManager } from "@raystack/apsara";
 import { SheetHeader } from "../../../../components/SheetHeader";
 import { SheetFooter } from "../../../../components/SheetFooter";
 import * as z from "zod";

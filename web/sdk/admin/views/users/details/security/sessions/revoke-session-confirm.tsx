@@ -5,7 +5,7 @@ import {
   Flex,
   List,
   Text
-} from '@raystack/apsara-v1';
+} from '@raystack/apsara';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import { formatDeviceDisplay } from './index';
 import styles from './sessions.module.css';

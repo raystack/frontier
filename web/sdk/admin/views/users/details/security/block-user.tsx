@@ -1,5 +1,5 @@
 import { ComponentProps, useCallback, useState } from "react";
-import { AlertDialog, Button, toastManager } from "@raystack/apsara-v1";
+import { AlertDialog, Button, toastManager } from "@raystack/apsara";
 import { useUser } from "../user-context";
 import { getUserName } from "../../util";
 import {

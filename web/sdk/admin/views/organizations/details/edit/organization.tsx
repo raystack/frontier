@@ -12,9 +12,9 @@ import {
   SidePanel,
   Text,
   Label,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { AvatarUpload } from "../../../../../react/components/avatar-upload";
+import { ImageUpload } from "~/client/components/image-upload";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -198,7 +198,7 @@ export function EditOrganizationPanel({ open = false, onClose }: { open?: boolea
                         gap={5}
                         style={{ width: "100%" }}
                       >
-                        <AvatarUpload {...field} data-test-id="avatar-upload" />
+                        <ImageUpload {...field} data-test-id="avatar-upload" />
                         <Text>Pick a logo for your {t.organization({ case: "lower" })}</Text>
                       </Flex>
                     </>

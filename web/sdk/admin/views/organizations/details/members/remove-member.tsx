@@ -5,7 +5,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
 import { ConnectError } from "@connectrpc/connect";
 import { useTerminology } from "../../../../hooks/useTerminology";
 

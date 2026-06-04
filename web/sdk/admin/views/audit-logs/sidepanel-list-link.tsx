@@ -1,4 +1,4 @@
-import { Button, List } from "@raystack/apsara-v1";
+import { Button, List } from "@raystack/apsara";
 import { ReactNode } from "react";
 import styles from "./audit-logs.module.css";
 

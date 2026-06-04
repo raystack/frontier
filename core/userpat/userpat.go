@@ -13,6 +13,7 @@ type Repository interface {
 	CountActive(ctx context.Context, userID, orgID string) (int64, error)
 	GetByID(ctx context.Context, id string) (models.PAT, error)
 	List(ctx context.Context, userID, orgID string, query *rql.Query) (models.PATList, error)
+	ListByUser(ctx context.Context, userID string) ([]models.PAT, error)
 	GetBySecretHash(ctx context.Context, secretHash string) (models.PAT, error)
 	IsTitleAvailable(ctx context.Context, userID, orgID, title string) (bool, error)
 	UpdateUsedAt(ctx context.Context, id string, at time.Time) error

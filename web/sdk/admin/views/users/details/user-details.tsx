@@ -1,4 +1,4 @@
-import { Flex, EmptyState, Spinner } from "@raystack/apsara-v1";
+import { Flex, EmptyState, Spinner } from "@raystack/apsara";
 import { PageTitle } from "../../../components/PageTitle";
 import UserIcon from "../../../assets/icons/UsersIcon";
 import { UserDetailsLayout } from "./layout";

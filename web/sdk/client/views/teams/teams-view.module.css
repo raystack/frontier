@@ -1,0 +1,23 @@
+.tableRoot {
+  border: none;
+}
+
+.menuContent {
+  min-width: 160px;
+}
+
+.teamsFilter {
+  width: auto;
+  min-width: 120px;
+  box-shadow: none;
+}
+
+.emptyStateIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.emptyState {
+  padding-top: var(--rs-space-17);
+}

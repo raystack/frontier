@@ -4,7 +4,7 @@ import {
   Flex,
   Text,
   type DataTableColumnDef,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import styles from "./webhooks.module.css";
 import { type Webhook } from "@raystack/proton/frontier";
 import {

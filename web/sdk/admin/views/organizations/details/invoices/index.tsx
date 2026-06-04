@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./invoices.module.css";
 import { FileTextIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useMemo, useState } from "react";
@@ -96,7 +96,7 @@ export function OrganizationInvoicesView() {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-    isError,
+    isError
   } = useInfiniteQuery(
     FrontierServiceQueries.searchOrganizationInvoices,
     { id: organizationId, query: query },
@@ -115,7 +115,6 @@ export function OrganizationInvoicesView() {
       retryDelay: 1000,
     },
   );
-
   const data =
     infiniteData?.pages?.flatMap(page => page.organizationInvoices) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;

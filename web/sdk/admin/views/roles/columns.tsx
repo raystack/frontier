@@ -1,4 +1,4 @@
-import { type DataTableColumnDef, Flex } from "@raystack/apsara-v1";
+import { type DataTableColumnDef, Flex } from "@raystack/apsara";
 import type { Role } from "@raystack/proton/frontier";
 import styles from "./roles.module.css";
 export const getColumns: () => DataTableColumnDef<Role, unknown>[] = () => {

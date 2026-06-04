@@ -1,4 +1,4 @@
-import { Button, Flex, DataTable, EmptyState } from "@raystack/apsara-v1";
+import { Button, Flex, DataTable, EmptyState } from "@raystack/apsara";
 import { useCallback, type ReactNode } from "react";
 import { getColumns } from "./columns";
 import styles from "./webhooks.module.css";

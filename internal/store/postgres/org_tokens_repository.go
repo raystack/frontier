@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
@@ -166,6 +167,20 @@ func (r OrgTokensRepository) addFilter(query *goqu.SelectDataset, filter rql.Fil
 	case "like", "notlike":
 		value := "%" + filter.Value.(string) + "%"
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: value}}), nil
+	case "in", "notin":
+		// in/notin only applies to string-type RQL fields (source, type, etc.)
+		// numeric fields like amount are rejected by rql.ValidateQuery before reaching here
+		values := make([]string, 0)
+		for _, v := range strings.Split(filter.Value.(string), ",") {
+			if trimmed := strings.TrimSpace(v); trimmed != "" {
+				values = append(values, trimmed)
+			}
+		}
+		col := goqu.Cast(goqu.I(field), "TEXT")
+		if filter.Operator == "in" {
+			return query.Where(col.In(values)), nil
+		}
+		return query.Where(col.NotIn(values)), nil
 	default:
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}}), nil
 	}

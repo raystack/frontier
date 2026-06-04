@@ -32,6 +32,7 @@ func newMocks(t *testing.T) (
 	*mocks.RoleService,
 	*mocks.InvitationService,
 	*mocks.UserService,
+	*mocks.UserPATService,
 	*mocks.ServiceUserService,
 	*mocks.CustomerService,
 	*mocks.SubscriptionService,
@@ -47,6 +48,7 @@ func newMocks(t *testing.T) (
 		mocks.NewRoleService(t),
 		mocks.NewInvitationService(t),
 		mocks.NewUserService(t),
+		mocks.NewUserPATService(t),
 		mocks.NewServiceUserService(t),
 		mocks.NewCustomerService(t),
 		mocks.NewSubscriptionService(t),
@@ -55,7 +57,7 @@ func newMocks(t *testing.T) (
 
 func TestDeleteProject(t *testing.T) {
 	t.Run("deletes policies, resources, then project model", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{{ID: "pol-1"}, {ID: "pol-2"}}, nil)
@@ -68,38 +70,38 @@ func TestDeleteProject(t *testing.T) {
 
 		projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteProject(context.Background(), "proj-1")
 		assert.NoError(t, err)
 	})
 
 	t.Run("returns error when policy list fails", func(t *testing.T) {
-		_, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		_, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 		orgSvc := mocks.NewOrganizationService(t)
 
 		polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return(nil, errors.New("db error"))
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteProject(context.Background(), "proj-1")
 		assert.ErrorContains(t, err, "db error")
 	})
 
 	t.Run("returns error when policy delete fails", func(t *testing.T) {
-		_, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		_, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 		orgSvc := mocks.NewOrganizationService(t)
 
 		polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{{ID: "pol-fail"}}, nil)
 		polSvc.EXPECT().Delete(mock.Anything, "pol-fail").Return(errors.New("delete error"))
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteProject(context.Background(), "proj-1")
 		assert.ErrorContains(t, err, "pol-fail")
 	})
 
 	t.Run("no policies — still deletes resources and project", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
@@ -107,7 +109,7 @@ func TestDeleteProject(t *testing.T) {
 			Return([]resource.Resource{}, nil)
 		projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteProject(context.Background(), "proj-1")
 		assert.NoError(t, err)
 	})
@@ -115,7 +117,7 @@ func TestDeleteProject(t *testing.T) {
 
 func TestDeleteOrganization(t *testing.T) {
 	t.Run("full cascade delete", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		// canDelete: no customers
 		custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
@@ -165,13 +167,13 @@ func TestDeleteOrganization(t *testing.T) {
 		// finally delete org model
 		orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
 	})
 
 	t.Run("blocked when billed customer has invoices", func(t *testing.T) {
-		_, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		_, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 		orgSvc := mocks.NewOrganizationService(t)
 
 		custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
@@ -179,13 +181,13 @@ func TestDeleteOrganization(t *testing.T) {
 		invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1"}).
 			Return([]invoice.Invoice{{ID: "inv-1"}}, nil)
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorIs(t, err, deleter.ErrDeleteNotAllowed)
 	})
 
 	t.Run("propagates error when service user list fails", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
@@ -198,13 +200,13 @@ func TestDeleteOrganization(t *testing.T) {
 		suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return(nil, errors.New("su list failed"))
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "su list failed")
 	})
 
 	t.Run("propagates error when service user delete fails", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
@@ -218,7 +220,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]serviceuser.ServiceUser{{ID: "su-1"}}, nil)
 		suSvc.EXPECT().Delete(mock.Anything, "su-1").Return(errors.New("su delete failed"))
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "su delete failed")
 		assert.ErrorContains(t, err, "su-1")
@@ -227,7 +229,7 @@ func TestDeleteOrganization(t *testing.T) {
 
 func TestDeleteCustomers(t *testing.T) {
 	t.Run("deletes subscriptions invoices and customer", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
 		custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
@@ -236,13 +238,13 @@ func TestDeleteCustomers(t *testing.T) {
 		invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
 		custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteCustomers(context.Background(), "org-1")
 		assert.NoError(t, err)
 	})
 
 	t.Run("skips subscription and invoice delete when no provider", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		c := customer.Customer{ID: "cust-no-provider", ProviderID: ""}
 		custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
@@ -250,22 +252,36 @@ func TestDeleteCustomers(t *testing.T) {
 		// no sub or invoice delete expected
 		custSvc.EXPECT().Delete(mock.Anything, "cust-no-provider").Return(nil)
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteCustomers(context.Background(), "org-1")
 		assert.NoError(t, err)
 	})
 }
 
 func TestDeleteUser(t *testing.T) {
-	t.Run("removes user from all orgs then deletes", func(t *testing.T) {
-		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+	t.Run("removes user from all orgs, cleans PATs, then deletes user", func(t *testing.T) {
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
 		mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
 			Return(nil, nil)
+		patSvc.EXPECT().DeleteAllByUser(mock.Anything, "user-1").Return(nil)
 		usrSvc.EXPECT().Delete(mock.Anything, "user-1").Return(nil)
 
-		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, suSvc, custSvc, subSvc, invocSvc)
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
 		err := svc.DeleteUser(context.Background(), "user-1")
 		assert.NoError(t, err)
+	})
+
+	t.Run("aborts before userService.Delete when PAT cleanup fails", func(t *testing.T) {
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+
+		mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
+			Return(nil, nil)
+		patSvc.EXPECT().DeleteAllByUser(mock.Anything, "user-1").Return(errors.New("pat cleanup boom"))
+		// usrSvc.Delete must NOT be called — strict mock fails on unexpected call.
+
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
+		err := svc.DeleteUser(context.Background(), "user-1")
+		assert.ErrorContains(t, err, "pat cleanup boom")
 	})
 }

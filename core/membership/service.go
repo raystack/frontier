@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"time"
-
-	"log/slog"
 
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/auditrecord"
@@ -20,6 +19,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
@@ -64,6 +64,10 @@ type ServiceuserService interface {
 	Get(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 }
 
+type UserPATService interface {
+	GetByID(ctx context.Context, id string) (patmodels.PAT, error)
+}
+
 type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
 }
@@ -78,6 +82,7 @@ type Service struct {
 	projectService        ProjectService
 	groupService          GroupService
 	serviceuserService    ServiceuserService
+	userPATService        UserPATService
 	auditRecordRepository AuditRecordRepository
 }
 
@@ -107,7 +112,13 @@ func NewService(
 	}
 }
 
-// AddOrganizationMember adds a principal (user or service user) to an organization
+// SetUserPATService sets the PAT dependency after construction to break the
+// circular init order between userpat and membership services.
+func (s *Service) SetUserPATService(ups UserPATService) {
+	s.userPATService = ups
+}
+
+// AddOrganizationMember adds a principal (user, service user, or PAT) to an organization
 // with an explicit role, bypassing the invitation flow.
 // Returns ErrAlreadyMember if the principal already has a policy on this org.
 func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error {
@@ -136,6 +147,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
+	existing = excludePATAllProjects(existing, schema.OrganizationNamespace)
 	if len(existing) > 0 {
 		return ErrAlreadyMember
 	}
@@ -143,6 +155,12 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 	createdPolicy, err := s.createPolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID)
 	if err != nil {
 		return err
+	}
+
+	// PATs don't get relations.
+	if principalType == schema.PATPrincipal {
+		s.auditOrgMemberAdded(ctx, org, principal, roleID)
+		return nil
 	}
 
 	relationName := orgRoleToRelation(fetchedRole)
@@ -182,7 +200,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 }
 
 // SetOrganizationMemberRole changes an existing member's role in an organization.
-// Supports user and service user principals.
+// Supports user, service user, and PAT principals.
 // Skips the write if the member already has exactly the requested role.
 func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principalID, principalType, roleID string) error {
 	org, err := s.orgService.Get(ctx, orgID)
@@ -211,7 +229,9 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
-	if len(existing) == 0 {
+	// drop the PAT's all-projects policy — only the org role should be replaced here.
+	existing = excludePATAllProjects(existing, schema.OrganizationNamespace)
+	if len(existing) == 0 && principalType != schema.PATPrincipal {
 		return ErrNotMember
 	}
 
@@ -220,13 +240,23 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 		return nil
 	}
 
-	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing)
-	if err != nil {
-		return err
+	// only human users can be the last owner — skip for service users and PATs.
+	var ownerRoleID string
+	if principalType == schema.UserPrincipal {
+		ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, resolvedRoleID, existing)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing, ownerRoleID); err != nil {
 		return err
+	}
+
+	// PATs don't get relations.
+	if principalType == schema.PATPrincipal {
+		s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
+		return nil
 	}
 
 	newRelation := orgRoleToRelation(fetchedRole)
@@ -246,6 +276,104 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 
 	s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
 	return nil
+}
+
+// SetPATAllProjectsRole grants a PAT a project-scoped role across all projects
+// in the org via the pat_granted relation. Idempotent — replaces any existing
+// all-projects role for this PAT on this org.
+func (s *Service) SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleID string) error {
+	org, err := s.orgService.Get(ctx, orgID)
+	if err != nil {
+		return err
+	}
+
+	principal, err := s.validatePrincipal(ctx, orgID, patID, schema.PATPrincipal)
+	if err != nil {
+		return err
+	}
+
+	fetchedRole, err := s.validateProjectRole(ctx, roleID, orgID)
+	if err != nil {
+		return err
+	}
+	resolvedRoleID := fetchedRole.ID
+
+	allPolicies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID:         orgID,
+		PrincipalID:   patID,
+		PrincipalType: schema.PATPrincipal,
+	})
+	if err != nil {
+		return fmt.Errorf("list existing policies: %w", err)
+	}
+
+	var existing []policy.Policy
+	for _, p := range allPolicies {
+		if p.GrantRelation == schema.PATGrantRelationName {
+			existing = append(existing, p)
+		}
+	}
+
+	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
+		return nil
+	}
+
+	for _, p := range existing {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+			return fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+
+	if _, err := s.policyService.Create(ctx, policy.Policy{
+		RoleID:        resolvedRoleID,
+		ResourceID:    orgID,
+		ResourceType:  schema.OrganizationNamespace,
+		PrincipalID:   patID,
+		PrincipalType: schema.PATPrincipal,
+		GrantRelation: schema.PATGrantRelationName,
+	}); err != nil {
+		s.log.ErrorContext(ctx, "membership state inconsistent: old pat_granted policies deleted but new policy creation failed, needs manual fix",
+			"org_id", orgID,
+			"pat_id", patID,
+			"role_id", resolvedRoleID,
+			"error", err,
+		)
+		return fmt.Errorf("create policy: %w", err)
+	}
+
+	s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
+	return nil
+}
+
+// ListPoliciesByPrincipal returns every policy held by the principal.
+func (s *Service) ListPoliciesByPrincipal(ctx context.Context, principalID, principalType string) ([]policy.Policy, error) {
+	return s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+}
+
+// RemoveAllPATPolicies deletes every policy held by a PAT.
+func (s *Service) RemoveAllPATPolicies(ctx context.Context, patID string) error {
+	_, err := s.removePoliciesByFilter(ctx, policy.Filter{
+		PrincipalID:   patID,
+		PrincipalType: schema.PATPrincipal,
+	})
+	return err
+}
+
+// removePoliciesByFilter lists policies matching the filter and deletes them.
+func (s *Service) removePoliciesByFilter(ctx context.Context, filter policy.Filter) (int, error) {
+	policies, err := s.policyService.List(ctx, filter)
+	if err != nil {
+		return 0, fmt.Errorf("list policies: %w", err)
+	}
+	for _, p := range policies {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+			return 0, fmt.Errorf("delete policy %s: %w", p.ID, err)
+		}
+	}
+	return len(policies), nil
 }
 
 // RemoveOrganizationMember removes a principal from an organization and cascades
@@ -275,9 +403,13 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 		return ErrNotMember
 	}
 
-	ownerRoleID, err := s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
-	if err != nil {
-		return err
+	// only humans can be the last owner — skip for service users and PATs.
+	var ownerRoleID string
+	if principalType == schema.UserPrincipal {
+		ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := s.cascadeRemovePrincipal(ctx, org, principalID, principalType, ownerRoleID); err != nil {
@@ -586,6 +718,25 @@ func (s *Service) validatePrincipal(ctx context.Context, orgID, principalID, pri
 			Type: schema.ServiceUserPrincipal,
 			Name: su.Title,
 		}, nil
+	case schema.PATPrincipal:
+		if s.userPATService == nil {
+			return principalInfo{}, ErrInvalidPrincipal
+		}
+		pat, err := s.userPATService.GetByID(ctx, principalID)
+		if err != nil {
+			return principalInfo{}, err
+		}
+		if pat.OrgID != orgID {
+			return principalInfo{}, ErrPrincipalNotInOrg
+		}
+		if !pat.ExpiresAt.After(time.Now()) {
+			return principalInfo{}, ErrPrincipalExpired
+		}
+		return principalInfo{
+			ID:   pat.ID,
+			Type: schema.PATPrincipal,
+			Name: pat.Title,
+		}, nil
 	default:
 		return principalInfo{}, ErrInvalidPrincipal
 	}
@@ -765,7 +916,7 @@ func (s *Service) SetProjectMemberRole(ctx context.Context, projectID, principal
 // RemoveProjectMember removes a principal from a project by deleting all their project-level policies.
 func (s *Service) RemoveProjectMember(ctx context.Context, projectID, principalID, principalType string) error {
 	switch principalType {
-	case schema.UserPrincipal, schema.ServiceUserPrincipal, schema.GroupPrincipal:
+	case schema.UserPrincipal, schema.ServiceUserPrincipal, schema.GroupPrincipal, schema.PATPrincipal:
 	default:
 		return ErrInvalidPrincipalType
 	}
@@ -818,6 +969,22 @@ func policyFilterForResource(resourceID, resourceType, principalID, principalTyp
 		f.GroupID = resourceID
 	}
 	return f
+}
+
+// excludePATAllProjects hides a PAT's all-projects grant from org member
+// listings — that policy lives on the org but grants project access, not
+// org membership.
+func excludePATAllProjects(policies []policy.Policy, resourceType string) []policy.Policy {
+	if resourceType != schema.OrganizationNamespace {
+		return policies
+	}
+	filtered := policies[:0]
+	for _, p := range policies {
+		if p.GrantRelation != schema.PATGrantRelationName {
+			filtered = append(filtered, p)
+		}
+	}
+	return filtered
 }
 
 // validateProjectRole checks that the role is valid for project scope:
@@ -884,6 +1051,20 @@ func (s *Service) validateOrgMembership(ctx context.Context, orgID, principalID,
 		}
 		if grp.OrganizationID != orgID {
 			return ErrNotOrgMember
+		}
+	case schema.PATPrincipal:
+		if s.userPATService == nil {
+			return ErrInvalidPrincipal
+		}
+		pat, err := s.userPATService.GetByID(ctx, principalID)
+		if err != nil {
+			return err
+		}
+		if pat.OrgID != orgID {
+			return ErrNotOrgMember
+		}
+		if !pat.ExpiresAt.After(time.Now()) {
+			return ErrPrincipalExpired
 		}
 	default:
 		return ErrInvalidPrincipalType
@@ -957,6 +1138,7 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	if err != nil {
 		return nil, fmt.Errorf("list policies: %w", err)
 	}
+	policies = excludePATAllProjects(policies, resourceType)
 
 	// deduplicate by (principalID, principalType) preserving order
 	memberIndex := make(map[string]int, len(policies))
@@ -981,6 +1163,7 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	if err != nil {
 		return nil, fmt.Errorf("list policies for role enrichment: %w", err)
 	}
+	allPolicies = excludePATAllProjects(allPolicies, resourceType)
 
 	principalRoleIDs := make(map[string][]string, len(members))
 	roleSeen := make(map[string]map[string]struct{}, len(members))

@@ -1,4 +1,4 @@
-import { Flex, EmptyState } from "@raystack/apsara-v1";
+import { Flex, EmptyState } from "@raystack/apsara";
 import type { ReactNode } from "react";
 import { createQueryOptions, useTransport } from "@connectrpc/connect-query";
 import {

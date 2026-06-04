@@ -1,9 +1,9 @@
 import { OrganizationsDetailsNavabar } from "./navbar";
 import styles from "./layout.module.css";
-import { EmptyState, Flex, Spinner } from "@raystack/apsara-v1";
+import { EmptyState, Flex, Spinner } from "@raystack/apsara";
 import { OrgSidePanel } from "../side-panel/";
 import React, { useState } from "react";
-import { OrganizationIcon } from "@raystack/apsara-v1/icons";
+import { OrganizationIcon } from "@raystack/apsara/icons";
 import { PageTitle } from "../../../../components/PageTitle";
 import { EditKYCPanel } from "../edit/kyc";
 import { EditOrganizationPanel } from "../edit/organization";
