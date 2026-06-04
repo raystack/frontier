@@ -140,6 +140,7 @@ export function TeamsView({
       <ViewContainer>
         <EmptyState
           variant="empty2"
+          className={styles.emptyState}
           classNames={{
             icon: styles.emptyStateIcon
           }}

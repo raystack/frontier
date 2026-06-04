@@ -56,6 +56,7 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
+        className={styles["zero-state"]}
         icon={<LockClosedIcon />}
         heading="PAT"
         subHeading="Personal access tokens (PATs) provide programmatic access to organization resources via the API on behalf of a user."

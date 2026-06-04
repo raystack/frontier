@@ -10,3 +10,7 @@
   flex: 1;
   min-width: 0;
 }
+
+.emptyState {
+  padding-top: var(--rs-space-17);
+}

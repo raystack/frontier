@@ -151,6 +151,7 @@ export function PlansView() {
       <ViewContainer>
         <EmptyState
           variant="empty2"
+          className={styles.emptyState}
           icon={<ExclamationTriangleIcon />}
           heading="No Plans Available"
           subHeading="No plans available at this moment. Please try again later."

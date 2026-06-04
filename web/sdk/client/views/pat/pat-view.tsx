@@ -171,6 +171,7 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
       ) : hasNoPats ? (
         <EmptyState
           variant="empty2"
+          className={styles.emptyState}
           classNames={{
             icon: styles.emptyStateIcon
           }}
@@ -182,8 +183,8 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
               height={40}
             />
           }
-          heading="No Personal Access Token Found"
-          subHeading={`Create a personal access token to securely access ${t.appName()} resources and APIs.`}
+          heading="PAT"
+          subHeading={`A Personal Access Token (PAT) is a secure credential that allows external applications and scripts to interact with ${t.appName()} APIs. It enables authenticated access to resources and workflows without requiring direct user login.`}
           primaryAction={
             <Button
               variant="solid"

@@ -144,6 +144,7 @@ export function ServiceAccountsView({
       {hasNoAccess ? (
         <EmptyState
           variant="empty2"
+          className={styles.emptyState}
           icon={<ExclamationTriangleIcon />}
           heading="Restricted Access"
           subHeading="Admin access required, please reach out to your admin incase you want to generate a key."
@@ -151,6 +152,10 @@ export function ServiceAccountsView({
       ) : hasNoServiceAccounts ? (
         <EmptyState
           variant="empty2"
+          className={styles.emptyState}
+          classNames={{
+            icon: styles.emptyStateIcon
+          }}
           icon={
             <Image
               src={keyIcon as unknown as string}
