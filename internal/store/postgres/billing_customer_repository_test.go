@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/utils"

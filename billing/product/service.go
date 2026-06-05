@@ -9,7 +9,7 @@ import (
 	"github.com/mcuadros/go-defaults"
 	"github.com/stripe/stripe-go/v79"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/pkg/utils"
