@@ -12,7 +12,7 @@ async function loadCountries(): Promise<string[]> {
   return (data.default as { name: string }[]).map((c) => c.name);
 }
 
-export function OrganizationDetailsPage() {
+export default function OrganizationDetailsPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
   const location = useLocation();
   const navigate = useNavigate();

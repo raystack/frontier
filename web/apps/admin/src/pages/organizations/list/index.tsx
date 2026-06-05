@@ -15,7 +15,7 @@ async function loadCountries(): Promise<string[]> {
   return (data.default as { name: string }[]).map((c) => c.name);
 }
 
-export function OrganizationListPage() {
+export default function OrganizationListPage() {
   const navigate = useNavigate();
   const { config } = useContext(AppContext);
   const paths = useAdminPaths();
