@@ -149,6 +149,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 
 	interceptors := connect.WithInterceptors(
 		otelInterceptor,
+		connectinterceptors.UnaryConnectErrorSanitizerInterceptor(),
 		connectinterceptors.UnaryConnectLoggerInterceptor(logger, loggerOpts),
 		connectinterceptors.UnaryConnectErrorResponseInterceptor(),
 		sessionInterceptor,
