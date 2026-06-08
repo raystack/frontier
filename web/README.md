@@ -77,6 +77,23 @@ FRONTIER_CONNECT_ENDPOINT=http://localhost:8002/
 The `admin` app also reads `configs.dev.json` (served at `/configs` in dev) for
 local config and terminology overrides.
 
+## Embedding the admin app in the server
+
+The Frontier server embeds the admin dashboard into its binary at build time via
+`//go:embed` (see `apps/admin/embed.go`, which embeds `apps/admin/dist`). The Go
+build does **not** rebuild the frontend, so the binary serves whatever was last
+built into `apps/admin/dist`. To embed the latest admin UI, rebuild it before
+building the server. From the repo root:
+
+```sh
+make admin-app   # builds apps/admin/dist (the SDK is rebuilt first as a dependency)
+make build       # builds the Frontier server binary, embedding the fresh dist
+```
+
+`make admin-app` runs `pnpm build --filter=admin` under the hood; because `admin`
+depends on the `@raystack/frontier` SDK, Turbo rebuilds the SDK first, so the
+embedded app always picks up the current SDK.
+
 ## Common scripts
 
 Run from `frontier/web`:
