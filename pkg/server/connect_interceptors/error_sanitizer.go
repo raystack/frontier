@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"connectrpc.com/connect"
+	pkgerrors "github.com/raystack/frontier/pkg/errors"
 )
 
 func UnaryConnectErrorSanitizerInterceptor() connect.UnaryInterceptorFunc {
@@ -17,12 +18,12 @@ func UnaryConnectErrorSanitizerInterceptor() connect.UnaryInterceptorFunc {
 
 			var connectErr *connect.Error
 			if !errors.As(err, &connectErr) {
-				return nil, connect.NewError(connect.CodeInternal, errors.New("internal server error"))
+				return nil, connect.NewError(connect.CodeInternal, pkgerrors.ErrInternalServerError)
 			}
 
 			code := connectErr.Code()
 			if code == connect.CodeInternal || code == connect.CodeUnknown {
-				return nil, connect.NewError(connect.CodeInternal, errors.New("internal server error"))
+				return nil, connect.NewError(connect.CodeInternal, pkgerrors.ErrInternalServerError)
 			}
 
 			return resp, err
