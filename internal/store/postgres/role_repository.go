@@ -284,3 +284,25 @@ func (r RoleRepository) Delete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+// RemovePermissionFromRoles removes a permission slug from every role's
+// permission list (stored as a JSON array). The permission's SpiceDB tuples are
+// deleted elsewhere; this just cleans up the list.
+func (r RoleRepository) RemovePermissionFromRoles(ctx context.Context, slug string) error {
+	query, params, err := dialect.Update(TABLE_ROLES).Set(
+		goqu.Record{
+			"permissions": goqu.L("permissions - ?", slug),
+			"updated_at":  goqu.L("now()"),
+		},
+	).Where(
+		goqu.L("permissions @> ?::jsonb", fmt.Sprintf("[%q]", slug)),
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	return r.dbc.WithTimeout(ctx, TABLE_ROLES, "RemovePermissionFromRoles", func(ctx context.Context) error {
+		_, err := r.dbc.DB.ExecContext(ctx, query, params...)
+		return err
+	})
+}

@@ -69,6 +69,53 @@ func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, string)
 	return _c
 }
 
+// RemovePermissionFromRoles provides a mock function with given fields: ctx, slug
+func (_m *Repository) RemovePermissionFromRoles(ctx context.Context, slug string) error {
+	ret := _m.Called(ctx, slug)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemovePermissionFromRoles")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, slug)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_RemovePermissionFromRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemovePermissionFromRoles'
+type Repository_RemovePermissionFromRoles_Call struct {
+	*mock.Call
+}
+
+// RemovePermissionFromRoles is a helper method to define mock.On call
+//   - ctx context.Context
+//   - slug string
+func (_e *Repository_Expecter) RemovePermissionFromRoles(ctx interface{}, slug interface{}) *Repository_RemovePermissionFromRoles_Call {
+	return &Repository_RemovePermissionFromRoles_Call{Call: _e.mock.On("RemovePermissionFromRoles", ctx, slug)}
+}
+
+func (_c *Repository_RemovePermissionFromRoles_Call) Run(run func(ctx context.Context, slug string)) *Repository_RemovePermissionFromRoles_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_RemovePermissionFromRoles_Call) Return(_a0 error) *Repository_RemovePermissionFromRoles_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_RemovePermissionFromRoles_Call) RunAndReturn(run func(context.Context, string) error) *Repository_RemovePermissionFromRoles_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Get provides a mock function with given fields: ctx, id
 func (_m *Repository) Get(ctx context.Context, id string) (role.Role, error) {
 	ret := _m.Called(ctx, id)

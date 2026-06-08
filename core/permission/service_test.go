@@ -3,6 +3,7 @@ package permission_test
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"testing"
 
 	"github.com/google/uuid"
@@ -14,7 +15,7 @@ import (
 
 func TestService_Get(t *testing.T) {
 	mockRepo := mocks.NewRepository(t)
-	svc := permission.NewService(mockRepo)
+	svc := permission.NewService(slog.Default(), mockRepo, mocks.NewRelationService(t))
 
 	t.Run("should get permission by id", func(t *testing.T) {
 		inputID := uuid.New().String()
@@ -61,7 +62,7 @@ func TestService_Get(t *testing.T) {
 
 func TestService_Upsert(t *testing.T) {
 	mockRepo := mocks.NewRepository(t)
-	svc := permission.NewService(mockRepo)
+	svc := permission.NewService(slog.Default(), mockRepo, mocks.NewRelationService(t))
 
 	t.Run("should upsert permission", func(t *testing.T) {
 		inputPermission := permission.Permission{
@@ -112,7 +113,7 @@ func TestService_Upsert(t *testing.T) {
 
 func TestService_List(t *testing.T) {
 	mockRepo := mocks.NewRepository(t)
-	svc := permission.NewService(mockRepo)
+	svc := permission.NewService(slog.Default(), mockRepo, mocks.NewRelationService(t))
 
 	t.Run("should list permissions", func(t *testing.T) {
 		filters := permission.Filter{
@@ -157,7 +158,7 @@ func TestService_List(t *testing.T) {
 }
 func TestService_Update(t *testing.T) {
 	mockRepo := mocks.NewRepository(t)
-	svc := permission.NewService(mockRepo)
+	svc := permission.NewService(slog.Default(), mockRepo, mocks.NewRelationService(t))
 
 	t.Run("should update permission", func(t *testing.T) {
 		inputPermission := permission.Permission{
@@ -207,12 +208,19 @@ func TestService_Update(t *testing.T) {
 }
 
 func TestService_Delete(t *testing.T) {
-	mockRepo := mocks.NewRepository(t)
-	svc := permission.NewService(mockRepo)
+	t.Run("should sweep relations, prune role lists, then delete permission", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelation := mocks.NewRelationService(t)
+		mockRole := mocks.NewRoleService(t)
+		svc := permission.NewService(slog.Default(), mockRepo, mockRelation)
+		svc.SetRoleService(mockRole)
 
-	t.Run("should delete permission", func(t *testing.T) {
 		permissionID := uuid.New().String()
+		perm := permission.Permission{ID: permissionID, Name: "delete", Slug: "app_organization_delete"}
 
+		mockRepo.On("Get", mock.Anything, permissionID).Return(perm, nil).Once()
+		mockRelation.On("Delete", mock.Anything, mock.Anything).Return(nil).Once()
+		mockRole.On("RemovePermissionFromRoles", mock.Anything, "app_organization_delete").Return(nil).Once()
 		mockRepo.On("Delete", mock.Anything, permissionID).Return(nil).Once()
 
 		err := svc.Delete(context.Background(), permissionID)
@@ -220,11 +228,32 @@ func TestService_Delete(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
-	t.Run("should return an error if permissions cannot be list", func(t *testing.T) {
+	t.Run("should return an error if permission cannot be resolved", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		svc := permission.NewService(slog.Default(), mockRepo, mocks.NewRelationService(t))
+
 		permissionID := uuid.New().String()
 		expectedErr := errors.New("An error occurred")
 
-		mockRepo.On("Delete", mock.Anything, permissionID).Return(expectedErr).Once()
+		mockRepo.On("Get", mock.Anything, permissionID).Return(permission.Permission{}, expectedErr).Once()
+
+		err := svc.Delete(context.Background(), permissionID)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, expectedErr, err)
+	})
+
+	t.Run("should return an error if the relation sweep fails", func(t *testing.T) {
+		mockRepo := mocks.NewRepository(t)
+		mockRelation := mocks.NewRelationService(t)
+		svc := permission.NewService(slog.Default(), mockRepo, mockRelation)
+
+		permissionID := uuid.New().String()
+		perm := permission.Permission{ID: permissionID, Name: "delete", Slug: "app_organization_delete"}
+		expectedErr := errors.New("An error occurred")
+
+		mockRepo.On("Get", mock.Anything, permissionID).Return(perm, nil).Once()
+		mockRelation.On("Delete", mock.Anything, mock.Anything).Return(expectedErr).Once()
 
 		err := svc.Delete(context.Background(), permissionID)
 
