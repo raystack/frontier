@@ -1,0 +1,53 @@
+---
+title: Disable vs Delete
+order: 6
+---
+
+# Disable vs Delete
+
+Frontier treats **disabling** and **deleting** an entity (organization, project,
+group, or user) as two deliberately different operations. Knowing which one you
+want matters, because only one of them revokes access.
+
+## Disable — a reversible soft-stop
+
+`Disable` flips the entity's `state` to `disabled` and nothing else. Every
+SpiceDB relation the entity participates in is **left in place**:
+
+- an org's `member` / `owner` tuples,
+- a project's `parent` / grant tuples,
+- a group's `member` tuples,
+- a user's role bindings and ownership tuples.
+
+This is intentional. Disable is meant to be **reversible**: calling `Enable`
+must restore access exactly as it was before, and that is only possible if the
+relations were never torn down. Re-creating the full relation graph on enable
+would be lossy and error-prone, so we keep it instead.
+
+Because the tuples remain, an authorization `Check` that reads SpiceDB directly
+will still succeed for a disabled entity. Disabled state is enforced at the
+**read/application layer**, not in the relation graph:
+
+- `organization.Get` returns `ErrDisabled` for a disabled org (use `GetRaw` to
+  read the row regardless, e.g. for the enable flow);
+- `project.Get`, `group.Get`, and `user.Get` do **not** filter on state today,
+  so a disabled project/group still resolves and its members still pass authz
+  checks. Disabling a user additionally clears active sessions, so
+  session-based login stops working, but token/PAT-based access that resolves
+  through SpiceDB still passes.
+
+> Disable is **not** a security boundary on its own. If you need to guarantee an
+> entity can no longer be used, delete it.
+
+## Delete — revocation
+
+`Delete` (orchestrated by `core/deleter`) is the revocation path. It cascades
+the entity's relations out of SpiceDB along with the row, so no access survives.
+Deletion is **not** reversible.
+
+## Choosing between them
+
+| You want to…                                              | Use       |
+| --------------------------------------------------------- | --------- |
+| Temporarily suspend an entity and be able to restore it   | `Disable` |
+| Permanently remove an entity and revoke all of its access | `Delete`  |
