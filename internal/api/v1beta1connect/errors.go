@@ -8,7 +8,7 @@ var (
 	ErrBadRequest                  = errors.New("invalid syntax in body")
 	ErrInvalidMetadata             = errors.New("metadata schema validation failed")
 	ErrOperationUnsupported        = errors.New("operation not supported")
-	ErrInternalServerError         = errors.New("internal server error")
+	ErrInternalServerError         = errors.ErrInternalServerError
 	ErrUnauthenticated             = errors.New("not authenticated")
 	ErrUnauthorized                = errors.New("not authorized")
 	ErrNotFound                    = errors.New("not found")
