@@ -110,7 +110,7 @@ export function CreateOrganizationPanel({
       onError: (error) => {
         if (error?.code === Code.AlreadyExists) {
           setError("name", {
-            message: `${t.organization({ case: "capital" })} name already exists`,
+            message: `${t.organization({ case: "capital" })} URL is already taken`,
           });
         } else {
           console.error("Unable to create new org:", error);

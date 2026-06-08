@@ -35,6 +35,26 @@ const TRANSFORM_OPTIONS = {
   },
 };
 
+// The backend stores invoice amounts in cents, but the amount filter input
+// takes dollars — convert the filter value to cents before sending the query.
+function convertAmountFiltersToCents(query: DataTableQuery): DataTableQuery {
+  if (!query.filters?.length) return query;
+  return {
+    ...query,
+    filters: query.filters.map(filter =>
+      filter.name === "amount"
+        ? {
+            ...filter,
+            value: Math.round(Number(filter.value) * 100),
+            ...(filter.numberValue !== undefined && {
+              numberValue: Math.round(filter.numberValue * 100),
+            }),
+          }
+        : filter,
+    ),
+  };
+}
+
 const NoInvoices = () => {
   return (
     <EmptyState
@@ -81,7 +101,10 @@ export function OrganizationInvoicesView() {
   const title = `Invoices | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
+    const tempQuery = transformDataTableQueryToRQLRequest(
+      convertAmountFiltersToCents(tableQuery),
+      TRANSFORM_OPTIONS,
+    );
     return {
       ...tempQuery,
       search: searchQuery || "",

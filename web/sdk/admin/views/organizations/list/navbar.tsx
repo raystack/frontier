@@ -79,6 +79,7 @@ export const OrganizationsNavabar = ({
             showClearButton={true}
             size="small"
             onBlur={onSearchBlur}
+            autoFocus
           />
         ) : (
           <IconButton
