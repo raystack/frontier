@@ -3,7 +3,7 @@ package preference
 import (
 	"strings"
 
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 type PreferenceValidator interface {

@@ -29,7 +29,7 @@ import (
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/core/userpat"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
