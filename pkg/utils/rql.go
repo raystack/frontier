@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"slices"
+
 	"github.com/doug-martin/goqu/v9"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"golang.org/x/exp/slices"
 )
 
 const (

@@ -16,7 +16,7 @@ import (
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/raystack/frontier/pkg/metadata"
 

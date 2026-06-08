@@ -3,7 +3,7 @@ package audit
 import (
 	"context"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/webhook"

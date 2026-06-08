@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"strings"
 
+	"slices"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	svc "github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/rql"
-	"golang.org/x/exp/slices"
 )
 
 const (

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -31,7 +30,7 @@ func DirExists(path string) bool {
 // File extension matters, only file with extension
 // json, yaml, or yml that is parsable
 func Parse(filePath string, v interface{}) error {
-	b, err := ioutil.ReadFile(filePath)
+	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
