@@ -35,6 +35,11 @@ func (m *mockRoleService) Upsert(ctx context.Context, toCreate role.Role) (role.
 	return args.Get(0).(role.Role), args.Error(1)
 }
 
+func (m *mockRoleService) Update(ctx context.Context, toUpdate role.Role) (role.Role, error) {
+	args := m.Called(ctx, toUpdate)
+	return args.Get(0).(role.Role), args.Error(1)
+}
+
 // mockRelationService implements bootstrap.RelationService
 type mockRelationService struct {
 	mock.Mock
@@ -234,4 +239,98 @@ func Test_migratePATRelations(t *testing.T) {
 		assert.NoError(t, err)
 		relSvc.AssertNotCalled(t, "Delete")
 	})
+}
+
+func Test_migrateRole(t *testing.T) {
+	def := schema.RoleDefinition{
+		Title:       "Organization Manager",
+		Name:        "app_organization_manager",
+		Permissions: []string{"app_organization_get", "app_organization_update"},
+		Scopes:      []string{schema.OrganizationNamespace},
+	}
+
+	t.Run("creates the role when it does not exist", func(t *testing.T) {
+		roleSvc := new(mockRoleService)
+		roleSvc.On("Get", mock.Anything, def.Name).Return(role.Role{}, role.ErrNotExist)
+		roleSvc.On("Upsert", mock.Anything, mock.MatchedBy(func(r role.Role) bool {
+			return r.Name == def.Name && len(r.Permissions) == 2
+		})).Return(role.Role{ID: "role-1"}, nil)
+
+		svc := Service{roleService: roleSvc}
+		assert.NoError(t, svc.migrateRole(context.Background(), "org-1", def))
+		roleSvc.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("skips reconcile when the permission set is unchanged", func(t *testing.T) {
+		roleSvc := new(mockRoleService)
+		roleSvc.On("Get", mock.Anything, def.Name).Return(role.Role{
+			ID:   "role-1",
+			Name: def.Name,
+			// same set, different order -> still equal
+			Permissions: []string{"app_organization_update", "app_organization_get"},
+		}, nil)
+
+		svc := Service{roleService: roleSvc}
+		assert.NoError(t, svc.migrateRole(context.Background(), "org-1", def))
+		roleSvc.AssertNotCalled(t, "Upsert")
+		roleSvc.AssertNotCalled(t, "Update")
+	})
+
+	t.Run("reconciles a drifted (over-granting) role to the definition", func(t *testing.T) {
+		roleSvc := new(mockRoleService)
+		roleSvc.On("Get", mock.Anything, def.Name).Return(role.Role{
+			ID:   "role-1",
+			Name: def.Name,
+			// has an extra permission no longer in the definition
+			Permissions: []string{"app_organization_get", "app_organization_update", "app_organization_delete"},
+		}, nil)
+		roleSvc.On("Update", mock.Anything, mock.MatchedBy(func(r role.Role) bool {
+			return r.ID == "role-1" && len(r.Permissions) == 2 &&
+				!contains(r.Permissions, "app_organization_delete")
+		})).Return(role.Role{ID: "role-1"}, nil)
+
+		svc := Service{roleService: roleSvc}
+		assert.NoError(t, svc.migrateRole(context.Background(), "org-1", def))
+		roleSvc.AssertNotCalled(t, "Upsert")
+	})
+
+	t.Run("propagates a transient Get error instead of creating", func(t *testing.T) {
+		roleSvc := new(mockRoleService)
+		// a non-ErrNotExist failure must not fall through to Upsert/Update
+		roleSvc.On("Get", mock.Anything, def.Name).Return(role.Role{}, errors.New("db timeout"))
+
+		svc := Service{roleService: roleSvc}
+		err := svc.migrateRole(context.Background(), "org-1", def)
+		assert.Error(t, err)
+		roleSvc.AssertNotCalled(t, "Upsert")
+		roleSvc.AssertNotCalled(t, "Update")
+	})
+}
+
+func contains(s []string, v string) bool {
+	for _, e := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
+}
+
+func Test_permissionsEqual(t *testing.T) {
+	cases := []struct {
+		name string
+		a, b []string
+		want bool
+	}{
+		{"equal ignoring order", []string{"x", "y"}, []string{"y", "x"}, true},
+		{"equal ignoring duplicates", []string{"x", "x"}, []string{"x"}, true},
+		{"different members", []string{"x", "y"}, []string{"x", "z"}, false},
+		{"superset", []string{"x"}, []string{"x", "y"}, false},
+		{"both empty", nil, []string{}, true},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			assert.Equal(t, c.want, permissionsEqual(c.a, c.b))
+		})
+	}
 }
