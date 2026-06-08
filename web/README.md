@@ -57,21 +57,14 @@ requests to a running Frontier server (see [Configure the backend](#configure-th
 
 ### Configure the backend
 
-Each app talks to a running Frontier instance via a `.env` file at its own root.
-These files are git-ignored, so create them before starting a dev server. For a
-Frontier server running locally (REST on `:8000`, ConnectRPC on `:8002`):
+The `admin` app talks to a running Frontier instance via a `.env` file at its
+root. This file is git-ignored, so create it before starting the dev server. For
+a Frontier server running locally with ConnectRPC on `:8002`:
 
 `apps/admin/.env` (an `apps/admin/.env.example` is provided as a template):
 
 ```sh
 FRONTIER_CONNECTRPC_URL=http://localhost:8002/
-```
-
-`apps/client-demo/.env`:
-
-```sh
-FRONTIER_ENDPOINT=http://localhost:8000/
-FRONTIER_CONNECT_ENDPOINT=http://localhost:8002/
 ```
 
 The `admin` app also reads `configs.dev.json` (served at `/configs` in dev) for
