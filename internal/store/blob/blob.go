@@ -3,7 +3,6 @@ package blob
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"strings"
@@ -45,7 +44,7 @@ func NewStore(ctx context.Context, storagePath, storageSecret string) (Bucket, e
 			}
 		case "file":
 			{
-				fileContent, err := ioutil.ReadFile(parsedSecretURL.Path)
+				fileContent, err := os.ReadFile(parsedSecretURL.Path)
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to read secret content at "+parsedSecretURL.Path)
 				}

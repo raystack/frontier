@@ -1,4 +1,4 @@
-import { Button, Dialog, Field, Flex, Input, toastManager } from "@raystack/apsara-v1";
+import { Button, Dialog, Field, Flex, Input, toastManager } from "@raystack/apsara";
 import {
   FrontierServiceQueries,
   UpdateProjectRequestSchema,

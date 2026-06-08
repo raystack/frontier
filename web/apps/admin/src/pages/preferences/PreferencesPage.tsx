@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { PreferencesView } from "@raystack/frontier/admin";
 import PreferencesIcon from "~/assets/icons/preferences.svg?react";
 
-export function PreferencesPage() {
+export default function PreferencesPage() {
   const { name } = useParams();
   const navigate = useNavigate();
 

@@ -1,4 +1,4 @@
-import { DataTable, Flex, Text, IconButton, Spinner } from "@raystack/apsara-v1";
+import { DataTable, Flex, Text, IconButton, Spinner } from "@raystack/apsara";
 import { CpuChipIcon } from "../../assets/icons/CpuChipIcon";
 import styles from "./audit-logs.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";

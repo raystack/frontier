@@ -1,4 +1,4 @@
-import { Text, Menu, Skeleton } from "@raystack/apsara-v1";
+import { Text, Menu, Skeleton } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { useMemo, useState } from "react";
 import {

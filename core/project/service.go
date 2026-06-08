@@ -211,6 +211,11 @@ func (s Service) Enable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Enabled)
 }
 
+// Disable is a reversible soft-stop: it flips the project's state only and
+// deliberately leaves every SpiceDB relation in place, so Enable restores
+// access exactly as it was. Disable is NOT a revocation — tearing down the
+// tuples is Delete's job (see core/deleter). Authz checks that read SpiceDB
+// directly still pass while a project is disabled, by design.
 func (s Service) Disable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Disabled)
 }

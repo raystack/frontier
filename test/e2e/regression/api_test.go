@@ -22,7 +22,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/utils"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/raystack/frontier/pkg/server"
 

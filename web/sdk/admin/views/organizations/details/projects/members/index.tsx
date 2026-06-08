@@ -1,5 +1,5 @@
-import { AlertDialog, DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara-v1";
-import type { DataTableQuery } from "@raystack/apsara-v1";
+import { AlertDialog, DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery } from "@raystack/apsara";
 import { useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useQuery, useInfiniteQuery } from "@connectrpc/connect-query";
-import { useDebouncedState } from "@raystack/apsara-v1/hooks";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 import styles from "./members.module.css";
 import { UsersIcon } from "../../../../../assets/icons/UsersIcon";
 import { getColumns } from "./columns";

@@ -11,9 +11,9 @@ import {
   Drawer,
   SidePanel,
   Text,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
-import { ImageUpload } from "../../../../react/components/image-upload";
+import { ImageUpload } from "~/client/components/image-upload";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -110,7 +110,7 @@ export function CreateOrganizationPanel({
       onError: (error) => {
         if (error?.code === Code.AlreadyExists) {
           setError("name", {
-            message: `${t.organization({ case: "capital" })} name already exists`,
+            message: `${t.organization({ case: "capital" })} URL is already taken`,
           });
         } else {
           console.error("Unable to create new org:", error);

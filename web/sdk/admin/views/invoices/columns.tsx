@@ -1,4 +1,4 @@
-import { Amount, type DataTableColumnDef, Link, Text } from "@raystack/apsara-v1";
+import { Amount, type DataTableColumnDef, Link, Text } from "@raystack/apsara";
 import dayjs from "dayjs";
 import type { SearchInvoicesResponse_Invoice } from "@raystack/proton/frontier";
 import {

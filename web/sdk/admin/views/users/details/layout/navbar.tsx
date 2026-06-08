@@ -5,8 +5,8 @@ import {
   Flex,
   IconButton,
   getAvatarColor,
-} from "@raystack/apsara-v1";
-import { SidebarIcon } from "@raystack/apsara-v1/icons";
+} from "@raystack/apsara";
+import { SidebarIcon } from "@raystack/apsara/icons";
 import UserIcon from "../../../../assets/icons/UsersIcon";
 import styles from "./navbar.module.css";
 import { getUserName } from "../../util";

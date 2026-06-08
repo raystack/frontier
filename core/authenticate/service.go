@@ -16,7 +16,7 @@ import (
 
 	"github.com/raystack/frontier/core/audit"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"

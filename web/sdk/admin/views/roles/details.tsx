@@ -1,4 +1,4 @@
-import { Flex, Text, Grid } from "@raystack/apsara-v1";
+import { Flex, Text, Grid } from "@raystack/apsara";
 import type { Role } from "@raystack/proton/frontier";
 
 export default function RoleDetails({ role }: { role: Role | null }) {

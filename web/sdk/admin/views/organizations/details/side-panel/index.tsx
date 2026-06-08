@@ -1,4 +1,4 @@
-import { Avatar, getAvatarColor, SidePanel } from "@raystack/apsara-v1";
+import { Avatar, getAvatarColor, SidePanel } from "@raystack/apsara";
 import { OrganizationDetailsSection } from "./org-details-section";
 import { KYCDetailsSection } from "./kyc-section";
 import { PlanDetailsSection } from "./plan-details-section";

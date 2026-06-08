@@ -2,7 +2,7 @@ import { RolesView } from "@raystack/frontier/admin";
 import { useParams, useNavigate } from "react-router-dom";
 import RolesIcon from "~/assets/icons/roles.svg?react";
 
-export function RolesPage() {
+export default function RolesPage() {
   const { roleId } = useParams();
   const navigate = useNavigate();
 

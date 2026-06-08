@@ -2,7 +2,7 @@ import { PlansView } from "@raystack/frontier/admin";
 import { useNavigate, useParams } from "react-router-dom";
 import PlansIcon from "~/assets/icons/plans.svg?react";
 
-export function PlansPage() {
+export default function PlansPage() {
   const { planId } = useParams();
   const navigate = useNavigate();
 

@@ -1,0 +1,319 @@
+'use client';
+
+import { useMemo, useState } from 'react';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import {
+  Button,
+  Tooltip,
+  Skeleton,
+  Flex,
+  EmptyState,
+  DataTable,
+  Dialog,
+  AlertDialog,
+  Menu,
+  Image
+} from '@raystack/apsara';
+import deleteIcon from '~/client/assets/delete.svg';
+import keyIcon from '~/client/assets/key.svg';
+import exclamationTriangleIcon from '~/client/assets/exclamation-triangle.svg';
+import { useQuery } from '@connectrpc/connect-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  ListOrganizationServiceUsersRequestSchema
+} from '@raystack/proton/frontier';
+import { useFrontier } from '~/client/contexts/FrontierContext';
+import { usePermissions } from '~/client/hooks/usePermissions';
+import { useTerminology } from '~/client/hooks/useTerminology';
+import { AuthTooltipMessage } from '~/client/utils';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { DEFAULT_DATE_FORMAT } from '~/client/utils/constants';
+import { ViewContainer } from '~/client/components/view-container';
+import { ViewHeader } from '~/client/components/view-header';
+import {
+  getColumns,
+  type ServiceAccountMenuPayload
+} from './components/service-account-columns';
+import { AddServiceAccountDialog } from './components/add-service-account-dialog';
+import {
+  DeleteServiceAccountDialog,
+  type DeleteServiceAccountPayload
+} from './components/delete-service-account-dialog';
+import { ManageProjectAccessDialog } from './components/manage-project-access-dialog';
+import styles from './service-accounts-view.module.css';
+
+const serviceAccountMenuHandle = Menu.createHandle<ServiceAccountMenuPayload>();
+const addDialogHandle = Dialog.createHandle();
+const deleteDialogHandle = AlertDialog.createHandle<DeleteServiceAccountPayload>();
+const manageAccessDialogHandle = Dialog.createHandle<string>();
+
+export interface ServiceAccountsViewProps {
+  onServiceAccountClick?: (id: string) => void;
+}
+
+export function ServiceAccountsView({
+  onServiceAccountClick
+}: ServiceAccountsViewProps) {
+  const {
+    activeOrganization: organization,
+    isActiveOrganizationLoading,
+    config
+  } = useFrontier();
+  const t = useTerminology();
+
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
+
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
+  );
+
+  const canUpdateWorkspace = useMemo(
+    () =>
+      shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      ),
+    [permissions, resource]
+  );
+
+  const orgId = organization?.id ?? '';
+  const [manageAccessServiceUserId, setManageAccessServiceUserId] = useState('');
+
+  const {
+    data: serviceUsersData,
+    isLoading: isServiceUsersLoading,
+    refetch
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationServiceUsers,
+    create(ListOrganizationServiceUsersRequestSchema, {
+      id: orgId
+    }),
+    {
+      enabled: Boolean(orgId) && canUpdateWorkspace
+    }
+  );
+
+  const serviceUsers = useMemo(
+    () => serviceUsersData?.serviceusers ?? [],
+    [serviceUsersData]
+  );
+
+  const isPermissionsLoading =
+    !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
+
+  const isLoading = isPermissionsLoading || isServiceUsersLoading;
+
+  const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
+
+  const columns = useMemo(
+    () =>
+      getColumns({
+        dateFormat,
+        menuHandle: serviceAccountMenuHandle,
+        canUpdateWorkspace
+      }),
+    [dateFormat, canUpdateWorkspace]
+  );
+
+  const handleCreated = (serviceUserId: string) => {
+    onServiceAccountClick?.(serviceUserId);
+  };
+
+  const handleRefetch = () => {
+    refetch();
+  };
+
+  const hasNoAccess = !canUpdateWorkspace && !isPermissionsLoading;
+  const hasNoServiceAccounts =
+    canUpdateWorkspace && !isLoading && serviceUsers.length === 0;
+
+  return (
+    <ViewContainer>
+
+      {hasNoAccess ? (
+        <EmptyState
+          variant="empty2"
+          className={styles.emptyState}
+          icon={<ExclamationTriangleIcon />}
+          heading="Restricted Access"
+          subHeading="Admin access required, please reach out to your admin incase you want to generate a key."
+        />
+      ) : hasNoServiceAccounts ? (
+        <EmptyState
+          variant="empty2"
+          className={styles.emptyState}
+          classNames={{
+            icon: styles.emptyStateIcon
+          }}
+          icon={
+            <Image
+              src={keyIcon as unknown as string}
+              alt=""
+              width={40}
+              height={40}
+            />
+          }
+          heading="No Service Account Found"
+          subHeading={`Create a new account to use the APIs of ${t.appName()} platform`}
+          primaryAction={
+            <Button
+              variant="solid"
+              color="accent"
+              size="small"
+              onClick={() => addDialogHandle.open(null)}
+              data-test-id="frontier-sdk-new-service-account-btn"
+            >
+              Add service account
+            </Button>
+          }
+        />
+      ) : (
+        <>
+          <ViewHeader
+            title="Service accounts"
+            description={`Create and manage service accounts for secure, automated access to ${t.appName()}.`}
+          />
+          <DataTable
+            data={serviceUsers}
+            columns={columns}
+            isLoading={isLoading}
+            defaultSort={{ name: 'createdAt', order: 'desc' }}
+            mode="client"
+            onRowClick={row => onServiceAccountClick?.(row.id)}
+          >
+            <Flex direction="column" gap={7}>
+              <Flex justify="between" gap={3}>
+                <Flex gap={3} align="center">
+                  {isLoading ? (
+                    <Skeleton height="34px" width="360px" />
+                  ) : (
+                    <DataTable.Search
+                      placeholder="Search by name."
+                      size="large"
+                      width={360}
+                    />
+                  )}
+                </Flex>
+                {isLoading ? (
+                  <Skeleton height="34px" width="160px" />
+                ) : (
+                  <Tooltip>
+                    <Tooltip.Trigger
+                      disabled={canUpdateWorkspace}
+                      render={<span />}
+                    >
+                      <Button
+                        variant="solid"
+                        color="accent"
+                        onClick={() => addDialogHandle.open(null)}
+                        disabled={!canUpdateWorkspace}
+                        data-test-id="frontier-sdk-add-service-account-btn"
+                      >
+                        Add service account
+                      </Button>
+                    </Tooltip.Trigger>
+                    {!canUpdateWorkspace && (
+                      <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
+                    )}
+                  </Tooltip>
+                )}
+              </Flex>
+              <DataTable.Content
+                emptyState={
+                  <EmptyState
+                    icon={<ExclamationTriangleIcon />}
+                    heading="No service accounts found"
+                    subHeading="Try adjusting your search"
+                  />
+                }
+                classNames={{
+                  root: styles.tableRoot,
+                  table: styles.table
+                }}
+              />
+            </Flex>
+          </DataTable>
+        </>
+      )}
+
+      <Menu handle={serviceAccountMenuHandle} modal={false}>
+        {({ payload: rawPayload }) => {
+          const payload = rawPayload as ServiceAccountMenuPayload | undefined;
+          return (
+            <Menu.Content align="end" className={styles.menuContent}>
+              {payload?.canManageAccess && (
+                <Menu.Item
+                  leadingIcon={
+                    <Image
+                      src={keyIcon as unknown as string}
+                      alt="Manage access"
+                      width="var(--rs-space-5)"
+                      height="var(--rs-space-5)"
+                    />
+                  }
+                  onClick={() => {
+                    if (payload) {
+                      setManageAccessServiceUserId(payload.serviceAccountId);
+                      manageAccessDialogHandle.open(null);
+                    }
+                  }}
+                  data-test-id="frontier-sdk-manage-access-menu-item"
+                >
+                  Manage Access
+                </Menu.Item>
+              )}
+              {payload?.canDelete && (
+                <Menu.Item
+                  leadingIcon={
+                    <Image
+                      src={deleteIcon as unknown as string}
+                      alt="Delete"
+                      width={16}
+                      height={16}
+                    />
+                  }
+                  onClick={() =>
+                    payload &&
+                    deleteDialogHandle.openWithPayload({
+                      serviceAccountId: payload.serviceAccountId
+                    })
+                  }
+                  data-test-id="frontier-sdk-delete-account-menu-item"
+                  style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
+                >
+                  Delete Account
+                </Menu.Item>
+              )}
+            </Menu.Content>
+          );
+        }}
+      </Menu>
+
+      <AddServiceAccountDialog
+        handle={addDialogHandle}
+        onCreated={handleCreated}
+      />
+      <DeleteServiceAccountDialog
+        handle={deleteDialogHandle}
+        refetch={handleRefetch}
+      />
+      {manageAccessServiceUserId && (
+        <ManageProjectAccessDialog
+          handle={manageAccessDialogHandle}
+          serviceUserId={manageAccessServiceUserId}
+        />
+      )}
+    </ViewContainer>
+  );
+}

@@ -10,8 +10,8 @@ import {
   getAvatarColor,
   Text,
   AlertDialog,
-} from "@raystack/apsara-v1";
-import type { DataTableColumnDef } from "@raystack/apsara-v1";
+} from "@raystack/apsara";
+import type { DataTableColumnDef } from "@raystack/apsara";
 import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { DeleteIcon } from "~/admin/assets/icons/DeleteIcon";
 import type { UpdateRolePayload } from "./update-role";

@@ -13,7 +13,7 @@ import {
   Button,
   Text,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { ConnectError } from "@connectrpc/connect";
 
 export type UpdateRolePayload = {

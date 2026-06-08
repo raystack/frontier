@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flex, Text, Button, toastManager } from "@raystack/apsara-v1";
+import { Flex, Text, Button, toastManager } from "@raystack/apsara";
 import { useUser } from "../../user-context";
 import { RevokeSessionConfirm } from "./revoke-session-confirm";
 import { SessionSkeleton } from "./session-skeleton";

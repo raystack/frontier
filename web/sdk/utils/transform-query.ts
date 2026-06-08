@@ -6,6 +6,7 @@ import {
   RQLSortSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
+import dayjs from 'dayjs';
 
 // Extract DataTableFilter type from DataTableQuery since it's not exported
 type DataTableFilter = NonNullable<DataTableQuery['filters']>[number];
@@ -26,9 +27,7 @@ export interface TransformOptions {
 /**
  * Converts a filter value to the appropriate RQLFilter value format
  */
-function convertFilterValue(
-  value: string | number | boolean | null | undefined
-): RQLFilter['value'] {
+function convertFilterValue(value: unknown): RQLFilter['value'] {
   switch (typeof value) {
     case 'boolean':
       return { case: 'boolValue', value };
@@ -37,17 +36,59 @@ function convertFilterValue(
     case 'string':
       return { case: 'stringValue', value };
     default:
-      return { case: 'stringValue', value: value ?? '' };
+      return { case: 'stringValue', value: value == null ? '' : String(value) };
   }
 }
 
 /**
- * Transforms a DataTableFilter to RQLFilter
+ * Expands a date filter into RQLFilter(s) anchored to the user's local day.
+ * The date picker emits local midnight, and `eq` on a timestamp column can
+ * never match a calendar day — so expand it to a [start of day, next day)
+ * range. Other operators compare against the local start of day.
  */
+function transformDateFilter(
+  filter: DataTableFilter,
+  fieldName: string
+): RQLFilter[] {
+  const startOfDay = dayjs(filter.value as Date).startOf('day');
+
+  if (filter.operator === 'eq') {
+    return [
+      create(RQLFilterSchema, {
+        name: fieldName,
+        operator: 'gte',
+        value: { case: 'stringValue', value: startOfDay.toISOString() }
+      }),
+      create(RQLFilterSchema, {
+        name: fieldName,
+        operator: 'lt',
+        value: {
+          case: 'stringValue',
+          value: startOfDay.add(1, 'day').toISOString()
+        }
+      })
+    ];
+  }
+
+  return [
+    create(RQLFilterSchema, {
+      name: fieldName,
+      operator: filter.operator,
+      value: { case: 'stringValue', value: startOfDay.toISOString() }
+    })
+  ];
+}
+
 function transformFilter(
   filter: DataTableFilter,
   fieldNameMapping?: Record<string, string>
-): RQLFilter {
+): RQLFilter[] {
+  const fieldName = fieldNameMapping?.[filter.name] ?? filter.name;
+
+  if (filter.value instanceof Date) {
+    return transformDateFilter(filter, fieldName);
+  }
+
   // Priority: typed values > generic value field
   let value: RQLFilter['value'];
 
@@ -61,13 +102,13 @@ function transformFilter(
     value = convertFilterValue(filter.value);
   }
 
-  const fieldName = fieldNameMapping?.[filter.name] ?? filter.name;
-
-  return create(RQLFilterSchema, {
-    name: fieldName,
-    operator: filter.operator,
-    value
-  });
+  return [
+    create(RQLFilterSchema, {
+      name: fieldName,
+      operator: filter.operator,
+      value
+    })
+  ];
 }
 
 /**
@@ -101,7 +142,7 @@ export function transformDataTableQueryToRQLRequest(
 
   // Transform DataTable filters
   const filters: RQLFilter[] = query.filters?.length
-    ? query.filters.map(filter => transformFilter(filter, fieldNameMapping))
+    ? query.filters.flatMap(filter => transformFilter(filter, fieldNameMapping))
     : [];
 
   // Build the RQLRequest with snake_case properties

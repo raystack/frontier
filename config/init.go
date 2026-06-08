@@ -3,7 +3,6 @@ package config
 import (
 	_ "embed"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -31,7 +30,7 @@ func Init(configFile string) error {
 		}
 	}
 
-	if err := ioutil.WriteFile(configFile, data, 0655); err != nil {
+	if err := os.WriteFile(configFile, data, 0655); err != nil {
 		return err
 	}
 

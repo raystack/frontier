@@ -4,7 +4,7 @@ import {
   getAvatarColor,
   Text,
   type DataTableColumnDef,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import type {

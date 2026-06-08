@@ -1,4 +1,4 @@
-import { SidebarIcon, OrganizationIcon } from "@raystack/apsara-v1/icons";
+import { SidebarIcon, OrganizationIcon } from "@raystack/apsara/icons";
 
 import {
   Flex,
@@ -12,7 +12,7 @@ import {
   getAvatarColor,
   toastManager,
   Search
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 
 import styles from "./layout.module.css";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";

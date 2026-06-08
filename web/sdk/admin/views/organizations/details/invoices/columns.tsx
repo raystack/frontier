@@ -1,6 +1,6 @@
 import styles from "./invoices.module.css";
 import dayjs from "dayjs";
-import { DataTableColumnDef, Link, Amount } from "@raystack/apsara-v1";
+import { DataTableColumnDef, Link, Amount } from "@raystack/apsara";
 import type {
   SearchOrganizationInvoicesResponse_OrganizationInvoice,
 } from "@raystack/proton/frontier";

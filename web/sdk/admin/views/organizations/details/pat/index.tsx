@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { LockClosedIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";
@@ -56,6 +56,7 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
+        className={styles["zero-state"]}
         icon={<LockClosedIcon />}
         heading="PAT"
         subHeading="Personal access tokens (PATs) provide programmatic access to organization resources via the API on behalf of a user."

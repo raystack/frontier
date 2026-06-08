@@ -7,11 +7,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log/slog"
 	"maps"
 	"slices"
 	"time"
-
-	"log/slog"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
@@ -144,9 +143,6 @@ func (s *Service) Get(ctx context.Context, userID, id string) (patmodels.PAT, er
 // Soft-delete before policy cleanup prevents concurrent Update from re-creating
 // policies for a deleted PAT (TOCTOU mitigation).
 func (s *Service) Delete(ctx context.Context, userID, id string) error {
-	if !s.config.Enabled {
-		return paterrors.ErrDisabled
-	}
 	pat, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
@@ -167,6 +163,20 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 		s.logger.ErrorContext(ctx, "failed to create audit record for PAT revocation", "pat_id", id, "error", err)
 	}
 
+	return nil
+}
+
+// DeleteAllByUser deletes every PAT owned by the user via the per-PAT cascade.
+func (s *Service) DeleteAllByUser(ctx context.Context, userID string) error {
+	pats, err := s.repo.ListByUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("listing PATs for user: %w", err)
+	}
+	for _, pat := range pats {
+		if err := s.Delete(ctx, userID, pat.ID); err != nil {
+			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
+		}
+	}
 	return nil
 }
 

@@ -119,6 +119,13 @@ func (s Service) Enable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Enabled)
 }
 
+// Disable is a reversible soft-stop: it flips the user's state only and clears
+// active sessions, but deliberately leaves every SpiceDB relation in place so
+// Enable restores access exactly as it was. Disable is NOT a revocation —
+// tearing down the tuples is Delete's job (see core/deleter). User reads do not
+// filter on state today, so authz checks that read SpiceDB directly (including
+// token/PAT-based access) still pass while a user is disabled, even though
+// session-based login no longer works.
 func (s Service) Disable(ctx context.Context, id string) error {
 	if !utils.IsValidUUID(id) {
 		return ErrInvalidID

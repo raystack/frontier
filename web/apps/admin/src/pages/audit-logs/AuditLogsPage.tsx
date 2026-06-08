@@ -7,7 +7,7 @@ import type { RQLExportRequest, RQLRequest } from "@raystack/proton/frontier";
 
 const adminClient = clients.admin({ useBinary: true });
 
-export function AuditLogsPage() {
+export default function AuditLogsPage() {
   const navigate = useNavigate();
   const onExportCsv = useCallback(async (query: RQLRequest) => {
     await exportCsvFromStream(
