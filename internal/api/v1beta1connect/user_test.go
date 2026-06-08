@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -67,7 +68,7 @@ func TestConnectHandler_ListUsers(t *testing.T) {
 				Keyword:  "",
 			}),
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("ListUsers: org_id=%s group_id=%s: %w", "", "", errors.New("test error"))),
 		}, {
 			title: "should return all users if user service return all users",
 			setup: func(us *mocks.UserService) {

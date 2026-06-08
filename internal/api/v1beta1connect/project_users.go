@@ -47,9 +47,7 @@ func (h *ConnectHandler) SearchProjectUsers(ctx context.Context, request *connec
 				"project_id", projectID)
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogUnexpectedError(ctx, request, "SearchProjectUsers", err,
-			"project_id", projectID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchProjectUsers: project_id=%s: %w", projectID, err))
 	}
 
 	for _, v := range projectUsersData.Users {

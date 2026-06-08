@@ -16,25 +16,19 @@ import (
 )
 
 func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllInvoicesRequest]) (*connect.Response[frontierv1beta1.ListAllInvoicesResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	paginate := pagination.NewPagination(request.Msg.GetPageNum(), request.Msg.GetPageSize())
 
 	invoices, err := h.invoiceService.ListAll(ctx, invoice.Filter{
 		Pagination: paginate,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListAllInvoices.ListAll", err,
-			"page_num", request.Msg.GetPageNum(),
-			"page_size", request.Msg.GetPageSize())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllInvoices.ListAll: page_num=%d page_size=%d: %w", request.Msg.GetPageNum(), request.Msg.GetPageSize(), err))
 	}
 	var invoicePBs []*frontierv1beta1.Invoice
 	for _, v := range invoices {
 		invoicePB, err := transformInvoiceToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListAllInvoices", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllInvoices: invoice_id=%s: %w", v.ID, err))
 		}
 		invoicePBs = append(invoicePBs, invoicePB)
 	}
@@ -63,7 +57,7 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 		}
 		errorLogger.LogServiceError(ctx, request, "ListInvoices.GetByOrgID", err,
 			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListInvoices.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
 
@@ -72,18 +66,13 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 		NonZeroOnly: request.Msg.GetNonzeroAmountOnly(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListInvoices.List", err,
-			"org_id", request.Msg.GetOrgId(),
-			"billing_id", billingID,
-			"nonzero_amount_only", request.Msg.GetNonzeroAmountOnly())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListInvoices.List: org_id=%s billing_id=%s nonzero_amount_only=%v: %w", request.Msg.GetOrgId(), billingID, request.Msg.GetNonzeroAmountOnly(), err))
 	}
 	var invoicePBs []*frontierv1beta1.Invoice
 	for _, v := range invoices {
 		invoicePB, err := transformInvoiceToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListInvoices", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListInvoices: invoice_id=%s: %w", v.ID, err))
 		}
 		invoicePBs = append(invoicePBs, invoicePB)
 	}
@@ -116,21 +105,17 @@ func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connec
 		}
 		errorLogger.LogServiceError(ctx, request, "GetUpcomingInvoice.GetByOrgID", err,
 			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetUpcomingInvoice.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
 
 	invoice, err := h.invoiceService.GetUpcoming(ctx, billingID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "GetUpcomingInvoice.GetUpcoming", err,
-			"org_id", request.Msg.GetOrgId(),
-			"billing_id", billingID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetUpcomingInvoice.GetUpcoming: org_id=%s billing_id=%s: %w", request.Msg.GetOrgId(), billingID, err))
 	}
 	invoicePB, err := transformInvoiceToPB(invoice)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetUpcomingInvoice", invoice.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetUpcomingInvoice: invoice_id=%s: %w", invoice.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
@@ -173,12 +158,9 @@ func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 }
 
 func (h *ConnectHandler) GenerateInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.GenerateInvoicesRequest]) (*connect.Response[frontierv1beta1.GenerateInvoicesResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	err := h.invoiceService.TriggerCreditOverdraftInvoices(ctx)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "GenerateInvoices.TriggerCreditOverdraftInvoices", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GenerateInvoices.TriggerCreditOverdraftInvoices: %w", err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GenerateInvoicesResponse{}), nil
 }
@@ -206,7 +188,7 @@ func (h *ConnectHandler) SearchInvoices(ctx context.Context, request *connect.Re
 		errorLogger.LogServiceError(ctx, request, "SearchInvoices.SearchInvoices", err,
 			"query_offset", rqlQuery.Offset,
 			"query_limit", rqlQuery.Limit)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchInvoices.SearchInvoices: query_offset=%d query_limit=%d: %w", rqlQuery.Offset, rqlQuery.Limit, err))
 	}
 
 	for _, v := range invoicesData {

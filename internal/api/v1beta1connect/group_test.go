@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -177,7 +178,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroups.List: org_id=%s state=%s: %w", "9f256f86-31a3-11ec-8d3d-0242ac130003", "", errors.New("test-error"))),
 		},
 		{
 			name: "should return error while traversing group list if key is integer type",
@@ -197,7 +198,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				OrgId: "some-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroups: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}"))),
 		},
 	}
 	for _, tt := range tests {
@@ -383,7 +384,7 @@ func TestConnectHandler_CreateGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  fmt.Errorf("CreateGroup.Create: org_id=%s group_name=%s: %w", testOrgID, "some-group", errors.New("test error")),
 		},
 		{
 			name: "should return success if group service return nil",
@@ -504,7 +505,7 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  fmt.Errorf("GetGroup.Get: group_id=%s: %w", someGroupID, errors.New("test error")),
 		},
 		{
 			name: "should return not found error if id is invalid",
@@ -579,7 +580,7 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  fmt.Errorf("GetGroup: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}")),
 		},
 	}
 	for _, tt := range tests {
@@ -804,7 +805,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  fmt.Errorf("UpdateGroup.Update: group_id=%s group_name=%s: %w", someGroupID, "new-group", errors.New("test error")),
 		},
 		{
 			name: "should return success if updated by id and group service return nil error",
@@ -1061,7 +1062,7 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers.ListPrincipalsByResource: group_id=%s: %w", someGroupID, errors.New("some error"))),
 		},
 		{
 			name: "should return error if metadata transformation fails in list of group users",
@@ -1085,7 +1086,7 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]string"))),
 		},
 		{
 			name: "should return success if list group users and group service return nil error",
@@ -1144,7 +1145,7 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers.ListPrincipalsByResource: group_id=%s: %w", someGroupID, errors.New("policy error"))),
 		},
 		{
 			name: "should return success with roles",
@@ -1382,7 +1383,7 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 				UserId: randomID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("RemoveGroupUser.RemoveGroupMember: group_id=%s user_id=%s: %w", randomID, randomID, errors.New("unknown"))),
 		},
 		{
 			name: "should remove user successfully",
@@ -1794,7 +1795,7 @@ func TestConnectHandler_SetGroupMemberRole(t *testing.T) {
 				ms.EXPECT().SetGroupMemberRole(mock.Anything, someGroupID, somePrincipalID, schema.UserPrincipal, someRoleID).Return(errors.New("unknown"))
 			},
 			request: baseRequest(),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("SetGroupMemberRole: group_id=%s principal_id=%s: %w", someGroupID, somePrincipalID, errors.New("unknown"))),
 		},
 		{
 			name: "should return success on valid request",

@@ -253,7 +253,7 @@ func TestHandler_CreateCurrentUserPAT(t *testing.T) {
 				ExpiresAt: timestamppb.New(testTime),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("unexpected error"))),
 		},
 		{
 			name: "should create PAT successfully and return response",
@@ -476,7 +476,7 @@ func TestHandler_GetCurrentUserPAT(t *testing.T) {
 				Id: testPATID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("unexpected error"))),
 		},
 		{
 			name: "should return PAT successfully",
@@ -704,7 +704,7 @@ func TestHandler_ListRolesForPAT(t *testing.T) {
 			setup: func(ps *mocks.UserPATService) {
 				ps.EXPECT().ListAllowedRoles(mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 			},
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("db error"))),
 		},
 		{
 			name: "should return roles successfully",
@@ -877,7 +877,7 @@ func TestHandler_DeleteCurrentUserPAT(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.DeleteCurrentUserPATRequest{
 				Id: testPATID,
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("unexpected error"))),
 		},
 		{
 			name: "should delete PAT successfully",
@@ -1067,7 +1067,7 @@ func TestHandler_UpdateCurrentUserPAT(t *testing.T) {
 				Title:  "updated-title",
 				Scopes: []*frontierv1beta1.PATScope{{RoleId: testRoleID, ResourceType: "app/organization"}},
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("unexpected error"))),
 		},
 		{
 			name: "should update PAT successfully",
@@ -1255,7 +1255,7 @@ func TestHandler_RegenerateCurrentUserPAT(t *testing.T) {
 				Id:        testPATID,
 				ExpiresAt: timestamppb.New(futureExpiry),
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("unexpected error"))),
 		},
 		{
 			name: "should regenerate PAT successfully",
@@ -1424,7 +1424,7 @@ func TestHandler_SearchCurrentUserPATs(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.SearchCurrentUserPATsRequest{
 				OrgId: testOrgID,
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("db error"))),
 		},
 	}
 
@@ -1533,7 +1533,7 @@ func TestHandler_CheckCurrentUserPATTitle(t *testing.T) {
 				OrgId: testOrgID,
 				Title: "my-token",
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", errors.New("db error"))),
 		},
 		{
 			name: "should return available true when title is free",

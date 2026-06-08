@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/namespace"
@@ -11,21 +12,17 @@ import (
 )
 
 func (h *ConnectHandler) ListNamespaces(ctx context.Context, request *connect.Request[frontierv1beta1.ListNamespacesRequest]) (*connect.Response[frontierv1beta1.ListNamespacesResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var namespaces []*frontierv1beta1.Namespace
 
 	nsList, err := h.namespaceService.List(ctx)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListNamespaces.List", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListNamespaces.List: %w", err))
 	}
 
 	for _, ns := range nsList {
 		nsPB, err := transformNamespaceToPB(ns)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListNamespaces", ns.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListNamespaces: entity_id=%s: %w", ns.ID, err))
 		}
 
 		namespaces = append(namespaces, &nsPB)
@@ -35,8 +32,6 @@ func (h *ConnectHandler) ListNamespaces(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) GetNamespace(ctx context.Context, request *connect.Request[frontierv1beta1.GetNamespaceRequest]) (*connect.Response[frontierv1beta1.GetNamespaceResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	fetchedNS, err := h.namespaceService.Get(ctx, request.Msg.GetId())
 	if err != nil {
 		switch {
@@ -44,16 +39,13 @@ func (h *ConnectHandler) GetNamespace(ctx context.Context, request *connect.Requ
 			errors.Is(err, namespace.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "GetNamespace.Get", err,
-				"namespace_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetNamespace.Get: namespace_id=%s: %w", request.Msg.GetId(), err))
 		}
 	}
 
 	nsPB, err := transformNamespaceToPB(fetchedNS)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetNamespace", fetchedNS.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetNamespace: entity_id=%s: %w", fetchedNS.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetNamespaceResponse{Namespace: &nsPB}), nil

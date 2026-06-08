@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -63,7 +64,7 @@ func TestHandler_ListOrganizations(t *testing.T) {
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationsRequest{}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizations.List: state=%s user_id=%s: %w", "", "", errors.New("test error"))),
 		},
 		{
 			name: "should return success if org service return nil",
@@ -164,7 +165,7 @@ func TestHandler_CreateOrganization(t *testing.T) {
 				Metadata: &structpb.Struct{},
 			}}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganization.Create: org_name=%s org_title=%s: %w", "abc", "", errors.New("test error"))),
 		},
 		{
 			name: "should return invalid argument error if name is empty",
@@ -320,7 +321,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", someOrgID, "new-org", "", errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org id is not uuid (slug) and not exist",
@@ -574,7 +575,7 @@ func TestHandler_ListOrganizationProjects(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationProjects.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return internal error if project service return some error",
@@ -589,7 +590,7 @@ func TestHandler_ListOrganizationProjects(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationProjects.List: org_id=%s with_member_count=%v: %w", testOrgID, false, errors.New("test error"))),
 		},
 		{
 			name: "should return list of projects successfully",
@@ -729,7 +730,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationAdmins.ListPrincipalsByResource: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return error if org id does not exist",
@@ -762,7 +763,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationAdmins.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return success if org service return nil error",
@@ -849,7 +850,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 				Id: "some-org-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationUsers.Get: org_id=%s: %w", "some-org-id", errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org id does not exist",
@@ -885,7 +886,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationUsers.ListPrincipalsByResource: org_id=%s role_ids=%v: %w", testOrgID, ([]string)(nil), errors.New("test error"))),
 		},
 		{
 			name: "should return success if org service return nil error",
@@ -1028,7 +1029,7 @@ func TestHandler_RemoveOrganizationMember(t *testing.T) {
 				PrincipalType: schema.UserPrincipal,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("RemoveOrganizationMember: org_id=%s principal_id=%s principal_type=%s: %w", testOrgID, "some-user-id", schema.UserPrincipal, errors.New("unexpected"))),
 		},
 		{
 			name: "should remove member successfully",
@@ -1078,7 +1079,7 @@ func TestHandler_EnableOrganization(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("EnableOrganization.Enable: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should enable org successfully",
@@ -1123,7 +1124,7 @@ func TestHandler_DisableOrganization(t *testing.T) {
 				Id: "some-org-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DisableOrganization.Disable: org_id=%s: %w", "some-org-id", errors.New("test error"))),
 		},
 		{
 			name: "should disable org successfully",
@@ -1168,7 +1169,7 @@ func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationServiceUsers.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return org not found error if org doesnt exist",
@@ -1204,7 +1205,7 @@ func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
 				Id: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationServiceUsers.List: org_id=%s: %w", testOrgID, errors.New("service user error"))),
 		},
 		{
 			name: "should return success if org service return nil error",
@@ -1385,7 +1386,7 @@ func TestHandler_SetOrganizationMemberRole(t *testing.T) {
 				RoleId: "9f256f86-31a3-11ec-8d3d-0242ac130005",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, errors.New("unknown error")),
 		},
 		{
 			name: "should return success on valid request",

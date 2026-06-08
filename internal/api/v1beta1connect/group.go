@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -20,8 +21,6 @@ import (
 )
 
 func (h *ConnectHandler) ListGroups(ctx context.Context, request *connect.Request[frontierv1beta1.ListGroupsRequest]) (*connect.Response[frontierv1beta1.ListGroupsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var groups []*frontierv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
 		SU:             true,
@@ -29,17 +28,13 @@ func (h *ConnectHandler) ListGroups(ctx context.Context, request *connect.Reques
 		State:          group.State(request.Msg.GetState()),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListGroups.List", err,
-			"org_id", request.Msg.GetOrgId(),
-			"state", request.Msg.GetState())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroups.List: org_id=%s state=%s: %w", request.Msg.GetOrgId(), request.Msg.GetState(), err))
 	}
 
 	for _, v := range groupList {
 		groupPB, err := transformGroupToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListGroups", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroups: entity_id=%s: %w", v.ID, err))
 		}
 
 		groups = append(groups, &groupPB)
@@ -49,8 +44,6 @@ func (h *ConnectHandler) ListGroups(ctx context.Context, request *connect.Reques
 }
 
 func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationGroupsRequest]) (*connect.Response[frontierv1beta1.ListOrganizationGroupsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -59,9 +52,7 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationGroups.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
@@ -73,27 +64,19 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 		WithMemberCount: request.Msg.GetWithMemberCount(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.List", err,
-			"org_id", request.Msg.GetOrgId(),
-			"state", request.Msg.GetState(),
-			"group_ids", request.Msg.GetGroupIds(),
-			"with_member_count", request.Msg.GetWithMemberCount())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationGroups.List: org_id=%s state=%s: %w", request.Msg.GetOrgId(), request.Msg.GetState(), err))
 	}
 
 	for _, v := range groupList {
 		groupPB, err := transformGroupToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListOrganizationGroups", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationGroups: entity_id=%s: %w", v.ID, err))
 		}
 
 		if request.Msg.GetWithMembers() {
 			groupUsers, err := h.listGroupUsers(ctx, v.ID, "")
 			if err != nil {
-				errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.listGroupUsers", err,
-					"group_id", v.ID)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationGroups.listGroupUsers: group_id=%s: %w", v.ID, err))
 			}
 			var groupUsersErr error
 			groupPB.Users = utils.Filter(utils.Map(groupUsers, func(user user.User) *frontierv1beta1.User {
@@ -107,9 +90,7 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 				return user != nil
 			})
 			if groupUsersErr != nil {
-				errorLogger.LogServiceError(ctx, request, "ListOrganizationGroups.transformUserToPB", groupUsersErr,
-					"group_id", v.ID)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationGroups.transformUserToPB: group_id=%s: %w", v.ID, groupUsersErr))
 			}
 		}
 
@@ -135,8 +116,6 @@ func (h *ConnectHandler) listGroupUsers(ctx context.Context, groupID, roleID str
 }
 
 func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Request[frontierv1beta1.CreateGroupRequest]) (*connect.Response[frontierv1beta1.CreateGroupResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -149,9 +128,7 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "CreateGroup.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
@@ -183,18 +160,13 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
-			errorLogger.LogServiceError(ctx, request, "CreateGroup.Create", err,
-				"org_id", request.Msg.GetOrgId(),
-				"group_name", name,
-				"group_title", requestBody.GetTitle())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateGroup.Create: org_id=%s group_name=%s: %w", request.Msg.GetOrgId(), name, err))
 		}
 	}
 
 	groupPB, err := transformGroupToPB(newGroup)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateGroup", newGroup.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateGroup: entity_id=%s: %w", newGroup.ID, err))
 	}
 
 	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.GroupCreatedEvent, audit.GroupTarget(newGroup.ID))
@@ -202,8 +174,6 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 }
 
 func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[frontierv1beta1.GetGroupRequest]) (*connect.Response[frontierv1beta1.GetGroupResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -212,9 +182,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "GetGroup.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
@@ -224,24 +192,19 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "GetGroup.Get", err,
-				"group_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetGroup.Get: group_id=%s: %w", request.Msg.GetId(), err))
 		}
 	}
 
 	groupPB, err := transformGroupToPB(fetchedGroup)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetGroup", fetchedGroup.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetGroup: entity_id=%s: %w", fetchedGroup.ID, err))
 	}
 
 	if request.Msg.GetWithMembers() {
 		groupUsers, err := h.listGroupUsers(ctx, fetchedGroup.ID, "")
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "GetGroup.listGroupUsers", err,
-				"group_id", fetchedGroup.ID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetGroup.listGroupUsers: group_id=%s: %w", fetchedGroup.ID, err))
 		}
 		var groupUsersErr error
 		groupPB.Users = utils.Filter(utils.Map(groupUsers, func(user user.User) *frontierv1beta1.User {
@@ -255,9 +218,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 			return user != nil
 		})
 		if groupUsersErr != nil {
-			errorLogger.LogServiceError(ctx, request, "GetGroup.transformUserToPB", groupUsersErr,
-				"group_id", fetchedGroup.ID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetGroup.transformUserToPB: group_id=%s: %w", fetchedGroup.ID, groupUsersErr))
 		}
 	}
 
@@ -265,8 +226,6 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 }
 
 func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateGroupRequest]) (*connect.Response[frontierv1beta1.UpdateGroupResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -279,9 +238,7 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "UpdateGroup.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
@@ -307,17 +264,13 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, group.ErrInvalidDetail), errors.Is(err, organization.ErrInvalidUUID), errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			errorLogger.LogServiceError(ctx, request, "UpdateGroup.Update", err,
-				"group_id", request.Msg.GetId(),
-				"group_name", request.Msg.GetBody().GetName())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateGroup.Update: group_id=%s group_name=%s: %w", request.Msg.GetId(), request.Msg.GetBody().GetName(), err))
 		}
 	}
 
 	groupPB, err := transformGroupToPB(updatedGroup)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateGroup", updatedGroup.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateGroup: entity_id=%s: %w", updatedGroup.ID, err))
 	}
 
 	audit.GetAuditor(ctx, orgResp.ID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
@@ -325,8 +278,6 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 }
 
 func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListGroupUsersRequest]) (*connect.Response[frontierv1beta1.ListGroupUsersResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -335,9 +286,7 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "ListGroupUsers.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
@@ -345,17 +294,13 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 		PrincipalType: schema.UserPrincipal,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListGroupUsers.ListPrincipalsByResource", err,
-			"group_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers.ListPrincipalsByResource: group_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
 	users, err := h.userService.GetByIDs(ctx, userIDs)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListGroupUsers.GetByIDs", err,
-			"group_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers.GetByIDs: group_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	var userPBs []*frontierv1beta1.User
@@ -363,8 +308,7 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 	for _, user := range users {
 		userPb, err := transformUserToPB(user)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListGroupUsers", user.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers: entity_id=%s: %w", user.ID, err))
 		}
 		userPBs = append(userPBs, userPb)
 	}
@@ -373,7 +317,6 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 		rolesPb := utils.Filter(utils.Map(m.Roles, func(r role.Role) *frontierv1beta1.Role {
 			pb, err := transformRoleToPB(r)
 			if err != nil {
-				errorLogger.LogTransformError(ctx, request, "ListGroupUsers.transformRoleToPB", r.ID, err)
 				return nil
 			}
 			return &pb
@@ -393,8 +336,6 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveGroupUserRequest]) (*connect.Response[frontierv1beta1.RemoveGroupUserResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -403,16 +344,11 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemoveGroupUser.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
 	if err := h.membershipService.RemoveGroupMember(ctx, request.Msg.GetId(), request.Msg.GetUserId(), schema.UserPrincipal); err != nil {
-		errorLogger.LogServiceError(ctx, request, "RemoveGroupUser.RemoveGroupMember", err,
-			"group_id", request.Msg.GetId(),
-			"user_id", request.Msg.GetUserId())
 
 		switch {
 		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
@@ -428,15 +364,13 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 		case errors.Is(err, membership.ErrLastGroupOwnerRole):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrGroupMinOwnerCount)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemoveGroupUser.RemoveGroupMember: group_id=%s user_id=%s: %w", request.Msg.GetId(), request.Msg.GetUserId(), err))
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.RemoveGroupUserResponse{}), nil
 }
 
 func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetGroupMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetGroupMemberRoleResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	orgID := request.Msg.GetOrgId()
 	groupID := request.Msg.GetGroupId()
 	principalID := request.Msg.GetPrincipalId()
@@ -450,19 +384,11 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "SetGroupMemberRole.GetOrg", err,
-				"org_id", orgID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SetGroupMemberRole.GetOrg: org_id=%s: %w", orgID, err))
 		}
 	}
 
 	if err := h.membershipService.SetGroupMemberRole(ctx, groupID, principalID, principalType, roleID); err != nil {
-		errorLogger.LogServiceError(ctx, request, "SetGroupMemberRole", err,
-			"group_id", groupID,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"role_id", roleID)
-
 		switch {
 		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
@@ -481,7 +407,7 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 		case errors.Is(err, membership.ErrLastGroupOwnerRole):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrLastGroupOwnerRole)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SetGroupMemberRole: group_id=%s principal_id=%s: %w", groupID, principalID, err))
 		}
 	}
 
@@ -489,8 +415,6 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Request[frontierv1beta1.EnableGroupRequest]) (*connect.Response[frontierv1beta1.EnableGroupResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -499,9 +423,7 @@ func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "EnableGroup.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("EnableGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 	if err := h.groupService.Enable(ctx, request.Msg.GetId()); err != nil {
@@ -509,17 +431,13 @@ func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, group.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "EnableGroup.Enable", err,
-				"group_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("EnableGroup.Enable: group_id=%s: %w", request.Msg.GetId(), err))
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.EnableGroupResponse{}), nil
 }
 
 func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Request[frontierv1beta1.DisableGroupRequest]) (*connect.Response[frontierv1beta1.DisableGroupResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -528,9 +446,7 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "DisableGroup.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DisableGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 	if err := h.groupService.Disable(ctx, request.Msg.GetId()); err != nil {
@@ -538,17 +454,13 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 		case errors.Is(err, group.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "DisableGroup.Disable", err,
-				"group_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DisableGroup.Disable: group_id=%s: %w", request.Msg.GetId(), err))
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableGroupResponse{}), nil
 }
 
 func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteGroupRequest]) (*connect.Response[frontierv1beta1.DeleteGroupResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
@@ -557,9 +469,7 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "DeleteGroup.Get", err,
-				"org_id", request.Msg.GetOrgId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 	if err := h.deleterService.DeleteGroup(ctx, request.Msg.GetId()); err != nil {
@@ -567,9 +477,7 @@ func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Reque
 		case errors.Is(err, group.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, request, "DeleteGroup.DeleteGroup", err,
-				"group_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteGroup.DeleteGroup: group_id=%s: %w", request.Msg.GetId(), err))
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteGroupResponse{}), nil

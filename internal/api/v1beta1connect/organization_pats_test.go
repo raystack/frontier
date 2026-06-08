@@ -38,7 +38,7 @@ func TestHandler_SearchOrganizationPATs(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.SearchOrganizationPATsRequest{
 				OrgId: testOrgID,
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("db error")),
 		},
 		{
 			name: "should return invalid argument on bad input error",

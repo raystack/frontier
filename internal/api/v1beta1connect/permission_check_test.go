@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -75,7 +76,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 				Resource:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("handleAuthErr: %w", errors.New("test error"))),
 		},
 		{
 			name: "should return true when CheckAuthz function returns true bool",

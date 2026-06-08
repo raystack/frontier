@@ -22,8 +22,6 @@ const orgPATsDefaultLimit = 30
 const orgPATsMaxLimit = 30
 
 func (h *ConnectHandler) SearchOrganizationPATs(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationPATsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationPATsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), svc.PATSearchFields{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
@@ -46,9 +44,7 @@ func (h *ConnectHandler) SearchOrganizationPATs(ctx context.Context, request *co
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrganizationPATs.Search", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationPATs.Search: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	orgPATs := make([]*frontierv1beta1.SearchOrganizationPATsResponse_OrganizationPAT, 0, len(result.PATs))

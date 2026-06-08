@@ -47,7 +47,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				NonzeroAmountOnly: false,
 			}),
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -274,7 +274,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 				NonzeroAmountOnly: false,
 			}),
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("proto: invalid type: chan int"),
 			errCode: connect.CodeInternal,
 		},
 	}
@@ -335,7 +335,7 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 				OrgId: "org-123",
 			}),
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -490,7 +490,7 @@ func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 				OrgId: "org-123",
 			}),
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("proto: invalid type: chan int"),
 			errCode: connect.CodeInternal,
 		},
 	}

@@ -131,8 +131,7 @@ func (h *ConnectHandler) ListAuditRecords(ctx context.Context, request *connect.
 		case errors.Is(err, auditrecord.ErrNotFound):
 			return nil, connect.NewError(connect.CodeNotFound, err)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "ListAuditRecords", err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAuditRecords: %w", err))
 		}
 	}
 	pbRecords := make([]*frontierv1beta1.AuditRecord, 0)
@@ -191,8 +190,7 @@ func (h *ConnectHandler) ExportAuditRecords(ctx context.Context, request *connec
 		case errors.Is(err, auditrecord.ErrNotFound):
 			return connect.NewError(connect.CodeNotFound, err)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "ExportAuditRecords", err)
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("ExportAuditRecords: %w", err))
 		}
 	}
 	// Stream the data using io.Reader
@@ -273,7 +271,7 @@ func streamReaderInChunks(reader io.Reader, contentType string, stream *connect.
 			break
 		}
 		if err != nil {
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("streamReaderInChunks: %w", err))
 		}
 		if n > 0 {
 			msg := &httpbody.HttpBody{
@@ -281,7 +279,7 @@ func streamReaderInChunks(reader io.Reader, contentType string, stream *connect.
 				Data:        buffer[:n],
 			}
 			if sendErr := stream.Send(msg); sendErr != nil {
-				return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				return connect.NewError(connect.CodeInternal, fmt.Errorf("streamReaderInChunks: %w", sendErr))
 			}
 		}
 	}

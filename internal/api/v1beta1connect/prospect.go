@@ -51,11 +51,7 @@ func (h *ConnectHandler) CreateProspectPublic(ctx context.Context, request *conn
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return connect.NewResponse(&frontierv1beta1.CreateProspectPublicResponse{}), nil
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreateProspectPublic", err,
-				"email", strings.ToLower(email),
-				"activity", activity,
-				"source", request.Msg.GetSource())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProspectPublic: email=%s activity=%s source=%s: %w", strings.ToLower(email), activity, request.Msg.GetSource(), err))
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateProspectPublicResponse{}), nil
@@ -103,19 +99,13 @@ func (h *ConnectHandler) CreateProspect(ctx context.Context, request *connect.Re
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreateProspect", err,
-				"email", strings.ToLower(email),
-				"activity", activity,
-				"status", subsStatus,
-				"source", request.Msg.GetSource())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProspect: email=%s activity=%s status=%s source=%s: %w", strings.ToLower(email), activity, subsStatus, request.Msg.GetSource(), err))
 		}
 	}
 
 	transformedProspect, err := transformProspectToPB(newProspect)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateProspect", newProspect.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProspect: entity_id=%s: %w", newProspect.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateProspectResponse{Prospect: transformedProspect}), nil
 }
@@ -135,8 +125,7 @@ func (h *ConnectHandler) ListProspects(ctx context.Context, request *connect.Req
 
 	prospects, err := h.prospectService.List(ctx, requestQuery)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProspects", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProspects: %w", err))
 	}
 
 	var transformedProspects []*frontierv1beta1.Prospect
@@ -192,15 +181,12 @@ func (h *ConnectHandler) GetProspect(ctx context.Context, request *connect.Reque
 		case errors.Is(err, prospect.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetProspect", err,
-				"prospect_id", prospectId)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProspect: prospect_id=%s: %w", prospectId, err))
 		}
 	}
 	transformedProspect, err := transformProspectToPB(prspct)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetProspect", prspct.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProspect: entity_id=%s: %w", prspct.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GetProspectResponse{Prospect: transformedProspect}), nil
 }
@@ -227,7 +213,7 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 	subsStatus := frontierv1beta1.Prospect_Status_name[int32(reqStatus)] // convert using proto methods
 	metaDataMap, err := buildAndValidateMetadata(request.Msg.GetMetadata().AsMap(), h)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProspect: %w", err))
 	}
 	updatedProspect, err := h.prospectService.Update(ctx, prospect.Prospect{
 		ID:       prospectId,
@@ -254,19 +240,12 @@ func (h *ConnectHandler) UpdateProspect(ctx context.Context, request *connect.Re
 		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "UpdateProspect", err,
-				"prospect_id", prospectId,
-				"email", strings.ToLower(email),
-				"activity", activity,
-				"status", subsStatus,
-				"source", request.Msg.GetSource())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProspect: prospect_id=%s email=%s activity=%s status=%s source=%s: %w", prospectId, strings.ToLower(email), activity, subsStatus, request.Msg.GetSource(), err))
 		}
 	}
 	transformedProspect, err := transformProspectToPB(updatedProspect)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateProspect", updatedProspect.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProspect: entity_id=%s: %w", updatedProspect.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.UpdateProspectResponse{Prospect: transformedProspect}), nil
 }
@@ -287,9 +266,7 @@ func (h *ConnectHandler) DeleteProspect(ctx context.Context, request *connect.Re
 		case errors.Is(err, prospect.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrProspectNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeleteProspect", err,
-				"prospect_id", prospectId)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProspect: prospect_id=%s: %w", prospectId, err))
 		}
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteProspectResponse{}), nil

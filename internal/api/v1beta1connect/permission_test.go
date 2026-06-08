@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -75,8 +76,10 @@ func TestHandler_CreatePermission(t *testing.T) {
 					},
 				},
 			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			want: nil,
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePermission.AppendSchema: permission_slugs=%v: %w",
+				[]string{schema.FQPermissionNameFromNamespace(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name)},
+				errors.New("test error"))),
 		},
 		{
 			name:  "should return bad request error if namespace id is empty",
@@ -256,8 +259,10 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			want: nil,
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePermission: permission_id=%s permission_name=%s permission_namespace=%s: %w",
+				testPermissions[testPermissionIdx].ID, testPermissions[testPermissionIdx].Name, testPermissions[testPermissionIdx].NamespaceID,
+				errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if permission id not exist",
@@ -386,7 +391,7 @@ func TestHandler_ListPermissions(t *testing.T) {
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListPermissions: %w", errors.New("test error"))),
 		},
 		{
 			name: "should return success if permission service return nil error",
@@ -461,7 +466,7 @@ func TestHandler_GetPermission(t *testing.T) {
 				Id: testPermissions[testPermissionIdx].ID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetPermission: permission_id=%s: %w", testPermissions[testPermissionIdx].ID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if permission id not exist",

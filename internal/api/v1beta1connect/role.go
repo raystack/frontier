@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -60,19 +61,13 @@ func (h *ConnectHandler) CreateRole(ctx context.Context, request *connect.Reques
 		case errors.Is(err, role.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, err)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreateRole", err,
-				"role_name", request.Msg.GetBody().GetName(),
-				"role_title", request.Msg.GetBody().GetTitle(),
-				"permissions", request.Msg.GetBody().GetPermissions(),
-				"scopes", request.Msg.GetBody().GetScopes())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateRole: role_name=%s role_title=%s permissions=%v scopes=%v: %w", request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetPermissions(), request.Msg.GetBody().GetScopes(), err))
 		}
 	}
 
 	rolePB, err := transformRoleToPB(newRole)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateRole", newRole.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateRole: entity_id=%s: %w", newRole.ID, err))
 	}
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleCreatedEvent, audit.Target{
@@ -122,20 +117,13 @@ func (h *ConnectHandler) UpdateRole(ctx context.Context, request *connect.Reques
 		case errors.Is(err, role.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "UpdateRole", err,
-				"role_id", request.Msg.GetId(),
-				"role_name", request.Msg.GetBody().GetName(),
-				"role_title", request.Msg.GetBody().GetTitle(),
-				"permissions", request.Msg.GetBody().GetPermissions(),
-				"scopes", request.Msg.GetBody().GetScopes())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateRole: role_id=%s role_name=%s role_title=%s permissions=%v scopes=%v: %w", request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetPermissions(), request.Msg.GetBody().GetScopes(), err))
 		}
 	}
 
 	rolePB, err := transformRoleToPB(updatedRole)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateRole", updatedRole.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateRole: entity_id=%s: %w", updatedRole.ID, err))
 	}
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleUpdatedEvent, audit.Target{
@@ -167,7 +155,6 @@ func transformRoleToPB(from role.Role) (frontierv1beta1.Role, error) {
 }
 
 func (h *ConnectHandler) ListRoles(ctx context.Context, request *connect.Request[frontierv1beta1.ListRolesRequest]) (*connect.Response[frontierv1beta1.ListRolesResponse], error) {
-	errorLogger := NewErrorLogger()
 	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
@@ -175,16 +162,13 @@ func (h *ConnectHandler) ListRoles(ctx context.Context, request *connect.Request
 		Scopes: request.Msg.GetScopes(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListRoles", err,
-			"scopes", request.Msg.GetScopes())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListRoles: scopes=%v: %w", request.Msg.GetScopes(), err))
 	}
 
 	for _, v := range roleList {
 		rolePB, err := transformRoleToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListRoles", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListRoles: entity_id=%s: %w", v.ID, err))
 		}
 
 		roles = append(roles, &rolePB)
@@ -194,7 +178,6 @@ func (h *ConnectHandler) ListRoles(ctx context.Context, request *connect.Request
 }
 
 func (h *ConnectHandler) ListOrganizationRoles(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationRolesRequest]) (*connect.Response[frontierv1beta1.ListOrganizationRolesResponse], error) {
-	errorLogger := NewErrorLogger()
 	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
@@ -202,17 +185,13 @@ func (h *ConnectHandler) ListOrganizationRoles(ctx context.Context, request *con
 		Scopes: request.Msg.GetScopes(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListOrganizationRoles", err,
-			"org_id", request.Msg.GetOrgId(),
-			"scopes", request.Msg.GetScopes())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationRoles: org_id=%s scopes=%v: %w", request.Msg.GetOrgId(), request.Msg.GetScopes(), err))
 	}
 
 	for _, v := range roleList {
 		rolePB, err := transformRoleToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListOrganizationRoles", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationRoles: entity_id=%s: %w", v.ID, err))
 		}
 
 		roles = append(roles, &rolePB)
@@ -237,9 +216,7 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 	// Fetch organization to get name for audit record
 	org, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "CreateOrganizationRole.GetOrganization", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationRole.GetOrganization: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	metaDataMap[orgNameMetadataKey] = org.Title
 
@@ -268,20 +245,13 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 		case errors.Is(err, role.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreateOrganizationRole", err,
-				"org_id", request.Msg.GetOrgId(),
-				"role_name", request.Msg.GetBody().GetName(),
-				"role_title", request.Msg.GetBody().GetTitle(),
-				"permissions", request.Msg.GetBody().GetPermissions(),
-				"scopes", request.Msg.GetBody().GetScopes())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationRole: org_id=%s role_name=%s role_title=%s permissions=%v scopes=%v: %w", request.Msg.GetOrgId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetPermissions(), request.Msg.GetBody().GetScopes(), err))
 		}
 	}
 
 	rolePB, err := transformRoleToPB(newRole)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateOrganizationRole", newRole.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationRole: entity_id=%s: %w", newRole.ID, err))
 	}
 
 	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleCreatedEvent, audit.Target{
@@ -305,16 +275,13 @@ func (h *ConnectHandler) GetOrganizationRole(ctx context.Context, request *conne
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetOrganizationRole", err,
-				"role_id", roleID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationRole: role_id=%s: %w", roleID, err))
 		}
 	}
 
 	rolePB, err := transformRoleToPB(fetchedRole)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetOrganizationRole", fetchedRole.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationRole: entity_id=%s: %w", fetchedRole.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetOrganizationRoleResponse{Role: &rolePB}), nil
@@ -339,9 +306,7 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 	// Fetch organization to get name for audit record
 	org, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "UpdateOrganizationRole.GetOrganization", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganizationRole.GetOrganization: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	metaDataMap[orgNameMetadataKey] = org.Title
 
@@ -372,21 +337,13 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 		case errors.Is(err, role.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "UpdateOrganizationRole", err,
-				"role_id", request.Msg.GetId(),
-				"org_id", request.Msg.GetOrgId(),
-				"role_name", request.Msg.GetBody().GetName(),
-				"role_title", request.Msg.GetBody().GetTitle(),
-				"permissions", request.Msg.GetBody().GetPermissions(),
-				"scopes", request.Msg.GetBody().GetScopes())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganizationRole: role_id=%s org_id=%s role_name=%s role_title=%s permissions=%v scopes=%v: %w", request.Msg.GetId(), request.Msg.GetOrgId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetPermissions(), request.Msg.GetBody().GetScopes(), err))
 		}
 	}
 
 	rolePB, err := transformRoleToPB(updatedRole)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateOrganizationRole", updatedRole.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganizationRole: entity_id=%s: %w", updatedRole.ID, err))
 	}
 
 	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleUpdatedEvent, audit.Target{
@@ -419,10 +376,7 @@ func (h *ConnectHandler) DeleteOrganizationRole(ctx context.Context, request *co
 		case errors.Is(err, role.ErrRoleInUse):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, role.ErrRoleInUse)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeleteOrganizationRole", err,
-				"role_id", roleID,
-				"org_id", orgID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationRole: role_id=%s org_id=%s: %w", roleID, orgID, err))
 		}
 	}
 
@@ -453,9 +407,7 @@ func (h *ConnectHandler) DeleteRole(ctx context.Context, request *connect.Reques
 		case errors.Is(err, role.ErrRoleInUse):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, role.ErrRoleInUse)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeleteRole", err,
-				"role_id", roleID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteRole: role_id=%s: %w", roleID, err))
 		}
 	}
 

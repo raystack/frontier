@@ -39,9 +39,7 @@ func (h *ConnectHandler) SearchUserOrganizations(ctx context.Context, request *c
 				"user_id", request.Msg.GetId())
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogUnexpectedError(ctx, request, "SearchUserOrganizations", err,
-			"user_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchUserOrganizations: user_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	for _, v := range userOrgsData.Organizations {

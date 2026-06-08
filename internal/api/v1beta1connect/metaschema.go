@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -19,12 +20,9 @@ var (
 )
 
 func (h *ConnectHandler) ListMetaSchemas(ctx context.Context, req *connect.Request[frontierv1beta1.ListMetaSchemasRequest]) (*connect.Response[frontierv1beta1.ListMetaSchemasResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	metaschemasList, err := h.metaSchemaService.List(ctx)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, req, "ListMetaSchemas.List", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListMetaSchemas.List: %w", err))
 	}
 
 	var metaschemas []*frontierv1beta1.MetaSchema
@@ -39,8 +37,6 @@ func (h *ConnectHandler) ListMetaSchemas(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) CreateMetaSchema(ctx context.Context, req *connect.Request[frontierv1beta1.CreateMetaSchemaRequest]) (*connect.Response[frontierv1beta1.CreateMetaSchemaResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	if req.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -58,9 +54,7 @@ func (h *ConnectHandler) CreateMetaSchema(ctx context.Context, req *connect.Requ
 		case errors.Is(err, metaschema.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogServiceError(ctx, req, "CreateMetaSchema.Create", err,
-				"metaschema_name", req.Msg.GetBody().GetName())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateMetaSchema.Create: metaschema_name=%s: %w", req.Msg.GetBody().GetName(), err))
 		}
 	}
 
@@ -71,8 +65,6 @@ func (h *ConnectHandler) CreateMetaSchema(ctx context.Context, req *connect.Requ
 }
 
 func (h *ConnectHandler) GetMetaSchema(ctx context.Context, req *connect.Request[frontierv1beta1.GetMetaSchemaRequest]) (*connect.Response[frontierv1beta1.GetMetaSchemaResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	id := req.Msg.GetId()
 	if strings.TrimSpace(id) == "" {
 		return nil, connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound)
@@ -84,9 +76,7 @@ func (h *ConnectHandler) GetMetaSchema(ctx context.Context, req *connect.Request
 		case errors.Is(err, metaschema.ErrNotExist), errors.Is(err, metaschema.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, req, "GetMetaSchema.Get", err,
-				"metaschema_id", id)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetMetaSchema.Get: metaschema_id=%s: %w", id, err))
 		}
 	}
 
@@ -97,8 +87,6 @@ func (h *ConnectHandler) GetMetaSchema(ctx context.Context, req *connect.Request
 }
 
 func (h *ConnectHandler) UpdateMetaSchema(ctx context.Context, req *connect.Request[frontierv1beta1.UpdateMetaSchemaRequest]) (*connect.Response[frontierv1beta1.UpdateMetaSchemaResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	id := req.Msg.GetId()
 	if strings.TrimSpace(id) == "" {
 		return nil, connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound)
@@ -121,10 +109,7 @@ func (h *ConnectHandler) UpdateMetaSchema(ctx context.Context, req *connect.Requ
 		case errors.Is(err, metaschema.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogServiceError(ctx, req, "UpdateMetaSchema.Update", err,
-				"metaschema_id", id,
-				"metaschema_name", req.Msg.GetBody().GetName())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateMetaSchema.Update: metaschema_id=%s metaschema_name=%s: %w", id, req.Msg.GetBody().GetName(), err))
 		}
 	}
 
@@ -135,8 +120,6 @@ func (h *ConnectHandler) UpdateMetaSchema(ctx context.Context, req *connect.Requ
 }
 
 func (h *ConnectHandler) DeleteMetaSchema(ctx context.Context, req *connect.Request[frontierv1beta1.DeleteMetaSchemaRequest]) (*connect.Response[frontierv1beta1.DeleteMetaSchemaResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	id := req.Msg.GetId()
 	if strings.TrimSpace(id) == "" {
 		return nil, connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound)
@@ -149,9 +132,7 @@ func (h *ConnectHandler) DeleteMetaSchema(ctx context.Context, req *connect.Requ
 			errors.Is(err, metaschema.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound)
 		default:
-			errorLogger.LogServiceError(ctx, req, "DeleteMetaSchema.Delete", err,
-				"metaschema_id", id)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteMetaSchema.Delete: metaschema_id=%s: %w", id, err))
 		}
 	}
 

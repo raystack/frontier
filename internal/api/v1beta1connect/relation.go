@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/relation"
@@ -13,7 +14,6 @@ import (
 )
 
 func (h *ConnectHandler) ListRelations(ctx context.Context, request *connect.Request[frontierv1beta1.ListRelationsRequest]) (*connect.Response[frontierv1beta1.ListRelationsResponse], error) {
-	errorLogger := NewErrorLogger()
 	var err error
 	var subject relation.Subject
 	var object relation.Object
@@ -37,17 +37,13 @@ func (h *ConnectHandler) ListRelations(ctx context.Context, request *connect.Req
 		Object:  object,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListRelations", err,
-			"subject", request.Msg.GetSubject(),
-			"object", request.Msg.GetObject())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListRelations: subject=%s object=%s: %w", request.Msg.GetSubject(), request.Msg.GetObject(), err))
 	}
 
 	for _, r := range relationsList {
 		relationPB, err := transformRelationV2ToPB(r)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListRelations", r.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListRelations: entity_id=%s: %w", r.ID, err))
 		}
 
 		relations = append(relations, relationPB)
@@ -111,19 +107,13 @@ func (h *ConnectHandler) CreateRelation(ctx context.Context, request *connect.Re
 		case errors.Is(err, relation.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreateRelation", err,
-				"subject", request.Msg.GetBody().GetSubject(),
-				"object", request.Msg.GetBody().GetObject(),
-				"relation", request.Msg.GetBody().GetRelation(),
-				"subject_sub_relation", request.Msg.GetBody().GetSubjectSubRelation())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateRelation: subject=%s object=%s relation=%s subject_sub_relation=%s: %w", request.Msg.GetBody().GetSubject(), request.Msg.GetBody().GetObject(), request.Msg.GetBody().GetRelation(), request.Msg.GetBody().GetSubjectSubRelation(), err))
 		}
 	}
 
 	relationPB, err := transformRelationV2ToPB(newRelation)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateRelation", newRelation.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateRelation: entity_id=%s: %w", newRelation.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateRelationResponse{
@@ -146,15 +136,12 @@ func (h *ConnectHandler) GetRelation(ctx context.Context, request *connect.Reque
 			errors.Is(err, relation.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetRelation", err,
-				"relation_id", relationID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetRelation: relation_id=%s: %w", relationID, err))
 		}
 	}
 	relationPB, err := transformRelationV2ToPB(fetchedRelation)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetRelation", fetchedRelation.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetRelation: entity_id=%s: %w", fetchedRelation.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GetRelationResponse{
 		Relation: relationPB,
@@ -196,11 +183,7 @@ func (h *ConnectHandler) DeleteRelation(ctx context.Context, request *connect.Re
 			errors.Is(err, relation.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeleteRelation", err,
-				"subject", request.Msg.GetSubject(),
-				"object", request.Msg.GetObject(),
-				"relation", request.Msg.GetRelation())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteRelation: subject=%s object=%s relation=%s: %w", request.Msg.GetSubject(), request.Msg.GetObject(), request.Msg.GetRelation(), err))
 		}
 	}
 

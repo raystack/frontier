@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -214,7 +215,7 @@ func TestHandler_ListRoles(t *testing.T) {
 				Scopes: []string{},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListRoles: scopes=%v: %w", []string{}, ErrInternalServerError)),
 		},
 	}
 
@@ -268,7 +269,7 @@ func TestHandler_DeleteRole(t *testing.T) {
 				Id: testRoleID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteRole: role_id=%s: %w", testRoleID, ErrInternalServerError)),
 		},
 		{
 			name: "should return nil if role service return nil",

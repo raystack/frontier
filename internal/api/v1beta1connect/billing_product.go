@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/product"
@@ -11,19 +12,15 @@ import (
 )
 
 func (h *ConnectHandler) ListProducts(ctx context.Context, request *connect.Request[frontierv1beta1.ListProductsRequest]) (*connect.Response[frontierv1beta1.ListProductsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var products []*frontierv1beta1.Product
 	productsList, err := h.productService.List(ctx, product.Filter{})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProducts.List", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProducts.List: %w", err))
 	}
 	for _, v := range productsList {
 		productPB, err := transformProductToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListProducts", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProducts: entity_id=%s: %w", v.ID, err))
 		}
 		products = append(products, productPB)
 	}
@@ -34,19 +31,14 @@ func (h *ConnectHandler) ListProducts(ctx context.Context, request *connect.Requ
 }
 
 func (h *ConnectHandler) GetProduct(ctx context.Context, request *connect.Request[frontierv1beta1.GetProductRequest]) (*connect.Response[frontierv1beta1.GetProductResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	product, err := h.productService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "GetProduct.GetByID", err,
-			"product_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProduct.GetByID: product_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	productPB, err := transformProductToPB(product)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetProduct", product.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProduct: entity_id=%s: %w", product.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetProductResponse{
@@ -55,8 +47,6 @@ func (h *ConnectHandler) GetProduct(ctx context.Context, request *connect.Reques
 }
 
 func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Request[frontierv1beta1.CreateProductRequest]) (*connect.Response[frontierv1beta1.CreateProductResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 	// parse price
 	var productPrices []product.Price
@@ -104,20 +94,14 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "CreateProduct.Create", err,
-			"product_name", request.Msg.GetBody().GetName(),
-			"product_title", request.Msg.GetBody().GetTitle(),
-			"plan_id", request.Msg.GetBody().GetPlanId(),
-			"behavior", request.Msg.GetBody().GetBehavior(),
-			"price_count", len(productPrices),
-			"feature_count", len(productFeatures))
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProduct.Create: product_name=%s product_title=%s plan_id=%s behavior=%s price_count=%d feature_count=%d: %w",
+			request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetPlanId(),
+			request.Msg.GetBody().GetBehavior(), len(productPrices), len(productFeatures), err))
 	}
 
 	productPB, err := transformProductToPB(newProduct)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateProduct", newProduct.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProduct: entity_id=%s: %w", newProduct.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateProductResponse{
@@ -126,8 +110,6 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateProductRequest]) (*connect.Response[frontierv1beta1.UpdateProductResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 	// parse price
 	var productPrices []product.Price
@@ -170,19 +152,13 @@ func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Req
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "UpdateProduct.Update", err,
-			"product_id", request.Msg.GetId(),
-			"product_name", request.Msg.GetBody().GetName(),
-			"product_title", request.Msg.GetBody().GetTitle(),
-			"behavior", request.Msg.GetBody().GetBehavior(),
-			"price_count", len(productPrices),
-			"feature_count", len(productFeatures))
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProduct.Update: product_id=%s product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
+			request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(),
+			request.Msg.GetBody().GetBehavior(), len(productPrices), len(productFeatures), err))
 	}
 	productPb, err := transformProductToPB(updatedProduct)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateProduct", updatedProduct.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProduct: entity_id=%s: %w", updatedProduct.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateProductResponse{
@@ -191,20 +167,16 @@ func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) ListFeatures(ctx context.Context, request *connect.Request[frontierv1beta1.ListFeaturesRequest]) (*connect.Response[frontierv1beta1.ListFeaturesResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	features, err := h.productService.ListFeatures(ctx, product.Filter{})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListFeatures.ListFeatures", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListFeatures.ListFeatures: %w", err))
 	}
 
 	var featuresPB []*frontierv1beta1.Feature
 	for _, v := range features {
 		f, err := transformFeatureToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListFeatures", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListFeatures: entity_id=%s: %w", v.ID, err))
 		}
 		featuresPB = append(featuresPB, f)
 	}
@@ -215,8 +187,6 @@ func (h *ConnectHandler) ListFeatures(ctx context.Context, request *connect.Requ
 }
 
 func (h *ConnectHandler) CreateFeature(ctx context.Context, request *connect.Request[frontierv1beta1.CreateFeatureRequest]) (*connect.Response[frontierv1beta1.CreateFeatureResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 	newFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
 		Name:       request.Msg.GetBody().GetName(),
@@ -228,17 +198,13 @@ func (h *ConnectHandler) CreateFeature(ctx context.Context, request *connect.Req
 		if errors.Is(err, product.ErrInvalidFeatureDetail) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "CreateFeature.UpsertFeature", err,
-			"feature_name", request.Msg.GetBody().GetName(),
-			"feature_title", request.Msg.GetBody().GetTitle(),
-			"product_ids", request.Msg.GetBody().GetProductIds())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateFeature.UpsertFeature: feature_name=%s feature_title=%s product_ids=%v: %w",
+			request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetProductIds(), err))
 	}
 
 	featurePB, err := transformFeatureToPB(newFeature)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateFeature", newFeature.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateFeature: entity_id=%s: %w", newFeature.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateFeatureResponse{
@@ -247,8 +213,6 @@ func (h *ConnectHandler) CreateFeature(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateFeatureRequest]) (*connect.Response[frontierv1beta1.UpdateFeatureResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 	updatedFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
 		ID:         request.Msg.GetId(),
@@ -261,18 +225,13 @@ func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Req
 		if errors.Is(err, product.ErrInvalidFeatureDetail) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "UpdateFeature.UpsertFeature", err,
-			"feature_id", request.Msg.GetId(),
-			"feature_name", request.Msg.GetBody().GetName(),
-			"feature_title", request.Msg.GetBody().GetTitle(),
-			"product_ids", request.Msg.GetBody().GetProductIds())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateFeature.UpsertFeature: feature_id=%s feature_name=%s feature_title=%s product_ids=%v: %w",
+			request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetProductIds(), err))
 	}
 
 	featurePB, err := transformFeatureToPB(updatedFeature)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateFeature", updatedFeature.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateFeature: entity_id=%s: %w", updatedFeature.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateFeatureResponse{
@@ -281,19 +240,14 @@ func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) GetFeature(ctx context.Context, request *connect.Request[frontierv1beta1.GetFeatureRequest]) (*connect.Response[frontierv1beta1.GetFeatureResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	feature, err := h.productService.GetFeatureByID(ctx, request.Msg.GetId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "GetFeature.GetFeatureByID", err,
-			"feature_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetFeature.GetFeatureByID: feature_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	featurePB, err := transformFeatureToPB(feature)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetFeature", feature.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetFeature: entity_id=%s: %w", feature.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetFeatureResponse{

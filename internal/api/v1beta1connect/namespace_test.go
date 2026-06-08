@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -54,7 +55,7 @@ func TestHandler_ListNamespaces(t *testing.T) {
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListNamespacesRequest{}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListNamespaces.List: %w", errors.New("test error"))),
 		},
 		{
 			name: "should return success if namespace service return nil error",
@@ -126,7 +127,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 				Id: testNSID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetNamespace.Get: namespace_id=%s: %w", testNSID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if namespace id is empty",

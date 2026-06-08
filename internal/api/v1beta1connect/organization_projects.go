@@ -16,8 +16,6 @@ import (
 )
 
 func (h *ConnectHandler) SearchOrganizationProjects(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationProjectsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationProjectsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var orgProjects []*frontierv1beta1.SearchOrganizationProjectsResponse_OrganizationProject
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), orgprojects.AggregatedProject{})
@@ -35,9 +33,7 @@ func (h *ConnectHandler) SearchOrganizationProjects(ctx context.Context, request
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrganizationProjects.Search", err,
-			"org_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationProjects.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	for _, v := range orgProjectsData.Projects {
@@ -80,16 +76,12 @@ func transformAggregatedProjectToPB(p orgprojects.AggregatedProject) *frontierv1
 }
 
 func (h *ConnectHandler) ExportOrganizationProjects(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationProjectsRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
-	errorLogger := NewErrorLogger()
-
 	orgProjectsDataBytes, contentType, err := h.orgProjectsService.Export(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, orgprojects.ErrNoContent) {
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
-		errorLogger.LogServiceError(ctx, request, "ExportOrganizationProjects.Export", err,
-			"org_id", request.Msg.GetId())
-		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("ExportOrganizationProjects.Export: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	return streamBytesInChunks(orgProjectsDataBytes, contentType, stream)

@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -86,7 +87,7 @@ func TestSetOrganizationKyc(t *testing.T) {
 			}),
 			mockError:     errors.New("internal error"),
 			expectError:   true,
-			expectedError: connect.NewError(connect.CodeInternal, errors.New("internal server error")),
+			expectedError: connect.NewError(connect.CodeInternal, fmt.Errorf("SetOrganizationKyc.SetKyc: org_id=%s status=%v: %w", "valid-org-id", true, errors.New("internal error"))),
 		},
 	}
 
@@ -241,7 +242,7 @@ func TestListOrganizationsKyc(t *testing.T) {
 			mockService:   mocks.NewKycService(t),
 			mockResponse:  nil,
 			mockError:     errors.New("internal error"),
-			expectError:   connect.NewError(connect.CodeInternal, errors.New("internal server error")),
+			expectError:   connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationsKyc.ListKycs: %w", errors.New("internal error"))),
 			expectNilResp: true,
 		},
 	}

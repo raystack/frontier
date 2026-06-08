@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -46,7 +47,7 @@ func TestHandler_CreateProspectPublic(t *testing.T) {
 				Metadata: nil,
 			}),
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProspectPublic: email=%s activity=%s source=%s: %w", "test@example.com", "newsletter", "", errors.New("some error"))),
 		},
 		{
 			title: "should return bad schema error if meta schema service gives error",
@@ -159,7 +160,7 @@ func TestHandler_CreateProspect(t *testing.T) {
 				Metadata: nil,
 			}),
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProspect: email=%s activity=%s status=%s source=%s: %w", "test@example.com", "newsletter", "STATUS_SUBSCRIBED", "", errors.New("some error"))),
 		},
 		{
 			title: "should return bad schema error if meta schema service gives error",
@@ -284,7 +285,7 @@ func TestHandler_ListProspects(t *testing.T) {
 			},
 			req:  connect.NewRequest(&frontierv1beta1.ListProspectsRequest{}),
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("ListProspects: %w", errors.New("some error"))),
 		},
 		{
 			title: "should return success if prospect service return nil error",
