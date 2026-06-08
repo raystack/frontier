@@ -2924,6 +2924,68 @@ func (s *APIRegressionTestSuite) TestOrganizationRoleDeleteInUse() {
 	s.Assert().False(roleHasPermTuples())
 }
 
+// TestProjectResourceUpdateReconcile asserts that moving a resource to another
+// project reconciles its #project SpiceDB relation: the new project tuple is
+// written and the old one is removed (gap #1661.7).
+func (s *APIRegressionTestSuite) TestProjectResourceUpdateReconcile() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Name: "org-resource-reconcile"},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	projA, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{Name: "resource-reconcile-proj-a", OrgId: orgID},
+	}))
+	s.Require().NoError(err)
+	projB, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{Name: "resource-reconcile-proj-b", OrgId: orgID},
+	}))
+	s.Require().NoError(err)
+
+	createResourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+		ProjectId: projA.Msg.GetProject().GetId(),
+		Body: &frontierv1beta1.ResourceRequestBody{
+			Name:      "reconcile-res",
+			Namespace: computeOrderNamespace,
+		},
+	}))
+	s.Require().NoError(err)
+	resourceID := createResourceResp.Msg.GetResource().GetId()
+
+	projectSubjectOf := func() string {
+		resp, err := s.testBench.AdminClient.ListRelations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{
+			Object: schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+		}))
+		s.Require().NoError(err)
+		for _, rel := range resp.Msg.GetRelations() {
+			if rel.GetRelation() == schema.ProjectRelationName {
+				return rel.GetSubject()
+			}
+		}
+		return ""
+	}
+
+	// before the move the resource points at project A
+	s.Assert().Equal(schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projA.Msg.GetProject().GetId()), projectSubjectOf())
+
+	// move the resource to project B
+	_, err = s.testBench.Client.UpdateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateProjectResourceRequest{
+		Id:        resourceID,
+		ProjectId: projB.Msg.GetProject().GetId(),
+		Body: &frontierv1beta1.ResourceRequestBody{
+			Name:      "reconcile-res",
+			Namespace: computeOrderNamespace,
+		},
+	}))
+	s.Require().NoError(err)
+
+	// the #project relation now points at project B, and only B (old tuple gone)
+	s.Assert().Equal(schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projB.Msg.GetProject().GetId()), projectSubjectOf())
+}
+
 func TestEndToEndAPIRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(APIRegressionTestSuite))
 }

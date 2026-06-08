@@ -186,8 +186,12 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 	}
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
-			"title":    res.Title,
-			"metadata": marshaledMetadata,
+			"title":          res.Title,
+			"metadata":       marshaledMetadata,
+			"urn":            res.URN,
+			"project_id":     res.ProjectID,
+			"principal_id":   res.PrincipalID,
+			"principal_type": res.PrincipalType,
 		},
 	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {

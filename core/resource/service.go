@@ -170,8 +170,82 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
 	return s.repository.List(ctx, flt)
 }
 
-func (s Service) Update(ctx context.Context, resource Resource) (Resource, error) {
-	return s.repository.Update(ctx, resource)
+// Update persists a resource change and reconciles its #project / #owner
+// SpiceDB relations. Previously Update only touched title/metadata in the DB
+// and never reconciled relations, so moving a resource to a new project or
+// reassigning its owner silently left the old #project/#owner tuples in place
+// (and never wrote the new ones). Name and namespace stay immutable here; the
+// URN tracks the (possibly new) project name.
+func (s Service) Update(ctx context.Context, res Resource) (Resource, error) {
+	existing, err := s.repository.GetByID(ctx, res.ID)
+	if err != nil {
+		return Resource{}, err
+	}
+
+	principalID := res.PrincipalID
+	principalType := res.PrincipalType
+	// PAT → resolve to underlying user, mirroring Create
+	if principalType == schema.PATPrincipal {
+		sub, err := s.resolvePATUser(ctx, principalID)
+		if err != nil {
+			return Resource{}, fmt.Errorf("resolving PAT principal: %w", err)
+		}
+		principalID = sub.ID
+		principalType = sub.Namespace
+	}
+	// no owner supplied → keep the current one
+	if strings.TrimSpace(principalID) == "" {
+		principalID = existing.PrincipalID
+		principalType = existing.PrincipalType
+	}
+
+	resourceProject, err := s.projectService.Get(ctx, res.ProjectID)
+	if err != nil {
+		return Resource{}, fmt.Errorf("failed to get project: %w", err)
+	}
+
+	updated, err := s.repository.Update(ctx, Resource{
+		ID:            existing.ID,
+		URN:           existing.CreateURN(resourceProject.Name),
+		Name:          existing.Name,
+		Title:         res.Title,
+		ProjectID:     resourceProject.ID,
+		NamespaceID:   existing.NamespaceID,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		Metadata:      res.Metadata,
+	})
+	if err != nil {
+		return Resource{}, err
+	}
+
+	// reconcile the project grant if the resource moved projects
+	if existing.ProjectID != updated.ProjectID {
+		if err = s.relationService.Delete(ctx, relation.Relation{
+			Object:       relation.Object{ID: updated.ID, Namespace: updated.NamespaceID},
+			RelationName: schema.ProjectRelationName,
+		}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return Resource{}, err
+		}
+		if err = s.AddProjectToResource(ctx, updated.ProjectID, updated); err != nil {
+			return Resource{}, err
+		}
+	}
+
+	// reconcile the owner grant if the owner changed
+	if existing.PrincipalID != updated.PrincipalID || existing.PrincipalType != updated.PrincipalType {
+		if err = s.relationService.Delete(ctx, relation.Relation{
+			Object:       relation.Object{ID: updated.ID, Namespace: updated.NamespaceID},
+			RelationName: schema.OwnerRelationName,
+		}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+			return Resource{}, err
+		}
+		if err = s.AddResourceOwner(ctx, updated); err != nil {
+			return Resource{}, err
+		}
+	}
+
+	return updated, nil
 }
 
 func (s Service) AddProjectToResource(ctx context.Context, projectID string, res Resource) error {

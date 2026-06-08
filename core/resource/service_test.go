@@ -468,14 +468,53 @@ func TestList(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	t.Run("delegates to repository", func(t *testing.T) {
-		repo, _, _, _, _, _, _, _, svc := newTestService(t)
-		res := resource.Resource{ID: "r1", Title: "updated"}
-		repo.EXPECT().Update(mock.Anything, res).Return(res, nil)
+	proj := project.Project{ID: uuid.New().String(), Name: "proj"}
 
-		got, err := svc.Update(context.Background(), res)
+	t.Run("metadata-only update does not touch relations", func(t *testing.T) {
+		repo, _, _, _, projectSvc, _, _, _, svc := newTestService(t)
+		existing := resource.Resource{
+			ID: "r1", Name: "res", NamespaceID: "resource/item",
+			ProjectID: proj.ID, PrincipalID: "u1", PrincipalType: schema.UserPrincipal,
+		}
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(existing, nil)
+		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
+		// owner unchanged, project unchanged -> repository update only, no relation calls
+		updated := existing
+		updated.Title = "updated"
+		repo.EXPECT().Update(mock.Anything, mock.Anything).Return(updated, nil)
+
+		got, err := svc.Update(context.Background(), resource.Resource{
+			ID: "r1", Title: "updated", ProjectID: proj.ID,
+			PrincipalID: "u1", PrincipalType: schema.UserPrincipal,
+		})
 		assert.NoError(t, err)
 		assert.Equal(t, "updated", got.Title)
+	})
+
+	t.Run("moving project reconciles the #project relation", func(t *testing.T) {
+		repo, _, relationSvc, _, projectSvc, _, _, _, svc := newTestService(t)
+		newProj := project.Project{ID: uuid.New().String(), Name: "new-proj"}
+		existing := resource.Resource{
+			ID: "r1", Name: "res", NamespaceID: "resource/item",
+			ProjectID: proj.ID, PrincipalID: "u1", PrincipalType: schema.UserPrincipal,
+		}
+		updated := existing
+		updated.ProjectID = newProj.ID
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(existing, nil)
+		projectSvc.EXPECT().Get(mock.Anything, newProj.ID).Return(newProj, nil)
+		repo.EXPECT().Update(mock.Anything, mock.Anything).Return(updated, nil)
+		// old #project tuple removed, new one written
+		relationSvc.EXPECT().Delete(mock.Anything, relation.Relation{
+			Object:       relation.Object{ID: "r1", Namespace: "resource/item"},
+			RelationName: schema.ProjectRelationName,
+		}).Return(nil)
+		relationSvc.EXPECT().Create(mock.Anything, mock.Anything).Return(relation.Relation{}, nil)
+
+		_, err := svc.Update(context.Background(), resource.Resource{
+			ID: "r1", ProjectID: newProj.ID,
+			PrincipalID: "u1", PrincipalType: schema.UserPrincipal,
+		})
+		assert.NoError(t, err)
 	})
 }
 
