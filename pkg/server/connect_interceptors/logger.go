@@ -62,10 +62,8 @@ func UnaryConnectLoggerInterceptor(logger *slog.Logger, opts *LoggerOptions) con
 			attrs := []any{
 				"system", "connect_rpc",
 				"start_time", startTime,
-				"method", req.Spec().Procedure,
 				"time_ms", duration.Milliseconds(),
 				"code", code.String(),
-				"request_id", requestID,
 			}
 			if err != nil {
 				attrs = append(attrs, "error", err)
