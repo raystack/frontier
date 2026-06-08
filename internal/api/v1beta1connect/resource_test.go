@@ -473,7 +473,7 @@ func TestConnectHandler_GetProjectResource(t *testing.T) {
 				}
 				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(invalidResource, nil)
 			},
-			request:         connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
 				Id: testResource.ID,
 			}),
 			want:            nil,

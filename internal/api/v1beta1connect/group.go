@@ -349,7 +349,6 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 	}
 
 	if err := h.membershipService.RemoveGroupMember(ctx, request.Msg.GetId(), request.Msg.GetUserId(), schema.UserPrincipal); err != nil {
-
 		switch {
 		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
