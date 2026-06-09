@@ -15,8 +15,6 @@ import (
 )
 
 func (h *ConnectHandler) SearchOrganizationInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationInvoicesRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationInvoicesResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var orgInvoices []*frontierv1beta1.SearchOrganizationInvoicesResponse_OrganizationInvoice
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), orginvoices.AggregatedInvoice{})
@@ -34,9 +32,7 @@ func (h *ConnectHandler) SearchOrganizationInvoices(ctx context.Context, request
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrganizationInvoices.Search", err,
-			"org_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationInvoices.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	for _, v := range invoicesData.Invoices {

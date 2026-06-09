@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/checkout"
@@ -137,14 +138,14 @@ func (h *ConnectHandler) GetOrgIDFromSubscriptionID(ctx context.Context, subscri
 		if errors.Is(err, subscription.ErrInvalidUUID) || errors.Is(err, subscription.ErrInvalidID) {
 			return "", connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrgIDFromSubscriptionID: %w", err))
 	}
 	cust, err := h.customerService.GetByID(ctx, sub.CustomerID)
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
 			return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
 		}
-		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrgIDFromSubscriptionID: %w", err))
 	}
 	return cust.OrgID, nil
 }
@@ -159,14 +160,14 @@ func (h *ConnectHandler) GetOrgIDFromCheckoutID(ctx context.Context, checkoutID 
 		if errors.Is(err, checkout.ErrInvalidUUID) || errors.Is(err, checkout.ErrInvalidID) {
 			return "", connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrgIDFromCheckoutID: %w", err))
 	}
 	cust, err := h.customerService.GetByID(ctx, co.CustomerID)
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
 			return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
 		}
-		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrgIDFromCheckoutID: %w", err))
 	}
 	return cust.OrgID, nil
 }
@@ -181,7 +182,7 @@ func (h *ConnectHandler) GetOrgIDFromBillingAccountID(ctx context.Context, billi
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return "", connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrgIDFromBillingAccountID: %w", err))
 	}
 	return cust.OrgID, nil
 }

@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -57,7 +58,7 @@ func TestConnectHandler_ListMetaSchemas(t *testing.T) {
 			},
 			req:     connect.NewRequest(&frontierv1beta1.ListMetaSchemasRequest{}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListMetaSchemas.List: %w", errors.New("service error"))),
 		},
 		{
 			name: "should return empty list when no metaschemas exist",
@@ -244,7 +245,7 @@ func TestConnectHandler_GetMetaSchema(t *testing.T) {
 			},
 			req:     connect.NewRequest(&frontierv1beta1.GetMetaSchemaRequest{Id: "test_id"}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetMetaSchema.Get: metaschema_id=%s: %w", "test_id", errors.New("service error"))),
 		},
 	}
 
@@ -409,7 +410,7 @@ func TestConnectHandler_DeleteMetaSchema(t *testing.T) {
 			},
 			req:     connect.NewRequest(&frontierv1beta1.DeleteMetaSchemaRequest{Id: "test_id"}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteMetaSchema.Delete: metaschema_id=%s: %w", "test_id", errors.New("service error"))),
 		},
 	}
 

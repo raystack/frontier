@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -217,7 +218,7 @@ func TestConnectHandler_CreateOrganizationPreferences(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("handlePreferenceError: %w", errors.New("database error"))),
 		},
 		{
 			name: "should create multiple preferences successfully",
@@ -360,7 +361,7 @@ func TestConnectHandler_ListOrganizationPreferences(t *testing.T) {
 				Id: "error_org",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("handlePreferenceError: %w", errors.New("database error"))),
 		},
 		{
 			name: "should list multiple preferences successfully",
@@ -494,7 +495,7 @@ func TestConnectHandler_CreateUserPreferences(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("handlePreferenceError: %w", errors.New("database connection failed"))),
 		},
 		{
 			name: "should create multiple user preferences successfully",
@@ -651,7 +652,7 @@ func TestConnectHandler_ListUserPreferences(t *testing.T) {
 				Id: "user_error",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("handlePreferenceError: %w", errors.New("database connection failed"))),
 		},
 		{
 			name: "should list multiple user preferences successfully",
@@ -1026,7 +1027,7 @@ func TestConnectHandler_ListCurrentUserPreferences(t *testing.T) {
 				}).Return(nil, errors.New("database error"))
 			},
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("handlePreferenceError: %w", errors.New("database error"))),
 		},
 		{
 			name: "should return multiple preferences for current user",

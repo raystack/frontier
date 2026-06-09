@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -16,7 +17,6 @@ import (
 )
 
 func (h *ConnectHandler) ListResources(ctx context.Context, request *connect.Request[frontierv1beta1.ListResourcesRequest]) (*connect.Response[frontierv1beta1.ListResourcesResponse], error) {
-	errorLogger := NewErrorLogger()
 	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.Msg.GetNamespace())
 	filters := resource.Filter{
@@ -25,17 +25,13 @@ func (h *ConnectHandler) ListResources(ctx context.Context, request *connect.Req
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListResources", err,
-			"namespace", request.Msg.GetNamespace(),
-			"project_id", request.Msg.GetProjectId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListResources: namespace=%s project_id=%s: %w", request.Msg.GetNamespace(), request.Msg.GetProjectId(), err))
 	}
 
 	for _, r := range resourcesList {
 		resourcePB, err := transformResourceToPB(r)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListResources", r.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListResources: entity_id=%s: %w", r.ID, err))
 		}
 		resources = append(resources, resourcePB)
 	}
@@ -46,7 +42,6 @@ func (h *ConnectHandler) ListResources(ctx context.Context, request *connect.Req
 }
 
 func (h *ConnectHandler) ListProjectResources(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectResourcesRequest]) (*connect.Response[frontierv1beta1.ListProjectResourcesResponse], error) {
-	errorLogger := NewErrorLogger()
 	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.Msg.GetNamespace())
 	filters := resource.Filter{
@@ -55,16 +50,12 @@ func (h *ConnectHandler) ListProjectResources(ctx context.Context, request *conn
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectResources", err,
-			"namespace", request.Msg.GetNamespace(),
-			"project_id", request.Msg.GetProjectId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectResources: namespace=%s project_id=%s: %w", request.Msg.GetNamespace(), request.Msg.GetProjectId(), err))
 	}
 	for _, r := range resourcesList {
 		resourcePB, err := transformResourceToPB(r)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListProjectResources", r.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectResources: entity_id=%s: %w", r.ID, err))
 		}
 		resources = append(resources, resourcePB)
 	}
@@ -88,9 +79,7 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 
 	parentProject, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "CreateProjectResource.GetProject", err,
-			"project_id", request.Msg.GetProjectId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource.GetProject: project_id=%s: %w", request.Msg.GetProjectId(), err))
 	}
 
 	principalType := schema.UserPrincipal
@@ -127,20 +116,13 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 		case errors.Is(err, resource.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreateProjectResource", err,
-				"resource_id", request.Msg.GetId(),
-				"project_id", request.Msg.GetProjectId(),
-				"resource_name", request.Msg.GetBody().GetName(),
-				"namespace", request.Msg.GetBody().GetNamespace(),
-				"principal", request.Msg.GetBody().GetPrincipal())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource: resource_id=%s project_id=%s resource_name=%s namespace=%s principal=%s: %w", request.Msg.GetId(), request.Msg.GetProjectId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetNamespace(), request.Msg.GetBody().GetPrincipal(), err))
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(newResource)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateProjectResource", newResource.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource: entity_id=%s: %w", newResource.ID, err))
 	}
 
 	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceCreatedEvent, audit.Target{
@@ -167,16 +149,13 @@ func (h *ConnectHandler) GetProjectResource(ctx context.Context, request *connec
 			errors.Is(err, resource.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetProjectResource", err,
-				"resource_id", resourceID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProjectResource: resource_id=%s: %w", resourceID, err))
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(fetchedResource)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetProjectResource", fetchedResource.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProjectResource: entity_id=%s: %w", fetchedResource.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetProjectResourceResponse{
@@ -199,9 +178,7 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 
 	parentProject, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "UpdateProjectResource.GetProject", err,
-			"project_id", request.Msg.GetProjectId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProjectResource.GetProject: project_id=%s: %w", request.Msg.GetProjectId(), err))
 	}
 
 	principalType := schema.UserPrincipal
@@ -239,20 +216,13 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 		case errors.Is(err, resource.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "UpdateProjectResource", err,
-				"resource_id", request.Msg.GetId(),
-				"project_id", request.Msg.GetProjectId(),
-				"resource_name", request.Msg.GetBody().GetName(),
-				"namespace", request.Msg.GetBody().GetNamespace(),
-				"principal", request.Msg.GetBody().GetPrincipal())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProjectResource: resource_id=%s project_id=%s resource_name=%s namespace=%s principal=%s: %w", request.Msg.GetId(), request.Msg.GetProjectId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetNamespace(), request.Msg.GetBody().GetPrincipal(), err))
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(updatedResource)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateProjectResource", updatedResource.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProjectResource: entity_id=%s: %w", updatedResource.ID, err))
 	}
 
 	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceUpdatedEvent, audit.Target{
@@ -279,27 +249,18 @@ func (h *ConnectHandler) DeleteProjectResource(ctx context.Context, request *con
 			errors.Is(err, resource.ErrInvalidUUID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeleteProjectResource.GetResource", err,
-				"resource_id", resourceID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource.GetResource: resource_id=%s: %w", resourceID, err))
 		}
 	}
 
 	parentProject, err := h.projectService.Get(ctx, resourceToDel.ProjectID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource.GetProject", err,
-			"resource_id", resourceID,
-			"project_id", resourceToDel.ProjectID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource.GetProject: resource_id=%s project_id=%s: %w", resourceID, resourceToDel.ProjectID, err))
 	}
 
 	err = h.resourceService.Delete(ctx, resourceToDel.NamespaceID, resourceToDel.ID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource", err,
-			"resource_id", resourceID,
-			"project_id", resourceToDel.ProjectID,
-			"namespace", resourceToDel.NamespaceID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource: resource_id=%s project_id=%s namespace=%s: %w", resourceID, resourceToDel.ProjectID, resourceToDel.NamespaceID, err))
 	}
 
 	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{

@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/webhook"
@@ -11,8 +12,6 @@ import (
 )
 
 func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.CreateWebhookRequest]) (*connect.Response[frontierv1beta1.CreateWebhookResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var metaDataMap metadata.Metadata
 	if req.Msg.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(req.Msg.GetBody().GetMetadata().AsMap())
@@ -26,14 +25,11 @@ func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request
 		Metadata:         metaDataMap,
 	})
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, req, "CreateWebhook", err,
-			"url", req.Msg.GetBody().GetUrl())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateWebhook: url=%s: %w", req.Msg.GetBody().GetUrl(), err))
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, req, "CreateWebhook", endpoint.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateWebhook: entity_id=%s: %w", endpoint.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateWebhookResponse{
 		Webhook: endpointPb,
@@ -41,7 +37,6 @@ func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request
 }
 
 func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.UpdateWebhookRequest]) (*connect.Response[frontierv1beta1.UpdateWebhookResponse], error) {
-	errorLogger := NewErrorLogger()
 	webhookID := req.Msg.GetId()
 
 	var metaDataMap metadata.Metadata
@@ -58,15 +53,11 @@ func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request
 		Metadata:         metaDataMap,
 	})
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, req, "UpdateWebhook", err,
-			"webhook_id", webhookID,
-			"url", req.Msg.GetBody().GetUrl())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateWebhook: webhook_id=%s url=%s: %w", webhookID, req.Msg.GetBody().GetUrl(), err))
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, req, "UpdateWebhook", endpoint.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateWebhook: entity_id=%s: %w", endpoint.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.UpdateWebhookResponse{
 		Webhook: endpointPb,
@@ -74,20 +65,16 @@ func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request
 }
 
 func (h *ConnectHandler) ListWebhooks(ctx context.Context, req *connect.Request[frontierv1beta1.ListWebhooksRequest]) (*connect.Response[frontierv1beta1.ListWebhooksResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	filter := webhook.EndpointFilter{}
 	endpoints, err := h.webhookService.ListEndpoints(ctx, filter)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, req, "ListWebhooks", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListWebhooks: %w", err))
 	}
 	var webhooks []*frontierv1beta1.Webhook
 	for _, endpoint := range endpoints {
 		endpointPb, err := toProtoWebhookEndpoint(endpoint)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, req, "ListWebhooks", endpoint.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListWebhooks: entity_id=%s: %w", endpoint.ID, err))
 		}
 		webhooks = append(webhooks, endpointPb)
 	}
@@ -97,14 +84,11 @@ func (h *ConnectHandler) ListWebhooks(ctx context.Context, req *connect.Request[
 }
 
 func (h *ConnectHandler) DeleteWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.DeleteWebhookRequest]) (*connect.Response[frontierv1beta1.DeleteWebhookResponse], error) {
-	errorLogger := NewErrorLogger()
 	webhookID := req.Msg.GetId()
 
 	err := h.webhookService.DeleteEndpoint(ctx, webhookID)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, req, "DeleteWebhook", err,
-			"webhook_id", webhookID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteWebhook: webhook_id=%s: %w", webhookID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteWebhookResponse{}), nil
 }

@@ -61,7 +61,7 @@ func TestConnectHandler_BillingWebhookCallback(t *testing.T) {
 				Body:     []byte("webhook_body"),
 			}),
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{

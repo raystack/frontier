@@ -54,7 +54,7 @@ func mapPATError(err error) *connect.Error {
 		errors.Is(err, paterrors.ErrExpiryExceeded):
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	default:
-		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", err))
 	}
 }
 
@@ -127,8 +127,7 @@ func (h *ConnectHandler) ListRolesForPAT(ctx context.Context, request *connect.R
 	for _, v := range roleList {
 		rolePB, err := transformRoleToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListRolesForPAT", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListRolesForPAT: entity_id=%s: %w", v.ID, err))
 		}
 		roles = append(roles, &rolePB)
 	}

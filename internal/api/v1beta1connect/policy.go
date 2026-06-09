@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -56,20 +57,13 @@ func (h *ConnectHandler) CreatePolicy(ctx context.Context, request *connect.Requ
 		case errors.Is(err, policy.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreatePolicy", err,
-				"role_id", request.Msg.GetBody().GetRoleId(),
-				"resource_type", resourceType,
-				"resource_id", resourceID,
-				"principal_type", principalType,
-				"principal_id", principalID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePolicy: role_id=%s resource_type=%s resource_id=%s principal_type=%s principal_id=%s: %w", request.Msg.GetBody().GetRoleId(), resourceType, resourceID, principalType, principalID, err))
 		}
 	}
 
 	policyPB, err := transformPolicyToPB(newPolicy)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreatePolicy", newPolicy.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePolicy: entity_id=%s: %w", newPolicy.ID, err))
 	}
 
 	auditPolicyCreationEvent(ctx, newPolicy)
@@ -91,16 +85,13 @@ func (h *ConnectHandler) GetPolicy(ctx context.Context, request *connect.Request
 			errors.Is(err, policy.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrPolicyNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetPolicy", err,
-				"policy_id", policyID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetPolicy: policy_id=%s: %w", policyID, err))
 		}
 	}
 
 	policyPB, err := transformPolicyToPB(fetchedPolicy)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetPolicy", fetchedPolicy.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetPolicy: entity_id=%s: %w", fetchedPolicy.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetPolicyResponse{Policy: policyPB}), nil
@@ -126,9 +117,7 @@ func (h *ConnectHandler) DeletePolicy(ctx context.Context, request *connect.Requ
 		case errors.Is(err, policy.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeletePolicy", err,
-				"policy_id", policyID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeletePolicy: policy_id=%s: %w", policyID, err))
 		}
 	}
 
@@ -180,12 +169,7 @@ func (h *ConnectHandler) CreatePolicyForProject(ctx context.Context, request *co
 		case errors.Is(err, policy.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreatePolicyForProject.CreatePolicy", err,
-				"role_id", request.Msg.GetBody().GetRoleId(),
-				"project_id", request.Msg.GetProjectId(),
-				"principal_type", principalType,
-				"principal_id", principalID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePolicyForProject.CreatePolicy: role_id=%s project_id=%s principal_type=%s principal_id=%s: %w", request.Msg.GetBody().GetRoleId(), request.Msg.GetProjectId(), principalType, principalID, err))
 		}
 	}
 
@@ -210,20 +194,13 @@ func (h *ConnectHandler) ListPolicies(ctx context.Context, request *connect.Requ
 
 	policyList, err := h.policyService.List(ctx, filter)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListPolicies", err,
-			"org_id", request.Msg.GetOrgId(),
-			"project_id", request.Msg.GetProjectId(),
-			"role_id", request.Msg.GetRoleId(),
-			"user_id", request.Msg.GetUserId(),
-			"group_id", request.Msg.GetGroupId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPolicies: org_id=%s project_id=%s role_id=%s user_id=%s group_id=%s: %w", request.Msg.GetOrgId(), request.Msg.GetProjectId(), request.Msg.GetRoleId(), request.Msg.GetUserId(), request.Msg.GetGroupId(), err))
 	}
 
 	for _, p := range policyList {
 		policyPB, err := transformPolicyToPB(p)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListPolicies", p.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPolicies: entity_id=%s: %w", p.ID, err))
 		}
 		policies = append(policies, policyPB)
 	}

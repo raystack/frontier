@@ -269,7 +269,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("service error"),
 		},
 		{
 			name: "should return internal server error when customer portal setup fails",
@@ -288,7 +288,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("service error"),
 		},
 		{
 			name: "should return internal server error when subscription checkout fails",
@@ -308,7 +308,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("service error"),
 		},
 		{
 			name: "should return internal server error when product checkout fails",
@@ -328,7 +328,7 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("service error"),
 		},
 	}
 
@@ -456,7 +456,7 @@ func TestConnectHandler_DelegatedCheckout(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("service error"),
 		},
 	}
 
@@ -525,7 +525,7 @@ func TestConnectHandler_ListCheckouts(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("ListCheckouts.List: billing_id=test-billing-id org_id=test-org-id: service error"),
 		},
 		{
 			name: "should return empty list if no checkouts found",
@@ -690,7 +690,7 @@ func TestConnectHandler_GetCheckout(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("GetCheckout.GetByID: checkout_id=test-checkout-id: service error"),
 		},
 		{
 			name: "should return checkout successfully",

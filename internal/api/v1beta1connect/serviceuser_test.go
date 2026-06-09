@@ -527,7 +527,7 @@ func TestConnectHandler_CreateServiceUserJWK(t *testing.T) {
 				}).Return(serviceuser.Credential{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -616,7 +616,7 @@ func TestConnectHandler_ListServiceUserJWKs(t *testing.T) {
 				su.EXPECT().ListKeys(mock.Anything, "1").Return(nil, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -705,7 +705,7 @@ func TestHandler_GetServiceUserJWK(t *testing.T) {
 				su.On("GetKey", mock.Anything, "1").Return(serviceuser.Credential{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -786,7 +786,7 @@ func TestHandler_DeleteServiceUserJWK(t *testing.T) {
 				su.On("DeleteKey", mock.Anything, "1").Return(errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -864,7 +864,7 @@ func TestHandler_CreateServiceUserCredential(t *testing.T) {
 				}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -936,7 +936,7 @@ func TestHandler_ListServiceUserCredentials(t *testing.T) {
 				su.On("ListSecret", mock.Anything, "service-user-id").Return(nil, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -1031,7 +1031,7 @@ func TestHandler_DeleteServiceUserCredential(t *testing.T) {
 				su.On("DeleteSecret", mock.Anything, "credential-id").Return(errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -1092,7 +1092,7 @@ func TestHandler_CreateServiceUserToken(t *testing.T) {
 				}).Return(serviceuser.Token{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -1164,7 +1164,7 @@ func TestHandler_ListServiceUserTokens(t *testing.T) {
 				su.On("ListToken", mock.Anything, "service-user-id").Return(nil, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -1258,7 +1258,7 @@ func TestHandler_DeleteServiceUserToken(t *testing.T) {
 				su.On("DeleteToken", mock.Anything, "token-id").Return(errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -1329,7 +1329,7 @@ func TestHandler_GetServiceUser(t *testing.T) {
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetServiceUserRequest{Id: testServiceUserID}),
 			errCode: connect.CodeInternal,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("boom"),
 		},
 	}
 	for _, tt := range tests {
@@ -1391,7 +1391,7 @@ func TestHandler_ListServiceUserProjects(t *testing.T) {
 				projSvc.EXPECT().List(mock.Anything, project.Filter{Principal: &authenticate.Principal{ID: "1", Type: schema.ServiceUserPrincipal}}).Return(nil, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("test error"),
 			errCode: connect.CodeInternal,
 		},
 		{

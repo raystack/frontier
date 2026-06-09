@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -87,7 +88,7 @@ func TestHandler_ListOrganizationInvitations(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationInvitationsRequest{
 				OrgId: testOrgID,
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationInvitations.List: org_id=%s user_id=%s: %w", testOrgID, "", errors.New("new-error"))),
 			want:    nil,
 		},
 		{
@@ -161,7 +162,7 @@ func TestHandler_ListCurrentUserInvitations(t *testing.T) {
 				is.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), testUserEmail).Return(nil, errors.New("new-error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListCurrentUserInvitationsRequest{}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListCurrentUserInvitations.ListByUser: user_email=%s: %w", testUserEmail, errors.New("new-error"))),
 			want:    nil,
 		},
 		{
@@ -254,7 +255,7 @@ func TestHandler_ListUserInvitations(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.ListUserInvitationsRequest{
 				Id: testUserEmail,
 			}),
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListUserInvitations.ListByUser: user_id=%s: %w", testUserEmail, errors.New("new-error"))),
 			want:    nil,
 		},
 		{
@@ -383,7 +384,7 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 				GroupIds: []string{randomGroupID},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationInvitation.Create: user_email=%s org_id=%s: %w", testUserEmail, testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should create a new invitation with the default expiration date",
@@ -487,7 +488,7 @@ func TestHandler_GetOrganizationInvitation(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationInvitation.Get: invitation_id=%s: %w", testInvitation1ID.String(), errors.New("test error"))),
 		},
 		{
 			name: "should return an error if the invitation is not found",
@@ -500,7 +501,7 @@ func TestHandler_GetOrganizationInvitation(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationInvitation.Get: invitation_id=%s: %w", testInvitation1ID.String(), invitation.ErrNotFound)),
 		},
 	}
 
@@ -564,7 +565,7 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("AcceptOrganizationInvitation.Accept: invitation_id=%s org_id=%s: %w", testInvitation1ID.String(), testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return error if invitation is expired",
@@ -635,7 +636,7 @@ func TestHandler_DeleteOrganizationInvitation(t *testing.T) {
 				OrgId: randomOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationInvitation.Delete: invitation_id=%s org_id=%s: %w", testInvitation1ID.String(), randomOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should delete an invitation on success",

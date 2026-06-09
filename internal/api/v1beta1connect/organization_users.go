@@ -16,8 +16,6 @@ import (
 )
 
 func (h *ConnectHandler) SearchOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationUsersRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationUsersResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var orgUsers []*frontierv1beta1.SearchOrganizationUsersResponse_OrganizationUser
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), orgusers.AggregatedUser{})
@@ -39,9 +37,7 @@ func (h *ConnectHandler) SearchOrganizationUsers(ctx context.Context, request *c
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrganizationUsers.Search", err,
-			"org_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationUsers.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	for _, v := range orgUsersData.Users {
@@ -85,16 +81,12 @@ func transformAggregatedUserToPB(v orgusers.AggregatedUser) *frontierv1beta1.Sea
 }
 
 func (h *ConnectHandler) ExportOrganizationUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ExportOrganizationUsersRequest], stream *connect.ServerStream[httpbody.HttpBody]) error {
-	errorLogger := NewErrorLogger()
-
 	orgUsersDataBytes, contentType, err := h.orgUsersService.Export(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, orgusers.ErrNoContent) {
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
-		errorLogger.LogServiceError(ctx, request, "ExportOrganizationUsers.Export", err,
-			"org_id", request.Msg.GetId())
-		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("ExportOrganizationUsers.Export: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return streamBytesInChunks(orgUsersDataBytes, contentType, stream)
 }
@@ -111,7 +103,7 @@ func streamBytesInChunks(data []byte, contentType string, stream *connect.Server
 		}
 
 		if err := stream.Send(msg); err != nil {
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("streamBytesInChunks: %w", err))
 		}
 	}
 	return nil

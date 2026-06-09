@@ -64,7 +64,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(errors.New("service error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -409,7 +409,7 @@ func TestConnectHandler_ListBillingTransactions(t *testing.T) {
 				}).Return(nil, errors.New("service error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -690,7 +690,7 @@ func TestConnectHandler_TotalDebitedTransactions(t *testing.T) {
 				cs.EXPECT().GetTotalDebitedAmount(mock.Anything, "billing-123").Return(int64(0), errors.New("service error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{

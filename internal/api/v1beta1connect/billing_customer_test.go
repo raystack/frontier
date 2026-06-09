@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -56,7 +57,7 @@ func TestHandler_UpdateBillingAccountDetails(t *testing.T) {
 			}),
 			mockUpdateError: errors.New("failed to update details"),
 			expectError:     true,
-			expectedError:   connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			expectedError:   connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccountDetails.UpdateDetails: customer_id=billing-account-id credit_min=-100 due_in_days=30: %w", errors.New("failed to update details"))),
 		},
 	}
 

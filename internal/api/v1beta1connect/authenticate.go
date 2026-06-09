@@ -26,8 +26,6 @@ import (
 )
 
 func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Request[frontierv1beta1.AuthenticateRequest]) (*connect.Response[frontierv1beta1.AuthenticateResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	returnToURL := h.authnService.SanitizeReturnToURL(request.Msg.GetReturnTo())
 	callbackURL := h.authnService.SanitizeCallbackURL(request.Msg.GetCallbackUrl())
 
@@ -41,8 +39,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		}
 		return resp, nil
 	} else if err != nil && !errors.Is(err, frontiersession.ErrNoSession) {
-		errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Authenticate: %w", err))
 	}
 
 	if (request.Msg.GetStrategyName() == authenticate.MailLinkAuthMethod.String() || request.Msg.GetStrategyName() == authenticate.MailOTPAuthMethod.String()) && !isValidEmail(request.Msg.GetEmail()) {
@@ -57,10 +54,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		Email:       request.Msg.GetEmail(),
 	})
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
-			"strategy", request.Msg.GetStrategyName(),
-			"email", request.Msg.GetEmail())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Authenticate: strategy=%s email=%s: %w", request.Msg.GetStrategyName(), request.Msg.GetEmail(), err))
 	}
 
 	// set location header for redirect to start auth?
@@ -76,16 +70,12 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 	if request.Msg.GetStrategyName() == authenticate.PassKeyAuthMethod.String() {
 		userCredentils := &structpb.Value{}
 		if err = userCredentils.UnmarshalJSON(response.StateConfig["options"].([]byte)); err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
-				"strategy", authenticate.PassKeyAuthMethod.String())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Authenticate: strategy=%s: %w", authenticate.PassKeyAuthMethod.String(), err))
 		}
 		typeValue, ok := response.Flow.Metadata["passkey_type"].(string)
 		if !ok {
 			err = fmt.Errorf("passkey_type metadata is not a string")
-			errorLogger.LogUnexpectedError(ctx, request, "Authenticate", err,
-				"strategy", authenticate.PassKeyAuthMethod.String())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Authenticate: strategy=%s: %w", authenticate.PassKeyAuthMethod.String(), err))
 		}
 		stringValue := &structpb.Value{
 			Kind: &structpb.Value_StringValue{
@@ -123,10 +113,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 				"state", request.Msg.GetState())
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
-			"strategy", request.Msg.GetStrategyName(),
-			"state", request.Msg.GetState())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AuthCallback: strategy=%s state=%s: %w", request.Msg.GetStrategyName(), request.Msg.GetState(), err))
 	}
 
 	// Extract session metadata from request headers
@@ -135,9 +122,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 	// registration/login complete, build a session
 	session, err := h.sessionService.Create(ctx, response.User.ID, sessionMetadata)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "AuthCallback", err,
-			"user_id", response.User.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AuthCallback: user_id=%s: %w", response.User.ID, err))
 	}
 	// create response and set headers
 	resp := connect.NewResponse(&frontierv1beta1.AuthCallbackResponse{})
@@ -182,9 +167,7 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 		authenticate.ClientCredentialsClientAssertion,
 		authenticate.JWTGrantClientAssertion)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
-			"grant_type", request.Msg.GetGrantType())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AuthToken: grant_type=%s: %w", request.Msg.GetGrantType(), err))
 	}
 
 	if principal.Type == schema.ServiceUserPrincipal {
@@ -197,16 +180,13 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 			if errors.Is(err, organization.ErrDisabled) {
 				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 			}
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AuthToken.orgService.Get: org_id=%s service_user_id=%s: %w", orgId, principal.ServiceUser.ID, err))
 		}
 	}
 
 	token, err := h.getAccessToken(ctx, principal, request.Header().Values(consts.ProjectRequestKey), request)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "AuthToken", err,
-			"principal_id", principal.ID,
-			"principal_type", principal.Type)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AuthToken: principal_id=%s principal_type=%s: %w", principal.ID, principal.Type, err))
 	}
 
 	resp := connect.NewResponse(&frontierv1beta1.AuthTokenResponse{
@@ -270,15 +250,11 @@ func (h *ConnectHandler) getAccessToken(ctx context.Context, principal authentic
 }
 
 func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Request[frontierv1beta1.AuthLogoutRequest]) (*connect.Response[frontierv1beta1.AuthLogoutResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	// delete user session if exists
 	sessionID, err := h.getLoggedInSessionID(ctx)
 	if err == nil {
 		if err = h.sessionService.Delete(ctx, sessionID); err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "AuthLogout", err,
-				"session_id", sessionID.String())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AuthLogout: session_id=%s: %w", sessionID.String(), err))
 		}
 	}
 
@@ -298,7 +274,6 @@ func (h *ConnectHandler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, e
 }
 
 func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error) {
-	errorLogger := NewErrorLogger()
 	principal, err := h.authnService.GetPrincipal(ctx, via...)
 	if err != nil {
 		switch {
@@ -312,8 +287,7 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 			errors.Is(err, patErrors.ErrDisabled):
 			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
 		default:
-			errorLogger.LogUnexpectedError(ctx, nil, "GetLoggedInPrincipal", err)
-			return principal, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return principal, connect.NewError(connect.CodeInternal, fmt.Errorf("GetLoggedInPrincipal: %w", err))
 		}
 	}
 	return principal, nil
@@ -331,13 +305,10 @@ func (h *ConnectHandler) ListAuthStrategies(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) GetJWKs(ctx context.Context, request *connect.Request[frontierv1beta1.GetJWKsRequest]) (*connect.Response[frontierv1beta1.GetJWKsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	keySet := h.authnService.JWKs(ctx)
 	jwks, err := toJSONWebKey(keySet)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "GetJWKs", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetJWKs: %w", err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GetJWKsResponse{
 		Keys: jwks.Keys,

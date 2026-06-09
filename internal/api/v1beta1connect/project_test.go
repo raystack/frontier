@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -70,7 +71,7 @@ func TestHandler_ListProjects(t *testing.T) {
 				ps.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), project.Filter{}).Return([]project.Project{}, errors.New("test error"))
 			},
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjects: org_id=%s state=%s: %w", "", "", errors.New("test error"))),
 		},
 		{
 			title: "should return success if project return nil error",
@@ -177,7 +178,7 @@ func TestHandler_CreateProject(t *testing.T) {
 					},
 				},
 			}}),
-			err: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err: connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", errors.New("test error"))),
 		},
 		{
 			title: "should return bad request error if org id is not uuid",
@@ -313,7 +314,7 @@ func TestHandler_GetProject(t *testing.T) {
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), someProjectID).Return(project.Project{}, errors.New("test error"))
 			},
-			err: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err: connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", errors.New("test error"))),
 		},
 		{
 			title: "should return not found error if project doesnt exist",
@@ -414,7 +415,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 				Body: updateBody,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", errors.New("test error"))),
 		},
 		{
 			name: "should translate organization.ErrInvalidUUID to invalid argument",
@@ -515,7 +516,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 				}).Return(nil, errors.New("test error"))
 			},
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectAdmins.ListPrincipalsByResource: project_id=%s: %w", testProjectID, errors.New("test error"))),
 		},
 		{
 			title: "should return success if project service return nil error",
@@ -595,7 +596,7 @@ func TestHandler_EnableProject(t *testing.T) {
 				ps.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(errors.New("test error"))
 			},
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", errors.New("test error"))),
 		},
 		{
 			title: "should return success if project service return nil error",
@@ -640,7 +641,7 @@ func TestHandler_DisableProject(t *testing.T) {
 				ps.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(errors.New("test error"))
 			},
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", errors.New("test error"))),
 		},
 		{
 			title: "should return success if project service return nil error",
@@ -688,7 +689,7 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 				}).Return(nil, errors.New("test error"))
 			},
 			want: nil,
-			err:  connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectUsers.ListPrincipalsByResource: project_id=%s: %w", testProjectID, errors.New("test error"))),
 		},
 		{
 			title: "should return success if project service return nil error",

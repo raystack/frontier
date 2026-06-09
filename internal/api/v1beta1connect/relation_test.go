@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -52,7 +53,7 @@ func TestHandler_ListRelations(t *testing.T) {
 				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), relation.Filter{}).Return([]relation.Relation{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListRelations: subject= object=: %w", errors.New("test error"))),
 		},
 		{
 			name: "should return relations if relation service return nil error",
@@ -161,7 +162,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateRelation: subject=app/user:user@raystack.org object=ns2:object-id relation=member subject_sub_relation=: %w", errors.New("test error"))),
 		},
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
@@ -251,7 +252,7 @@ func TestHandler_GetRelation(t *testing.T) {
 				Id: testRelationV2.ID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetRelation: relation_id=%s: %w", testRelationV2.ID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if id is empty",
@@ -381,7 +382,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 				Relation: testRelationV2.Subject.SubRelationName,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteRelation: subject=%s object=%s relation=%s: %w", schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID), schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID), testRelationV2.Subject.SubRelationName, errors.New("test error"))),
 		},
 		{
 			name: "should successfully delete when relation exist",
