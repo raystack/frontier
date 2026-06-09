@@ -2319,6 +2319,14 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		}))
 		s.Assert().Error(err)
 
+		// no SpiceDB relation should linger on the invitation object after accept:
+		// both the #user and #org tuples must be gone, not just #org (gap #1661.3)
+		leftoverInviteRelations, err := s.testBench.AdminClient.ListRelations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{
+			Object: schema.JoinNamespaceAndResourceID(schema.InvitationNamespace, createdInvite.GetId()),
+		}))
+		s.Assert().NoError(err)
+		s.Assert().Empty(leftoverInviteRelations.Msg.GetRelations())
+
 		// should be part of group
 		listGroupUsersAfterAccept, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
 			Id:    createGroupResp.Msg.GetGroup().GetId(),
