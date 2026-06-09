@@ -40,7 +40,6 @@ func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.R
 }
 
 func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.ListInvoicesRequest]) (*connect.Response[frontierv1beta1.ListInvoicesResponse], error) {
-
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
@@ -85,7 +84,6 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 }
 
 func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse], error) {
-
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
@@ -160,7 +158,6 @@ func (h *ConnectHandler) GenerateInvoices(ctx context.Context, request *connect.
 }
 
 func (h *ConnectHandler) SearchInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.SearchInvoicesRequest]) (*connect.Response[frontierv1beta1.SearchInvoicesResponse], error) {
-
 	var invoices []*frontierv1beta1.SearchInvoicesResponse_Invoice
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), invoice.InvoiceWithOrganization{})
