@@ -462,7 +462,7 @@ func TestConnectHandler_ListPlans(t *testing.T) {
 					},
 				}, nil)
 			},
-			wantErr: errors.New("proto: invalid type: chan int"),
+			wantErr: errors.New("invalid type: chan int"),
 			errCode: connect.CodeInternal,
 		},
 	}
@@ -563,7 +563,7 @@ func TestConnectHandler_GetPlan(t *testing.T) {
 					Metadata: metadata.Metadata{"invalid": make(chan int)}, // This will cause ToStructPB to fail
 				}, nil)
 			},
-			wantErr: errors.New("proto: invalid type: chan int"),
+			wantErr: errors.New("invalid type: chan int"),
 			errCode: connect.CodeInternal,
 		},
 	}

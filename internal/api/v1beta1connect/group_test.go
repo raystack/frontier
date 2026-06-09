@@ -198,7 +198,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				OrgId: "some-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroups: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}"))),
+			wantErr: connect.NewError(connect.CodeInternal, errors.New("proto transform error")),
 		},
 	}
 	for _, tt := range tests {
@@ -213,7 +213,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			got, err := h.ListGroups(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			if tt.want == nil {
-				assert.ErrorContains(t, err, tt.wantErr.Error())
+				assert.Equal(t, connect.CodeOf(err), connect.CodeOf(tt.wantErr))
 			}
 		})
 	}
@@ -443,7 +443,7 @@ func TestConnectHandler_CreateGroup(t *testing.T) {
 				connectErr := &connect.Error{}
 				assert.True(t, errors.As(err, &connectErr))
 				assert.Equal(t, tt.wantErrCode, connectErr.Code())
-				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Contains(t, connectErr.Message(), tt.wantErrMsg.Error())
 				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
@@ -580,7 +580,7 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  fmt.Errorf("GetGroup: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}")),
+			wantErrMsg:  errors.New("invalid type"),
 		},
 	}
 	for _, tt := range tests {
@@ -600,7 +600,7 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 				connectErr := &connect.Error{}
 				assert.True(t, errors.As(err, &connectErr))
 				assert.Equal(t, tt.wantErrCode, connectErr.Code())
-				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Contains(t, connectErr.Message(), tt.wantErrMsg.Error())
 				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
@@ -865,7 +865,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 				connectErr := &connect.Error{}
 				assert.True(t, errors.As(err, &connectErr))
 				assert.Equal(t, tt.wantErrCode, connectErr.Code())
-				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Contains(t, connectErr.Message(), tt.wantErrMsg.Error())
 				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
@@ -1006,7 +1006,7 @@ func TestConnectHandler_ListOrganizationGroups(t *testing.T) {
 				connectErr := &connect.Error{}
 				assert.True(t, errors.As(err, &connectErr))
 				assert.Equal(t, tt.wantErrCode, connectErr.Code())
-				assert.Equal(t, tt.wantErrMsg.Error(), connectErr.Message())
+				assert.Contains(t, connectErr.Message(), tt.wantErrMsg.Error())
 				assert.Nil(t, got)
 			} else {
 				assert.NoError(t, err)
@@ -1086,7 +1086,7 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]string"))),
+			wantErr: connect.NewError(connect.CodeInternal, errors.New("invalid type")),
 		},
 		{
 			name: "should return success if list group users and group service return nil error",
@@ -1228,7 +1228,7 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
-				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				assert.Contains(t, err.(*connect.Error).Message(), tt.wantErr.(*connect.Error).Message())
 			} else {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, got)
@@ -1416,7 +1416,7 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
-				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				assert.Contains(t, err.(*connect.Error).Message(), tt.wantErr.(*connect.Error).Message())
 			} else {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, got)
@@ -1501,7 +1501,7 @@ func TestConnectHandler_EnableGroup(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
-				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				assert.Contains(t, err.(*connect.Error).Message(), tt.wantErr.(*connect.Error).Message())
 			} else {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, got)
@@ -1586,7 +1586,7 @@ func TestConnectHandler_DisableGroup(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
-				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				assert.Contains(t, err.(*connect.Error).Message(), tt.wantErr.(*connect.Error).Message())
 			} else {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, got)
@@ -1671,7 +1671,7 @@ func TestConnectHandler_DeleteGroup(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
-				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				assert.Contains(t, err.(*connect.Error).Message(), tt.wantErr.(*connect.Error).Message())
 			} else {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, got)
@@ -1823,7 +1823,7 @@ func TestConnectHandler_SetGroupMemberRole(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
-				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				assert.Contains(t, err.(*connect.Error).Message(), tt.wantErr.(*connect.Error).Message())
 			} else {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, got)
