@@ -125,7 +125,14 @@ func (h *ConnectHandler) ListProspects(ctx context.Context, request *connect.Req
 
 	prospects, err := h.prospectService.List(ctx, requestQuery)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProspects: %w", err))
+		switch {
+		case errors.Is(err, prospect.ErrInvalidUUID) || errors.Is(err, prospect.ErrRepositoryBadInput):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		case errors.Is(err, prospect.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProspects: %w", err))
+		}
 	}
 
 	var transformedProspects []*frontierv1beta1.Prospect

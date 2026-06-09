@@ -288,6 +288,26 @@ func TestHandler_ListProspects(t *testing.T) {
 			err:  connect.NewError(connect.CodeInternal, fmt.Errorf("ListProspects: %w", errors.New("some error"))),
 		},
 		{
+			title: "should return invalid argument error for bad input",
+			setup: func(ctx context.Context, ps *mocks.ProspectService, ms *mocks.MetaSchemaService) context.Context {
+				ps.On("List", mock.Anything, mock.Anything).Return(prospect.ListProspects{}, prospect.ErrRepositoryBadInput)
+				return ctx
+			},
+			req:  connect.NewRequest(&frontierv1beta1.ListProspectsRequest{}),
+			want: nil,
+			err:  connect.NewError(connect.CodeInvalidArgument, prospect.ErrRepositoryBadInput),
+		},
+		{
+			title: "should return not found error if prospect not found",
+			setup: func(ctx context.Context, ps *mocks.ProspectService, ms *mocks.MetaSchemaService) context.Context {
+				ps.On("List", mock.Anything, mock.Anything).Return(prospect.ListProspects{}, prospect.ErrNotExist)
+				return ctx
+			},
+			req:  connect.NewRequest(&frontierv1beta1.ListProspectsRequest{}),
+			want: nil,
+			err:  connect.NewError(connect.CodeNotFound, prospect.ErrNotExist),
+		},
+		{
 			title: "should return success if prospect service return nil error",
 			setup: func(ctx context.Context, ps *mocks.ProspectService, ms *mocks.MetaSchemaService) context.Context {
 				ps.On("List", mock.Anything, mock.Anything).
