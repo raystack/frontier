@@ -68,7 +68,7 @@ func (h *ConnectHandler) ListAllUsers(ctx context.Context, request *connect.Requ
 func (h *ConnectHandler) GetCurrentAdminUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetCurrentAdminUserRequest]) (*connect.Response[frontierv1beta1.GetCurrentAdminUserResponse], error) {
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetCurrentAdminUser: %w", err))
+		return nil, err
 	}
 
 	if principal.Type == schema.ServiceUserPrincipal {
@@ -188,7 +188,7 @@ func (h *ConnectHandler) GetUser(ctx context.Context, request *connect.Request[f
 func (h *ConnectHandler) GetCurrentUser(ctx context.Context, request *connect.Request[frontierv1beta1.GetCurrentUserRequest]) (*connect.Response[frontierv1beta1.GetCurrentUserResponse], error) {
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetCurrentUser: %w", err))
+		return nil, err
 	}
 
 	if principal.Type == schema.ServiceUserPrincipal {

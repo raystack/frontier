@@ -198,7 +198,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				OrgId: "some-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroups: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroups: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}"))),
 		},
 	}
 	for _, tt := range tests {
@@ -580,7 +580,7 @@ func TestConnectHandler_GetGroup(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  fmt.Errorf("GetGroup: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}")),
+			wantErrMsg:  fmt.Errorf("GetGroup: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]interface {}")),
 		},
 	}
 	for _, tt := range tests {
@@ -1086,7 +1086,7 @@ func TestConnectHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]string"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers: entity_id=%s: %w", "", errors.New("proto: invalid type: map[int]string"))),
 		},
 		{
 			name: "should return success if list group users and group service return nil error",
