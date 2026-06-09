@@ -7,4 +7,5 @@ var (
 	ErrInvalidID     = errors.New("role id is invalid")
 	ErrConflict      = errors.New("role name already exist")
 	ErrInvalidDetail = errors.New("invalid role detail")
+	ErrRoleInUse     = errors.New("role is in use by one or more policies")
 )

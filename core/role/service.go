@@ -280,11 +280,24 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
-		ID:        id,
-		Namespace: schema.RoleNamespace,
-	}}); err != nil {
+	// resolve name->ID so the row delete and tuple cleanup target the same role
+	roleToDelete, err := s.Get(ctx, id)
+	if err != nil {
 		return err
 	}
-	return s.repository.Delete(ctx, id)
+
+	// Delete the row first. The policies.role_id foreign key rejects this while
+	// any policy still references the role, surfaced as ErrRoleInUse — so a role that
+	// is still in use is left fully intact (no SpiceDB tuples are touched below).
+	// This is intentionally a guard, not a cascade: removing a role would revoke
+	// access for everyone granted it, so the caller must drop those policies first.
+	if err := s.repository.Delete(ctx, roleToDelete.ID); err != nil {
+		return err
+	}
+
+	// row is gone → remove the role's permission tuples (app/role:<id>#<perm>@...)
+	return s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
+		ID:        roleToDelete.ID,
+		Namespace: schema.RoleNamespace,
+	}})
 }

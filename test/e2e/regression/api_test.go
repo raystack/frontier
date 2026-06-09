@@ -2796,6 +2796,104 @@ func (s *APIRegressionTestSuite) TestWebhookAPI() {
 	})
 }
 
+// TestOrganizationRoleDeleteInUse asserts that a role still referenced by a
+// policy cannot be deleted (FailedPrecondition), nothing is torn down while it's
+// in use, and once the policy is removed the role deletes cleanly with no
+// leftover permission tuples (gap #1661.1).
+func (s *APIRegressionTestSuite) TestOrganizationRoleDeleteInUse() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Name: "org-role-delete-in-use",
+		},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	createRoleResp, err := s.testBench.Client.CreateOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
+		OrgId: orgID,
+		Body: &frontierv1beta1.RoleRequestBody{
+			Title:       "in use role",
+			Name:        "in_use_role",
+			Scopes:      []string{"app/organization"},
+			Permissions: []string{"app.organization.grouplist"},
+		},
+	}))
+	s.Require().NoError(err)
+	roleID := createRoleResp.Msg.GetRole().GetId()
+
+	createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+		Body: &frontierv1beta1.UserRequestBody{
+			Title: "in use role user",
+			Email: "user-role-delete-in-use@raystack.org",
+			Name:  "user_role_delete_in_use",
+		},
+	}))
+	s.Require().NoError(err)
+
+	createPolicyResp, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+		Body: &frontierv1beta1.PolicyRequestBody{
+			RoleId:    roleID,
+			Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
+		},
+	}))
+	s.Require().NoError(err)
+	policyID := createPolicyResp.Msg.GetPolicy().GetId()
+
+	roleHasPermTuples := func() bool {
+		resp, err := s.testBench.AdminClient.ListRelations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{
+			Object: schema.JoinNamespaceAndResourceID(schema.RoleNamespace, roleID),
+		}))
+		s.Require().NoError(err)
+		return len(resp.Msg.GetRelations()) > 0
+	}
+	rolebindingHasTuples := func() bool {
+		resp, err := s.testBench.AdminClient.ListRelations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{
+			Object: schema.JoinNamespaceAndResourceID(schema.RoleBindingNamespace, policyID),
+		}))
+		s.Require().NoError(err)
+		return len(resp.Msg.GetRelations()) > 0
+	}
+
+	// the policy wrote rolebinding tuples (incl. the #role link to this role)
+	s.Assert().True(rolebindingHasTuples())
+
+	// deleting a role that is still referenced by a policy must be rejected
+	_, err = s.testBench.Client.DeleteOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRoleRequest{
+		OrgId: orgID,
+		Id:    roleID,
+	}))
+	s.Require().Error(err)
+	s.Assert().Equal(connect.CodeFailedPrecondition, connect.CodeOf(err))
+
+	// nothing should have been torn down: role still exists and its perm tuples remain
+	_, err = s.testBench.Client.GetOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRoleRequest{
+		OrgId: orgID,
+		Id:    roleID,
+	}))
+	s.Assert().NoError(err)
+	s.Assert().True(roleHasPermTuples())
+
+	// remove the policy: this clears its rolebinding tuples (incl. the #role link)
+	_, err = s.testBench.Client.DeletePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+		Id: policyID,
+	}))
+	s.Require().NoError(err)
+	s.Assert().False(rolebindingHasTuples())
+
+	// with no policy referencing it, the role now deletes cleanly
+	_, err = s.testBench.Client.DeleteOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRoleRequest{
+		OrgId: orgID,
+		Id:    roleID,
+	}))
+	s.Require().NoError(err)
+
+	// after a successful delete, no role->permission tuples should linger
+	s.Assert().False(roleHasPermTuples())
+}
+
 func TestEndToEndAPIRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(APIRegressionTestSuite))
 }
