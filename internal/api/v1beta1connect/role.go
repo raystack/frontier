@@ -416,6 +416,8 @@ func (h *ConnectHandler) DeleteOrganizationRole(ctx context.Context, request *co
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrRoleNotFound)
+		case errors.Is(err, role.ErrRoleInUse):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, role.ErrRoleInUse)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteOrganizationRole", err,
 				"role_id", roleID,
@@ -448,6 +450,8 @@ func (h *ConnectHandler) DeleteRole(ctx context.Context, request *connect.Reques
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, role.ErrRoleInUse):
+			return nil, connect.NewError(connect.CodeFailedPrecondition, role.ErrRoleInUse)
 		default:
 			errorLogger.LogUnexpectedError(ctx, request, "DeleteRole", err,
 				"role_id", roleID)

@@ -274,6 +274,10 @@ func (r RoleRepository) Delete(ctx context.Context, id string) error {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return role.ErrNotExist
+		case errors.Is(err, ErrForeignKeyViolation):
+			// policies.role_id references roles(id) with no ON DELETE rule, so a
+			// role still bound to any policy cannot be deleted.
+			return role.ErrRoleInUse
 		default:
 			return err
 		}
