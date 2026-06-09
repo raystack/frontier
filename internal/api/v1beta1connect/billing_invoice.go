@@ -40,7 +40,6 @@ func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.R
 }
 
 func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.ListInvoicesRequest]) (*connect.Response[frontierv1beta1.ListInvoicesResponse], error) {
-	errorLogger := NewErrorLogger()
 
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
@@ -55,8 +54,6 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "ListInvoices.GetByOrgID", err,
-			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListInvoices.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
@@ -88,7 +85,6 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 }
 
 func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connect.Request[frontierv1beta1.GetUpcomingInvoiceRequest]) (*connect.Response[frontierv1beta1.GetUpcomingInvoiceResponse], error) {
-	errorLogger := NewErrorLogger()
 
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
@@ -103,8 +99,6 @@ func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connec
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "GetUpcomingInvoice.GetByOrgID", err,
-			"org_id", request.Msg.GetOrgId())
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetUpcomingInvoice.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
@@ -166,7 +160,6 @@ func (h *ConnectHandler) GenerateInvoices(ctx context.Context, request *connect.
 }
 
 func (h *ConnectHandler) SearchInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.SearchInvoicesRequest]) (*connect.Response[frontierv1beta1.SearchInvoicesResponse], error) {
-	errorLogger := NewErrorLogger()
 
 	var invoices []*frontierv1beta1.SearchInvoicesResponse_Invoice
 
@@ -185,9 +178,6 @@ func (h *ConnectHandler) SearchInvoices(ctx context.Context, request *connect.Re
 		if errors.Is(err, invoice.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchInvoices.SearchInvoices", err,
-			"query_offset", rqlQuery.Offset,
-			"query_limit", rqlQuery.Limit)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchInvoices.SearchInvoices: query_offset=%d query_limit=%d: %w", rqlQuery.Offset, rqlQuery.Limit, err))
 	}
 
