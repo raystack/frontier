@@ -13,8 +13,6 @@ import (
 )
 
 func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCheckoutRequest]) (*connect.Response[frontierv1beta1.CreateCheckoutResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	// Always infer billing_id from org_id (ignore billing_id from request for security)
 	billingID, err := h.GetBillingAccountFromOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
@@ -48,8 +46,6 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 			if errors.Is(err, checkout.ErrKycCompleted) {
 				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrPortalChangesKycCompleted)
 			}
-			errorLogger.LogServiceError(ctx, request, "CreateCheckout.CreateSessionForCustomerPortal", err,
-				"billing_id", billingID)
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateCheckout.CreateSessionForCustomerPortal: billing_id=%s: %w", billingID, err))
 		}
 

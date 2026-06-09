@@ -119,15 +119,11 @@ func (h *ConnectHandler) UpdateBillingAccount(ctx context.Context, request *conn
 }
 
 func (h *ConnectHandler) RegisterBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.RegisterBillingAccountRequest]) (*connect.Response[frontierv1beta1.RegisterBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.customerService.RegisterToProviderIfRequired(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, ErrCustomerNotFound)
 		}
-		errorLogger.LogServiceError(ctx, request, "RegisterBillingAccount.RegisterToProviderIfRequired", err,
-			"customer_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RegisterBillingAccount.RegisterToProviderIfRequired: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.RegisterBillingAccountResponse{}), nil
@@ -288,15 +284,11 @@ func (h *ConnectHandler) GetBillingAccountDetails(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingAccountRequest]) (*connect.Response[frontierv1beta1.GetBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	customerOb, err := h.customerService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		}
-		errorLogger.LogServiceError(ctx, request, "GetBillingAccount.GetByID", err,
-			"customer_id", request.Msg.GetId())
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount.GetByID: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 
