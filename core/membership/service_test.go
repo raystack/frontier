@@ -1659,6 +1659,72 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 	}
 }
 
+func TestService_ListPrincipalIDsByResource(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	su1, su2 := uuid.New().String(), uuid.New().String()
+	roleID := uuid.New().String()
+
+	tests := []struct {
+		name       string
+		setup      func(*mocks.PolicyService, *mocks.RoleService)
+		want       []string
+		wantErrMsg string
+	}{
+		{
+			name: "returns deduplicated principal IDs",
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
+				suPolicies := []policy.Policy{
+					{PrincipalID: su1, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleID},
+					{PrincipalID: su1, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleID},
+					{PrincipalID: su2, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleID},
+				}
+				ps.EXPECT().List(ctx, policy.Filter{
+					OrgID:         orgID,
+					PrincipalType: schema.ServiceUserPrincipal,
+					ResourceType:  schema.OrganizationNamespace,
+				}).Return(suPolicies, nil).Times(2)
+				rs.EXPECT().List(ctx, mock.Anything).Return([]role.Role{{ID: roleID}}, nil)
+			},
+			want: []string{su1, su2},
+		},
+		{
+			name: "returns empty when no principals",
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
+				ps.EXPECT().List(ctx, mock.Anything).Return([]policy.Policy{}, nil)
+			},
+			want: []string{},
+		},
+		{
+			name: "propagates errors",
+			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
+				ps.EXPECT().List(ctx, mock.Anything).Return(nil, errors.New("db down"))
+			},
+			wantErrMsg: "db down",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPolicySvc := mocks.NewPolicyService(t)
+			mockRoleSvc := mocks.NewRoleService(t)
+			if tt.setup != nil {
+				tt.setup(mockPolicySvc, mockRoleSvc)
+			}
+
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mockRoleSvc, mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+			got, err := svc.ListPrincipalIDsByResource(ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal)
+			if tt.wantErrMsg != "" {
+				assert.ErrorContains(t, err, tt.wantErrMsg)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestService_SetGroupMemberRole(t *testing.T) {
 	ctx := context.Background()
 	orgID := uuid.New().String()

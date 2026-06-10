@@ -1214,6 +1214,19 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	return members, nil
 }
 
+// ListPrincipalIDsByResource returns the IDs of principals of the given type
+// that have at least one policy on the resource. It is a primitive-typed
+// convenience wrapper over ListPrincipalsByResource for consumer packages
+// that cannot import membership types without creating an import cycle
+// (e.g. core/serviceuser, which this package itself imports).
+func (s *Service) ListPrincipalIDsByResource(ctx context.Context, resourceID, resourceType, principalType string) ([]string, error) {
+	members, err := s.ListPrincipalsByResource(ctx, resourceID, resourceType, MemberFilter{PrincipalType: principalType})
+	if err != nil {
+		return nil, err
+	}
+	return utils.Map(members, func(m Member) string { return m.PrincipalID }), nil
+}
+
 // SetGroupMemberRole upserts the role assignment for a principal in a group:
 // if the principal has no existing group policy, they are added with the
 // requested role; otherwise their existing role is replaced with the

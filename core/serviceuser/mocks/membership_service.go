@@ -71,6 +71,67 @@ func (_c *MembershipService_AddOrganizationMember_Call) RunAndReturn(run func(co
 	return _c
 }
 
+// ListPrincipalIDsByResource provides a mock function with given fields: ctx, resourceID, resourceType, principalType
+func (_m *MembershipService) ListPrincipalIDsByResource(ctx context.Context, resourceID string, resourceType string, principalType string) ([]string, error) {
+	ret := _m.Called(ctx, resourceID, resourceType, principalType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPrincipalIDsByResource")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) ([]string, error)); ok {
+		return rf(ctx, resourceID, resourceType, principalType)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []string); ok {
+		r0 = rf(ctx, resourceID, resourceType, principalType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, resourceID, resourceType, principalType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MembershipService_ListPrincipalIDsByResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPrincipalIDsByResource'
+type MembershipService_ListPrincipalIDsByResource_Call struct {
+	*mock.Call
+}
+
+// ListPrincipalIDsByResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resourceID string
+//   - resourceType string
+//   - principalType string
+func (_e *MembershipService_Expecter) ListPrincipalIDsByResource(ctx interface{}, resourceID interface{}, resourceType interface{}, principalType interface{}) *MembershipService_ListPrincipalIDsByResource_Call {
+	return &MembershipService_ListPrincipalIDsByResource_Call{Call: _e.mock.On("ListPrincipalIDsByResource", ctx, resourceID, resourceType, principalType)}
+}
+
+func (_c *MembershipService_ListPrincipalIDsByResource_Call) Run(run func(ctx context.Context, resourceID string, resourceType string, principalType string)) *MembershipService_ListPrincipalIDsByResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_ListPrincipalIDsByResource_Call) Return(_a0 []string, _a1 error) *MembershipService_ListPrincipalIDsByResource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MembershipService_ListPrincipalIDsByResource_Call) RunAndReturn(run func(context.Context, string, string, string) ([]string, error)) *MembershipService_ListPrincipalIDsByResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveOrganizationMember provides a mock function with given fields: ctx, orgID, principalID, principalType
 func (_m *MembershipService) RemoveOrganizationMember(ctx context.Context, orgID string, principalID string, principalType string) error {
 	ret := _m.Called(ctx, orgID, principalID, principalType)

@@ -163,3 +163,57 @@ func TestService_Get(t *testing.T) {
 		})
 	}
 }
+
+func TestService_ListByOrg(t *testing.T) {
+	ctx := context.Background()
+	const orgID = "org-id"
+
+	tests := []struct {
+		name    string
+		setup   func(*mocks.Repository, *mocks.MembershipService)
+		want    int
+		wantErr bool
+	}{
+		{
+			name: "members found are fetched from the repo",
+			setup: func(repo *mocks.Repository, mem *mocks.MembershipService) {
+				mem.On("ListPrincipalIDsByResource", ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal).
+					Return([]string{"su-1", "su-2"}, nil)
+				repo.On("GetByIDs", ctx, []string{"su-1", "su-2"}).
+					Return([]serviceuser.ServiceUser{{ID: "su-1"}, {ID: "su-2"}}, nil)
+			},
+			want: 2,
+		},
+		{
+			name: "no members returns empty list without hitting the repo",
+			setup: func(repo *mocks.Repository, mem *mocks.MembershipService) {
+				mem.On("ListPrincipalIDsByResource", ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal).
+					Return([]string{}, nil)
+				// repo.GetByIDs must NOT be called
+			},
+			want: 0,
+		},
+		{
+			name: "membership error is propagated",
+			setup: func(repo *mocks.Repository, mem *mocks.MembershipService) {
+				mem.On("ListPrincipalIDsByResource", ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal).
+					Return(nil, errors.New("policy store unavailable"))
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc, repo, _, _, mem := newTestService(t)
+			tt.setup(repo, mem)
+
+			got, err := svc.ListByOrg(ctx, orgID)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("ListByOrg() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !tt.wantErr && len(got) != tt.want {
+				t.Errorf("ListByOrg() returned %d service users, want %d", len(got), tt.want)
+			}
+		})
+	}
+}
