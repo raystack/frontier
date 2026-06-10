@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -48,11 +49,12 @@ var (
 
 func TestHandler_ListResources(t *testing.T) {
 	tests := []struct {
-		name    string
-		setup   func(rs *mocks.ResourceService)
-		request *connect.Request[frontierv1beta1.ListResourcesRequest]
-		want    *connect.Response[frontierv1beta1.ListResourcesResponse]
-		wantErr error
+		name            string
+		setup           func(rs *mocks.ResourceService)
+		request         *connect.Request[frontierv1beta1.ListResourcesRequest]
+		want            *connect.Response[frontierv1beta1.ListResourcesResponse]
+		wantErr         error
+		skipErrMsgCheck bool
 	}{
 		{
 			name: "should return internal error if resource service return some error",
@@ -61,9 +63,11 @@ func TestHandler_ListResources(t *testing.T) {
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListResourcesRequest{}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListResources: namespace= project_id=: %w", errors.New("test error"))),
 		},
 		{
+			// proto error message is non-deterministic (randomly uses U+00a0 or space)
+			// so we only check the error code
 			name: "should return internal error if transformation fails",
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), resource.Filter{}).Return([]resource.Resource{
@@ -74,9 +78,10 @@ func TestHandler_ListResources(t *testing.T) {
 					},
 				}, nil)
 			},
-			request: connect.NewRequest(&frontierv1beta1.ListResourcesRequest{}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			request:         connect.NewRequest(&frontierv1beta1.ListResourcesRequest{}),
+			want:            nil,
+			wantErr:         connect.NewError(connect.CodeInternal, errors.New("proto error")),
+			skipErrMsgCheck: true,
 		},
 		{
 			name: "should return resources if resource service return nil error",
@@ -103,7 +108,15 @@ func TestHandler_ListResources(t *testing.T) {
 			mockDep := ConnectHandler{resourceService: mockResourceSrv}
 			resp, err := mockDep.ListResources(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
-			assert.EqualValues(t, tt.wantErr, err)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, connect.CodeOf(tt.wantErr), connect.CodeOf(err))
+				if !tt.skipErrMsgCheck {
+					assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				}
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
@@ -126,7 +139,7 @@ func TestConnectHandler_ListProjectResources(t *testing.T) {
 				ProjectId: testProjectID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectResources: namespace= project_id=%s: %w", testProjectID, errors.New("test error"))),
 		},
 		{
 			name: "should return empty list if resource service returns empty slice",
@@ -224,7 +237,7 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource.GetProject: project_id=%s: %w", testResource.ProjectID, errors.New("test error"))),
 		},
 		{
 			name: "should return internal error if resource service returns error",
@@ -249,7 +262,7 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource: resource_id= project_id=%s resource_name=%s namespace=%s principal=%s: %w", testResource.ProjectID, testResource.Name, testResource.NamespaceID, testUserID, errors.New("test error"))),
 		},
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
@@ -387,11 +400,12 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 
 func TestConnectHandler_GetProjectResource(t *testing.T) {
 	tests := []struct {
-		name    string
-		setup   func(rs *mocks.ResourceService)
-		request *connect.Request[frontierv1beta1.GetProjectResourceRequest]
-		want    *connect.Response[frontierv1beta1.GetProjectResourceResponse]
-		wantErr error
+		name            string
+		setup           func(rs *mocks.ResourceService)
+		request         *connect.Request[frontierv1beta1.GetProjectResourceRequest]
+		want            *connect.Response[frontierv1beta1.GetProjectResourceResponse]
+		wantErr         error
+		skipErrMsgCheck bool
 	}{
 		{
 			name: "should return internal error if resource service returns error",
@@ -402,7 +416,7 @@ func TestConnectHandler_GetProjectResource(t *testing.T) {
 				Id: testResource.ID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetProjectResource: resource_id=%s: %w", testResource.ID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if id is empty",
@@ -449,6 +463,8 @@ func TestConnectHandler_GetProjectResource(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			// proto error message is non-deterministic (randomly uses U+00a0 or space)
+			// so we only check the error code
 			name: "should return internal error if transform fails",
 			setup: func(rs *mocks.ResourceService) {
 				invalidResource := testResource
@@ -460,8 +476,9 @@ func TestConnectHandler_GetProjectResource(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
 				Id: testResource.ID,
 			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			want:            nil,
+			wantErr:         connect.NewError(connect.CodeInternal, errors.New("proto error")),
+			skipErrMsgCheck: true,
 		},
 	}
 
@@ -476,7 +493,9 @@ func TestConnectHandler_GetProjectResource(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
-				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				if !tt.skipErrMsgCheck {
+					assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+				}
 			} else {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, resp)
@@ -517,7 +536,7 @@ func TestConnectHandler_UpdateProjectResource(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProjectResource.GetProject: project_id=%s: %w", testResource.ProjectID, errors.New("test error"))),
 		},
 		{
 			name: "should return internal error if resource service returns error",
@@ -544,7 +563,7 @@ func TestConnectHandler_UpdateProjectResource(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProjectResource: resource_id=%s project_id=%s resource_name=%s namespace=%s principal=%s: %w", testResourceID, testResource.ProjectID, testResource.Name, testResource.NamespaceID, testUserID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if resource not exist",
@@ -758,7 +777,7 @@ func TestConnectHandler_DeleteProjectResource(t *testing.T) {
 				Id: testResource.ID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource.GetResource: resource_id=%s: %w", testResource.ID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if resource not exist",
@@ -801,7 +820,7 @@ func TestConnectHandler_DeleteProjectResource(t *testing.T) {
 				Id: testResource.ID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource.GetProject: resource_id=%s project_id=%s: %w", testResource.ID, testResource.ProjectID, errors.New("test error"))),
 		},
 		{
 			name: "should return internal error if resource service Delete returns error",
@@ -819,7 +838,7 @@ func TestConnectHandler_DeleteProjectResource(t *testing.T) {
 				Id: testResource.ID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource: resource_id=%s project_id=%s namespace=%s: %w", testResource.ID, testResource.ProjectID, testResource.NamespaceID, errors.New("delete error"))),
 		},
 		{
 			name: "should return success if resource is deleted successfully",

@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -38,24 +39,19 @@ func toJSONWebKey(keySet jwk.Set) (*JsonWebKeySet, error) {
 }
 
 func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListServiceUsersResponse], error) {
-	errorLogger := NewErrorLogger()
 	var users []*frontierv1beta1.ServiceUser
 	usersList, err := h.serviceUserService.List(ctx, serviceuser.Filter{
 		OrgID: request.Msg.GetOrgId(),
 		State: serviceuser.State(request.Msg.GetState()),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListServiceUsers", err,
-			"org_id", request.Msg.GetOrgId(),
-			"state", request.Msg.GetState())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUsers: org_id=%s state=%s: %w", request.Msg.GetOrgId(), request.Msg.GetState(), err))
 	}
 
 	for _, user := range usersList {
 		userPB, err := transformServiceUserToPB(user)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListServiceUsers", user.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUsers: entity_id=%s: %w", user.ID, err))
 		}
 		users = append(users, userPB)
 	}
@@ -66,19 +62,16 @@ func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.
 }
 
 func (h *ConnectHandler) ListAllServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListAllServiceUsersResponse], error) {
-	errorLogger := NewErrorLogger()
 	var serviceUsers []*frontierv1beta1.ServiceUser
 	serviceUsersList, err := h.serviceUserService.ListAll(ctx)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListAllServiceUsers", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllServiceUsers: %w", err))
 	}
 
 	for _, su := range serviceUsersList {
 		serviceUserPB, err := transformServiceUserToPB(su)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListAllServiceUsers", su.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllServiceUsers: entity_id=%s: %w", su.ID, err))
 		}
 		serviceUsers = append(serviceUsers, serviceUserPB)
 	}
@@ -103,16 +96,13 @@ func (h *ConnectHandler) GetServiceUser(ctx context.Context, request *connect.Re
 		case errors.Is(err, serviceuser.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetServiceUser", err,
-				"service_user_id", serviceUserID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetServiceUser: service_user_id=%s: %w", serviceUserID, err))
 		}
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetServiceUser", svUser.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetServiceUser: entity_id=%s: %w", svUser.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GetServiceUserResponse{
 		Serviceuser: svUserPb,
@@ -159,14 +149,13 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUser: %w", err))
 		}
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateServiceUser", svUser.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUser: entity_id=%s: %w", svUser.ID, err))
 	}
 
 	audit.GetAuditor(ctx, request.Msg.GetOrgId()).
@@ -194,10 +183,7 @@ func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect
 		case err == serviceuser.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeleteServiceUser", err,
-				"service_user_id", serviceUserID,
-				"org_id", orgID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUser: service_user_id=%s org_id=%s: %w", serviceUserID, orgID, err))
 		}
 	}
 
@@ -225,10 +211,7 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 		case err == serviceuser.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreateServiceUserJWK", err,
-				"service_user_id", serviceUserID,
-				"title", title)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserJWK: service_user_id=%s title=%s: %w", serviceUserID, title, err))
 		}
 	}
 
@@ -257,19 +240,14 @@ func (h *ConnectHandler) ListServiceUserJWKs(ctx context.Context, request *conne
 		case err == serviceuser.ErrNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "ListServiceUserJWKs", err,
-				"service_user_id", serviceUserID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserJWKs: service_user_id=%s: %w", serviceUserID, err))
 		}
 	}
 
 	for _, svCred := range credList {
 		jwkJson, err := json.Marshal(svCred.PublicKey)
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "ListServiceUserJWKs.MarshalPublicKey", err,
-				"service_user_id", serviceUserID,
-				"credential_id", svCred.ID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserJWKs.MarshalPublicKey: service_user_id=%s credential_id=%s: %w", serviceUserID, svCred.ID, err))
 		}
 		keys = append(keys, &frontierv1beta1.ServiceUserJWK{
 			Id:          svCred.ID,
@@ -297,18 +275,13 @@ func (h *ConnectHandler) GetServiceUserJWK(ctx context.Context, request *connect
 		case err == serviceuser.ErrCredNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetServiceUserJWK", err,
-				"key_id", keyID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetServiceUserJWK: key_id=%s: %w", keyID, err))
 		}
 	}
 
 	jwks, err := toJSONWebKey(svCred.PublicKey)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "GetServiceUserJWK.ToJSONWebKey", err,
-			"key_id", keyID,
-			"credential_id", svCred.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetServiceUserJWK.ToJSONWebKey: key_id=%s credential_id=%s: %w", keyID, svCred.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GetServiceUserJWKResponse{
 		Keys: jwks.Keys,
@@ -328,9 +301,7 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 		case err == serviceuser.ErrCredNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "DeleteServiceUserJWK", err,
-				"key_id", keyID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserJWK: key_id=%s: %w", keyID, err))
 		}
 	}
 
@@ -338,7 +309,6 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 }
 
 func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserCredentialRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserCredentialResponse], error) {
-	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
 
@@ -347,10 +317,7 @@ func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, reques
 		Title:         title,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "CreateServiceUserCredential", err,
-			"service_user_id", serviceUserID,
-			"title", title)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserCredential: service_user_id=%s title=%s: %w", serviceUserID, title, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateServiceUserCredentialResponse{
@@ -364,14 +331,11 @@ func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, reques
 }
 
 func (h *ConnectHandler) ListServiceUserCredentials(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUserCredentialsRequest]) (*connect.Response[frontierv1beta1.ListServiceUserCredentialsResponse], error) {
-	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 
 	credentials, err := h.serviceUserService.ListSecret(ctx, serviceUserID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListServiceUserCredentials", err,
-			"service_user_id", serviceUserID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserCredentials: service_user_id=%s: %w", serviceUserID, err))
 	}
 	secretsPB := make([]*frontierv1beta1.SecretCredential, 0, len(credentials))
 	for _, sec := range credentials {
@@ -387,20 +351,16 @@ func (h *ConnectHandler) ListServiceUserCredentials(ctx context.Context, request
 }
 
 func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserCredentialRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserCredentialResponse], error) {
-	errorLogger := NewErrorLogger()
 	secretID := request.Msg.GetSecretId()
 
 	err := h.serviceUserService.DeleteSecret(ctx, secretID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteServiceUserCredential", err,
-			"secret_id", secretID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserCredential: secret_id=%s: %w", secretID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}), nil
 }
 
 func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserTokenRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserTokenResponse], error) {
-	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
 
@@ -409,10 +369,7 @@ func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *co
 		Title:         title,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "CreateServiceUserToken", err,
-			"service_user_id", serviceUserID,
-			"title", title)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserToken: service_user_id=%s title=%s: %w", serviceUserID, title, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateServiceUserTokenResponse{
 		Token: &frontierv1beta1.ServiceUserToken{
@@ -425,14 +382,11 @@ func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *co
 }
 
 func (h *ConnectHandler) ListServiceUserTokens(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUserTokensRequest]) (*connect.Response[frontierv1beta1.ListServiceUserTokensResponse], error) {
-	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 
 	credentials, err := h.serviceUserService.ListToken(ctx, serviceUserID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListServiceUserTokens", err,
-			"service_user_id", serviceUserID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserTokens: service_user_id=%s: %w", serviceUserID, err))
 	}
 	secretsPB := make([]*frontierv1beta1.ServiceUserToken, 0, len(credentials))
 	for _, sec := range credentials {
@@ -448,14 +402,11 @@ func (h *ConnectHandler) ListServiceUserTokens(ctx context.Context, request *con
 }
 
 func (h *ConnectHandler) DeleteServiceUserToken(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserTokenRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserTokenResponse], error) {
-	errorLogger := NewErrorLogger()
 	tokenID := request.Msg.GetTokenId()
 
 	err := h.serviceUserService.DeleteToken(ctx, tokenID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteServiceUserToken", err,
-			"token_id", tokenID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserToken: token_id=%s: %w", tokenID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserTokenResponse{}), nil
 }
@@ -482,10 +433,7 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 			errors.Is(err, project.ErrInvalidPrincipalType):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "ListServiceUserProjects", err,
-				"service_user_id", serviceUserID,
-				"org_id", orgID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserProjects: service_user_id=%s org_id=%s: %w", serviceUserID, orgID, err))
 		}
 	}
 
@@ -494,8 +442,7 @@ func (h *ConnectHandler) ListServiceUserProjects(ctx context.Context, request *c
 	for _, v := range projList {
 		projPB, err := transformProjectToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListServiceUserProjects", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserProjects: entity_id=%s: %w", v.ID, err))
 		}
 		projects = append(projects, projPB)
 	}

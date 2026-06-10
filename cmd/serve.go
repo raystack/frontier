@@ -29,7 +29,7 @@ import (
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/core/userpat"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
@@ -488,7 +488,8 @@ func buildAPIDependencies(
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)
 
-	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, policyService, projectService, auditRecordRepository)
+	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, membershipService, projectService, auditRecordRepository)
+	membershipService.SetUserPATService(userPATService)
 	patAlertService := userpat.NewAlertService(userPATRepo, userService, organizationService, mailDialer, dbc, cfg.App.PAT.Alert, logger, auditRecordRepository)
 	auditRecordService := auditrecord.NewService(auditRecordRepository, userService, serviceUserService, sessionService, userPATService)
 
@@ -576,8 +577,8 @@ func buildAPIDependencies(
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
-		groupService, membershipService, policyService, roleService, invitationService, userService, serviceUserService,
-		customerService, subscriptionService, invoiceService,
+		groupService, membershipService, policyService, roleService, invitationService, userService, userPATService,
+		serviceUserService, customerService, subscriptionService, invoiceService,
 	)
 
 	// we should default it with a stdout logger repository as postgres can start to bloat really fast

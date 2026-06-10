@@ -1,11 +1,11 @@
-import { Flex, IconButton, SidePanel } from "@raystack/apsara-v1";
+import { Flex, IconButton, SidePanel } from "@raystack/apsara";
 import {
   Cross2Icon,
   DesktopIcon,
   GlobeIcon,
   TransformIcon,
 } from "@radix-ui/react-icons";
-import { List } from "@raystack/apsara-v1";
+import { List } from "@raystack/apsara";
 import styles from "./audit-logs.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
 import { ACTOR_TYPES } from "./util";

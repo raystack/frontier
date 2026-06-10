@@ -93,7 +93,7 @@ func handleAuthErr(err error) error {
 		errors.Is(err, resource.ErrNotExist):
 		return connect.NewError(connect.CodeNotFound, ErrNotFound)
 	default:
-		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("handleAuthErr: %w", err))
 	}
 }
 
@@ -112,19 +112,13 @@ func (h *ConnectHandler) IsSuperUser(ctx context.Context, request connect.AnyReq
 		return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 	case schema.UserPrincipal:
 		if ok, err := h.userService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
-				"user_id", currentUser.ID,
-				"permission", schema.PlatformSudoPermission)
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("IsSuperUser: user_id=%s permission=%s: %w", currentUser.ID, schema.PlatformSudoPermission, err))
 		} else if ok {
 			return nil
 		}
 	case schema.ServiceUserPrincipal:
 		if ok, err := h.serviceUserService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
-			errorLogger.LogUnexpectedError(ctx, request, "IsSuperUser", err,
-				"service_user_id", currentUser.ID,
-				"permission", schema.PlatformSudoPermission)
-			return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("IsSuperUser: service_user_id=%s permission=%s: %w", currentUser.ID, schema.PlatformSudoPermission, err))
 		} else if ok {
 			return nil
 		}

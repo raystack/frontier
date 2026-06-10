@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -33,10 +34,7 @@ func (h *ConnectHandler) ListSessions(ctx context.Context, request *connect.Requ
 	// Fetch all active sessions for the authenticated user
 	sessions, err := h.sessionService.List(ctx, principal.ID)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "ListSessions.List", err,
-			"principal_id", principal.ID,
-			"principal_type", principal.Type)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListSessions.List: principal_id=%s principal_type=%s: %w", principal.ID, principal.Type, err))
 	}
 
 	// Transform domain sessions to protobuf sessions
@@ -44,8 +42,7 @@ func (h *ConnectHandler) ListSessions(ctx context.Context, request *connect.Requ
 	for _, session := range sessions {
 		pbSession, err := transformSessionToPB(session, currentSessionID)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListSessions", session.ID.String(), err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListSessions: entity_id=%s: %w", session.ID.String(), err))
 		}
 		pbSessions = append(pbSessions, pbSession)
 	}
@@ -113,11 +110,7 @@ func (h *ConnectHandler) RevokeSession(ctx context.Context, request *connect.Req
 	}
 
 	if err := h.sessionService.Delete(ctx, sessionID); err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "RevokeSession", err,
-			"session_id", sessionID.String(),
-			"principal_id", principal.ID,
-			"principal_type", principal.Type)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RevokeSession: session_id=%s principal_id=%s principal_type=%s: %w", sessionID.String(), principal.ID, principal.Type, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.RevokeSessionResponse{}), nil
@@ -140,17 +133,13 @@ func (h *ConnectHandler) PingUserSession(ctx context.Context, request *connect.R
 	sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, request, h.authConfig.Session.Headers)
 
 	if err := h.sessionService.Ping(ctx, session.ID, sessionMetadata); err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "PingUserSession", err,
-			"session_id", session.ID.String())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("PingUserSession: session_id=%s: %w", session.ID.String(), err))
 	}
 
 	// Fetch updated session to get latest metadata
 	updatedSession, err := h.sessionService.GetByID(ctx, session.ID)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "PingUserSession.GetByID", err,
-			"session_id", session.ID.String())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("PingUserSession.GetByID: session_id=%s: %w", session.ID.String(), err))
 	}
 
 	// Convert session metadata to proto format
@@ -164,8 +153,6 @@ func (h *ConnectHandler) PingUserSession(ctx context.Context, request *connect.R
 // Admin APIs
 // Returns a list of all sessions for a specific user.
 func (h *ConnectHandler) ListUserSessions(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserSessionsRequest]) (*connect.Response[frontierv1beta1.ListUserSessionsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	// Manual validation for user_id since protobuf validation is not working
 	userID := request.Msg.GetUserId()
 	if userID == "" {
@@ -179,17 +166,14 @@ func (h *ConnectHandler) ListUserSessions(ctx context.Context, request *connect.
 
 	sessions, err := h.sessionService.List(ctx, userID)
 	if err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "ListUserSessions", err,
-			"user_id", userID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListUserSessions: user_id=%s: %w", userID, err))
 	}
 
 	var pbSessions []*frontierv1beta1.Session
 	for _, session := range sessions {
 		pbSession, err := transformSessionToPB(session, "")
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListUserSessions", session.ID.String(), err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListUserSessions: entity_id=%s: %w", session.ID.String(), err))
 		}
 		pbSessions = append(pbSessions, pbSession)
 	}
@@ -201,17 +185,13 @@ func (h *ConnectHandler) ListUserSessions(ctx context.Context, request *connect.
 
 // Revoke a specific session for a specific user (admin only).
 func (h *ConnectHandler) RevokeUserSession(ctx context.Context, request *connect.Request[frontierv1beta1.RevokeUserSessionRequest]) (*connect.Response[frontierv1beta1.RevokeUserSessionResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	sessionID, err := uuid.Parse(request.Msg.GetSessionId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidSessionID)
 	}
 
 	if err := h.sessionService.Delete(ctx, sessionID); err != nil {
-		errorLogger.LogUnexpectedError(ctx, request, "RevokeUserSession", err,
-			"session_id", sessionID.String())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RevokeUserSession: session_id=%s: %w", sessionID.String(), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.RevokeUserSessionResponse{}), nil

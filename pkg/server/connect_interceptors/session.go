@@ -61,20 +61,8 @@ func (s *SessionInterceptor) WrapStreamingHandler(next connect.StreamingHandlerF
 		if userToken := conn.RequestHeader().Values(consts.UserTokenRequestKey); len(userToken) > 0 {
 			incomingMD.Set(consts.UserTokenGatewayKey, strings.TrimSpace(userToken[0]))
 		}
-		// check if the same token is part of Authorization header
 		if authHeader := conn.RequestHeader().Values("authorization"); len(authHeader) > 0 {
-			tokenVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Bearer "))
-			if token, err := jwt.ParseInsecure([]byte(tokenVal)); err == nil {
-				if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
-					incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
-				}
-			} else if s.patConf.Prefix != "" && strings.HasPrefix(tokenVal, s.patConf.Prefix+"_") {
-				incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
-			}
-			secretVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Basic "))
-			if len(secretVal) > 0 {
-				incomingMD.Set(consts.UserSecretGatewayKey, secretVal)
-			}
+			applyAuthorizationHeader(incomingMD, authHeader[0], s.patConf)
 		}
 
 		ctx = metadata.NewIncomingContext(ctx, incomingMD)
@@ -109,20 +97,8 @@ func (s *SessionInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc
 		if userToken := req.Header().Values(consts.UserTokenRequestKey); len(userToken) > 0 {
 			incomingMD.Set(consts.UserTokenGatewayKey, strings.TrimSpace(userToken[0]))
 		}
-		// check if the same token is part of Authorization header
 		if authHeader := req.Header().Values("authorization"); len(authHeader) > 0 {
-			tokenVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Bearer "))
-			if token, err := jwt.ParseInsecure([]byte(tokenVal)); err == nil {
-				if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
-					incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
-				}
-			} else if s.patConf.Prefix != "" && strings.HasPrefix(tokenVal, s.patConf.Prefix+"_") {
-				incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
-			}
-			secretVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Basic "))
-			if len(secretVal) > 0 {
-				incomingMD.Set(consts.UserSecretGatewayKey, secretVal)
-			}
+			applyAuthorizationHeader(incomingMD, authHeader[0], s.patConf)
 		}
 
 		ctx = metadata.NewIncomingContext(ctx, incomingMD)
@@ -256,20 +232,8 @@ func (s *SessionInterceptor) UnaryConnectRequestHeadersAnnotator() connect.Unary
 			if userToken := req.Header().Values(consts.UserTokenRequestKey); len(userToken) > 0 {
 				incomingMD.Set(consts.UserTokenGatewayKey, strings.TrimSpace(userToken[0]))
 			}
-			// check if the same token is part of Authorization header
 			if authHeader := req.Header().Values("authorization"); len(authHeader) > 0 {
-				tokenVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Bearer "))
-				if token, err := jwt.ParseInsecure([]byte(tokenVal)); err == nil {
-					if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
-						incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
-					}
-				} else if s.patConf.Prefix != "" && strings.HasPrefix(tokenVal, s.patConf.Prefix+"_") {
-					incomingMD.Set(consts.UserTokenGatewayKey, tokenVal)
-				}
-				secretVal := strings.TrimSpace(strings.TrimPrefix(authHeader[0], "Basic "))
-				if len(secretVal) > 0 {
-					incomingMD.Set(consts.UserSecretGatewayKey, secretVal)
-				}
+				applyAuthorizationHeader(incomingMD, authHeader[0], s.patConf)
 			}
 
 			ctx = metadata.NewIncomingContext(ctx, incomingMD)
@@ -277,4 +241,34 @@ func (s *SessionInterceptor) UnaryConnectRequestHeadersAnnotator() connect.Unary
 		})
 	}
 	return connect.UnaryInterceptorFunc(interceptor)
+}
+
+// extractAuthCredentials returns the credentials for scheme from an Authorization
+// header. Scheme matching is case-insensitive (RFC 7235).
+func extractAuthCredentials(header, scheme string) string {
+	prefix := scheme + " "
+	if len(header) < len(prefix) || !strings.EqualFold(header[:len(prefix)], prefix) {
+		return ""
+	}
+	return strings.TrimSpace(header[len(prefix):])
+}
+
+// applyAuthorizationHeader routes Bearer credentials to UserTokenGatewayKey (PAT
+// or Frontier-issued JWT) and Basic credentials to UserSecretGatewayKey.
+func applyAuthorizationHeader(md metadata.MD, header string, patConf userpat.Config) {
+	if tokenVal := extractAuthCredentials(header, "Bearer"); tokenVal != "" {
+		if token, err := jwt.ParseInsecure([]byte(tokenVal)); err == nil {
+			if token.JwtID() != "" && token.Expiration().After(time.Now().UTC()) {
+				md.Set(consts.UserTokenGatewayKey, tokenVal)
+			}
+			return
+		}
+		if patConf.Prefix != "" && strings.HasPrefix(tokenVal, patConf.Prefix+"_") {
+			md.Set(consts.UserTokenGatewayKey, tokenVal)
+		}
+		return
+	}
+	if secretVal := extractAuthCredentials(header, "Basic"); secretVal != "" {
+		md.Set(consts.UserSecretGatewayKey, secretVal)
+	}
 }

@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/preference"
@@ -333,6 +334,6 @@ func handlePreferenceError(err error) *connect.Error {
 	case errors.Is(err, preference.ErrInvalidScope):
 		return connect.NewError(connect.CodeInvalidArgument, ErrInvalidPreferenceScope)
 	default:
-		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("handlePreferenceError: %w", err))
 	}
 }

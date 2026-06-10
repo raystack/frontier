@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/customer"
@@ -11,8 +12,6 @@ import (
 )
 
 func (h *ConnectHandler) BillingWebhookCallback(ctx context.Context, request *connect.Request[frontierv1beta1.BillingWebhookCallbackRequest]) (*connect.Response[frontierv1beta1.BillingWebhookCallbackResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	if request.Msg.GetProvider() != "stripe" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBillingProviderNotSupported)
 	}
@@ -27,9 +26,7 @@ func (h *ConnectHandler) BillingWebhookCallback(ctx context.Context, request *co
 		Name: request.Msg.GetProvider(),
 		Body: request.Msg.GetBody(),
 	}); err != nil {
-		errorLogger.LogServiceError(ctx, request, "BillingWebhookCallback.BillingWebhook", err,
-			"provider", request.Msg.GetProvider())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("BillingWebhookCallback.BillingWebhook: provider=%s: %w", request.Msg.GetProvider(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.BillingWebhookCallbackResponse{}), nil
 }

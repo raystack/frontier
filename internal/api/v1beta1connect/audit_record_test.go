@@ -1449,7 +1449,7 @@ func TestHandler_ListAuditRecords(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, errors.New("database connection failed")),
 		},
 		{
 			name: "should return invalid argument error for bad input",

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface SuspendDropdownProps {

@@ -35,7 +35,7 @@ func TestConnectHandler_ListProducts(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("ListProducts.List: service error"),
 		},
 		{
 			name: "should return empty list if no products found",
@@ -261,7 +261,7 @@ func TestConnectHandler_GetProduct(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("GetProduct.GetByID: product_id=product-1: service error"),
 		},
 		{
 			name: "should return product successfully with minimal data",
@@ -431,7 +431,7 @@ func TestConnectHandler_GetProduct(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("GetProduct.GetByID: product_id=: not found"),
 		},
 	}
 
@@ -524,7 +524,7 @@ func TestConnectHandler_CreateProduct(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("CreateProduct.Create: product_name=Test Product product_title=Test Product Title plan_id=plan-1 behavior=basic price_count=0 feature_count=0: service error"),
 		},
 		{
 			name: "should create product successfully with minimal data",
@@ -605,7 +605,7 @@ func TestConnectHandler_CreateProduct(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("CreateProduct.Create: product_name= product_title= plan_id= behavior= price_count=0 feature_count=0: validation error"),
 		},
 	}
 
@@ -677,7 +677,7 @@ func TestConnectHandler_UpdateProduct(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("UpdateProduct.Update: product_id=product-1 product_name=Updated Product product_title=Updated Product Title behavior=basic price_count=0 feature_count=0: service error"),
 		},
 		{
 			name: "should update product successfully with minimal data",
@@ -878,7 +878,7 @@ func TestConnectHandler_UpdateProduct(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("UpdateProduct.Update: product_id= product_name= product_title= behavior= price_count=0 feature_count=0: not found"),
 		},
 	}
 
@@ -942,7 +942,7 @@ func TestConnectHandler_ListFeatures(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("ListFeatures.ListFeatures: service error"),
 		},
 		{
 			name: "should return empty list when no features exist",
@@ -1063,7 +1063,7 @@ func TestConnectHandler_GetFeature(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("GetFeature.GetFeatureByID: feature_id=feature-1: service error"),
 		},
 		{
 			name: "should return feature successfully with minimal data",
@@ -1138,7 +1138,7 @@ func TestConnectHandler_GetFeature(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  ErrInternalServerError,
+			wantErrMsg:  errors.New("GetFeature.GetFeatureByID: feature_id=: not found"),
 		},
 	}
 

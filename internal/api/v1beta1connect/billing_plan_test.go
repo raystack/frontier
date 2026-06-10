@@ -49,7 +49,7 @@ func TestConnectHandler_CreatePlan(t *testing.T) {
 			setup: func(ps *mocks.PlanService) {
 				ps.On("UpsertPlans", mock.Anything, mock.Anything).Return(errors.New("upsert failed"))
 			},
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("upsert failed"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -68,7 +68,7 @@ func TestConnectHandler_CreatePlan(t *testing.T) {
 				ps.On("UpsertPlans", mock.Anything, mock.Anything).Return(nil)
 				ps.On("GetByID", mock.Anything, "basic-plan").Return(plan.Plan{}, errors.New("get failed"))
 			},
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("get failed"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -378,7 +378,7 @@ func TestConnectHandler_ListPlans(t *testing.T) {
 			setup: func(ps *mocks.PlanService) {
 				ps.On("List", mock.Anything, plan.Filter{}).Return([]plan.Plan{}, errors.New("service failed"))
 			},
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service failed"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -462,7 +462,7 @@ func TestConnectHandler_ListPlans(t *testing.T) {
 					},
 				}, nil)
 			},
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("invalid type: chan int"),
 			errCode: connect.CodeInternal,
 		},
 	}
@@ -515,7 +515,7 @@ func TestConnectHandler_GetPlan(t *testing.T) {
 			setup: func(ps *mocks.PlanService) {
 				ps.On("GetByID", mock.Anything, "plan-123").Return(plan.Plan{}, errors.New("service failed"))
 			},
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service failed"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -563,7 +563,7 @@ func TestConnectHandler_GetPlan(t *testing.T) {
 					Metadata: metadata.Metadata{"invalid": make(chan int)}, // This will cause ToStructPB to fail
 				}, nil)
 			},
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("invalid type: chan int"),
 			errCode: connect.CodeInternal,
 		},
 	}

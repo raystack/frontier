@@ -8,7 +8,7 @@ import {
   Text,
   TextArea,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import { PlusIcon } from "@radix-ui/react-icons";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";

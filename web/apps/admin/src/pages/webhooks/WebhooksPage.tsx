@@ -4,7 +4,7 @@ import { WebhooksView } from "@raystack/frontier/admin";
 import { AppContext } from "~/contexts/App";
 import WebhooksIcon from "~/assets/icons/webhooks.svg?react";
 
-export function WebhooksPage() {
+export default function WebhooksPage() {
   const { config } = useContext(AppContext);
   const { webhookId } = useParams();
   const navigate = useNavigate();

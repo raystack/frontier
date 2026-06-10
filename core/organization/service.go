@@ -363,6 +363,13 @@ func (s Service) Enable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Enabled)
 }
 
+// Disable is a reversible soft-stop: it flips the org's state only and
+// deliberately leaves every SpiceDB relation in place. Disable is NOT a
+// revocation — re-enabling must restore access exactly as it was, which only
+// works if the tuples were never torn down. Revocation is Delete's job (see
+// core/deleter), which cascades the relations away. This service already keeps
+// disabled orgs out at read time (Get -> ErrDisabled); authz checks that read
+// SpiceDB directly will still pass while disabled, by design.
 func (s Service) Disable(ctx context.Context, id string) error {
 	err := s.repository.SetState(ctx, id, Disabled)
 	if err == nil {

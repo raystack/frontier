@@ -247,12 +247,15 @@ func (s Service) createRelations(ctx context.Context, invitationID uuid.UUID, or
 }
 
 func (s Service) Delete(ctx context.Context, id uuid.UUID) error {
+	// Remove every relation anchored on the invitation object, not just the org
+	// one. createRelations writes both a user (app/invitation:<id>#user) and an
+	// org (app/invitation:<id>#org) tuple; filtering by org alone leaked the user
+	// tuple on every accept/expire/delete. Omitting RelationName matches both.
 	err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        id.String(),
 			Namespace: schema.InvitationNamespace,
 		},
-		RelationName: schema.OrganizationRelationName,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to delete relation for invitation: %w", err)

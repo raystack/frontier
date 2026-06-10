@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -30,7 +31,7 @@ func logAuditForCheck(ctx context.Context, result bool, objectID string, objectN
 func (h *ConnectHandler) getPermissionName(ctx context.Context, ns, name string) (string, error) {
 	resolved, ok, err := h.resolvePermissionName(ctx, ns, name)
 	if err != nil {
-		return "", connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return "", connect.NewError(connect.CodeInternal, fmt.Errorf("getPermissionName: %w", err))
 	}
 	if !ok {
 		return "", connect.NewError(connect.CodeNotFound, ErrNotFound)
@@ -114,7 +115,7 @@ func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectN
 	for _, p := range permissions {
 		resolved, ok, err := h.resolvePermissionName(ctx, objectNamespace, p)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("fetchAccessPairsOnResource: %w", err))
 		}
 		if !ok {
 			continue
@@ -143,7 +144,7 @@ func (h *ConnectHandler) fetchAccessPairsOnResource(ctx context.Context, objectN
 	}
 	checkPairs, err := h.resourceService.BatchCheck(ctx, checks)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("fetchAccessPairsOnResource: %w", err))
 	}
 	// remove all the failed checks
 	return utils.Filter(checkPairs, func(pair relation.CheckPair) bool {
@@ -190,8 +191,6 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 }
 
 func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.Request[frontierv1beta1.BatchCheckPermissionRequest]) (*connect.Response[frontierv1beta1.BatchCheckPermissionResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	checks := make([]resource.Check, 0, len(req.Msg.GetBodies()))
 	for _, body := range req.Msg.GetBodies() {
 		objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(body.GetResource())
@@ -213,9 +212,7 @@ func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.
 	}
 	result, err := h.resourceService.BatchCheck(ctx, checks)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, req, "BatchCheckPermission", err,
-			"batch_size", len(checks))
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("BatchCheckPermission: batch_size=%d: %w", len(checks), err))
 	}
 
 	pairs := make([]*frontierv1beta1.BatchCheckPermissionResponsePair, 0, len(result))

@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -40,7 +41,7 @@ func TestHandler_DeleteProject(t *testing.T) {
 				Id: "some-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProject.DeleteProject: project_id=some-id: %w", errors.New("some error"))),
 		},
 	}
 	for _, tt := range tests {
@@ -85,7 +86,7 @@ func TestHandler_DeleteOrganization(t *testing.T) {
 				Id: "some-id",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganization.DeleteOrganization: organization_id=some-id: %w", errors.New("some_error"))),
 		},
 	}
 	for _, tt := range tests {

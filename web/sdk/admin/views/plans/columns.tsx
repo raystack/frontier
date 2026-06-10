@@ -1,4 +1,4 @@
-import { Text, type DataTableColumnDef } from "@raystack/apsara-v1";
+import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
 import { timestampToDate, type TimeStamp } from "../../utils/connect-timestamp";
 import styles from "./plans.module.css";

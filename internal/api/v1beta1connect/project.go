@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -21,7 +22,6 @@ import (
 )
 
 func (h *ConnectHandler) ListProjects(ctx context.Context, request *connect.Request[frontierv1beta1.ListProjectsRequest]) (*connect.Response[frontierv1beta1.ListProjectsResponse], error) {
-	errorLogger := NewErrorLogger()
 	var projects []*frontierv1beta1.Project
 
 	projectList, err := h.projectService.List(ctx, project.Filter{
@@ -29,17 +29,13 @@ func (h *ConnectHandler) ListProjects(ctx context.Context, request *connect.Requ
 		OrgID: request.Msg.GetOrgId(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjects", err,
-			"org_id", request.Msg.GetOrgId(),
-			"state", request.Msg.GetState())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjects: org_id=%s state=%s: %w", request.Msg.GetOrgId(), request.Msg.GetState(), err))
 	}
 
 	for _, v := range projectList {
 		projectPB, err := transformProjectToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListProjects", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjects: entity_id=%s: %w", v.ID, err))
 		}
 
 		projects = append(projects, projectPB)
@@ -74,8 +70,7 @@ func (h *ConnectHandler) CreateProject(ctx context.Context, request *connect.Req
 
 	projectPB, err := transformProjectToPB(newProject)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateProject", newProject.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProject: entity_id=%s: %w", newProject.ID, err))
 	}
 	auditor.Log(audit.ProjectCreatedEvent, audit.ProjectTarget(newProject.ID))
 	return connect.NewResponse(&frontierv1beta1.CreateProjectResponse{Project: projectPB}), nil
@@ -94,8 +89,7 @@ func (h *ConnectHandler) GetProject(ctx context.Context, request *connect.Reques
 
 	projectPB, err := transformProjectToPB(fetchedProject)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetProject", fetchedProject.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProject: entity_id=%s: %w", fetchedProject.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetProjectResponse{Project: projectPB}), nil
@@ -125,8 +119,7 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 
 	projectPB, err := transformProjectToPB(updatedProject)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateProject", updatedProject.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProject: entity_id=%s: %w", updatedProject.ID, err))
 	}
 
 	audit.GetAuditor(ctx, updatedProject.Organization.ID).Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
@@ -146,10 +139,7 @@ func (h *ConnectHandler) ListProjectAdmins(ctx context.Context, request *connect
 
 	ownerRole, err := h.roleService.Get(ctx, project.OwnerRole)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.roleService.Get", err,
-			"project_id", prj.ID,
-			"role", project.OwnerRole)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectAdmins.roleService.Get: project_id=%s role=%s: %w", prj.ID, project.OwnerRole, err))
 	}
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, prj.ID, schema.ProjectNamespace, membership.MemberFilter{
@@ -157,25 +147,20 @@ func (h *ConnectHandler) ListProjectAdmins(ctx context.Context, request *connect
 		RoleIDs:       []string{ownerRole.ID},
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.ListPrincipalsByResource", err,
-			"project_id", prj.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectAdmins.ListPrincipalsByResource: project_id=%s: %w", prj.ID, err))
 	}
 
 	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
 	users, err := h.userService.GetByIDs(ctx, userIDs)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectAdmins.GetByIDs", err,
-			"project_id", prj.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectAdmins.GetByIDs: project_id=%s: %w", prj.ID, err))
 	}
 
 	var transformedAdmins []*frontierv1beta1.User
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListProjectAdmins", a.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectAdmins: entity_id=%s: %w", a.ID, err))
 		}
 
 		transformedAdmins = append(transformedAdmins, u)
@@ -199,17 +184,13 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 		PrincipalType: schema.UserPrincipal,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectUsers.ListPrincipalsByResource", err,
-			"project_id", prj.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectUsers.ListPrincipalsByResource: project_id=%s: %w", prj.ID, err))
 	}
 
 	userIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
 	users, err := h.userService.GetByIDs(ctx, userIDs)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectUsers.GetByIDs", err,
-			"project_id", prj.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectUsers.GetByIDs: project_id=%s: %w", prj.ID, err))
 	}
 
 	var transformedUsers []*frontierv1beta1.User
@@ -217,8 +198,7 @@ func (h *ConnectHandler) ListProjectUsers(ctx context.Context, request *connect.
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListProjectUsers", a.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectUsers: entity_id=%s: %w", a.ID, err))
 		}
 
 		transformedUsers = append(transformedUsers, u)
@@ -262,9 +242,7 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 		PrincipalType: schema.ServiceUserPrincipal,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.ListPrincipalsByResource", err,
-			"project_id", prj.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectServiceUsers.ListPrincipalsByResource: project_id=%s: %w", prj.ID, err))
 	}
 
 	suIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
@@ -272,9 +250,7 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	if len(suIDs) > 0 {
 		users, err = h.serviceUserService.GetByIDs(ctx, suIDs)
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "ListProjectServiceUsers.GetByIDs", err,
-				"project_id", prj.ID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectServiceUsers.GetByIDs: project_id=%s: %w", prj.ID, err))
 		}
 	}
 
@@ -283,8 +259,7 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	for _, a := range users {
 		u, err := transformServiceUserToPB(a)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListProjectServiceUsers", a.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectServiceUsers: entity_id=%s: %w", a.ID, err))
 		}
 
 		transformedUsers = append(transformedUsers, u)
@@ -328,9 +303,7 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 		PrincipalType: schema.GroupPrincipal,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListProjectGroups.ListPrincipalsByResource", err,
-			"project_id", prj.ID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectGroups.ListPrincipalsByResource: project_id=%s: %w", prj.ID, err))
 	}
 
 	groupIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
@@ -338,9 +311,7 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 	if len(groupIDs) > 0 {
 		groups, err = h.groupService.GetByIDs(ctx, groupIDs)
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "ListProjectGroups.GetByIDs", err,
-				"project_id", prj.ID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectGroups.GetByIDs: project_id=%s: %w", prj.ID, err))
 		}
 	}
 
@@ -349,8 +320,7 @@ func (h *ConnectHandler) ListProjectGroups(ctx context.Context, request *connect
 	for _, g := range groups {
 		u, err := transformGroupToPB(g)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListProjectGroups", g.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectGroups: entity_id=%s: %w", g.ID, err))
 		}
 
 		groupsPB = append(groupsPB, &u)
@@ -441,7 +411,7 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 		case errors.Is(err, membership.ErrInvalidPrincipalType):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SetProjectMemberRole: %w", err))
 		}
 	}
 
@@ -474,7 +444,7 @@ func (h *ConnectHandler) RemoveProjectMember(ctx context.Context, request *conne
 		case errors.Is(err, membership.ErrInvalidPrincipalType):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemoveProjectMember: %w", err))
 		}
 	}
 
@@ -514,6 +484,6 @@ func translateProjectServiceError(err error) error {
 	case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
 		return connect.NewError(connect.CodeNotFound, ErrNotFound)
 	default:
-		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", err))
 	}
 }

@@ -1,4 +1,4 @@
-import { EmptyState, DataTable, Flex } from "@raystack/apsara-v1";
+import { EmptyState, DataTable, Flex } from "@raystack/apsara";
 import type { ReactNode } from "react";
 import { Preference, PreferenceTrait } from "@raystack/proton/frontier";
 import { PageHeader } from "../../components/PageHeader";

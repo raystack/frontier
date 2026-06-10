@@ -1,4 +1,4 @@
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara-v1";
+import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
 import type { useMutation } from "@connectrpc/connect-query";
 import { handleConnectError } from "~/utils/error";
 

@@ -748,6 +748,34 @@ func (s *PATRegressionTestSuite) TestPATCRUD_CreateErrors() {
 		s.Assert().Error(err)
 		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
 	})
+
+	s.Run("two org-scoped roles in one request", func() {
+		_, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "two-org-scopes",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+				{RoleId: s.roleID(schema.RoleOrganizationManager), ResourceType: schema.OrganizationNamespace},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
+	})
+
+	s.Run("two project-scoped roles in one request", func() {
+		_, err := s.testBench.Client.CreateCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "two-project-scopes",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace},
+				{RoleId: s.roleID(schema.RoleProjectOwner), ResourceType: schema.ProjectNamespace},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
+	})
 }
 
 func TestEndToEndPATRegressionTestSuite(t *testing.T) {

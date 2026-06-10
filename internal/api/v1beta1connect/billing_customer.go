@@ -14,8 +14,6 @@ import (
 )
 
 func (h *ConnectHandler) CreateBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.CreateBillingAccountRequest]) (*connect.Response[frontierv1beta1.CreateBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var stripeTestClockID *string
 	if val, ok := customer.GetStripeTestClockFromContext(ctx); ok {
 		stripeTestClockID = &val
@@ -57,19 +55,12 @@ func (h *ConnectHandler) CreateBillingAccount(ctx context.Context, request *conn
 		if errors.Is(err, customer.ErrActiveConflict) {
 			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "CreateBillingAccount.Create", err,
-			"org_id", request.Msg.GetOrgId(),
-			"customer_name", request.Msg.GetBody().GetName(),
-			"customer_email", request.Msg.GetBody().GetEmail(),
-			"currency", request.Msg.GetBody().GetCurrency(),
-			"offline", request.Msg.GetOffline())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateBillingAccount.Create: org_id=%s customer_name=%s customer_email=%s currency=%s offline=%v: %w", request.Msg.GetOrgId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetEmail(), request.Msg.GetBody().GetCurrency(), request.Msg.GetOffline(), err))
 	}
 
 	customerPB, err := transformCustomerToPB(newCustomer)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "CreateBillingAccount", newCustomer.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateBillingAccount: customer_id=%s: %w", newCustomer.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateBillingAccountResponse{
 		BillingAccount: customerPB,
@@ -77,8 +68,6 @@ func (h *ConnectHandler) CreateBillingAccount(ctx context.Context, request *conn
 }
 
 func (h *ConnectHandler) UpdateBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateBillingAccountRequest]) (*connect.Response[frontierv1beta1.UpdateBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var metaDataMap metadata.Metadata
 	if request.Msg.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
@@ -116,18 +105,12 @@ func (h *ConnectHandler) UpdateBillingAccount(ctx context.Context, request *conn
 		TaxData:  customerTaxes,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "UpdateBillingAccount.Update", err,
-			"customer_id", request.Msg.GetId(),
-			"customer_name", request.Msg.GetBody().GetName(),
-			"customer_email", request.Msg.GetBody().GetEmail(),
-			"currency", request.Msg.GetBody().GetCurrency())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccount.Update: customer_id=%s customer_name=%s customer_email=%s currency=%s: %w", request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetEmail(), request.Msg.GetBody().GetCurrency(), err))
 	}
 
 	customerPB, err := transformCustomerToPB(updatedCustomer)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdateBillingAccount", updatedCustomer.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccount: customer_id=%s: %w", updatedCustomer.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountResponse{
@@ -136,23 +119,17 @@ func (h *ConnectHandler) UpdateBillingAccount(ctx context.Context, request *conn
 }
 
 func (h *ConnectHandler) RegisterBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.RegisterBillingAccountRequest]) (*connect.Response[frontierv1beta1.RegisterBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.customerService.RegisterToProviderIfRequired(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, ErrCustomerNotFound)
 		}
-		errorLogger.LogServiceError(ctx, request, "RegisterBillingAccount.RegisterToProviderIfRequired", err,
-			"customer_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RegisterBillingAccount.RegisterToProviderIfRequired: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.RegisterBillingAccountResponse{}), nil
 }
 
 func (h *ConnectHandler) ListBillingAccounts(ctx context.Context, request *connect.Request[frontierv1beta1.ListBillingAccountsRequest]) (*connect.Response[frontierv1beta1.ListBillingAccountsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	if request.Msg.GetOrgId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -161,15 +138,12 @@ func (h *ConnectHandler) ListBillingAccounts(ctx context.Context, request *conne
 		OrgID: request.Msg.GetOrgId(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListBillingAccounts.List", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListBillingAccounts.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	for _, v := range customerList {
 		customerPB, err := transformCustomerToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListBillingAccounts", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListBillingAccounts: customer_id=%s: %w", v.ID, err))
 		}
 		customers = append(customers, customerPB)
 	}
@@ -185,49 +159,33 @@ func (h *ConnectHandler) ListBillingAccounts(ctx context.Context, request *conne
 }
 
 func (h *ConnectHandler) DeleteBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteBillingAccountRequest]) (*connect.Response[frontierv1beta1.DeleteBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	err := h.customerService.Delete(ctx, request.Msg.GetId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteBillingAccount.Delete", err,
-			"customer_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteBillingAccount.Delete: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteBillingAccountResponse{}), nil
 }
 
 func (h *ConnectHandler) EnableBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.EnableBillingAccountRequest]) (*connect.Response[frontierv1beta1.EnableBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	err := h.customerService.Enable(ctx, request.Msg.GetId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "EnableBillingAccount.Enable", err,
-			"customer_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("EnableBillingAccount.Enable: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.EnableBillingAccountResponse{}), nil
 }
 
 func (h *ConnectHandler) DisableBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.DisableBillingAccountRequest]) (*connect.Response[frontierv1beta1.DisableBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	err := h.customerService.Disable(ctx, request.Msg.GetId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "DisableBillingAccount.Disable", err,
-			"customer_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DisableBillingAccount.Disable: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableBillingAccountResponse{}), nil
 }
 
 func (h *ConnectHandler) GetBillingBalance(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingBalanceRequest]) (*connect.Response[frontierv1beta1.GetBillingBalanceResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	balanceAmount, err := h.creditService.GetBalance(ctx, request.Msg.GetId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "GetBillingBalance.GetBalance", err,
-			"customer_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingBalance.GetBalance: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GetBillingBalanceResponse{
 		Balance: &frontierv1beta1.BillingAccount_Balance{
@@ -238,14 +196,9 @@ func (h *ConnectHandler) GetBillingBalance(ctx context.Context, request *connect
 }
 
 func (h *ConnectHandler) HasTrialed(ctx context.Context, request *connect.Request[frontierv1beta1.HasTrialedRequest]) (*connect.Response[frontierv1beta1.HasTrialedResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	hasTrialed, err := h.subscriptionService.HasUserSubscribedBefore(ctx, request.Msg.GetId(), request.Msg.GetPlanId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "HasTrialed.HasUserSubscribedBefore", err,
-			"customer_id", request.Msg.GetId(),
-			"plan_id", request.Msg.GetPlanId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("HasTrialed.HasUserSubscribedBefore: customer_id=%s plan_id=%s: %w", request.Msg.GetId(), request.Msg.GetPlanId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.HasTrialedResponse{
 		Trialed: hasTrialed,
@@ -253,22 +206,17 @@ func (h *ConnectHandler) HasTrialed(ctx context.Context, request *connect.Reques
 }
 
 func (h *ConnectHandler) ListAllBillingAccounts(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllBillingAccountsRequest]) (*connect.Response[frontierv1beta1.ListAllBillingAccountsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	var customers []*frontierv1beta1.BillingAccount
 	customerList, err := h.customerService.List(ctx, customer.Filter{
 		OrgID: request.Msg.GetOrgId(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListAllBillingAccounts.List", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllBillingAccounts.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	for _, v := range customerList {
 		customerPB, err := transformCustomerToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListAllBillingAccounts", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllBillingAccounts: customer_id=%s: %w", v.ID, err))
 		}
 		customers = append(customers, customerPB)
 	}
@@ -315,27 +263,18 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 }
 
 func (h *ConnectHandler) UpdateBillingAccountLimits(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateBillingAccountLimitsRequest]) (*connect.Response[frontierv1beta1.UpdateBillingAccountLimitsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	_, err := h.customerService.UpdateCreditMinByID(ctx, request.Msg.GetId(), request.Msg.GetCreditMin())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "UpdateBillingAccountLimits.UpdateCreditMinByID", err,
-			"customer_id", request.Msg.GetId(),
-			"credit_min", request.Msg.GetCreditMin())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccountLimits.UpdateCreditMinByID: customer_id=%s credit_min=%d: %w", request.Msg.GetId(), request.Msg.GetCreditMin(), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountLimitsResponse{}), nil
 }
 
 func (h *ConnectHandler) GetBillingAccountDetails(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingAccountDetailsRequest]) (*connect.Response[frontierv1beta1.GetBillingAccountDetailsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	details, err := h.customerService.GetDetails(ctx, request.Msg.GetId())
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "GetBillingAccountDetails.GetDetails", err,
-			"customer_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccountDetails.GetDetails: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetBillingAccountDetailsResponse{
@@ -345,31 +284,24 @@ func (h *ConnectHandler) GetBillingAccountDetails(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingAccountRequest]) (*connect.Response[frontierv1beta1.GetBillingAccountResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	customerOb, err := h.customerService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		}
-		errorLogger.LogServiceError(ctx, request, "GetBillingAccount.GetByID", err,
-			"customer_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount.GetByID: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	var paymentMethodsPbs []*frontierv1beta1.PaymentMethod
 	if request.Msg.GetWithPaymentMethods() {
 		pms, err := h.customerService.ListPaymentMethods(ctx, request.Msg.GetId())
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "GetBillingAccount.ListPaymentMethods", err,
-				"customer_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount.ListPaymentMethods: customer_id=%s: %w", request.Msg.GetId(), err))
 		}
 		for _, v := range pms {
 			pmPB, err := transformPaymentMethodToPB(v)
 			if err != nil {
-				errorLogger.LogTransformError(ctx, request, "GetBillingAccount", v.ID, err)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount: payment_method_id=%s: %w", v.ID, err))
 			}
 			paymentMethodsPbs = append(paymentMethodsPbs, pmPB)
 		}
@@ -379,9 +311,7 @@ func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect
 	if request.Msg.GetWithBillingDetails() {
 		billingDetails, err := h.customerService.GetDetails(ctx, request.Msg.GetId())
 		if err != nil {
-			errorLogger.LogServiceError(ctx, request, "GetBillingAccount.GetDetails", err,
-				"customer_id", request.Msg.GetId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount.GetDetails: customer_id=%s: %w", request.Msg.GetId(), err))
 		}
 		billingDetailsPb = &frontierv1beta1.BillingAccountDetails{
 			CreditMin: billingDetails.CreditMin,
@@ -391,8 +321,7 @@ func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect
 
 	customerPB, err := transformCustomerToPB(customerOb)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetBillingAccount", customerOb.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount: customer_id=%s: %w", customerOb.ID, err))
 	}
 
 	response := &frontierv1beta1.GetBillingAccountResponse{
@@ -438,11 +367,7 @@ func (h *ConnectHandler) UpdateBillingAccountDetails(ctx context.Context, reques
 		DueInDays: request.Msg.GetDueInDays(),
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "UpdateBillingAccountDetails.UpdateDetails", err,
-			"customer_id", request.Msg.GetId(),
-			"credit_min", request.Msg.GetCreditMin(),
-			"due_in_days", request.Msg.GetDueInDays())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccountDetails.UpdateDetails: customer_id=%s credit_min=%d due_in_days=%d: %w", request.Msg.GetId(), request.Msg.GetCreditMin(), request.Msg.GetDueInDays(), err))
 	}
 
 	// Add audit log - infer org_id from billing account

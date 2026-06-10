@@ -14,8 +14,6 @@ import (
 )
 
 func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationServiceUsersRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationServiceUsersResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), orgserviceuser.AggregatedServiceUser{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
@@ -26,9 +24,7 @@ func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, req
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrganizationServiceUsers.Search", err,
-			"org_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationServiceUsers.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	var orgServiceUsers []*frontierv1beta1.SearchOrganizationServiceUsersResponse_OrganizationServiceUser

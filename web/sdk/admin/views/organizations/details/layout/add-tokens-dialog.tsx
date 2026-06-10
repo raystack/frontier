@@ -6,7 +6,7 @@ import {
   Label,
   Text,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import React, { useContext } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { Controller, FormProvider, useForm } from "react-hook-form";

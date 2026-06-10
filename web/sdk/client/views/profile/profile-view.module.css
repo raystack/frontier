@@ -1,0 +1,12 @@
+.section {
+  padding: var(--rs-space-9) 0;
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.formFields {
+  max-width: 320px;
+}

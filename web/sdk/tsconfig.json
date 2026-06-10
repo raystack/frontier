@@ -28,7 +28,7 @@
   ],
   "exclude": [
     "dist",
-    "react/dist",
+    "client/dist",
     "hooks/dist",
     "node_modules"
   ]

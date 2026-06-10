@@ -1,5 +1,5 @@
 import React from "react";
-import { Flex } from "@raystack/apsara-v1";
+import { Flex } from "@raystack/apsara";
 
 type SheetFooterProps = {
   children?: React.ReactNode;

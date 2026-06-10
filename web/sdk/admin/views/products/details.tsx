@@ -1,4 +1,4 @@
-import { Flex, Text, Grid, Drawer } from "@raystack/apsara-v1";
+import { Flex, Text, Grid, Drawer } from "@raystack/apsara";
 import type { Product } from "@raystack/proton/frontier";
 import styles from "./products.module.css";
 import { SheetHeader } from "../../components/SheetHeader";

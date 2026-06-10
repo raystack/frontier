@@ -35,7 +35,8 @@ func (h *ConnectHandler) getLoggedInPrincipalWithUser(ctx context.Context) (*aut
 // mapPATError maps PAT service errors to Connect RPC error codes.
 func mapPATError(err error) *connect.Error {
 	switch {
-	case errors.Is(err, paterrors.ErrDisabled):
+	case errors.Is(err, paterrors.ErrDisabled),
+		errors.Is(err, paterrors.ErrExpired):
 		return connect.NewError(connect.CodeFailedPrecondition, err)
 	case errors.Is(err, paterrors.ErrNotFound):
 		return connect.NewError(connect.CodeNotFound, err)
@@ -47,12 +48,13 @@ func mapPATError(err error) *connect.Error {
 		errors.Is(err, paterrors.ErrDeniedRole),
 		errors.Is(err, paterrors.ErrUnsupportedScope),
 		errors.Is(err, paterrors.ErrScopeMismatch),
+		errors.Is(err, paterrors.ErrDuplicateScope),
 		errors.Is(err, paterrors.ErrProjectForbidden),
 		errors.Is(err, paterrors.ErrExpiryInPast),
 		errors.Is(err, paterrors.ErrExpiryExceeded):
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	default:
-		return connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("mapPATError: %w", err))
 	}
 }
 
@@ -125,8 +127,7 @@ func (h *ConnectHandler) ListRolesForPAT(ctx context.Context, request *connect.R
 	for _, v := range roleList {
 		rolePB, err := transformRoleToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListRolesForPAT", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListRolesForPAT: entity_id=%s: %w", v.ID, err))
 		}
 		roles = append(roles, &rolePB)
 	}

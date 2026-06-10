@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./invoices.module.css";
 import { FileTextIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useMemo, useState } from "react";
@@ -34,6 +34,26 @@ const TRANSFORM_OPTIONS = {
     invoiceLink: "invoice_link",
   },
 };
+
+// The backend stores invoice amounts in cents, but the amount filter input
+// takes dollars — convert the filter value to cents before sending the query.
+function convertAmountFiltersToCents(query: DataTableQuery): DataTableQuery {
+  if (!query.filters?.length) return query;
+  return {
+    ...query,
+    filters: query.filters.map(filter =>
+      filter.name === "amount"
+        ? {
+            ...filter,
+            value: Math.round(Number(filter.value) * 100),
+            ...(filter.numberValue !== undefined && {
+              numberValue: Math.round(filter.numberValue * 100),
+            }),
+          }
+        : filter,
+    ),
+  };
+}
 
 const NoInvoices = () => {
   return (
@@ -81,7 +101,10 @@ export function OrganizationInvoicesView() {
   const title = `Invoices | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
+    const tempQuery = transformDataTableQueryToRQLRequest(
+      convertAmountFiltersToCents(tableQuery),
+      TRANSFORM_OPTIONS,
+    );
     return {
       ...tempQuery,
       search: searchQuery || "",
@@ -96,7 +119,7 @@ export function OrganizationInvoicesView() {
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
-    isError,
+    isError
   } = useInfiniteQuery(
     FrontierServiceQueries.searchOrganizationInvoices,
     { id: organizationId, query: query },
@@ -115,7 +138,6 @@ export function OrganizationInvoicesView() {
       retryDelay: 1000,
     },
   );
-
   const data =
     infiniteData?.pages?.flatMap(page => page.organizationInvoices) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;

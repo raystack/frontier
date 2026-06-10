@@ -1,4 +1,4 @@
-import { EmptyState, Flex, DataTable, Drawer } from "@raystack/apsara-v1";
+import { EmptyState, Flex, DataTable, Drawer } from "@raystack/apsara";
 import { useCallback, useState, type ReactNode } from "react";
 
 import { reduceByKey } from "../../utils/helper";

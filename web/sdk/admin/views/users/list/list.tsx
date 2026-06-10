@@ -1,5 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara-v1";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara-v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import Navbar from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
@@ -14,7 +14,7 @@ import {
 } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useDebouncedState } from "@raystack/apsara-v1/hooks";
+import { useDebouncedState } from "@raystack/apsara/hooks";
 import { useTerminology } from "../../../hooks/useTerminology";
 
 const NoUsers = () => {

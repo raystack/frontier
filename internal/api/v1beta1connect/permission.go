@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/namespace"
@@ -62,25 +63,20 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 			errors.Is(err, permission.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "CreatePermission.AppendSchema", err,
-				"permission_slugs", permissionSlugs)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePermission.AppendSchema: permission_slugs=%v: %w", permissionSlugs, err))
 		}
 	}
 
 	permList, err := h.permissionService.List(ctx, permission.Filter{Slugs: permissionSlugs})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "CreatePermission.List", err,
-			"permission_slugs", permissionSlugs)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePermission.List: permission_slugs=%v: %w", permissionSlugs, err))
 	}
 
 	var pbPerms []*frontierv1beta1.Permission
 	for _, perm := range permList {
 		permPB, err := transformPermissionToPB(perm)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "CreatePermission", perm.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePermission: entity_id=%s: %w", perm.ID, err))
 		}
 		pbPerms = append(pbPerms, permPB)
 	}
@@ -141,38 +137,29 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 			errors.Is(err, permission.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "UpdatePermission", err,
-				"permission_id", request.Msg.GetId(),
-				"permission_name", permName,
-				"permission_namespace", permNamespace)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePermission: permission_id=%s permission_name=%s permission_namespace=%s: %w", request.Msg.GetId(), permName, permNamespace, err))
 		}
 	}
 
 	permissionPB, err := transformPermissionToPB(updatedPermission)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "UpdatePermission", updatedPermission.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePermission: entity_id=%s: %w", updatedPermission.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdatePermissionResponse{Permission: permissionPB}), nil
 }
 
 func (h *ConnectHandler) ListPermissions(ctx context.Context, request *connect.Request[frontierv1beta1.ListPermissionsRequest]) (*connect.Response[frontierv1beta1.ListPermissionsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	actionsList, err := h.permissionService.List(ctx, permission.Filter{})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListPermissions", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPermissions: %w", err))
 	}
 
 	var perms []*frontierv1beta1.Permission
 	for _, act := range actionsList {
 		actPB, err := transformPermissionToPB(act)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListPermissions", act.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPermissions: entity_id=%s: %w", act.ID, err))
 		}
 		perms = append(perms, actPB)
 	}
@@ -192,16 +179,13 @@ func (h *ConnectHandler) GetPermission(ctx context.Context, request *connect.Req
 		case errors.Is(err, permission.ErrNotExist), errors.Is(err, permission.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
-			errorLogger.LogUnexpectedError(ctx, request, "GetPermission", err,
-				"permission_id", permissionID)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetPermission: permission_id=%s: %w", permissionID, err))
 		}
 	}
 
 	permissionPB, err := transformPermissionToPB(fetchedPermission)
 	if err != nil {
-		errorLogger.LogTransformError(ctx, request, "GetPermission", fetchedPermission.ID, err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetPermission: entity_id=%s: %w", fetchedPermission.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetPermissionResponse{Permission: permissionPB}), nil

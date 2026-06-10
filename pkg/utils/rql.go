@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"slices"
+
 	"github.com/doug-martin/goqu/v9"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
-	"golang.org/x/exp/slices"
 )
 
 const (
@@ -239,25 +240,24 @@ func AddGroupInQuery(query *goqu.SelectDataset, rql *rql.Query, allowedGroupByCo
 func buildGroupByColumns(columns []string) []interface{} {
 	exprs := make([]interface{}, 0, len(columns))
 	for _, col := range columns {
-		exprs = append(exprs, goqu.L(col))
+		exprs = append(exprs, goqu.C(col))
 	}
 	return exprs
 }
 
 func buildSelectColumns(columns []string) []interface{} {
-	var valueExpr string
+	var valueExpr goqu.Expression
 	switch len(columns) {
 	case 1:
-		valueExpr = fmt.Sprintf("%s AS values", columns[0])
+		valueExpr = goqu.C(columns[0]).As("values")
 	case 2:
-		valueExpr = fmt.Sprintf("CONCAT(%s, ',', %s) AS values", columns[0], columns[1])
+		valueExpr = goqu.L("CONCAT(?, ',', ?)", goqu.I(columns[0]), goqu.I(columns[1])).As("values")
 	default:
-		valueExpr = fmt.Sprintf("%s AS values", columns[0]) // this function gets hit only for column length > 1,
-		// so index 0 is always available.
+		valueExpr = goqu.C(columns[0]).As("values")
 	}
 
 	return []interface{}{
-		goqu.L(valueExpr),
+		valueExpr,
 		goqu.L("COUNT(*) as count"),
 	}
 }

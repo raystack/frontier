@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -17,8 +18,6 @@ import (
 )
 
 func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.CreateBillingUsageRequest]) (*connect.Response[frontierv1beta1.CreateBillingUsageResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
@@ -28,9 +27,7 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "CreateBillingUsage.GetByOrgID", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateBillingUsage.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	createRequests := make([]usage.Usage, 0, len(request.Msg.GetUsages()))
@@ -59,19 +56,14 @@ func (h *ConnectHandler) CreateBillingUsage(ctx context.Context, request *connec
 		if errors.Is(err, credit.ErrAlreadyApplied) {
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrAlreadyApplied)
 		}
-		errorLogger.LogServiceError(ctx, request, "CreateBillingUsage.Report", err,
-			"billing_id", cust.ID,
-			"org_id", request.Msg.GetOrgId(),
-			"usage_count", len(createRequests))
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateBillingUsage.Report: billing_id=%s org_id=%s usage_count=%d: %w",
+			cust.ID, request.Msg.GetOrgId(), len(createRequests), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateBillingUsageResponse{}), nil
 }
 
 func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.ListBillingTransactionsRequest]) (*connect.Response[frontierv1beta1.ListBillingTransactionsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
@@ -85,9 +77,7 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "ListBillingTransactions.GetByOrgID", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListBillingTransactions.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
 
@@ -110,18 +100,13 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 		EndRange:   endRange,
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "ListBillingTransactions.List", err,
-			"org_id", request.Msg.GetOrgId(),
-			"billing_id", billingID,
-			"start_range", startRange,
-			"end_range", endRange)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListBillingTransactions.List: org_id=%s billing_id=%s start_range=%v end_range=%v: %w",
+			request.Msg.GetOrgId(), billingID, startRange, endRange, err))
 	}
 	for _, v := range transactionsList {
 		transactionPB, err := transformTransactionToPB(v)
 		if err != nil {
-			errorLogger.LogTransformError(ctx, request, "ListBillingTransactions", v.ID, err)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListBillingTransactions: entity_id=%s: %w", v.ID, err))
 		}
 		transactions = append(transactions, transactionPB)
 	}
@@ -137,8 +122,6 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 }
 
 func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *connect.Request[frontierv1beta1.TotalDebitedTransactionsRequest]) (*connect.Response[frontierv1beta1.TotalDebitedTransactionsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
@@ -155,18 +138,14 @@ func (h *ConnectHandler) TotalDebitedTransactions(ctx context.Context, request *
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		errorLogger.LogServiceError(ctx, request, "TotalDebitedTransactions.GetByOrgID", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("TotalDebitedTransactions.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
 
 	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, billingID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "TotalDebitedTransactions.GetTotalDebitedAmount", err,
-			"org_id", request.Msg.GetOrgId(),
-			"billing_id", billingID)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("TotalDebitedTransactions.GetTotalDebitedAmount: org_id=%s billing_id=%s: %w",
+			request.Msg.GetOrgId(), billingID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.TotalDebitedTransactionsResponse{
@@ -197,8 +176,6 @@ func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTra
 }
 
 func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connect.Request[frontierv1beta1.RevertBillingUsageRequest]) (*connect.Response[frontierv1beta1.RevertBillingUsageResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	// Always infer billing_id from org_id
 	cust, err := h.customerService.GetByOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
@@ -208,9 +185,7 @@ func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connec
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "RevertBillingUsage.GetByOrgID", err,
-			"org_id", request.Msg.GetOrgId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RevertBillingUsage.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	if err := h.usageService.Revert(ctx, cust.ID,
@@ -226,12 +201,8 @@ func (h *ConnectHandler) RevertBillingUsage(ctx context.Context, request *connec
 		} else if errors.Is(err, credit.ErrAlreadyApplied) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "RevertBillingUsage.Revert", err,
-			"billing_id", cust.ID,
-			"org_id", request.Msg.GetOrgId(),
-			"usage_id", request.Msg.GetUsageId(),
-			"amount", request.Msg.GetAmount())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RevertBillingUsage.Revert: billing_id=%s org_id=%s usage_id=%s amount=%d: %w",
+			cust.ID, request.Msg.GetOrgId(), request.Msg.GetUsageId(), request.Msg.GetAmount(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.RevertBillingUsageResponse{}), nil
 }

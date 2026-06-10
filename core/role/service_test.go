@@ -70,6 +70,46 @@ func Test_Get(t *testing.T) {
 	})
 }
 
+func Test_Delete(t *testing.T) {
+	t.Run("returns ErrRoleInUse and leaves SpiceDB untouched when a policy references the role", func(t *testing.T) {
+		mockRepository := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockPermissionSvc := mocks.NewPermissionService(t)
+		mockAuditRecordRepo := auditMocks.NewRepository(t)
+
+		mockID := uuid.New().String()
+		mockRepository.On("Get", mock.Anything, mockID).Return(role.Role{ID: "role-1"}, nil).Once()
+		// the policies.role_id FK rejects the row delete -> ErrRoleInUse
+		mockRepository.On("Delete", mock.Anything, "role-1").Return(role.ErrRoleInUse).Once()
+
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
+		err := svc.Delete(context.Background(), mockID)
+
+		assert.ErrorIs(t, err, role.ErrRoleInUse)
+		// no permission tuples should be removed when the delete is rejected
+		mockRelationSvc.AssertNotCalled(t, "Delete")
+	})
+
+	t.Run("removes the role's permission tuples after the row is deleted", func(t *testing.T) {
+		mockRepository := mocks.NewRepository(t)
+		mockRelationSvc := mocks.NewRelationService(t)
+		mockPermissionSvc := mocks.NewPermissionService(t)
+		mockAuditRecordRepo := auditMocks.NewRepository(t)
+
+		mockID := uuid.New().String()
+		mockRepository.On("Get", mock.Anything, mockID).Return(role.Role{ID: "role-1"}, nil).Once()
+		mockRepository.On("Delete", mock.Anything, "role-1").Return(nil).Once()
+		mockRelationSvc.On("Delete", mock.Anything, relation.Relation{
+			Object: relation.Object{ID: "role-1", Namespace: schema.RoleNamespace},
+		}).Return(nil).Once()
+
+		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
+		err := svc.Delete(context.Background(), mockID)
+
+		assert.NoError(t, err)
+	})
+}
+
 func Test_List(t *testing.T) {
 	mockRepository := mocks.NewRepository(t)
 	mockRelationSvc := mocks.NewRelationService(t)

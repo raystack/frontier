@@ -15,8 +15,6 @@ import (
 )
 
 func (h *ConnectHandler) SearchOrganizationServiceUserCredentials(ctx context.Context, request *connect.Request[frontierv1beta1.SearchOrganizationServiceUserCredentialsRequest]) (*connect.Response[frontierv1beta1.SearchOrganizationServiceUserCredentialsResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	rqlQuery, err := utils.TransformProtoToRQL(request.Msg.GetQuery(), svc.AggregatedServiceUserCredential{})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
@@ -32,9 +30,7 @@ func (h *ConnectHandler) SearchOrganizationServiceUserCredentials(ctx context.Co
 		if errors.Is(err, postgres.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		errorLogger.LogServiceError(ctx, request, "SearchOrganizationServiceUserCredentials.Search", err,
-			"org_id", request.Msg.GetId())
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationServiceUserCredentials.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	var orgCredentials []*frontierv1beta1.SearchOrganizationServiceUserCredentialsResponse_OrganizationServiceUserCredential

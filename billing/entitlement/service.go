@@ -5,7 +5,7 @@ import (
 
 	"github.com/raystack/frontier/billing/plan"
 
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"

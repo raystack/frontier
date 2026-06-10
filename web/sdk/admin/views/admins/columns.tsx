@@ -1,4 +1,4 @@
-import { Button, type DataTableColumnDef } from "@raystack/apsara-v1";
+import { Button, type DataTableColumnDef } from "@raystack/apsara";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
 import { TerminologyEntity } from "../../hooks/useTerminology";
 import styles from "./admins.module.css";

@@ -36,7 +36,7 @@ func TestConnectHandler_CheckFeatureEntitlement(t *testing.T) {
 				es.EXPECT().Check(mock.Anything, "billing-123", "feature-abc").Return(false, errors.New("service error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -152,7 +152,7 @@ func TestConnectHandler_CheckCreditEntitlement(t *testing.T) {
 				}).Return(nil, errors.New("service error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -183,7 +183,7 @@ func TestConnectHandler_CheckCreditEntitlement(t *testing.T) {
 				cs.EXPECT().GetDetails(mock.Anything, "customer-123").Return(customer.Details{}, errors.New("service error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{
@@ -202,7 +202,7 @@ func TestConnectHandler_CheckCreditEntitlement(t *testing.T) {
 				crs.EXPECT().GetBalance(mock.Anything, "customer-123").Return(int64(0), errors.New("service error"))
 			},
 			want:    nil,
-			wantErr: ErrInternalServerError,
+			wantErr: errors.New("service error"),
 			errCode: connect.CodeInternal,
 		},
 		{

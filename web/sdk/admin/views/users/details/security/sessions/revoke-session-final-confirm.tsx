@@ -4,7 +4,7 @@ import {
   Dialog,
   Flex,
   Text
-} from '@raystack/apsara-v1';
+} from '@raystack/apsara';
 import { handleConnectError } from '~/utils/error';
 import styles from './sessions.module.css';
 

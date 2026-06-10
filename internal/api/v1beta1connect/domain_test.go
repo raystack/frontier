@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -79,7 +80,7 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 				Domain: "raystack.org",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationDomain.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org is disabled",
@@ -135,7 +136,7 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 				Domain: "raystack.org",
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationDomain.Create: org_id=%s domain_name=%s: %w", testOrgID, "raystack.org", errors.New("domain service error"))),
 		},
 		{
 			name: "should create domain successfully",
@@ -191,7 +192,7 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationDomain.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org is disabled",
@@ -241,7 +242,7 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationDomain.Delete: org_id=%s domain_id=%s: %w", testOrgID, testDomainID1, errors.New("domain service error"))),
 		},
 		{
 			name: "should delete domain successfully",
@@ -294,7 +295,7 @@ func TestHandler_GetOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationDomain.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org is disabled",
@@ -344,7 +345,7 @@ func TestHandler_GetOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationDomain.Get: org_id=%s domain_id=%s: %w", testOrgID, testDomainID1, errors.New("domain service error"))),
 		},
 		{
 			name: "should get domain successfully",
@@ -433,7 +434,7 @@ func TestHandler_JoinOrganization(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("JoinOrganization.Join: org_id=%s principal_id=%s: %w", testOrgID, testUserID, errors.New("domain service error"))),
 		},
 		{
 			name: "should join organization successfully",
@@ -486,7 +487,7 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationDomains.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org is disabled",
@@ -520,7 +521,7 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationDomains.List: org_id=%s state=%s: %w", testOrgID, "", errors.New("domain service error"))),
 		},
 		{
 			name: "should list domains successfully",
@@ -575,7 +576,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("VerifyOrganizationDomain.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org is disabled",
@@ -651,7 +652,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 				Id:    testDomainID1,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, ErrInternalServerError),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("VerifyOrganizationDomain.VerifyDomain: org_id=%s domain_id=%s: %w", testOrgID, testDomainID1, errors.New("domain service error"))),
 		},
 		{
 			name: "should verify domain successfully",

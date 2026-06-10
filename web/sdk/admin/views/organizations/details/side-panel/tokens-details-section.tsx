@@ -1,5 +1,5 @@
-import { List, Text, Flex } from "@raystack/apsara-v1";
-import { CoinIcon, CoinColoredIcon } from "@raystack/apsara-v1/icons";
+import { List, Text, Flex } from "@raystack/apsara";
+import { CoinIcon, CoinColoredIcon } from "@raystack/apsara/icons";
 import styles from "./side-panel.module.css";
 import { useContext, useEffect } from "react";
 import Skeleton from "react-loading-skeleton";

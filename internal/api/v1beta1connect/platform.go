@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/relation"
@@ -11,7 +12,6 @@ import (
 )
 
 func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.AddPlatformUserRequest]) (*connect.Response[frontierv1beta1.AddPlatformUserResponse], error) {
-	errorLogger := NewErrorLogger()
 	relationName := req.Msg.GetRelation()
 
 	if !schema.IsPlatformRelation(relationName) {
@@ -20,17 +20,11 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.Sudo(ctx, req.Msg.GetUserId(), relationName); err != nil {
-			errorLogger.LogServiceError(ctx, req, "AddPlatformUser.UserSudo", err,
-				"user_id", req.Msg.GetUserId(),
-				"relation", relationName)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AddPlatformUser.UserSudo: user_id=%s relation=%s: %w", req.Msg.GetUserId(), relationName, err))
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
 		if err := h.serviceUserService.Sudo(ctx, req.Msg.GetServiceuserId(), relationName); err != nil {
-			errorLogger.LogServiceError(ctx, req, "AddPlatformUser.ServiceUserSudo", err,
-				"service_user_id", req.Msg.GetServiceuserId(),
-				"relation", relationName)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AddPlatformUser.ServiceUserSudo: service_user_id=%s relation=%s: %w", req.Msg.GetServiceuserId(), relationName, err))
 		}
 	} else {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -39,19 +33,13 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error) {
-	errorLogger := NewErrorLogger()
-
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.UnSudo(ctx, req.Msg.GetUserId()); err != nil {
-			errorLogger.LogServiceError(ctx, req, "RemovePlatformUser.UserUnSudo", err,
-				"user_id", req.Msg.GetUserId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.UserUnSudo: user_id=%s: %w", req.Msg.GetUserId(), err))
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
 		if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId()); err != nil {
-			errorLogger.LogServiceError(ctx, req, "RemovePlatformUser.ServiceUserUnSudo", err,
-				"service_user_id", req.Msg.GetServiceuserId())
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.ServiceUserUnSudo: service_user_id=%s: %w", req.Msg.GetServiceuserId(), err))
 		}
 	} else {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -60,7 +48,6 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 }
 
 func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Request[frontierv1beta1.ListPlatformUsersRequest]) (*connect.Response[frontierv1beta1.ListPlatformUsersResponse], error) {
-	errorLogger := NewErrorLogger()
 	relations, err := h.relationService.List(ctx, relation.Filter{
 		Object: relation.Object{
 			ID:        schema.PlatformID,
@@ -68,8 +55,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		},
 	})
 	if err != nil {
-		errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.ListRelations", err)
-		return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.ListRelations: %w", err))
 	}
 
 	subjectRelationMap := make(map[string]string)
@@ -85,9 +71,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 	if len(userIDs) > 0 {
 		users, err := h.userService.GetByIDs(ctx, userIDs)
 		if err != nil {
-			errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.GetUsersByIDs", err,
-				"user_ids", userIDs)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.GetUsersByIDs: user_ids=%v: %w", userIDs, err))
 		}
 		for _, u := range users {
 			if u.Metadata == nil {
@@ -96,8 +80,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			userPB, err := transformUserToPB(u)
 			if err != nil {
-				errorLogger.LogTransformError(ctx, req, "ListPlatformUsers.TransformUser", u.ID, err)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformUser: entity_id=%s: %w", u.ID, err))
 			}
 			userPBs = append(userPBs, userPB)
 		}
@@ -114,9 +97,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 	if len(serviceUserIDs) > 0 {
 		serviceUsers, err := h.serviceUserService.GetByIDs(ctx, serviceUserIDs)
 		if err != nil {
-			errorLogger.LogServiceError(ctx, req, "ListPlatformUsers.GetServiceUsersByIDs", err,
-				"service_user_ids", serviceUserIDs)
-			return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.GetServiceUsersByIDs: service_user_ids=%v: %w", serviceUserIDs, err))
 		}
 		for _, u := range serviceUsers {
 			if u.Metadata == nil {
@@ -125,8 +106,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
-				errorLogger.LogTransformError(ctx, req, "ListPlatformUsers.TransformServiceUser", u.ID, err)
-				return nil, connect.NewError(connect.CodeInternal, ErrInternalServerError)
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformServiceUser: entity_id=%s: %w", u.ID, err))
 			}
 			serviceUserPBs = append(serviceUserPBs, serviceUserPB)
 		}

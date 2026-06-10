@@ -5,7 +5,7 @@ import {
   IconButton,
   Text,
   toastManager,
-} from "@raystack/apsara-v1";
+} from "@raystack/apsara";
 import styles from "./security.module.css";
 import { CheckCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";

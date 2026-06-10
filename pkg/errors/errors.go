@@ -11,8 +11,9 @@ var (
 )
 
 var (
-	ErrUnauthenticated = errors.New("not authenticated")
-	ErrForbidden       = errors.New("not authorized")
-	ErrInvalidUUID     = errors.New("invalid syntax of uuid")
-	ErrNotFound        = errors.New("not found")
+	ErrUnauthenticated     = errors.New("not authenticated")
+	ErrForbidden           = errors.New("not authorized")
+	ErrInvalidUUID         = errors.New("invalid syntax of uuid")
+	ErrNotFound            = errors.New("not found")
+	ErrInternalServerError = errors.New("internal server error")
 )

@@ -83,6 +83,10 @@ type UserService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type UserPATService interface {
+	DeleteAllByUser(ctx context.Context, userID string) error
+}
+
 type ServiceUserService interface {
 	List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error)
 	Delete(ctx context.Context, id string) error
@@ -112,6 +116,7 @@ type Service struct {
 	roleService        RoleService
 	invitationService  InvitationService
 	userService        UserService
+	userPATService     UserPATService
 	serviceUserService ServiceUserService
 	customerService    CustomerService
 	subService         SubscriptionService
@@ -123,6 +128,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	membershipService MembershipService,
 	policyService PolicyService, roleService RoleService,
 	invitationService InvitationService, userService UserService,
+	userPATService UserPATService,
 	serviceUserService ServiceUserService,
 	customerService CustomerService, subService SubscriptionService,
 	invoiceService InvoiceService) *Service {
@@ -136,6 +142,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		roleService:        roleService,
 		invitationService:  invitationService,
 		userService:        userService,
+		userPATService:     userPATService,
 		serviceUserService: serviceUserService,
 		customerService:    customerService,
 		subService:         subService,
@@ -393,6 +400,9 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 		if err = d.RemoveUsersFromOrg(ctx, orgID, []string{userID}); err != nil {
 			return fmt.Errorf("failed to delete user from org[%s]: %w", orgID, err)
 		}
+	}
+	if err := d.userPATService.DeleteAllByUser(ctx, userID); err != nil {
+		return fmt.Errorf("failed to delete user PATs: %w", err)
 	}
 	return d.userService.Delete(ctx, userID)
 }
