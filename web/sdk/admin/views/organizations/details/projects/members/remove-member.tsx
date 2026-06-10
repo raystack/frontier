@@ -9,6 +9,7 @@ import { useMutation } from "@connectrpc/connect-query";
 import styles from "./members.module.css";
 
 import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
@@ -49,8 +50,20 @@ export const RemoveMember = ({
 
       toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}`, type: "error" });
       console.error(error);
+      handleConnectError(error, {
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (err) =>
+          toastManager.add({
+            title: `Failed to remove ${t.member({ case: "lower" })}`,
+            description: err.rawMessage,
+            type: "error",
+          }),
+      });
     } finally {
       setIsSubmitting(false);
     }

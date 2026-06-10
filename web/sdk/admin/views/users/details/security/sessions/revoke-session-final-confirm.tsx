@@ -5,6 +5,7 @@ import {
   Flex,
   Text
 } from '@raystack/apsara';
+import { handleConnectError } from '~/utils/error';
 import styles from './sessions.module.css';
 
 interface RevokeSessionFinalConfirmProps {
@@ -24,11 +25,19 @@ export const RevokeSessionFinalConfirm = ({
     try {
       onConfirm();
       onOpenChange(false);
-    } catch (error: any) {
-      toastManager.add({
-        title: 'Failed to revoke session',
-        description: error.message || 'Something went wrong',
-        type: "error",
+    } catch (error) {
+      handleConnectError(error, {
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: 'error',
+          }),
+        Default: (err) =>
+          toastManager.add({
+            title: 'Failed to revoke session',
+            description: err.rawMessage || 'Something went wrong',
+            type: 'error',
+          }),
       });
     }
   };

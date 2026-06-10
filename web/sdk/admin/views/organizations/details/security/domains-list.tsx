@@ -46,7 +46,7 @@ const DeleteDomainDialog = ({
       onError: (error) => {
         toastManager.add({
           title: "Something went wrong",
-          description: error.message,
+          description: error.rawMessage,
           type: "error",
         });
         console.error("Unable to delete domain:", error);

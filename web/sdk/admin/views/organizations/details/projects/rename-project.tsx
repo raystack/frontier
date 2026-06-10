@@ -10,6 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import React from "react";
 import { useMutation } from "@connectrpc/connect-query";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 const projectRenameSchema = z.object({
@@ -72,8 +73,25 @@ export function RenameProjectDialog({
         });
       }
     } catch (error) {
-      toastManager.add({ title: `Failed to rename ${t.project({ case: "lower" })}`, type: "error" });
       console.error(error);
+      handleConnectError(error, {
+        AlreadyExists: () =>
+          toastManager.add({
+            title: `${t.project({ case: "capital" })} with this name already exists`,
+            type: "error",
+          }),
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (err) =>
+          toastManager.add({
+            title: `Failed to rename ${t.project({ case: "lower" })}`,
+            description: err.rawMessage,
+            type: "error",
+          }),
+      });
     }
   };
 

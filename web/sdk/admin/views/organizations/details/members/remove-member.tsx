@@ -6,7 +6,7 @@ import {
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
 import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
-import { ConnectError } from "@connectrpc/connect";
+import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface RemoveMemberProps {
@@ -42,12 +42,20 @@ export const RemoveMember = ({
       }
       toastManager.add({ title: `${t.member({ case: "capital" })} removed successfully`, type: "success" });
     } catch (error) {
-      const message =
-        error instanceof ConnectError
-          ? error.message
-          : "Unknown error";
-      toastManager.add({ title: `Failed to remove ${t.member({ case: "lower" })}: ${message}`, type: "error" });
       console.error(error);
+      handleConnectError(error, {
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (err) =>
+          toastManager.add({
+            title: `Failed to remove ${t.member({ case: "lower" })}`,
+            description: err.rawMessage,
+            type: "error",
+          }),
+      });
     }
   }
 

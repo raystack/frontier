@@ -9,6 +9,7 @@ import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "../../../../components/CustomField";
 import events from "../../../../utils/webhook-events";
 import { useMutation } from "@connectrpc/connect-query";
+import { handleConnectError } from "~/utils/error";
 import {
   AdminServiceQueries,
   type WebhookRequestBody,
@@ -85,7 +86,19 @@ export default function UpdateWebhooks({ open = false, webhookId: webhookIdProp,
       }
     } catch (err) {
       console.error("Failed to update webhook:", err);
-      toastManager.add({ title: "Something went wrong", type: "error" });
+      handleConnectError(err, {
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (e) =>
+          toastManager.add({
+            title: "Something went wrong",
+            description: e.rawMessage,
+            type: "error",
+          }),
+      });
     }
   };
 

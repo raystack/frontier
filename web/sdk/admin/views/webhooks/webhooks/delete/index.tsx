@@ -1,5 +1,6 @@
 import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
 import type { useMutation } from "@connectrpc/connect-query";
+import { handleConnectError } from "~/utils/error";
 
 interface DeleteWebhookDialogProps {
   isOpen: boolean;
@@ -23,7 +24,19 @@ export function DeleteWebhookDialog({
       onOpenChange(false);
     } catch (err) {
       console.error("Failed to delete webhook:", err);
-      toastManager.add({ title: "Failed to delete webhook", type: "error" });
+      handleConnectError(err, {
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (e) =>
+          toastManager.add({
+            title: "Failed to delete webhook",
+            description: e.rawMessage,
+            type: "error",
+          }),
+      });
     }
   };
 

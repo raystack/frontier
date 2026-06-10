@@ -92,8 +92,8 @@ export const BlockUserDialog = () => {
     } catch (error) {
       handleConnectError(error, {
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: "error" }),
-        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: "error" }),
-        Default: (err) => toastManager.add({ title: errorMessage, description: err.message, type: "error" }),
+        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.rawMessage, type: "error" }),
+        Default: (err) => toastManager.add({ title: errorMessage, description: err.rawMessage, type: "error" }),
       });
     }
   };

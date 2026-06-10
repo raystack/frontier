@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
+import { handleConnectError } from "~/utils/error";
 import { AdminServiceQueries, CreatePreferencesRequestSchema, ListPreferencesResponse } from "@raystack/proton/frontier";
 import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
 import { timestampDate } from "@bufbuild/protobuf/wkt";
@@ -185,8 +186,20 @@ export default function PreferenceDetails({
       }));
       toastManager.add({ title: "preference updated", type: "success" });
     } catch (err) {
-      console.error("ConnectRPC Error:", err);
-      toastManager.add({ title: "something went wrong", type: "error" });
+      console.error(err);
+      handleConnectError(err, {
+        PermissionDenied: () =>
+          toastManager.add({
+            title: "You don't have permission to perform this action",
+            type: "error",
+          }),
+        Default: (e) =>
+          toastManager.add({
+            title: "Something went wrong",
+            description: e.rawMessage,
+            type: "error",
+          }),
+      });
     }
   }, [name, value, createPreferences]);
 
@@ -231,6 +244,7 @@ export default function PreferenceDetails({
               trait={trait}
               value={value}
               onChange={setValue}
+              data-test-id="frontier-admin-preference-value-input"
             />
             <Button
               onClick={onSave}
