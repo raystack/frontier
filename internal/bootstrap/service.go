@@ -151,6 +151,32 @@ func (s Service) MigrateSchema(ctx context.Context) error {
 	return s.AppendSchema(ctx, *customServiceDefinition)
 }
 
+// BuiltinPermissions returns the permissions that come from the base schema and
+// the config files — the ones bootstrap recreates on every boot. It looks only
+// at the base schema and config, not at the permissions already in the database.
+func (s Service) BuiltinPermissions(ctx context.Context) (map[string]struct{}, error) {
+	custom, err := s.schemaConfig.GetDefinition(ctx)
+	if err != nil {
+		return nil, err
+	}
+	custom.Permissions = filterDefaultAppNamespacePermissions(custom.Permissions)
+
+	defs, err := ApplyServiceDefinitionOverAZSchema(custom, GetBaseAZSchema())
+	if err != nil {
+		return nil, err
+	}
+	appDef, err := BuildServiceDefinitionFromAZSchema(defs)
+	if err != nil {
+		return nil, err
+	}
+
+	slugs := make(map[string]struct{}, len(appDef.Permissions))
+	for _, p := range appDef.Permissions {
+		slugs[schema.FQPermissionNameFromNamespace(p.GetNamespace(), p.GetName())] = struct{}{}
+	}
+	return slugs, nil
+}
+
 func (s Service) AppendSchema(ctx context.Context, customServiceDefinition schema.ServiceDefinition) error {
 	// get existing permissions and append to the new definition
 	// this is required to avoid overriding existing permissions in authzed engine

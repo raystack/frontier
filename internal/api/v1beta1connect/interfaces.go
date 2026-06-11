@@ -61,10 +61,12 @@ type PermissionService interface {
 	List(ctx context.Context, filter permission.Filter) ([]permission.Permission, error)
 	Upsert(ctx context.Context, perm permission.Permission) (permission.Permission, error)
 	Update(ctx context.Context, perm permission.Permission) (permission.Permission, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type BootstrapService interface {
 	AppendSchema(ctx context.Context, definition schema.ServiceDefinition) error
+	BuiltinPermissions(ctx context.Context) (map[string]struct{}, error)
 }
 
 type WebhookService interface {
@@ -149,6 +151,7 @@ type RelationService interface {
 	Get(ctx context.Context, id string) (relation.Relation, error)
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	List(ctx context.Context, f relation.Filter) ([]relation.Relation, error)
+	ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 

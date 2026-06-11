@@ -25,6 +25,7 @@ type Repository interface {
 	Upsert(ctx context.Context, role Role) (Role, error)
 	Update(ctx context.Context, toUpdate Role) (Role, error)
 	Delete(ctx context.Context, roleID string) error
+	RemovePermissionFromRoles(ctx context.Context, slug string) error
 }
 
 type Role struct {

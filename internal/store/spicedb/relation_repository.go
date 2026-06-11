@@ -249,18 +249,22 @@ func (r *RelationRepository) LookupResources(ctx context.Context, rel relation.R
 
 // ListRelations shouldn't be used in high TPS flows as consistency requirements are set high
 func (r *RelationRepository) ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
+	filter := &authzedpb.RelationshipFilter{
+		ResourceType:       rel.Object.Namespace,
+		OptionalResourceId: rel.Object.ID,
+		OptionalRelation:   rel.RelationName,
+	}
+	// Only add a subject filter when a subject is given — SpiceDB rejects one
+	// with an empty subject type. Callers may filter by object alone.
+	if rel.Subject.Namespace != "" {
+		filter.OptionalSubjectFilter = &authzedpb.SubjectFilter{
+			SubjectType:       rel.Subject.Namespace,
+			OptionalSubjectId: rel.Subject.ID,
+		}
+	}
 	resp, err := r.spiceDB.client.ReadRelationships(ctx, &authzedpb.ReadRelationshipsRequest{
-		Consistency: r.getConsistency(),
-		RelationshipFilter: &authzedpb.RelationshipFilter{
-			ResourceType:       rel.Object.Namespace,
-			OptionalResourceId: rel.Object.ID,
-			OptionalRelation:   rel.RelationName,
-			OptionalSubjectFilter: &authzedpb.SubjectFilter{
-				SubjectType:       rel.Subject.Namespace,
-				OptionalSubjectId: rel.Subject.ID,
-				OptionalRelation:  nil,
-			},
-		},
+		Consistency:        r.getConsistency(),
+		RelationshipFilter: filter,
 	})
 	if err != nil {
 		return nil, err

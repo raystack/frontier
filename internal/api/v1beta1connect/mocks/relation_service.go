@@ -242,6 +242,65 @@ func (_c *RelationService_List_Call) RunAndReturn(run func(context.Context, rela
 	return _c
 }
 
+// ListRelations provides a mock function with given fields: ctx, rel
+func (_m *RelationService) ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
+	ret := _m.Called(ctx, rel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListRelations")
+	}
+
+	var r0 []relation.Relation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) ([]relation.Relation, error)); ok {
+		return rf(ctx, rel)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) []relation.Relation); ok {
+		r0 = rf(ctx, rel)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]relation.Relation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, relation.Relation) error); ok {
+		r1 = rf(ctx, rel)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RelationService_ListRelations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRelations'
+type RelationService_ListRelations_Call struct {
+	*mock.Call
+}
+
+// ListRelations is a helper method to define mock.On call
+//   - ctx context.Context
+//   - rel relation.Relation
+func (_e *RelationService_Expecter) ListRelations(ctx interface{}, rel interface{}) *RelationService_ListRelations_Call {
+	return &RelationService_ListRelations_Call{Call: _e.mock.On("ListRelations", ctx, rel)}
+}
+
+func (_c *RelationService_ListRelations_Call) Run(run func(ctx context.Context, rel relation.Relation)) *RelationService_ListRelations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(relation.Relation))
+	})
+	return _c
+}
+
+func (_c *RelationService_ListRelations_Call) Return(_a0 []relation.Relation, _a1 error) *RelationService_ListRelations_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *RelationService_ListRelations_Call) RunAndReturn(run func(context.Context, relation.Relation) ([]relation.Relation, error)) *RelationService_ListRelations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewRelationService creates a new instance of RelationService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRelationService(t interface {

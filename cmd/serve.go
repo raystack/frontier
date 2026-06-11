@@ -376,11 +376,11 @@ func buildAPIDependencies(
 	}
 	authzRelationRepository := spicedb.NewRelationRepository(sdb, consistencyLevel, cfg.SpiceDB.CheckTrace)
 
-	permissionRepository := postgres.NewPermissionRepository(dbc)
-	permissionService := permission.NewService(permissionRepository)
-
 	relationPGRepository := postgres.NewRelationRepository(dbc)
 	relationService := relation.NewService(relationPGRepository, authzRelationRepository)
+
+	permissionRepository := postgres.NewPermissionRepository(dbc)
+	permissionService := permission.NewService(logger, permissionRepository, relationService)
 
 	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
 
@@ -428,6 +428,9 @@ func buildAPIDependencies(
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 
 	roleService := role.NewService(roleRepository, relationService, permissionService, auditRecordRepository, cfg.App.PAT.DeniedPermissionsSet())
+	// permission deletion prunes the deleted slug from role definitions; wired
+	// back here because role.Service depends on permission.Service
+	permissionService.SetRoleService(roleService)
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
 	userService := user.NewService(userRepository, relationService, sessionService)
 	patValidator := userpat.NewValidator(logger, userPATRepo, cfg.App.PAT)

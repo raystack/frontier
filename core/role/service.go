@@ -279,6 +279,19 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	return updatedRole, nil
 }
 
+// RemovePermissionFromRoles removes a permission from every role's list. Called
+// when a permission is deleted so no role keeps a permission that no longer
+// exists.
+//
+// It deliberately does not go through Update. Update deletes and recreates a
+// role's entire set of permission tuples in SpiceDB (and writes an audit
+// record), so every other permission the role keeps would get its tuples
+// rewritten for no reason. All we need here is to drop one name from the list —
+// a single small DB update that touches no SpiceDB tuples.
+func (s Service) RemovePermissionFromRoles(ctx context.Context, slug string) error {
+	return s.repository.RemovePermissionFromRoles(ctx, slug)
+}
+
 func (s Service) Delete(ctx context.Context, id string) error {
 	// resolve name->ID so the row delete and tuple cleanup target the same role
 	roleToDelete, err := s.Get(ctx, id)
