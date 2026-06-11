@@ -1543,6 +1543,36 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listExistingUsers.Msg.GetUsers()))
 	})
+	s.Run("12. session is rejected on the next request after the user is disabled", func() {
+		const targetEmail = "disable-session-target@raystack.org"
+
+		createResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Title: "disable session target",
+				Email: targetEmail,
+				Name:  "disable_session_target",
+			},
+		}))
+		s.Require().NoError(err)
+		targetID := createResp.Msg.GetUser().GetId()
+
+		targetCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, targetEmail)
+		s.Require().NoError(err)
+		ctxTarget := testbench.ContextWithAuth(context.Background(), targetCookie)
+
+		meResp, err := s.testBench.Client.GetCurrentUser(ctxTarget, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().NoError(err)
+		s.Assert().Equal(targetEmail, meResp.Msg.GetUser().GetEmail())
+
+		_, err = s.testBench.Client.DisableUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableUserRequest{
+			Id: targetID,
+		}))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.GetCurrentUser(ctxTarget, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+	})
 }
 
 func (s *APIRegressionTestSuite) TestRelationAPI() {
