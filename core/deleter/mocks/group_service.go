@@ -6,7 +6,6 @@ import (
 	context "context"
 
 	group "github.com/raystack/frontier/core/group"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -125,54 +124,6 @@ func (_c *GroupService_List_Call) Return(_a0 []group.Group, _a1 error) *GroupSer
 }
 
 func (_c *GroupService_List_Call) RunAndReturn(run func(context.Context, group.Filter) ([]group.Group, error)) *GroupService_List_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// RemoveUsers provides a mock function with given fields: ctx, groupID, userIDs
-func (_m *GroupService) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
-	ret := _m.Called(ctx, groupID, userIDs)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RemoveUsers")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, groupID, userIDs)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GroupService_RemoveUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveUsers'
-type GroupService_RemoveUsers_Call struct {
-	*mock.Call
-}
-
-// RemoveUsers is a helper method to define mock.On call
-//   - ctx context.Context
-//   - groupID string
-//   - userIDs []string
-func (_e *GroupService_Expecter) RemoveUsers(ctx interface{}, groupID interface{}, userIDs interface{}) *GroupService_RemoveUsers_Call {
-	return &GroupService_RemoveUsers_Call{Call: _e.mock.On("RemoveUsers", ctx, groupID, userIDs)}
-}
-
-func (_c *GroupService_RemoveUsers_Call) Run(run func(ctx context.Context, groupID string, userIDs []string)) *GroupService_RemoveUsers_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].([]string))
-	})
-	return _c
-}
-
-func (_c *GroupService_RemoveUsers_Call) Return(_a0 error) *GroupService_RemoveUsers_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GroupService_RemoveUsers_Call) RunAndReturn(run func(context.Context, string, []string) error) *GroupService_RemoveUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }

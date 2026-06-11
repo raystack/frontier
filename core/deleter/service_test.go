@@ -258,6 +258,66 @@ func TestDeleteCustomers(t *testing.T) {
 	})
 }
 
+func TestRemoveUsersFromOrg(t *testing.T) {
+	const orgID = "org-1"
+	const userID = "user-1"
+
+	t.Run("delegates org removal to membership force-remove", func(t *testing.T) {
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+
+		projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
+		polSvc.EXPECT().List(mock.Anything, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).
+			Return([]policy.Policy{
+				{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
+				{ID: "proj-p1", ResourceType: schema.ProjectNamespace, ResourceID: "proj-1"},
+			}, nil)
+		// org/project policies are left to the membership cascade
+		mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, orgID, userID, schema.UserPrincipal).Return(nil)
+
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
+		err := svc.RemoveUsersFromOrg(context.Background(), orgID, []string{userID})
+		assert.NoError(t, err)
+	})
+
+	t.Run("cleans custom-resource policies owned by org projects", func(t *testing.T) {
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+
+		projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: "proj-1"}}, nil)
+		polSvc.EXPECT().List(mock.Anything, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).
+			Return([]policy.Policy{
+				{ID: "res-p1", ResourceType: "compute/instance", ResourceID: "res-1"},
+				{ID: "res-p2", ResourceType: "compute/instance", ResourceID: "res-2"},
+				{ID: "res-p3", ResourceType: "compute/instance", ResourceID: "res-3"},
+			}, nil)
+		// res-1 belongs to an org project: policy deleted
+		resSvc.EXPECT().Get(mock.Anything, "res-1").Return(resource.Resource{ID: "res-1", ProjectID: "proj-1"}, nil)
+		polSvc.EXPECT().Delete(mock.Anything, "res-p1").Return(nil)
+		// res-2 belongs to a project outside the org: untouched
+		resSvc.EXPECT().Get(mock.Anything, "res-2").Return(resource.Resource{ID: "res-2", ProjectID: "other-proj"}, nil)
+		// res-3 no longer exists: skipped
+		resSvc.EXPECT().Get(mock.Anything, "res-3").Return(resource.Resource{}, resource.ErrNotExist)
+		mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, orgID, userID, schema.UserPrincipal).Return(nil)
+
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
+		err := svc.RemoveUsersFromOrg(context.Background(), orgID, []string{userID})
+		assert.NoError(t, err)
+	})
+
+	t.Run("propagates membership cascade failure", func(t *testing.T) {
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+
+		projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
+		polSvc.EXPECT().List(mock.Anything, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).
+			Return([]policy.Policy{}, nil)
+		mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, orgID, userID, schema.UserPrincipal).
+			Return(errors.New("cascade boom"))
+
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
+		err := svc.RemoveUsersFromOrg(context.Background(), orgID, []string{userID})
+		assert.ErrorContains(t, err, "cascade boom")
+	})
+}
+
 func TestDeleteUser(t *testing.T) {
 	t.Run("removes user from all orgs, cleans PATs, then deletes user", func(t *testing.T) {
 		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)

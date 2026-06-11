@@ -8,7 +8,6 @@ import (
 	authenticate "github.com/raystack/frontier/core/authenticate"
 
 	membership "github.com/raystack/frontier/core/membership"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -23,6 +22,55 @@ type MembershipService_Expecter struct {
 
 func (_m *MembershipService) EXPECT() *MembershipService_Expecter {
 	return &MembershipService_Expecter{mock: &_m.Mock}
+}
+
+// ForceRemoveOrganizationMember provides a mock function with given fields: ctx, orgID, principalID, principalType
+func (_m *MembershipService) ForceRemoveOrganizationMember(ctx context.Context, orgID string, principalID string, principalType string) error {
+	ret := _m.Called(ctx, orgID, principalID, principalType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ForceRemoveOrganizationMember")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, orgID, principalID, principalType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MembershipService_ForceRemoveOrganizationMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ForceRemoveOrganizationMember'
+type MembershipService_ForceRemoveOrganizationMember_Call struct {
+	*mock.Call
+}
+
+// ForceRemoveOrganizationMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - principalID string
+//   - principalType string
+func (_e *MembershipService_Expecter) ForceRemoveOrganizationMember(ctx interface{}, orgID interface{}, principalID interface{}, principalType interface{}) *MembershipService_ForceRemoveOrganizationMember_Call {
+	return &MembershipService_ForceRemoveOrganizationMember_Call{Call: _e.mock.On("ForceRemoveOrganizationMember", ctx, orgID, principalID, principalType)}
+}
+
+func (_c *MembershipService_ForceRemoveOrganizationMember_Call) Run(run func(ctx context.Context, orgID string, principalID string, principalType string)) *MembershipService_ForceRemoveOrganizationMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_ForceRemoveOrganizationMember_Call) Return(_a0 error) *MembershipService_ForceRemoveOrganizationMember_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MembershipService_ForceRemoveOrganizationMember_Call) RunAndReturn(run func(context.Context, string, string, string) error) *MembershipService_ForceRemoveOrganizationMember_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ListResourcesByPrincipal provides a mock function with given fields: ctx, principal, resourceType, filter

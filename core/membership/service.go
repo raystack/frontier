@@ -378,8 +378,23 @@ func (s *Service) removePoliciesByFilter(ctx context.Context, filter policy.Filt
 
 // RemoveOrganizationMember removes a principal from an organization and cascades
 // the removal through all org projects and groups, cleaning up both policies and
-// relations. Returns ErrNotMember if the principal has no policies on this org.
+// relations. Returns ErrNotMember if the principal has no policies on this org,
+// and ErrLastOwnerRole when removing the org's last owner.
 func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error {
+	return s.removeOrganizationMember(ctx, orgID, principalID, principalType, true)
+}
+
+// ForceRemoveOrganizationMember is RemoveOrganizationMember without the
+// member-and-owner guards: it does not fail when the principal has no
+// org-level policies and it removes the org's last owner without complaint.
+// It exists for deletion cascades (see core/deleter), where the principal is
+// leaving the system entirely and the org may legitimately be left ownerless.
+// Anything user-initiated should go through RemoveOrganizationMember instead.
+func (s *Service) ForceRemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error {
+	return s.removeOrganizationMember(ctx, orgID, principalID, principalType, false)
+}
+
+func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principalID, principalType string, guarded bool) error {
 	targetAuditType, err := principalTypeToAuditType(principalType)
 	if err != nil {
 		return err
@@ -399,16 +414,19 @@ func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principal
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
-	if len(orgPolicies) == 0 {
-		return ErrNotMember
-	}
 
 	// only humans can be the last owner — skip for service users and PATs.
+	// an empty ownerRoleID makes the cascade delete owner policies unguarded.
 	var ownerRoleID string
-	if principalType == schema.UserPrincipal {
-		ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
-		if err != nil {
-			return err
+	if guarded {
+		if len(orgPolicies) == 0 {
+			return ErrNotMember
+		}
+		if principalType == schema.UserPrincipal {
+			ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
