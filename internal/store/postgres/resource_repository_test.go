@@ -356,10 +356,13 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 			Description: "should update a resource",
 			ResourceID:  s.resources[0].ID,
 			ResourceToUpdate: resource.Resource{
-				ID:          s.resources[0].ID,
-				Name:        "resource-1",
-				ProjectID:   s.resources[0].ProjectID,
-				NamespaceID: s.resources[0].NamespaceID,
+				ID:            s.resources[0].ID,
+				URN:           "resource-1-urn",
+				Name:          "resource-1",
+				ProjectID:     s.resources[0].ProjectID,
+				NamespaceID:   s.resources[0].NamespaceID,
+				PrincipalID:   s.resources[0].PrincipalID,
+				PrincipalType: s.resources[0].PrincipalType,
 			},
 			ExpectedResource: resource.Resource{
 				ID:            s.resources[0].ID,
