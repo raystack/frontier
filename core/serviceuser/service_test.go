@@ -201,6 +201,16 @@ func TestService_ListByOrg(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "repo error after successful ID lookup is propagated",
+			setup: func(repo *mocks.Repository, mem *mocks.MembershipService) {
+				mem.On("ListPrincipalIDsByResource", ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal).
+					Return([]string{"su-1"}, nil)
+				repo.On("GetByIDs", ctx, []string{"su-1"}).
+					Return(nil, errors.New("db unavailable"))
+			},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

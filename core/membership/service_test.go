@@ -1672,7 +1672,7 @@ func TestService_ListPrincipalIDsByResource(t *testing.T) {
 		wantErrMsg string
 	}{
 		{
-			name: "returns deduplicated principal IDs",
+			name: "returns deduplicated principal IDs from a single policy query",
 			setup: func(ps *mocks.PolicyService, rs *mocks.RoleService) {
 				suPolicies := []policy.Policy{
 					{PrincipalID: su1, PrincipalType: schema.ServiceUserPrincipal, RoleID: roleID},
@@ -1683,8 +1683,8 @@ func TestService_ListPrincipalIDsByResource(t *testing.T) {
 					OrgID:         orgID,
 					PrincipalType: schema.ServiceUserPrincipal,
 					ResourceType:  schema.OrganizationNamespace,
-				}).Return(suPolicies, nil).Times(2)
-				rs.EXPECT().List(ctx, mock.Anything).Return([]role.Role{{ID: roleID}}, nil)
+				}).Return(suPolicies, nil).Once()
+				// no role-service calls: the ID-only path skips role enrichment
 			},
 			want: []string{su1, su2},
 		},
