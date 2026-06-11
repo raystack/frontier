@@ -354,3 +354,31 @@ func Test_Upsert(t *testing.T) {
 		relSvc.AssertExpectations(t) // ensures PAT Create was NOT called
 	})
 }
+
+func Test_RemovePermissionFromRoles(t *testing.T) {
+	mockRepository := mocks.NewRepository(t)
+	mockRelationSvc := mocks.NewRelationService(t)
+	mockPermissionSvc := mocks.NewPermissionService(t)
+	mockAuditRecordRepo := auditMocks.NewRepository(t)
+	svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)
+
+	t.Run("delegates to repository and does not touch SpiceDB relations", func(t *testing.T) {
+		mockRepository.On("RemovePermissionFromRoles", mock.Anything, "compute_order_delete").Return(nil).Once()
+
+		err := svc.RemovePermissionFromRoles(context.Background(), "compute_order_delete")
+
+		assert.NoError(t, err)
+		// no relation Create/Delete should happen — this only strips the DB label
+		mockRelationSvc.AssertNotCalled(t, "Delete")
+		mockRelationSvc.AssertNotCalled(t, "Create")
+	})
+
+	t.Run("propagates repository error", func(t *testing.T) {
+		expectedErr := errors.New("db error")
+		mockRepository.On("RemovePermissionFromRoles", mock.Anything, "compute_order_get").Return(expectedErr).Once()
+
+		err := svc.RemovePermissionFromRoles(context.Background(), "compute_order_get")
+
+		assert.ErrorIs(t, err, expectedErr)
+	})
+}

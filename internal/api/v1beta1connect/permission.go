@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -147,6 +148,84 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdatePermissionResponse{Permission: permissionPB}), nil
+}
+
+// DeletePermission deletes a permission and the tuples that reference it.
+// Built-in permissions (defined by the base schema or config) are rejected,
+// because bootstrap recreates them on the next boot. So only permissions added
+// through the API can be deleted.
+func (h *ConnectHandler) DeletePermission(ctx context.Context, request *connect.Request[frontierv1beta1.DeletePermissionRequest]) (*connect.Response[frontierv1beta1.DeletePermissionResponse], error) {
+	errorLogger := NewErrorLogger()
+	permissionID := request.Msg.GetId()
+
+	// load the permission so we can check it before deleting
+	perm, err := h.permissionService.Get(ctx, permissionID)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeletePermission.Get", err, "permission_id", permissionID)
+		if errors.Is(err, permission.ErrNotExist) || errors.Is(err, permission.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeletePermission.Get: permission_id=%s: %w", permissionID, err))
+	}
+
+	// refuse to delete a built-in permission — bootstrap would just recreate it
+	builtin, err := h.bootstrapService.BuiltinPermissions(ctx)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeletePermission.BuiltinPermissions: permission_id=%s: %w", permissionID, err))
+	}
+	slug := perm.Slug
+	if slug == "" {
+		slug = perm.GenerateSlug()
+	}
+	if _, isBuiltin := builtin[slug]; isBuiltin {
+		return nil, connect.NewError(connect.CodeFailedPrecondition,
+			errors.New("cannot delete a built-in permission (defined by the base schema or service config); it is recreated on the next boot"))
+	}
+
+	// A namespace exists in SpiceDB only as long as it has a permission. If this
+	// is its last permission, the namespace disappears on the next boot — and
+	// SpiceDB won't drop a type that still has relationships, which breaks
+	// startup. So if nothing else keeps the namespace alive, refuse the delete
+	// while any relationship of that type still exists.
+	otherPerms, err := h.permissionService.List(ctx, permission.Filter{Namespace: perm.NamespaceID})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeletePermission.List: permission_id=%s: %w", permissionID, err))
+	}
+	namespaceSurvives := false
+	for _, p := range otherPerms {
+		if p.ID != perm.ID {
+			namespaceSurvives = true
+			break
+		}
+	}
+	if !namespaceSurvives {
+		// ask SpiceDB itself (the source of truth) whether anything of this type
+		// still exists — resources, policy grants, or directly-created tuples.
+		rels, err := h.relationService.ListRelations(ctx, relation.Relation{
+			Object: relation.Object{Namespace: perm.NamespaceID},
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeletePermission.ListRelations: permission_id=%s: %w", permissionID, err))
+		}
+		if len(rels) > 0 {
+			return nil, connect.NewError(connect.CodeFailedPrecondition,
+				errors.New("cannot delete the last permission of namespace "+perm.NamespaceID+": relationships of this type still exist in SpiceDB (e.g. resources); remove them first"))
+		}
+	}
+
+	err = h.permissionService.Delete(ctx, permissionID)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeletePermission", err, "permission_id", permissionID)
+
+		switch {
+		case errors.Is(err, permission.ErrNotExist), errors.Is(err, permission.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeletePermission: permission_id=%s: %w", permissionID, err))
+		}
+	}
+
+	return connect.NewResponse(&frontierv1beta1.DeletePermissionResponse{}), nil
 }
 
 func (h *ConnectHandler) ListPermissions(ctx context.Context, request *connect.Request[frontierv1beta1.ListPermissionsRequest]) (*connect.Response[frontierv1beta1.ListPermissionsResponse], error) {
