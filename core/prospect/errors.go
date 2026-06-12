@@ -7,4 +7,5 @@ var (
 	ErrEmailActivityAlreadyExists = errors.New("email and activity combination already exists")
 	ErrNotExist                   = errors.New("prospect does not exist")
 	ErrInvalidUUID                = errors.New("invalid syntax of uuid")
+	ErrRepositoryBadInput         = errors.New("invalid repository input")
 )
