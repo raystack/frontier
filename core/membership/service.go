@@ -402,7 +402,14 @@ func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principal
 
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
-		return err
+		// deletion cascades must keep working on disabled orgs — the deleter
+		// visits them deliberately so user deletion doesn't leave orphan
+		// policies behind. Get discards the org payload on ErrDisabled, so
+		// reconstruct the minimal org the cascade needs.
+		if guarded || !errors.Is(err, organization.ErrDisabled) {
+			return err
+		}
+		org = organization.Organization{ID: orgID}
 	}
 
 	// check if principal is a member at org level
