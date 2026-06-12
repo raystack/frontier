@@ -316,6 +316,19 @@ func TestRemoveUsersFromOrg(t *testing.T) {
 		err := svc.RemoveUsersFromOrg(context.Background(), orgID, []string{userID})
 		assert.ErrorContains(t, err, "cascade boom")
 	})
+
+	t.Run("surfaces policy-list error and skips membership removal for that user", func(t *testing.T) {
+		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
+
+		projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
+		polSvc.EXPECT().List(mock.Anything, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).
+			Return(nil, errors.New("policy list boom"))
+		// ForceRemoveOrganizationMember must NOT be called — strict mock fails on unexpected call
+
+		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
+		err := svc.RemoveUsersFromOrg(context.Background(), orgID, []string{userID})
+		assert.ErrorContains(t, err, "policy list boom")
+	})
 }
 
 func TestDeleteUser(t *testing.T) {
