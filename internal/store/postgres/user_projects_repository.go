@@ -127,6 +127,17 @@ func (r UserProjectsRepository) prepareDataQuery(userID string, orgID string, rq
 	return query.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)), nil
 }
 
+// buildBaseQuery returns the projects the user holds a DIRECT project-level
+// policy on. This is intentionally narrower than the membership listing path
+// (membership.ListProjectsByPrincipal, used by ListProjectsByUser/
+// ListProjectsByCurrentUser), which also expands group-held policies and
+// org-level inheritance — e.g. an org admin with no direct project policy
+// sees every org project there, but none here.
+//
+// The divergence is deliberate: this admin search aggregate answers "what is
+// this user explicitly granted", while the membership path answers "what can
+// this user access". Do not "fix" one to match the other without a product
+// decision.
 func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goqu.SelectDataset {
 	subquery := dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_SUB_PROJECT)).
 		Select(goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ID)).
