@@ -1,13 +1,11 @@
 
 
 definition app/group {
+	// permissions
 	permission delete = org->group_delete + granted->app_group_administer + granted->app_group_delete + owner
-	permission get = org->group_get + granted->app_group_administer + granted->app_group_get + member + owner
+	permission get = org->group_get + granted->app_group_administer + granted->app_group_get + owner
 	relation granted: app/rolebinding
 	relation member: app/user
-
-	// permissions
-	permission membership = member + owner
 
 	// relations
 	relation org: app/organization
@@ -32,8 +30,11 @@ definition app/organization {
 	permission compute_order_update = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_update + pat_granted->app_project_administer + pat_granted->compute_order_update
 	permission compute_receipt_get = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_get + pat_granted->app_project_administer + pat_granted->compute_receipt_get
 	permission compute_receipt_update = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_update + pat_granted->app_project_administer + pat_granted->compute_receipt_update
+
+	// permissions
+	// org
 	permission delete = platform->superuser + granted->app_organization_administer + granted->app_organization_delete + owner
-	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + granted->app_organization_update + owner + member
+	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + granted->app_organization_update + owner
 	relation granted: app/rolebinding
 
 	// synthetic permissions - group
@@ -45,10 +46,6 @@ definition app/organization {
 	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate + owner
 	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist + owner
 	relation member: app/user | app/group#member | app/serviceuser
-
-	// permissions
-	// org
-	permission membership = member + owner
 	relation owner: app/user | app/serviceuser
 	relation pat_granted: app/rolebinding
 
