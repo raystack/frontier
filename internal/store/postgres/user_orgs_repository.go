@@ -137,6 +137,16 @@ func (r UserOrgsRepository) Search(ctx context.Context, principalID string, rql 
 	}, nil
 }
 
+// buildBaseQuery returns the organizations the principal holds a DIRECT
+// org-level policy on. This is intentionally narrower than the membership
+// listing path (membership.ListOrgsByPrincipal, used by
+// ListOrganizationsByUser/ListOrganizationsByCurrentUser) — see the analogous
+// note on UserProjectsRepository.buildBaseQuery.
+//
+// The divergence is deliberate: this admin search aggregate answers "what is
+// this principal explicitly granted", while the membership path answers "what
+// can this principal access". Do not "fix" one to match the other without a
+// product decision.
 func (r UserOrgsRepository) buildBaseQuery(principalID string) (string, []interface{}, error) {
 	projectCountSubquery := dialect.From(TABLE_PROJECTS).
 		Select(

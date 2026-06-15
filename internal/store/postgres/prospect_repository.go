@@ -21,6 +21,10 @@ var (
 	rqlGroupSupportedColumns  = []string{"activity", "status", "source", "verified"}
 )
 
+func wrapBadInput(err error) error {
+	return fmt.Errorf("%w: %s", prospect.ErrRepositoryBadInput, err.Error())
+}
+
 type ProspectBillingGroup struct {
 	Name sql.NullString             `db:"name"`
 	Data []ProspectBillingGroupData `db:"data"`
@@ -135,13 +139,13 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 	// apply filters
 	baseStmt, err := utils.AddRQLFiltersInQuery(baseStmt, rqlQuery, rqlFilerSupportedColumns, prospect.Prospect{})
 	if err != nil {
-		return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.ListProspects{}, wrapBadInput(err)
 	}
 
 	// apply search
 	baseStmt, err = utils.AddRQLSearchInQuery(baseStmt, rqlQuery, rqlSearchSupportedColumns)
 	if err != nil {
-		return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.ListProspects{}, wrapBadInput(err)
 	}
 
 	listStmt := baseStmt
@@ -166,7 +170,7 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 	if len(rqlQuery.GroupBy) > 0 {
 		groupStmt, err = utils.AddGroupInQuery(groupStmt, rqlQuery, rqlGroupSupportedColumns)
 		if err != nil {
-			return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
+			return prospect.ListProspects{}, wrapBadInput(err)
 		}
 
 		query, params, err := groupStmt.ToSQL()
@@ -188,7 +192,7 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 	// List prospects with pagination and sorting
 	listStmt, err = utils.AddRQLSortInQuery(listStmt, rqlQuery)
 	if err != nil {
-		return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.ListProspects{}, wrapBadInput(err)
 	}
 	listStmt, pagination := utils.AddRQLPaginationInQuery(listStmt, rqlQuery)
 
