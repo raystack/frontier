@@ -1138,11 +1138,9 @@ type Member struct {
 	Roles         []role.Role
 }
 
-// ListPrincipalsByResource returns the principals (users, service users, groups)
-// that have at least one policy on the given resource, optionally filtered by
-// principal type and/or role, and optionally enriched with the full list of
-// roles each principal holds on the resource.
-func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter MemberFilter) ([]Member, error) {
+// resourcePolicyFilter builds the policy filter that scopes a listing to the
+// given resource. Returns ErrInvalidResourceType for unsupported namespaces.
+func resourcePolicyFilter(resourceID, resourceType string, filter MemberFilter) (policy.Filter, error) {
 	flt := policy.Filter{
 		PrincipalType: filter.PrincipalType,
 		RoleIDs:       filter.RoleIDs,
@@ -1156,7 +1154,19 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	case schema.GroupNamespace:
 		flt.GroupID = resourceID
 	default:
-		return nil, ErrInvalidResourceType
+		return policy.Filter{}, ErrInvalidResourceType
+	}
+	return flt, nil
+}
+
+// ListPrincipalsByResource returns the principals (users, service users, groups)
+// that have at least one policy on the given resource, optionally filtered by
+// principal type and/or role, and optionally enriched with the full list of
+// roles each principal holds on the resource.
+func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter MemberFilter) ([]Member, error) {
+	flt, err := resourcePolicyFilter(resourceID, resourceType, filter)
+	if err != nil {
+		return nil, err
 	}
 
 	policies, err := s.policyService.List(ctx, flt)
@@ -1237,6 +1247,36 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	}
 
 	return members, nil
+}
+
+// ListPrincipalIDsByResource returns the IDs of principals of the given type
+// that have at least one policy on the resource. It is a primitive-typed,
+// ID-only variant of ListPrincipalsByResource: it skips role enrichment
+// entirely (a single policy query) and exists for consumer packages that
+// cannot import membership types without creating an import cycle
+// (e.g. core/serviceuser, which this package itself imports).
+func (s *Service) ListPrincipalIDsByResource(ctx context.Context, resourceID, resourceType, principalType string) ([]string, error) {
+	flt, err := resourcePolicyFilter(resourceID, resourceType, MemberFilter{PrincipalType: principalType})
+	if err != nil {
+		return nil, err
+	}
+
+	policies, err := s.policyService.List(ctx, flt)
+	if err != nil {
+		return nil, fmt.Errorf("list policies: %w", err)
+	}
+	policies = excludePATAllProjects(policies, resourceType)
+
+	ids := make([]string, 0, len(policies))
+	seen := make(map[string]struct{}, len(policies))
+	for _, pol := range policies {
+		if _, ok := seen[pol.PrincipalID]; ok {
+			continue
+		}
+		seen[pol.PrincipalID] = struct{}{}
+		ids = append(ids, pol.PrincipalID)
+	}
+	return ids, nil
 }
 
 // SetGroupMemberRole upserts the role assignment for a principal in a group:

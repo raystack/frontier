@@ -41,7 +41,6 @@ type CredentialRepository interface {
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
-	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	CheckPermission(ctx context.Context, rel relation.Relation) (bool, error)
 	BatchCheckPermission(ctx context.Context, rel []relation.Relation) ([]relation.CheckPair, error)
 }
@@ -49,6 +48,7 @@ type RelationService interface {
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
 	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
+	ListPrincipalIDsByResource(ctx context.Context, resourceID, resourceType, principalType string) ([]string, error)
 }
 
 type Service struct {
@@ -123,16 +123,7 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]ServiceUser, err
 }
 
 func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, error) {
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        orgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.ServiceUserPrincipal,
-		},
-		RelationName: schema.MembershipPermission,
-	})
+	userIDs, err := s.membershipService.ListPrincipalIDsByResource(ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal)
 	if err != nil {
 		return nil, err
 	}
