@@ -305,7 +305,6 @@ type GroupService interface {
 	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
-	RemoveUsers(ctx context.Context, groupID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -389,7 +388,6 @@ type CascadeDeleter interface {
 	DeleteProject(ctx context.Context, id string) error
 	DeleteOrganization(ctx context.Context, id string) error
 	DeleteGroup(ctx context.Context, id string) error
-	RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error
 	DeleteUser(ctx context.Context, userID string) error
 }
 
