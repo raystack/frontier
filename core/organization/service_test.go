@@ -22,10 +22,9 @@ func TestService_Get(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
-	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
 
 	t.Run("should return orgs when fetched by id (by calling repo.GetByID)", func(t *testing.T) {
 		IDParam := uuid.New()
@@ -81,10 +80,9 @@ func TestService_GetRaw(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
-	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
 
 	t.Run("should return an org based on ID passed", func(t *testing.T) {
 		IDParam := uuid.New()
@@ -139,10 +137,9 @@ func TestService_GetDefaultOrgStateOnCreate(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
-	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
 
 	t.Run("should return org state to be set on creation, as per preferences", func(t *testing.T) {
 		expectedPrefs := map[string]string{
@@ -171,10 +168,9 @@ func TestService_AttachToPlatform(t *testing.T) {
 	mockAuthnSvc := mocks.NewAuthnService(t)
 	mockPolicySvc := mocks.NewPolicyService(t)
 	mockPrefSvc := mocks.NewPreferencesService(t)
-	mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
 
 	inputOrgID := "some-org-id"
 	relationToBeCreated := relation.Relation{
@@ -214,10 +210,9 @@ func TestService_List(t *testing.T) {
 		mockAuthnSvc := mocks.NewAuthnService(t)
 		mockPolicySvc := mocks.NewPolicyService(t)
 		mockPrefSvc := mocks.NewPreferencesService(t)
-		mockAuditRecordRepo := mocks.NewAuditRecordRepository(t)
 		mockRoleSvc := mocks.NewRoleService(t)
 		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc,
-			mockPolicySvc, mockPrefSvc, mockAuditRecordRepo, mockRoleSvc)
+			mockPolicySvc, mockPrefSvc, mockRoleSvc)
 		return svc, mockRepo
 	}
 

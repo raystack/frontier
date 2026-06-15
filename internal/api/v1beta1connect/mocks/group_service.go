@@ -348,54 +348,6 @@ func (_c *GroupService_List_Call) RunAndReturn(run func(context.Context, group.F
 	return _c
 }
 
-// RemoveUsers provides a mock function with given fields: ctx, groupID, userID
-func (_m *GroupService) RemoveUsers(ctx context.Context, groupID string, userID []string) error {
-	ret := _m.Called(ctx, groupID, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RemoveUsers")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) error); ok {
-		r0 = rf(ctx, groupID, userID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// GroupService_RemoveUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveUsers'
-type GroupService_RemoveUsers_Call struct {
-	*mock.Call
-}
-
-// RemoveUsers is a helper method to define mock.On call
-//   - ctx context.Context
-//   - groupID string
-//   - userID []string
-func (_e *GroupService_Expecter) RemoveUsers(ctx interface{}, groupID interface{}, userID interface{}) *GroupService_RemoveUsers_Call {
-	return &GroupService_RemoveUsers_Call{Call: _e.mock.On("RemoveUsers", ctx, groupID, userID)}
-}
-
-func (_c *GroupService_RemoveUsers_Call) Run(run func(ctx context.Context, groupID string, userID []string)) *GroupService_RemoveUsers_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].([]string))
-	})
-	return _c
-}
-
-func (_c *GroupService_RemoveUsers_Call) Return(_a0 error) *GroupService_RemoveUsers_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *GroupService_RemoveUsers_Call) RunAndReturn(run func(context.Context, string, []string) error) *GroupService_RemoveUsers_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Update provides a mock function with given fields: ctx, grp
 func (_m *GroupService) Update(ctx context.Context, grp group.Group) (group.Group, error) {
 	ret := _m.Called(ctx, grp)

@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/raystack/frontier/core/audit"
-	"github.com/raystack/frontier/core/auditrecord"
 
 	"github.com/raystack/frontier/core/preference"
 
@@ -16,7 +14,6 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 
-	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -64,10 +61,6 @@ type PreferencesService interface {
 	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
 }
 
-type AuditRecordRepository interface {
-	Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
-}
-
 type RoleService interface {
 	Get(ctx context.Context, idOrName string) (role.Role, error)
 }
@@ -78,30 +71,27 @@ type MembershipService interface {
 }
 
 type Service struct {
-	repository            Repository
-	relationService       RelationService
-	userService           UserService
-	authnService          AuthnService
-	policyService         PolicyService
-	prefService           PreferencesService
-	auditRecordRepository AuditRecordRepository
-	roleService           RoleService
-	membershipService     MembershipService
+	repository        Repository
+	relationService   RelationService
+	userService       UserService
+	authnService      AuthnService
+	policyService     PolicyService
+	prefService       PreferencesService
+	roleService       RoleService
+	membershipService MembershipService
 }
 
 func NewService(repository Repository, relationService RelationService,
 	userService UserService, authnService AuthnService, policyService PolicyService,
-	prefService PreferencesService, auditRecordRepository AuditRecordRepository,
-	roleService RoleService) *Service {
+	prefService PreferencesService, roleService RoleService) *Service {
 	return &Service{
-		repository:            repository,
-		relationService:       relationService,
-		userService:           userService,
-		authnService:          authnService,
-		policyService:         policyService,
-		prefService:           prefService,
-		auditRecordRepository: auditRecordRepository,
-		roleService:           roleService,
+		repository:      repository,
+		relationService: relationService,
+		userService:     userService,
+		authnService:    authnService,
+		policyService:   policyService,
+		prefService:     prefService,
+		roleService:     roleService,
 	}
 }
 
@@ -109,31 +99,6 @@ func NewService(repository Repository, relationService RelationService,
 // the circular init order between organization and membership services.
 func (s *Service) SetMembershipService(ms MembershipService) {
 	s.membershipService = ms
-}
-
-// extractPrincipalInfo extracts display name and metadata from principal
-func extractPrincipalInfo(principal authenticate.Principal) (string, map[string]any) {
-	metadata := make(map[string]any)
-	var name string
-
-	if principal.PAT != nil {
-		name = principal.PAT.Title
-		if principal.User != nil {
-			metadata["user"] = map[string]any{
-				"id":    principal.User.ID,
-				"name":  principal.User.Name,
-				"title": principal.User.Title,
-				"email": principal.User.Email,
-			}
-		}
-	} else if principal.User != nil {
-		name = principal.User.Title
-		metadata["email"] = principal.User.Email
-	} else if principal.ServiceUser != nil {
-		name = principal.ServiceUser.Title
-	}
-
-	return name, metadata
 }
 
 // Get returns an enabled organization by id or name. Will return `org is disabled` error if the organization is disabled
@@ -278,85 +243,6 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 		return s.repository.UpdateByID(ctx, org)
 	}
 	return s.repository.UpdateByName(ctx, org)
-}
-
-// RemoveUsers removes users from an organization as members
-// it doesn't remove user access to projects or other resources provided
-// by policies, don't call directly, use cascade deleter
-func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string) error {
-	// Fetch organization once for all users
-	org, orgErr := s.repository.GetByID(ctx, orgID)
-	if orgErr != nil {
-		return orgErr
-	}
-
-	var err error
-	for _, userID := range userIDs {
-		// remove all access via policies
-		userPolicies, currErr := s.policyService.List(ctx, policy.Filter{
-			OrgID:       orgID,
-			PrincipalID: userID,
-		})
-		if currErr != nil && !errors.Is(currErr, policy.ErrNotExist) {
-			err = errors.Join(err, currErr)
-			continue
-		}
-		for _, pol := range userPolicies {
-			if policyErr := s.policyService.Delete(ctx, pol.ID); policyErr != nil {
-				err = errors.Join(err, policyErr)
-			}
-		}
-
-		// remove user from org
-		if currentErr := s.relationService.Delete(ctx, relation.Relation{
-			Object: relation.Object{
-				ID:        orgID,
-				Namespace: schema.OrganizationNamespace,
-			},
-			Subject: relation.Subject{
-				ID:        userID,
-				Namespace: schema.UserPrincipal,
-			},
-		}); currentErr != nil {
-			err = errors.Join(err, currentErr)
-		}
-
-		// Get user details for audit record
-		usr, userErr := s.userService.GetByID(ctx, userID)
-		var userName string
-		var userMetadata map[string]any
-		if userErr == nil {
-			userName, userMetadata = extractPrincipalInfo(authenticate.Principal{
-				ID:   usr.ID,
-				Type: schema.UserPrincipal,
-				User: &usr,
-			})
-		}
-
-		// Create audit record for member removal
-		_, auditErr := s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
-			Event: pkgAuditRecord.OrganizationMemberRemovedEvent,
-			Resource: auditrecord.Resource{
-				ID:   orgID,
-				Type: pkgAuditRecord.OrganizationType,
-				Name: org.Title,
-			},
-			Target: &auditrecord.Target{
-				ID:       userID,
-				Type:     pkgAuditRecord.UserType,
-				Name:     userName,
-				Metadata: userMetadata,
-			},
-			OrgID:      orgID,
-			OccurredAt: time.Now(),
-		})
-		if auditErr != nil {
-			err = errors.Join(err, auditErr)
-		}
-
-		audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(userID))
-	}
-	return err
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {

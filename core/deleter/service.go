@@ -44,7 +44,6 @@ type ProjectService interface {
 type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
 	DeleteModel(ctx context.Context, id string) error
-	RemoveUsers(ctx context.Context, orgID string, userIDs []string) error
 }
 
 type RoleService interface {
@@ -66,12 +65,12 @@ type ResourceService interface {
 type GroupService interface {
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	DeleteModel(ctx context.Context, id string) error
-	RemoveUsers(ctx context.Context, groupID string, userIDs []string) error
 }
 
 type MembershipService interface {
 	OnGroupDeleted(ctx context.Context, groupID string) error
 	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
+	ForceRemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
 }
 
 type InvitationService interface {
@@ -308,10 +307,13 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	return nil
 }
 
-// RemoveUsersFromOrg removes users from an organization as members
+// RemoveUsersFromOrg removes users from an organization as members. The
+// org/project/group policy and relation cleanup is delegated to
+// membership.ForceRemoveOrganizationMember — the force variant because a
+// deletion cascade must succeed even when the user is the org's last owner.
+// Custom-resource policies are outside the membership cascade's scope, so
+// they are cleaned up here first.
 func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error {
-	var err error
-
 	orgProjects, err := d.projService.List(ctx, project.Filter{
 		OrgID: orgID,
 	})
@@ -321,69 +323,46 @@ func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs [
 	orgProjectIDs := utils.Map(orgProjects, func(p project.Project) string {
 		return p.ID
 	})
-	// it's cheaper to fetch all groups in an org instead of fetching what all groups a user is part of
-	orgGroups, err := d.groupService.List(ctx, group.Filter{
-		OrganizationID: orgID,
-	})
-	if err != nil && !errors.Is(err, group.ErrNotExist) {
-		return err
-	}
-	orgGroupIDs := utils.Map(orgGroups, func(g group.Group) string {
-		return g.ID
-	})
 
+	var errs error
 	for _, userID := range userIDs {
 		userPolicies, policyErr := d.policyService.List(ctx, policy.Filter{
 			PrincipalID:   userID,
 			PrincipalType: schema.UserPrincipal,
 		})
-		if policyErr != nil && !errors.Is(err, policy.ErrNotExist) {
-			err = errors.Join(err, policyErr)
+		if policyErr != nil && !errors.Is(policyErr, policy.ErrNotExist) {
+			errs = errors.Join(errs, policyErr)
 			continue
 		}
 
 		for _, pol := range userPolicies {
-			// delete org level roles
 			switch pol.ResourceType {
-			case schema.ProjectNamespace:
-				// delete project level policies
-				if utils.Contains(orgProjectIDs, pol.ResourceID) {
-					if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
-						err = errors.Join(err, policyErr)
-					}
-				}
-			case schema.GroupNamespace:
-				// delete group level policies
-				if utils.Contains(orgGroupIDs, pol.ResourceID) {
-					if groupErr := d.groupService.RemoveUsers(ctx, pol.ResourceID, []string{userID}); groupErr != nil {
-						err = errors.Join(err, groupErr)
-					}
-				}
-			case schema.PlatformNamespace, schema.OrganizationNamespace:
-				// do nothing
+			case schema.OrganizationNamespace, schema.ProjectNamespace, schema.GroupNamespace, schema.PlatformNamespace:
+				// org/project/group policies are handled by the membership
+				// cascade below; platform policies are out of scope here
 			default:
-				// delete resource level policies
+				// delete custom-resource policies for resources owned by org projects
 				userResource, resErr := d.resService.Get(ctx, pol.ResourceID)
-				if !errors.Is(resErr, resource.ErrNotExist) {
-					if resErr != nil {
-						err = errors.Join(err, resErr)
-					} else if userResource.ProjectID != "" && utils.Contains(orgProjectIDs, userResource.ProjectID) {
-						// if the resource belong to org project, delete access
-						if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
-							err = errors.Join(err, policyErr)
-						}
+				if errors.Is(resErr, resource.ErrNotExist) {
+					continue
+				}
+				if resErr != nil {
+					errs = errors.Join(errs, resErr)
+					continue
+				}
+				if userResource.ProjectID != "" && utils.Contains(orgProjectIDs, userResource.ProjectID) {
+					if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
+						errs = errors.Join(errs, policyErr)
 					}
 				}
-			} // switch ends
+			}
+		}
+
+		if memberErr := d.membershipService.ForceRemoveOrganizationMember(ctx, orgID, userID, schema.UserPrincipal); memberErr != nil {
+			errs = errors.Join(errs, memberErr)
 		}
 	}
-	if err != nil {
-		// abort if any error occurred
-		return err
-	}
-
-	// remove user from org
-	return d.orgService.RemoveUsers(ctx, orgID, userIDs)
+	return errs
 }
 
 // DeleteUser visits every org the user has a policy on (disabled orgs too),

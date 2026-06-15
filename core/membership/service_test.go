@@ -996,6 +996,117 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 	}
 }
 
+func TestService_ForceRemoveOrganizationMember(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	userID := uuid.New().String()
+	ownerRoleID := uuid.New().String()
+
+	enabledOrg := organization.Organization{ID: orgID, Title: "Test Org"}
+	orgObj := relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace}
+	userSub := relation.Subject{ID: userID, Namespace: schema.UserPrincipal}
+
+	type testDeps struct {
+		policySvc *mocks.PolicyService
+		relSvc    *mocks.RelationService
+		roleSvc   *mocks.RoleService
+		orgSvc    *mocks.OrgService
+		projSvc   *mocks.ProjectService
+		grpSvc    *mocks.GroupService
+		auditRepo *mocks.AuditRecordRepository
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(d testDeps)
+		wantErr error
+	}{
+		{
+			name: "removes the org's last owner without the guard",
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: ownerRoleID}}, nil)
+				// no roleSvc.Get / owner-count query: the guard is skipped entirely
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
+					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
+				}, nil)
+				// plain delete, not DeleteWithMinRoleGuard
+				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(nil)
+				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
+				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+		},
+		{
+			name: "does not return ErrNotMember when principal has no org policies and still cascades",
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(relation.ErrNotExist)
+				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
+				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+		},
+		{
+			name: "proceeds with the cascade when the org is disabled",
+			setup: func(d testDeps) {
+				// Get discards the org payload on ErrDisabled; the force path
+				// must reconstruct the org from the input ID and continue —
+				// the deleter visits disabled orgs deliberately
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{}, organization.ErrDisabled)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: ownerRoleID}}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
+					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
+				}, nil)
+				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(nil)
+				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
+				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+		},
+		{
+			name: "propagates org lookup failure",
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			wantErr: organization.ErrNotExist,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := testDeps{
+				policySvc: mocks.NewPolicyService(t),
+				relSvc:    mocks.NewRelationService(t),
+				roleSvc:   mocks.NewRoleService(t),
+				orgSvc:    mocks.NewOrgService(t),
+				projSvc:   mocks.NewProjectService(t),
+				grpSvc:    mocks.NewGroupService(t),
+				auditRepo: mocks.NewAuditRecordRepository(t),
+			}
+			if tt.setup != nil {
+				tt.setup(d)
+			}
+
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo)
+
+			err := svc.ForceRemoveOrganizationMember(ctx, orgID, userID, schema.UserPrincipal)
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestService_SetProjectMemberRole(t *testing.T) {
 	ctx := context.Background()
 	projectID := uuid.New().String()
