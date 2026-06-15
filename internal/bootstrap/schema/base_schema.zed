@@ -33,7 +33,6 @@ definition app/organization {
 	relation platform: app/platform
 	relation granted: app/rolebinding
 	relation pat_granted: app/rolebinding
-	relation member: app/user | app/group#member | app/serviceuser
 	relation owner: app/user | app/serviceuser
 
 	// permissions

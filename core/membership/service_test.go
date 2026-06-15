@@ -152,11 +152,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 					RoleID: viewerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{}, nil)
-				relSvc.EXPECT().Create(ctx, relation.Relation{
-					Object:       relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-					Subject:      relation.Subject{ID: userID, Namespace: schema.UserPrincipal},
-					RelationName: schema.MemberRelationName,
-				}).Return(relation.Relation{}, nil)
+				// non-owner roles have no org relation (member relation removed from schema)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			orgID:   orgID,
@@ -195,7 +191,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, OrgID: orgID, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
-				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
+				// non-owner roles have no org relation (member relation removed from schema)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			orgID:   orgID,
@@ -235,7 +231,8 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, _ *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
-				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+				// use owner role — only owner still writes an org relation
+				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner, Scopes: []string{schema.OrganizationNamespace}}, nil)
 				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{ID: "created-policy-1"}, nil)
 				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, errors.New("spicedb unavailable"))
@@ -244,7 +241,7 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			},
 			orgID:          orgID,
 			userID:         userID,
-			roleID:         viewerRoleID,
+			roleID:         ownerRoleID,
 			wantErrContain: "spicedb unavailable",
 		},
 	}
@@ -531,10 +528,9 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 					RoleID: viewerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{ID: "new-p"}, nil)
-				// replace relation: delete both owner and member, then create member
+				// replace relation: delete owner only (member relation removed from org schema)
+				// viewer role → orgRoleToRelation returns "" → no new relation created
 				relSvc.EXPECT().Delete(ctx, orgRelation(schema.OwnerRelationName)).Return(nil)
-				relSvc.EXPECT().Delete(ctx, orgRelation(schema.MemberRelationName)).Return(nil)
-				relSvc.EXPECT().Create(ctx, orgRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			roleID:  viewerRoleID,
@@ -555,9 +551,9 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 					RoleID: ownerRoleID, ResourceID: orgID, ResourceType: schema.OrganizationNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{ID: "new-p"}, nil)
-				// replace relation: delete both, create owner
+				// replace relation: delete owner only (member relation removed from org schema),
+				// then create owner relation
 				relSvc.EXPECT().Delete(ctx, orgRelation(schema.OwnerRelationName)).Return(nil)
-				relSvc.EXPECT().Delete(ctx, orgRelation(schema.MemberRelationName)).Return(nil)
 				relSvc.EXPECT().Create(ctx, orgRelation(schema.OwnerRelationName)).Return(relation.Relation{}, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
@@ -592,10 +588,9 @@ func TestService_SetOrganizationMemberRole(t *testing.T) {
 				// existing policy is manager (non-owner), uses plain Delete
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
-				// both relation deletes return not-found — that's fine, should continue
+				// owner relation delete returns not-found — that's fine, should continue
+				// member relation no longer exists in org schema; viewer role → no new relation
 				relSvc.EXPECT().Delete(ctx, orgRelation(schema.OwnerRelationName)).Return(relation.ErrNotExist)
-				relSvc.EXPECT().Delete(ctx, orgRelation(schema.MemberRelationName)).Return(relation.ErrNotExist)
-				relSvc.EXPECT().Create(ctx, orgRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			roleID:  viewerRoleID,
@@ -658,8 +653,8 @@ func TestService_SetOrganizationMemberRole_ServiceUser(t *testing.T) {
 		mockPolicySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: ownerRoleID}}, nil)
 		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 		mockPolicySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
-		mockRelSvc.EXPECT().Delete(ctx, mock.Anything).Return(relation.ErrNotExist).Times(2)
-		mockRelSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
+		// only owner relation is swept; viewer role → no new relation (member removed from org schema)
+		mockRelSvc.EXPECT().Delete(ctx, mock.Anything).Return(relation.ErrNotExist).Times(1)
 		mockAuditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 
 		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mockOrgSvc, mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mockSuSvc, mockAuditRepo)
@@ -873,8 +868,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				// only owner relation is swept (member relation removed from org schema)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(relation.ErrNotExist)
-				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			wantErr: nil,
@@ -897,8 +892,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
 				d.policySvc.EXPECT().Delete(ctx, "proj-p1").Return(nil)
 				d.policySvc.EXPECT().Delete(ctx, "grp-p1").Return(nil)
+				// only owner relation swept for org (member relation removed from org schema)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(nil)
-				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: grpObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(nil)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: grpObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
@@ -921,8 +916,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 					{ID: "other-proj-p", ResourceType: schema.ProjectNamespace, ResourceID: otherProjectID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				// only owner relation swept for org (member relation removed from org schema)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(relation.ErrNotExist)
-				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			wantErr: nil,
@@ -1034,8 +1029,8 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 				}, nil)
 				// plain delete, not DeleteWithMinRoleGuard
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				// only owner relation swept for org (member relation removed from org schema)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(nil)
-				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},
@@ -1047,8 +1042,8 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
 				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				// only owner relation swept for org (member relation removed from org schema)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(relation.ErrNotExist)
-				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},
@@ -1066,8 +1061,8 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				// only owner relation swept for org (member relation removed from org schema)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.OwnerRelationName}).Return(nil)
-				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: orgObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},
@@ -2027,15 +2022,6 @@ func TestService_OnGroupCreated(t *testing.T) {
 		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
 		RelationName: schema.OrganizationRelationName,
 	}
-	orgGroupMemberRelation := relation.Relation{
-		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-		Subject: relation.Subject{
-			ID:              groupID,
-			Namespace:       schema.GroupNamespace,
-			SubRelationName: schema.MemberRelationName,
-		},
-		RelationName: schema.MemberRelationName,
-	}
 	creatorOwnerRelation := relation.Relation{
 		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
 		Subject:      relation.Subject{ID: creatorID, Namespace: schema.UserPrincipal},
@@ -2050,8 +2036,8 @@ func TestService_OnGroupCreated(t *testing.T) {
 		mockUserSvc := mocks.NewUserService(t)
 		mockAuditRepo := mocks.NewAuditRecordRepository(t)
 
+		// linkGroupToOrg creates only the group→org relation (org#member@group#member removed from schema)
 		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, nil)
-		mockRelSvc.EXPECT().Create(ctx, orgGroupMemberRelation).Return(relation.Relation{}, nil)
 
 		mockGrpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
 		mockUserSvc.EXPECT().GetByID(ctx, creatorID).Return(enabledUser, nil)
@@ -2081,42 +2067,49 @@ func TestService_OnGroupCreated(t *testing.T) {
 		assert.ErrorContains(t, err, "link group to org")
 	})
 
-	t.Run("should rollback first hierarchy relation if second fails", func(t *testing.T) {
-		mockPolicySvc := mocks.NewPolicyService(t)
-		mockRelSvc := mocks.NewRelationService(t)
-
-		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, nil)
-		mockRelSvc.EXPECT().Create(ctx, orgGroupMemberRelation).Return(relation.Relation{}, errors.New("spicedb unavailable"))
-		// rollback: delete the first hierarchy relation
-		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
-
-		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
-
-		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
-		assert.ErrorContains(t, err, "add group as org member")
-	})
-
-	t.Run("should rollback both hierarchy relations if owner add fails", func(t *testing.T) {
+	t.Run("should rollback hierarchy relation if owner add fails", func(t *testing.T) {
 		mockPolicySvc := mocks.NewPolicyService(t)
 		mockRelSvc := mocks.NewRelationService(t)
 		mockRoleSvc := mocks.NewRoleService(t)
 		mockGrpSvc := mocks.NewGroupService(t)
 		mockUserSvc := mocks.NewUserService(t)
 
-		// linkGroupToOrg succeeds
+		// org#member@group#member relation removed from schema; only group→org relation exists
 		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, nil)
-		mockRelSvc.EXPECT().Create(ctx, orgGroupMemberRelation).Return(relation.Relation{}, nil)
 
-		// AddGroupMember fails before policy creation (group fetch fails)
+		// SetGroupMemberRole fails because group fetch fails
 		mockGrpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, errors.New("db down"))
 
-		// unused mocks: only here for completeness, won't be called
+		// rollback: delete the single hierarchy relation
+		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
+
 		_ = mockRoleSvc
 		_ = mockUserSvc
 
-		// rollback: delete both hierarchy relations
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+		err := svc.OnGroupCreated(ctx, groupID, orgID, creatorID, schema.UserPrincipal)
+		assert.ErrorContains(t, err, "db down")
+	})
+
+	t.Run("should rollback hierarchy relation if SetGroupMemberRole fails after group fetch", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+		mockRoleSvc := mocks.NewRoleService(t)
+		mockGrpSvc := mocks.NewGroupService(t)
+		mockUserSvc := mocks.NewUserService(t)
+
+		// linkGroupToOrg succeeds — only one relation now (org#member@group#member removed)
+		mockRelSvc.EXPECT().Create(ctx, groupOrgRelation).Return(relation.Relation{}, nil)
+
+		// SetGroupMemberRole fails at existing-policy listing
+		mockGrpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+		mockUserSvc.EXPECT().GetByID(ctx, creatorID).Return(enabledUser, nil)
+		mockRoleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole, Scopes: []string{schema.GroupNamespace}}, nil)
+		mockPolicySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID, PrincipalID: creatorID, PrincipalType: schema.UserPrincipal}).Return(nil, errors.New("db down"))
+
+		// rollback: delete the single hierarchy relation
 		mockRelSvc.EXPECT().Delete(ctx, groupOrgRelation).Return(nil)
-		mockRelSvc.EXPECT().Delete(ctx, orgGroupMemberRelation).Return(nil)
 
 		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mockRoleSvc, mocks.NewOrgService(t), mockUserSvc, mocks.NewProjectService(t), mockGrpSvc, mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
 
@@ -2346,20 +2339,11 @@ func TestService_OnGroupDeleted(t *testing.T) {
 		}).Return([]policy.Policy{{ID: "principal-p1"}}, nil)
 		policySvc.EXPECT().Delete(ctx, "principal-p1").Return(nil)
 
-		// unlinkGroupFromOrg: both hierarchy relations
+		// unlinkGroupFromOrg: only group→org relation (org#member@group#member removed from schema)
 		relSvc.EXPECT().Delete(ctx, relation.Relation{
 			Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
 			Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
 			RelationName: schema.OrganizationRelationName,
-		}).Return(nil)
-		relSvc.EXPECT().Delete(ctx, relation.Relation{
-			Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-			Subject: relation.Subject{
-				ID:              groupID,
-				Namespace:       schema.GroupNamespace,
-				SubRelationName: schema.MemberRelationName,
-			},
-			RelationName: schema.MemberRelationName,
 		}).Return(nil)
 
 		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), policySvc, relSvc,

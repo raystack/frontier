@@ -45,7 +45,6 @@ definition app/organization {
 	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist + owner
 	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate + owner
 	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist + owner
-	relation member: app/user | app/group#member | app/serviceuser
 	relation owner: app/user | app/serviceuser
 	relation pat_granted: app/rolebinding
 
