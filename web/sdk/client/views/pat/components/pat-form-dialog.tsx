@@ -224,6 +224,21 @@ export function PATFormDialog({
     }
   }, [isOrgAdmin, setValue]);
 
+  useEffect(() => {
+    if (isRolesLoading || isOrgPermissionsFetching) return;
+    if (selectableOrgRoles.length === 1 && !watchedOrgRoleId) {
+      setValue('orgRoleId', selectableOrgRoles[0].id, {
+        shouldDirty: true,
+      });
+    }
+  }, [
+    isRolesLoading,
+    isOrgPermissionsFetching,
+    selectableOrgRoles,
+    watchedOrgRoleId,
+    setValue
+  ]);
+
   const { mutateAsync: createPAT } = useMutation(
     FrontierServiceQueries.createCurrentUserPAT
   );
