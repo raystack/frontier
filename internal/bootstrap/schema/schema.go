@@ -305,7 +305,7 @@ func IsPlatformRelation(name string) bool {
 var PredefinedRoles = []RoleDefinition{
 	// org
 	{
-		Title: "Organization Owner",
+		Title: "Owner",
 		Name:  RoleOrganizationOwner,
 		Permissions: []string{
 			"app_organization_administer",
@@ -313,7 +313,7 @@ var PredefinedRoles = []RoleDefinition{
 		Scopes: []string{OrganizationNamespace},
 	},
 	{
-		Title: "Organization Manager",
+		Title: "Manager",
 		Name:  RoleOrganizationManager,
 		Permissions: []string{
 			"app_organization_update",
@@ -329,7 +329,7 @@ var PredefinedRoles = []RoleDefinition{
 		Scopes: []string{OrganizationNamespace},
 	},
 	{
-		Title: "Organization Access Manager",
+		Title: "Access Manager",
 		Name:  "app_organization_accessmanager",
 		Permissions: []string{
 			"app_organization_invitationcreate",
@@ -340,7 +340,7 @@ var PredefinedRoles = []RoleDefinition{
 		Scopes: []string{OrganizationNamespace},
 	},
 	{
-		Title: "Organization Viewer",
+		Title: "Viewer",
 		Name:  RoleOrganizationViewer,
 		Permissions: []string{
 			"app_organization_get",
@@ -348,7 +348,7 @@ var PredefinedRoles = []RoleDefinition{
 		Scopes: []string{OrganizationNamespace},
 	},
 	{
-		Title: "Organization Group Viewer",
+		Title: "Group Viewer",
 		Name:  RoleOrganizationViewer,
 		Permissions: []string{
 			"app_organization_get",
