@@ -184,14 +184,19 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
 	}
+
+	// store NULL (not "") when there is no principal, to match Create.
+	principalID := sql.NullString{String: res.PrincipalID, Valid: res.PrincipalID != ""}
+	principalType := sql.NullString{String: res.PrincipalType, Valid: res.PrincipalType != ""}
+
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
 			"title":          res.Title,
 			"metadata":       marshaledMetadata,
 			"urn":            res.URN,
 			"project_id":     res.ProjectID,
-			"principal_id":   res.PrincipalID,
-			"principal_type": res.PrincipalType,
+			"principal_id":   principalID,
+			"principal_type": principalType,
 		},
 	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
