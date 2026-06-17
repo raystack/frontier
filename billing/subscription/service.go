@@ -77,9 +77,10 @@ type Service struct {
 	productService  ProductService
 	creditService   CreditService
 
-	syncJob *cron.Cron
-	mu      sync.Mutex
-	config  billing.Config
+	syncJob   *cron.Cron
+	syncJobMu sync.Mutex
+	mu        sync.Mutex
+	config    billing.Config
 }
 
 func NewService(logger *slog.Logger, stripeClient *client.API, config billing.Config, repository Repository,
@@ -116,6 +117,9 @@ func (s *Service) Init(ctx context.Context) error {
 	if syncDelay == time.Duration(0) {
 		return nil
 	}
+
+	s.syncJobMu.Lock()
+	defer s.syncJobMu.Unlock()
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
 	}
@@ -136,6 +140,8 @@ func (s *Service) Init(ctx context.Context) error {
 }
 
 func (s *Service) Close() error {
+	s.syncJobMu.Lock()
+	defer s.syncJobMu.Unlock()
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
 		return s.syncJob.Stop().Err()
