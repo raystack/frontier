@@ -17,7 +17,7 @@ import {
   ListRolesForPATRequestSchema,
   ListProjectsByCurrentUserRequestSchema
 } from '@raystack/proton/frontier';
-import type { PAT } from '@raystack/proton/frontier';
+import type { PAT, Role } from '@raystack/proton/frontier';
 import {
   Button,
   Chip,
@@ -35,12 +35,21 @@ import {
 } from '@raystack/apsara';
 import { useFrontier } from '~/client/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/client/utils/constants';
-import { PERMISSIONS } from '../../../../utils';
+import { usePermissions } from '~/client/hooks/usePermissions';
+import { PERMISSIONS, shouldShowComponent } from '../../../../utils';
 import { handleConnectError } from '~/utils/error';
 import { EXPIRY_OPTIONS } from '../utils';
 import styles from '../pat-view.module.css';
 
 const MAX_VISIBLE_PROJECT_CHIPS = 2;
+
+const ORG_UPDATE_PERMISSION = `${PERMISSIONS.OrganizationNamespace.replace(
+  '/',
+  '_'
+)}_${PERMISSIONS.UpdatePermission}`;
+
+const roleGrantsOrgUpdate = (role: Role) =>
+  role.permissions?.includes(ORG_UPDATE_PERMISSION) ?? false;
 
 const baseFields = {
   title: yup.string().required('Name is required'),
@@ -176,13 +185,36 @@ export function PATFormDialog({
     };
   }, [rolesData]);
 
+  const orgResource = `${PERMISSIONS.OrganizationNamespace}:${orgId}`;
+  const orgPermissionChecks = useMemo(
+    () => [{ permission: PERMISSIONS.UpdatePermission, resource: orgResource }],
+    [orgResource]
+  );
+
+  const { permissions: orgPermissions, isFetching: isOrgPermissionsFetching } =
+    usePermissions(orgPermissionChecks, Boolean(orgId));
+
+  const canUpdateOrg = useMemo(
+    () =>
+      shouldShowComponent(
+        orgPermissions,
+        `${PERMISSIONS.UpdatePermission}::${orgResource}`
+      ),
+    [orgPermissions, orgResource]
+  );
+
+  const selectableOrgRoles = useMemo(
+    () =>
+      canUpdateOrg
+        ? orgRoles
+        : orgRoles.filter(role => !roleGrantsOrgUpdate(role)),
+    [orgRoles, canUpdateOrg]
+  );
+
   const watchedOrgRoleId = watch('orgRoleId');
   const isOrgAdmin = useMemo(() => {
     const role = orgRoles.find(r => r.id === watchedOrgRoleId);
-    if (!role) return false;
-    const orgNs = PERMISSIONS.OrganizationNamespace.replace('/', '_');
-    const updatePerm = `${orgNs}_${PERMISSIONS.UpdatePermission}`;
-    return role.permissions?.some(p => p === updatePerm) ?? false;
+    return role ? roleGrantsOrgUpdate(role) : false;
   }, [orgRoles, watchedOrgRoleId]);
 
   useEffect(() => {
@@ -191,6 +223,21 @@ export function PATFormDialog({
       setValue('projectIds', []);
     }
   }, [isOrgAdmin, setValue]);
+
+  useEffect(() => {
+    if (isRolesLoading || isOrgPermissionsFetching) return;
+    if (selectableOrgRoles.length === 1 && !watchedOrgRoleId) {
+      setValue('orgRoleId', selectableOrgRoles[0].id, {
+        shouldDirty: true,
+      });
+    }
+  }, [
+    isRolesLoading,
+    isOrgPermissionsFetching,
+    selectableOrgRoles,
+    watchedOrgRoleId,
+    setValue
+  ]);
 
   const { mutateAsync: createPAT } = useMutation(
     FrontierServiceQueries.createCurrentUserPAT
@@ -333,7 +380,8 @@ export function PATFormDialog({
     ]
   );
 
-  const isDataLoading = isProjectsLoading || isRolesLoading;
+  const isDataLoading =
+    isProjectsLoading || isRolesLoading || isOrgPermissionsFetching;
 
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
@@ -444,7 +492,7 @@ export function PATFormDialog({
                             <Select.Value placeholder="Select role" />
                           </Select.Trigger>
                           <Select.Content>
-                            {orgRoles.map(role => (
+                            {selectableOrgRoles.map(role => (
                               <Select.Item key={role.id} value={role.id}>
                                 {role.title || role.name}
                               </Select.Item>

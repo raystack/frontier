@@ -146,9 +146,6 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
 
   const handlePATCreated = (token: string) => {
     patCreatedDialogHandle.openWithPayload({ token });
-  };
-
-  const handleSuccessDialogClose = () => {
     refetch();
   };
 
@@ -247,7 +244,6 @@ export function PatsView({ onPATClick }: PatsViewProps = {}) {
       />
       <PATCreatedDialog
         handle={patCreatedDialogHandle}
-        onClose={handleSuccessDialogClose}
       />
       <RevokePATDialog
         handle={revokePATDialogHandle}
