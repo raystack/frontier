@@ -386,7 +386,6 @@ func (s *Service) Close() error {
 	defer s.syncJobMu.Unlock()
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
-		return s.syncJob.Stop().Err()
 	}
 	return nil
 }
