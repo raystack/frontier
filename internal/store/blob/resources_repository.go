@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/resource"
-
-	"log/slog"
 
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
@@ -63,7 +62,10 @@ func (repo *ResourcesRepository) GetAll(ctx context.Context) ([]resource.YAML, e
 	}
 
 	err := repo.refresh(ctx)
-	return repo.cached, err
+	repo.mu.Lock()
+	currentCache = repo.cached
+	repo.mu.Unlock()
+	return currentCache, err
 }
 
 func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, namespaceID string) (map[string]bool, error) {

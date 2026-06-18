@@ -74,6 +74,7 @@ type Service struct {
 	locker          Locker
 
 	syncJob   *cron.Cron
+	syncJobMu sync.Mutex
 	mu        sync.Mutex
 	syncDelay time.Duration
 
@@ -112,23 +113,8 @@ func NewService(logger *slog.Logger, stripeClient *client.API, invoiceRepository
 }
 
 func (s *Service) Init(ctx context.Context) error {
-	if s.syncDelay != time.Duration(0) {
-		if s.syncJob != nil {
-			s.syncJob.Stop()
-		}
-		s.syncJob = cron.New(cron.WithChain(
-			cron.SkipIfStillRunning(cron.DefaultLogger),
-			cron.Recover(cron.DefaultLogger),
-		))
-
-		if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
-			ctx, cancel := context.WithCancel(ctx)
-			defer cancel()
-			s.backgroundSync(ctx)
-		}); err != nil {
-			return err
-		}
-		s.syncJob.Start()
+	if err := s.initSyncJob(ctx); err != nil {
+		return err
 	}
 
 	if s.creditOverdraftProduct != "" {
@@ -156,9 +142,36 @@ func (s *Service) Init(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) Close() error {
+func (s *Service) initSyncJob(ctx context.Context) error {
+	if s.syncDelay == time.Duration(0) {
+		return nil
+	}
+
+	s.syncJobMu.Lock()
+	defer s.syncJobMu.Unlock()
 	if s.syncJob != nil {
-		return s.syncJob.Stop().Err()
+		<-s.syncJob.Stop().Done()
+	}
+	s.syncJob = cron.New(cron.WithChain(
+		cron.SkipIfStillRunning(cron.DefaultLogger),
+		cron.Recover(cron.DefaultLogger),
+	))
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		s.backgroundSync(ctx)
+	}); err != nil {
+		return err
+	}
+	s.syncJob.Start()
+	return nil
+}
+
+func (s *Service) Close() error {
+	s.syncJobMu.Lock()
+	defer s.syncJobMu.Unlock()
+	if s.syncJob != nil {
+		<-s.syncJob.Stop().Done()
 	}
 	return nil
 }
