@@ -16,7 +16,6 @@ import {
 } from '@raystack/apsara';
 import deleteIcon from '~/client/assets/delete.svg';
 import keyIcon from '~/client/assets/key.svg';
-import exclamationTriangleIcon from '~/client/assets/exclamation-triangle.svg';
 import { useQuery } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import {
@@ -31,6 +30,7 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { DEFAULT_DATE_FORMAT } from '~/client/utils/constants';
 import { ViewContainer } from '~/client/components/view-container';
 import { ViewHeader } from '~/client/components/view-header';
+import type { Slot } from '~/shared/types';
 import {
   getColumns,
   type ServiceAccountMenuPayload
@@ -50,10 +50,14 @@ const manageAccessDialogHandle = Dialog.createHandle<string>();
 
 export interface ServiceAccountsViewProps {
   onServiceAccountClick?: (id: string) => void;
+  slots?: {
+    addAccountButton?: Slot<{ onClick: () => void; disabled: boolean }>;
+  };
 }
 
 export function ServiceAccountsView({
-  onServiceAccountClick
+  onServiceAccountClick,
+  slots
 }: ServiceAccountsViewProps) {
   const {
     activeOrganization: organization,
@@ -126,6 +130,8 @@ export function ServiceAccountsView({
     [dateFormat, canUpdateWorkspace]
   );
 
+  const handleAddServiceAccount = () => addDialogHandle.open(null);
+
   const handleCreated = (serviceUserId: string) => {
     onServiceAccountClick?.(serviceUserId);
   };
@@ -167,15 +173,22 @@ export function ServiceAccountsView({
           heading="No Service Account Found"
           subHeading={`Create a new account to use the APIs of ${t.appName()} platform`}
           primaryAction={
-            <Button
-              variant="solid"
-              color="accent"
-              size="small"
-              onClick={() => addDialogHandle.open(null)}
-              data-test-id="frontier-sdk-new-service-account-btn"
-            >
-              Add service account
-            </Button>
+            slots?.addAccountButton ? (
+              slots.addAccountButton({
+                onClick: handleAddServiceAccount,
+                disabled: false
+              })
+            ) : (
+              <Button
+                variant="solid"
+                color="accent"
+                size="small"
+                onClick={handleAddServiceAccount}
+                data-test-id="frontier-sdk-new-service-account-btn"
+              >
+                Add service account
+              </Button>
+            )
           }
         />
       ) : (
@@ -207,6 +220,11 @@ export function ServiceAccountsView({
                 </Flex>
                 {isLoading ? (
                   <Skeleton height="34px" width="160px" />
+                ) : slots?.addAccountButton ? (
+                  slots.addAccountButton({
+                    onClick: handleAddServiceAccount,
+                    disabled: !canUpdateWorkspace
+                  })
                 ) : (
                   <Tooltip>
                     <Tooltip.Trigger
@@ -216,7 +234,7 @@ export function ServiceAccountsView({
                       <Button
                         variant="solid"
                         color="accent"
-                        onClick={() => addDialogHandle.open(null)}
+                        onClick={handleAddServiceAccount}
                         disabled={!canUpdateWorkspace}
                         data-test-id="frontier-sdk-add-service-account-btn"
                       >
