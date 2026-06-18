@@ -2,6 +2,18 @@ import React from 'react';
 import { BasePlan } from '../src/types';
 import { ThemeProviderProps } from '@raystack/apsara';
 
+/**
+ * A render-prop slot: receives a context object (shape defined per view/slot)
+ * and returns the node to render. Lets a consumer override an internal element
+ * of a view while keeping the customisation on their side.
+ *
+ * @example
+ * interface ViewSlots {
+ *   addButton?: Slot<{ onClick: () => void; disabled: boolean }>;
+ * }
+ */
+export type Slot<TContext> = (context: TContext) => React.ReactNode;
+
 export interface FrontierClientBillingOptions {
   supportEmail?: string;
   successUrl?: string;

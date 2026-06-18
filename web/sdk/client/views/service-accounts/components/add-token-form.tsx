@@ -13,6 +13,7 @@ import {
   type ServiceUserToken
 } from '@raystack/proton/frontier';
 import { useFrontier } from '~/client/contexts/FrontierContext';
+import type { Slot } from '~/shared/types';
 import styles from '../service-account-details-view.module.css';
 
 const tokenSchema = yup
@@ -26,9 +27,18 @@ type FormData = yup.InferType<typeof tokenSchema>;
 export interface AddTokenFormProps {
   serviceUserId: string;
   onAddToken: (token: ServiceUserToken) => void;
+  generateKeyButton?: Slot<{
+    onClick: () => void;
+    loading: boolean;
+    disabled: boolean;
+  }>;
 }
 
-export function AddTokenForm({ serviceUserId, onAddToken }: AddTokenFormProps) {
+export function AddTokenForm({
+  serviceUserId,
+  onAddToken,
+  generateKeyButton
+}: AddTokenFormProps) {
   const { activeOrganization } = useFrontier();
   const orgId = activeOrganization?.id || '';
 
@@ -78,24 +88,28 @@ export function AddTokenForm({ serviceUserId, onAddToken }: AddTokenFormProps) {
           error={errors.title && String(errors.title?.message)}
           className={styles.addTokenInput}
         >
-          <Input
-            {...register('title')}
-            size="large"
-            placeholder="Label Name"
-          />
+          <Input {...register('title')} size="large" placeholder="Label Name" />
         </Field>
-        <Button
-          variant="solid"
-          color="accent"
-          size="normal"
-          type="submit"
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          loaderText="Generating..."
-          data-test-id="frontier-sdk-service-account-generate-key-btn"
-        >
-          Generate new key
-        </Button>
+        {generateKeyButton ? (
+          generateKeyButton({
+            onClick: handleSubmit(onSubmit),
+            loading: isSubmitting,
+            disabled: isSubmitting
+          })
+        ) : (
+          <Button
+            variant="solid"
+            color="accent"
+            size="normal"
+            type="submit"
+            loading={isSubmitting}
+            disabled={isSubmitting}
+            loaderText="Generating..."
+            data-test-id="frontier-sdk-service-account-generate-key-btn"
+          >
+            Generate new key
+          </Button>
+        )}
       </Flex>
     </form>
   );

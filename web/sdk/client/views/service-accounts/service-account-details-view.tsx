@@ -31,7 +31,7 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { useServiceUserTokens } from './hooks/useServiceUserTokens';
 import { ViewContainer } from '~/client/components/view-container';
 import { ViewHeader } from '~/client/components/view-header';
-import { AddTokenForm } from './components/add-token-form';
+import { AddTokenForm, type AddTokenFormProps } from './components/add-token-form';
 import {
   RevokeTokenDialog,
   type RevokeTokenPayload
@@ -53,13 +53,17 @@ export interface ServiceAccountDetailsViewProps {
   serviceAccountsLabel?: string;
   onNavigateToServiceAccounts?: () => void;
   onDeleteSuccess?: () => void;
+  slots?: {
+    generateKeyButton?: AddTokenFormProps['generateKeyButton'];
+  };
 }
 
 export function ServiceAccountDetailsView({
   serviceAccountId,
   serviceAccountsLabel = 'Service accounts',
   onNavigateToServiceAccounts,
-  onDeleteSuccess
+  onDeleteSuccess,
+  slots
 }: ServiceAccountDetailsViewProps) {
   const { activeOrganization: organization } = useFrontier();
   const t = useTerminology();
@@ -166,6 +170,7 @@ export function ServiceAccountDetailsView({
             <AddTokenForm
               serviceUserId={serviceAccountId}
               onAddToken={addToken}
+              generateKeyButton={slots?.generateKeyButton}
             />
           </>
         )}
