@@ -27,7 +27,11 @@ type FormData = yup.InferType<typeof tokenSchema>;
 export interface AddTokenFormProps {
   serviceUserId: string;
   onAddToken: (token: ServiceUserToken) => void;
-  generateKeyButton?: Slot<{ loading: boolean; disabled: boolean }>;
+  generateKeyButton?: Slot<{
+    onClick: () => void;
+    loading: boolean;
+    disabled: boolean;
+  }>;
 }
 
 export function AddTokenForm({
@@ -87,7 +91,11 @@ export function AddTokenForm({
           <Input {...register('title')} size="large" placeholder="Label Name" />
         </Field>
         {generateKeyButton ? (
-          generateKeyButton({ loading: isSubmitting, disabled: isSubmitting })
+          generateKeyButton({
+            onClick: handleSubmit(onSubmit),
+            loading: isSubmitting,
+            disabled: isSubmitting
+          })
         ) : (
           <Button
             variant="solid"
