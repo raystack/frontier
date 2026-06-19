@@ -344,14 +344,7 @@ var PredefinedRoles = []RoleDefinition{
 		Name:  RoleOrganizationViewer,
 		Permissions: []string{
 			"app_organization_get",
-		},
-		Scopes: []string{OrganizationNamespace},
-	},
-	{
-		Title: "Group Viewer",
-		Name:  RoleOrganizationViewer,
-		Permissions: []string{
-			"app_organization_get",
+			"app_organization_projectcreate",
 		},
 		Scopes: []string{OrganizationNamespace},
 	},
