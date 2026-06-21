@@ -64,6 +64,10 @@ const (
 	// Session Events
 	SessionRevokedEvent Event = "session.revoked"
 
+	// Platform Events
+	PlatformAdminGrantedEvent Event = "platform.admin_granted"
+	PlatformAdminRevokedEvent Event = "platform.admin_revoked"
+
 	// Resource Events
 	ResourceCreatedEvent Event = "resource.created"
 
@@ -93,6 +97,7 @@ const (
 	BillingTransactionType  EntityType = "billing_transaction"
 	SessionType             EntityType = "session"
 	PATType                 EntityType = "pat"
+	PlatformType            EntityType = "platform"
 )
 
 // String returns the string representation of the event

@@ -7,6 +7,7 @@ import (
 
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -53,6 +54,99 @@ func (m *mockRelationService) Create(ctx context.Context, rel relation.Relation)
 func (m *mockRelationService) Delete(ctx context.Context, rel relation.Relation) error {
 	args := m.Called(ctx, rel)
 	return args.Error(0)
+}
+
+func (m *mockRelationService) List(ctx context.Context, flt relation.Filter) ([]relation.Relation, error) {
+	args := m.Called(ctx, flt)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]relation.Relation), args.Error(1)
+}
+
+// mockUserService implements bootstrap.UserService
+type mockUserService struct {
+	mock.Mock
+}
+
+func (m *mockUserService) Sudo(ctx context.Context, id, relationName string) error {
+	return m.Called(ctx, id, relationName).Error(0)
+}
+
+func (m *mockUserService) UnSudo(ctx context.Context, id, relationName string) error {
+	return m.Called(ctx, id, relationName).Error(0)
+}
+
+func (m *mockUserService) GetByID(ctx context.Context, id string) (user.User, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(user.User), args.Error(1)
+}
+
+func platformAdminRel(id, ns string) relation.Relation {
+	return relation.Relation{
+		Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+		Subject:      relation.Subject{ID: id, Namespace: ns},
+		RelationName: schema.AdminRelationName,
+	}
+}
+
+func TestMakeSuperUsers_Authoritative(t *testing.T) {
+	platformFilter := relation.Filter{
+		Object: relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+	}
+
+	t.Run("demotes only human admins absent from config", func(t *testing.T) {
+		userSvc := new(mockUserService)
+		relSvc := new(mockRelationService)
+
+		// additive promote of the configured admin
+		userSvc.On("Sudo", mock.Anything, "keep@x.com", schema.AdminRelationName).Return(nil)
+		// reconcile resolves config entry -> canonical id
+		userSvc.On("GetByID", mock.Anything, "keep@x.com").Return(user.User{ID: "keep-id"}, nil)
+
+		memberRel := platformAdminRel("member-id", schema.UserPrincipal)
+		memberRel.RelationName = schema.MemberRelationName
+		relSvc.On("List", mock.Anything, platformFilter).Return([]relation.Relation{
+			platformAdminRel("keep-id", schema.UserPrincipal),      // desired -> keep
+			platformAdminRel("drop-id", schema.UserPrincipal),      // not desired -> demote
+			platformAdminRel("su-id", schema.ServiceUserPrincipal), // service account -> skip
+			memberRel, // member relation -> skip
+		}, nil)
+
+		// only the human admin absent from config is demoted; an unexpected
+		// UnSudo on any other id would panic the mock and fail the test.
+		userSvc.On("UnSudo", mock.Anything, "drop-id", schema.AdminRelationName).Return(nil)
+
+		s := Service{
+			adminConfig:     AdminConfig{Users: []string{"keep@x.com"}, Authoritative: true},
+			userService:     userSvc,
+			relationService: relSvc,
+		}
+
+		assert.NoError(t, s.MakeSuperUsers(context.Background()))
+		userSvc.AssertExpectations(t)
+		relSvc.AssertExpectations(t)
+		userSvc.AssertNotCalled(t, "UnSudo", mock.Anything, "keep-id", schema.AdminRelationName)
+		userSvc.AssertNotCalled(t, "UnSudo", mock.Anything, "su-id", schema.AdminRelationName)
+		userSvc.AssertNotCalled(t, "UnSudo", mock.Anything, "member-id", schema.AdminRelationName)
+	})
+
+	t.Run("additive only, no demotion, when not authoritative", func(t *testing.T) {
+		userSvc := new(mockUserService)
+		relSvc := new(mockRelationService)
+		userSvc.On("Sudo", mock.Anything, "keep@x.com", schema.AdminRelationName).Return(nil)
+
+		s := Service{
+			adminConfig:     AdminConfig{Users: []string{"keep@x.com"}, Authoritative: false},
+			userService:     userSvc,
+			relationService: relSvc,
+		}
+
+		assert.NoError(t, s.MakeSuperUsers(context.Background()))
+		userSvc.AssertExpectations(t)
+		relSvc.AssertNotCalled(t, "List", mock.Anything, mock.Anything)
+		userSvc.AssertNotCalled(t, "UnSudo", mock.Anything, mock.Anything, mock.Anything)
+	})
 }
 
 func Test_migratePATRelations(t *testing.T) {

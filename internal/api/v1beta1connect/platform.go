@@ -33,13 +33,22 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error) {
+	// Remove the principal from the platform entirely: strip both the admin
+	// (superuser) and member (check) relations. Each UnSudo is a no-op for a
+	// relation the principal doesn't hold.
+	platformRelations := []string{schema.AdminRelationName, schema.MemberRelationName}
+
 	if req.Msg.GetUserId() != "" {
-		if err := h.userService.UnSudo(ctx, req.Msg.GetUserId()); err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.UserUnSudo: user_id=%s: %w", req.Msg.GetUserId(), err))
+		for _, relationName := range platformRelations {
+			if err := h.userService.UnSudo(ctx, req.Msg.GetUserId(), relationName); err != nil {
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.UserUnSudo: user_id=%s relation=%s: %w", req.Msg.GetUserId(), relationName, err))
+			}
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
-		if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId()); err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.ServiceUserUnSudo: service_user_id=%s: %w", req.Msg.GetServiceuserId(), err))
+		for _, relationName := range platformRelations {
+			if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId(), relationName); err != nil {
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.ServiceUserUnSudo: service_user_id=%s relation=%s: %w", req.Msg.GetServiceuserId(), relationName, err))
+			}
 		}
 	} else {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)

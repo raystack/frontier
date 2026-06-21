@@ -7,22 +7,113 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/serviceuser/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/stretchr/testify/mock"
 )
 
-func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService) {
+func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService, *mocks.AuditRecordRepository) {
 	t.Helper()
 	repo := mocks.NewRepository(t)
 	credRepo := mocks.NewCredentialRepository(t)
 	relSvc := mocks.NewRelationService(t)
 	memSvc := mocks.NewMembershipService(t)
+	auditRepo := mocks.NewAuditRecordRepository(t)
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	svc := serviceuser.NewService(logger, repo, credRepo, relSvc)
+	svc := serviceuser.NewService(logger, repo, credRepo, relSvc, auditRepo)
 	svc.SetMembershipService(memSvc)
-	return svc, repo, credRepo, relSvc, memSvc
+	return svc, repo, credRepo, relSvc, memSvc, auditRepo
+}
+
+func TestService_Sudo(t *testing.T) {
+	ctx := context.Background()
+	const suID = "550e8400-e29b-41d4-a716-446655440000"
+	superuserCheck := relation.Relation{
+		Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+		Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+		RelationName: schema.PlatformSudoPermission,
+	}
+
+	t.Run("grants admin relation and audits the grant", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, superuserCheck).Return(false, nil)
+		rel.On("Create", ctx, relation.Relation{
+			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+			RelationName: schema.AdminRelationName,
+		}).Return(relation.Relation{}, nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformAdminGrantedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.Sudo(ctx, suID, schema.AdminRelationName); err != nil {
+			t.Fatalf("Sudo() error = %v", err)
+		}
+	})
+}
+
+func TestService_UnSudo(t *testing.T) {
+	ctx := context.Background()
+	const suID = "550e8400-e29b-41d4-a716-446655440000"
+	superuserCheck := relation.Relation{
+		Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+		Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+		RelationName: schema.PlatformSudoPermission,
+	}
+
+	t.Run("removes admin relation and audits the revoke", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, superuserCheck).Return(true, nil)
+		rel.On("Delete", ctx, relation.Relation{
+			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+			RelationName: schema.AdminRelationName,
+		}).Return(nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformAdminRevokedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.AdminRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("admin removal is a no-op when not a superuser", func(t *testing.T) {
+		svc, repo, _, rel, _, _ := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, superuserCheck).Return(false, nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.AdminRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("removes member relation without auditing", func(t *testing.T) {
+		svc, repo, _, rel, _, _ := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("Delete", ctx, relation.Relation{
+			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+			RelationName: schema.MemberRelationName,
+		}).Return(nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.MemberRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("rejects an invalid relation name", func(t *testing.T) {
+		svc, _, _, _, _, _ := newTestService(t)
+		if err := svc.UnSudo(ctx, suID, "owner"); err == nil {
+			t.Fatal("UnSudo() expected error for invalid relation, got nil")
+		}
+	})
 }
 
 func TestService_Delete(t *testing.T) {
@@ -103,7 +194,7 @@ func TestService_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, repo, cred, rel, mem := newTestService(t)
+			svc, repo, cred, rel, mem, _ := newTestService(t)
 			tt.setup(repo, cred, rel, mem)
 
 			err := svc.Delete(ctx, suID)
@@ -147,7 +238,7 @@ func TestService_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, repo, _, _, _ := newTestService(t)
+			svc, repo, _, _, _, _ := newTestService(t)
 			tt.setup(repo)
 
 			_, err := svc.Get(ctx, tt.id)
@@ -214,7 +305,7 @@ func TestService_ListByOrg(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, repo, _, _, mem := newTestService(t)
+			svc, repo, _, _, mem, _ := newTestService(t)
 			tt.setup(repo, mem)
 
 			got, err := svc.ListByOrg(ctx, orgID)

@@ -395,7 +395,7 @@ func buildAPIDependencies(
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
-	serviceUserService := serviceuser.NewService(logger, svUserRepo, scUserCredRepo, relationService)
+	serviceUserService := serviceuser.NewService(logger, svUserRepo, scUserCredRepo, relationService, auditRecordRepository)
 
 	var mailDialer mailer.Dialer = mailer.NewMockDialer()
 	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
@@ -432,7 +432,7 @@ func buildAPIDependencies(
 	// back here because role.Service depends on permission.Service
 	permissionService.SetRoleService(roleService)
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
-	userService := user.NewService(userRepository, relationService, sessionService)
+	userService := user.NewService(userRepository, relationService, sessionService, auditRecordRepository)
 	patValidator := userpat.NewValidator(logger, userPATRepo, cfg.App.PAT)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator)

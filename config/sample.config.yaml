@@ -185,6 +185,14 @@ app:
     # UUIDs/slugs of existing users can also be provided instead of email ids
     # but in that case a new user will not be created.
     users: []
+    # authoritative makes the `users` list above the single source of truth for
+    # human superusers. When true, at every startup any human holding the platform
+    # admin (superuser) relation that is NOT in `users` is demoted. Service accounts
+    # are never affected by reconciliation.
+    # WARNING: with an empty or misconfigured `users` list this demotes ALL human
+    # superusers. Recovery is to fix `users` and restart (or rely on a service-account
+    # superuser). Defaults to false (additive only — the historical behavior).
+    authoritative: false
   # smtp configuration for sending emails
   mailer:
     smtp_host: smtp.example.com
