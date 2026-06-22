@@ -480,16 +480,17 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		return err
 	}
 
-	// only the admin relation grants superuser; audit that grant
-	if relationName == schema.AdminRelationName {
-		return s.recordPlatformAdminAuditRecord(ctx, currentUser, pkgAuditRecord.PlatformAdminGrantedEvent)
+	// audit the grant for both admin and member relations
+	event := pkgAuditRecord.PlatformAdminGrantedEvent
+	if relationName == schema.MemberRelationName {
+		event = pkgAuditRecord.PlatformMemberGrantedEvent
 	}
-	return nil
+	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
 }
 
 // UnSudo removes a platform relation (admin or member) from a service user.
 // It removes the exact relation requested — an `admin` relation can now actually
-// be stripped. Removing `admin` (which grants superuser) is audited; `member` is not.
+// be stripped. Both admin and member grants/removals are audited.
 func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 	switch relationName {
 	case schema.AdminRelationName, schema.MemberRelationName:
@@ -502,17 +503,15 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 		return err
 	}
 
-	// For the admin relation, only act (and audit) when it actually exists, so the
-	// revoke event reflects a real state change. superuser == admin, so the
-	// superuser permission precisely detects the admin relation.
-	if relationName == schema.AdminRelationName {
-		isAdmin, err := s.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission)
-		if err != nil {
-			return err
-		}
-		if !isAdmin {
-			return nil
-		}
+	// Only act (and audit) when the specific relation actually exists, so the
+	// revoke event reflects a real state change. Checking the relation directly
+	// is precise for both admin and member.
+	present, err := s.IsSudo(ctx, currentUser.ID, relationName)
+	if err != nil {
+		return err
+	}
+	if !present {
+		return nil
 	}
 
 	// unmark su
@@ -530,16 +529,17 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 		return err
 	}
 
-	if relationName == schema.AdminRelationName {
-		return s.recordPlatformAdminAuditRecord(ctx, currentUser, pkgAuditRecord.PlatformAdminRevokedEvent)
+	event := pkgAuditRecord.PlatformAdminRevokedEvent
+	if relationName == schema.MemberRelationName {
+		event = pkgAuditRecord.PlatformMemberRevokedEvent
 	}
-	return nil
+	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
 }
 
-// recordPlatformAdminAuditRecord writes an audit record for a platform admin
-// (superuser) grant/revoke on a service user. Actor is left empty so the
+// recordPlatformAuditRecord writes an audit record for a platform relation
+// (admin or member) grant/revoke on a service user. Actor is left empty so the
 // repository enriches it from context (acting principal, or system actor at boot).
-func (s Service) recordPlatformAdminAuditRecord(ctx context.Context, su ServiceUser, event pkgAuditRecord.Event) error {
+func (s Service) recordPlatformAuditRecord(ctx context.Context, su ServiceUser, event pkgAuditRecord.Event, relationName string) error {
 	_, err := s.auditRecordRepository.Create(ctx, models.AuditRecord{
 		Event: event,
 		Resource: models.Resource{
@@ -554,7 +554,7 @@ func (s Service) recordPlatformAdminAuditRecord(ctx context.Context, su ServiceU
 		},
 		OrgID:      schema.PlatformOrgID.String(),
 		OccurredAt: time.Now().UTC(),
-		Metadata:   map[string]any{"relation": schema.AdminRelationName},
+		Metadata:   map[string]any{"relation": relationName},
 	})
 	return err
 }

@@ -32,21 +32,21 @@ func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *moc
 func TestService_Sudo(t *testing.T) {
 	ctx := context.Background()
 	const suID = "550e8400-e29b-41d4-a716-446655440000"
-	superuserCheck := relation.Relation{
-		Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
-		Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
-		RelationName: schema.PlatformSudoPermission,
+	// platformRel builds the platform relation tuple used by IsSudo's check and by
+	// Create/Delete (field order in the literal is irrelevant for struct equality).
+	platformRel := func(rel string) relation.Relation {
+		return relation.Relation{
+			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+			RelationName: rel,
+		}
 	}
 
 	t.Run("grants admin relation and audits the grant", func(t *testing.T) {
 		svc, repo, _, rel, _, audit := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		rel.On("CheckPermission", ctx, superuserCheck).Return(false, nil)
-		rel.On("Create", ctx, relation.Relation{
-			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
-			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
-			RelationName: schema.AdminRelationName,
-		}).Return(relation.Relation{}, nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.PlatformSudoPermission)).Return(false, nil)
+		rel.On("Create", ctx, platformRel(schema.AdminRelationName)).Return(relation.Relation{}, nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
 			return r.Event == pkgAuditRecord.PlatformAdminGrantedEvent && r.Target != nil && r.Target.ID == suID
 		})).Return(models.AuditRecord{}, nil)
@@ -55,26 +55,39 @@ func TestService_Sudo(t *testing.T) {
 			t.Fatalf("Sudo() error = %v", err)
 		}
 	})
+
+	t.Run("grants member relation and audits the grant", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.PlatformCheckPermission)).Return(false, nil)
+		rel.On("Create", ctx, platformRel(schema.MemberRelationName)).Return(relation.Relation{}, nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformMemberGrantedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.Sudo(ctx, suID, schema.MemberRelationName); err != nil {
+			t.Fatalf("Sudo() error = %v", err)
+		}
+	})
 }
 
 func TestService_UnSudo(t *testing.T) {
 	ctx := context.Background()
 	const suID = "550e8400-e29b-41d4-a716-446655440000"
-	superuserCheck := relation.Relation{
-		Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
-		Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
-		RelationName: schema.PlatformSudoPermission,
+	platformRel := func(rel string) relation.Relation {
+		return relation.Relation{
+			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+			RelationName: rel,
+		}
 	}
 
 	t.Run("removes admin relation and audits the revoke", func(t *testing.T) {
 		svc, repo, _, rel, _, audit := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		rel.On("CheckPermission", ctx, superuserCheck).Return(true, nil)
-		rel.On("Delete", ctx, relation.Relation{
-			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
-			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
-			RelationName: schema.AdminRelationName,
-		}).Return(nil)
+		// UnSudo checks the relation directly (admin), not the superuser permission
+		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(true, nil)
+		rel.On("Delete", ctx, platformRel(schema.AdminRelationName)).Return(nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
 			return r.Event == pkgAuditRecord.PlatformAdminRevokedEvent && r.Target != nil && r.Target.ID == suID
 		})).Return(models.AuditRecord{}, nil)
@@ -84,24 +97,34 @@ func TestService_UnSudo(t *testing.T) {
 		}
 	})
 
-	t.Run("admin removal is a no-op when not a superuser", func(t *testing.T) {
+	t.Run("admin removal is a no-op when the relation is absent", func(t *testing.T) {
 		svc, repo, _, rel, _, _ := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		rel.On("CheckPermission", ctx, superuserCheck).Return(false, nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(false, nil)
 
 		if err := svc.UnSudo(ctx, suID, schema.AdminRelationName); err != nil {
 			t.Fatalf("UnSudo() error = %v", err)
 		}
 	})
 
-	t.Run("removes member relation without auditing", func(t *testing.T) {
+	t.Run("removes member relation and audits the revoke", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(true, nil)
+		rel.On("Delete", ctx, platformRel(schema.MemberRelationName)).Return(nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformMemberRevokedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.MemberRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("member removal is a no-op when the relation is absent", func(t *testing.T) {
 		svc, repo, _, rel, _, _ := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		rel.On("Delete", ctx, relation.Relation{
-			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
-			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
-			RelationName: schema.MemberRelationName,
-		}).Return(nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(false, nil)
 
 		if err := svc.UnSudo(ctx, suID, schema.MemberRelationName); err != nil {
 			t.Fatalf("UnSudo() error = %v", err)

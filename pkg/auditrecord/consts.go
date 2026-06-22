@@ -65,8 +65,10 @@ const (
 	SessionRevokedEvent Event = "session.revoked"
 
 	// Platform Events
-	PlatformAdminGrantedEvent Event = "platform.admin_granted"
-	PlatformAdminRevokedEvent Event = "platform.admin_revoked"
+	PlatformAdminGrantedEvent  Event = "platform.admin_granted"
+	PlatformAdminRevokedEvent  Event = "platform.admin_revoked"
+	PlatformMemberGrantedEvent Event = "platform.member_granted"
+	PlatformMemberRevokedEvent Event = "platform.member_revoked"
 
 	// Resource Events
 	ResourceCreatedEvent Event = "resource.created"

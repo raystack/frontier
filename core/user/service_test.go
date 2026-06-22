@@ -812,6 +812,10 @@ func TestService_Sudo(t *testing.T) {
 					},
 					RelationName: schema.MemberRelationName,
 				}).Return(relation.Relation{}, nil)
+
+				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
+					return r.Event == pkgAuditRecord.PlatformMemberGrantedEvent && r.Target != nil && r.Target.ID == "test-id"
+				})).Return(models.AuditRecord{}, nil)
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
 		},
@@ -842,7 +846,21 @@ func TestService_UnSudo(t *testing.T) {
 				ID:        schema.PlatformID,
 				Namespace: schema.PlatformNamespace,
 			},
-			RelationName: schema.PlatformSudoPermission,
+			RelationName: schema.AdminRelationName,
+		},
+	}
+
+	memberCheckRelations := []relation.Relation{
+		{
+			Subject: relation.Subject{
+				ID:        "test-id",
+				Namespace: schema.UserPrincipal,
+			},
+			Object: relation.Object{
+				ID:        schema.PlatformID,
+				Namespace: schema.PlatformNamespace,
+			},
+			RelationName: schema.MemberRelationName,
 		},
 	}
 
@@ -908,7 +926,7 @@ func TestService_UnSudo(t *testing.T) {
 			},
 		},
 		{
-			name:    "removes member relation without auditing",
+			name:    "removes member relation and audits the revoke",
 			wantErr: false,
 			args: args{
 				id:           "test-id",
@@ -921,7 +939,9 @@ func TestService_UnSudo(t *testing.T) {
 					Name: "test",
 				}, nil)
 
-				// member removal does not gate on a permission check; it deletes directly
+				relationService.EXPECT().BatchCheckPermission(mock.Anything, memberCheckRelations).
+					Return([]relation.CheckPair{{Relation: memberCheckRelations[0], Status: true}}, nil)
+
 				relationService.EXPECT().Delete(mock.Anything, relation.Relation{
 					Object: relation.Object{
 						ID:        schema.PlatformID,
@@ -933,6 +953,30 @@ func TestService_UnSudo(t *testing.T) {
 					},
 					RelationName: schema.MemberRelationName,
 				}).Return(nil)
+
+				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
+					return r.Event == pkgAuditRecord.PlatformMemberRevokedEvent && r.Target != nil && r.Target.ID == "test-id"
+				})).Return(models.AuditRecord{}, nil)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+			},
+		},
+		{
+			name:    "member removal is a no-op when the relation is absent",
+			wantErr: false,
+			args: args{
+				id:           "test-id",
+				relationName: schema.MemberRelationName,
+			},
+			setup: func() *user.Service {
+				repo, relationService, sessionService, auditRecordRepository := mockService(t)
+				repo.EXPECT().GetByName(mock.Anything, "test-id").Return(user.User{
+					ID:   "test-id",
+					Name: "test",
+				}, nil)
+
+				relationService.EXPECT().BatchCheckPermission(mock.Anything, memberCheckRelations).
+					Return([]relation.CheckPair{{Relation: memberCheckRelations[0], Status: false}}, nil)
+				// no Delete, no audit
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
 		},

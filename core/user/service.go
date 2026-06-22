@@ -215,17 +215,13 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		return err
 	}
 
-	// only the admin relation grants superuser; audit that grant
-	if relationName == schema.AdminRelationName {
-		return s.recordPlatformAdminAuditRecord(ctx, currentUser, pkgAuditRecord.PlatformAdminGrantedEvent)
-	}
-	return nil
+	// audit the grant for both admin and member relations
+	return s.recordPlatformAuditRecord(ctx, currentUser, platformGrantedEvent(relationName), relationName)
 }
 
 // UnSudo removes a platform relation (admin or member) from a user.
-// It removes the exact relation requested — unlike before, an `admin` relation
-// can now actually be stripped. Removing the `admin` relation (the one that
-// grants superuser) is audited; `member` removal is not.
+// It removes the exact relation requested — an `admin` relation can now actually
+// be stripped. Both admin and member grants/removals are audited.
 func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 	switch relationName {
 	case schema.AdminRelationName, schema.MemberRelationName:
@@ -238,17 +234,15 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 		return err
 	}
 
-	// For the admin relation, only act (and audit) when it actually exists, so
-	// the revoke event reflects a real state change. superuser == admin, so the
-	// superuser permission precisely detects the admin relation.
-	if relationName == schema.AdminRelationName {
-		isAdmin, err := s.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission)
-		if err != nil {
-			return err
-		}
-		if !isAdmin {
-			return nil
-		}
+	// Only act (and audit) when the specific relation actually exists, so the
+	// revoke event reflects a real state change. Checking the relation directly
+	// is precise for both admin and member.
+	present, err := s.IsSudo(ctx, currentUser.ID, relationName)
+	if err != nil {
+		return err
+	}
+	if !present {
+		return nil
 	}
 
 	// unmark su
@@ -266,17 +260,30 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 		return err
 	}
 
-	if relationName == schema.AdminRelationName {
-		return s.recordPlatformAdminAuditRecord(ctx, currentUser, pkgAuditRecord.PlatformAdminRevokedEvent)
-	}
-	return nil
+	return s.recordPlatformAuditRecord(ctx, currentUser, platformRevokedEvent(relationName), relationName)
 }
 
-// recordPlatformAdminAuditRecord writes an audit record for a platform admin
-// (superuser) grant/revoke. Actor is left empty so the repository enriches it
-// from context — the acting principal on request paths, or the system actor
+// platformGrantedEvent / platformRevokedEvent map a platform relation to its
+// audit event. relationName is always admin or member at the call sites.
+func platformGrantedEvent(relationName string) pkgAuditRecord.Event {
+	if relationName == schema.MemberRelationName {
+		return pkgAuditRecord.PlatformMemberGrantedEvent
+	}
+	return pkgAuditRecord.PlatformAdminGrantedEvent
+}
+
+func platformRevokedEvent(relationName string) pkgAuditRecord.Event {
+	if relationName == schema.MemberRelationName {
+		return pkgAuditRecord.PlatformMemberRevokedEvent
+	}
+	return pkgAuditRecord.PlatformAdminRevokedEvent
+}
+
+// recordPlatformAuditRecord writes an audit record for a platform relation
+// (admin or member) grant/revoke. Actor is left empty so the repository enriches
+// it from context — the acting principal on request paths, or the system actor
 // (uuid.Nil) for boot-time/config-driven changes.
-func (s Service) recordPlatformAdminAuditRecord(ctx context.Context, u User, event pkgAuditRecord.Event) error {
+func (s Service) recordPlatformAuditRecord(ctx context.Context, u User, event pkgAuditRecord.Event, relationName string) error {
 	_, err := s.auditRecordRepository.Create(ctx, models.AuditRecord{
 		Event: event,
 		Resource: models.Resource{
@@ -291,7 +298,7 @@ func (s Service) recordPlatformAdminAuditRecord(ctx context.Context, u User, eve
 		},
 		OrgID:      schema.PlatformOrgID.String(),
 		OccurredAt: s.Now(),
-		Metadata:   map[string]any{"relation": schema.AdminRelationName},
+		Metadata:   map[string]any{"relation": relationName},
 	})
 	return err
 }
