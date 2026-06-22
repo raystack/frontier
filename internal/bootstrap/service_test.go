@@ -147,6 +147,51 @@ func TestMakeSuperUsers_Authoritative(t *testing.T) {
 		relSvc.AssertNotCalled(t, "List", mock.Anything, mock.Anything)
 		userSvc.AssertNotCalled(t, "UnSudo", mock.Anything, mock.Anything, mock.Anything)
 	})
+
+	t.Run("aborts (no demotions) when resolving a configured admin fails with a non-not-found error", func(t *testing.T) {
+		userSvc := new(mockUserService)
+		relSvc := new(mockRelationService)
+
+		userSvc.On("Sudo", mock.Anything, "keep@x.com", schema.AdminRelationName).Return(nil)
+		userSvc.On("GetByID", mock.Anything, "keep@x.com").Return(user.User{}, errors.New("db timeout"))
+
+		s := Service{
+			adminConfig:     AdminConfig{Users: []string{"keep@x.com"}, Authoritative: true},
+			userService:     userSvc,
+			relationService: relSvc,
+		}
+
+		// A transient resolve failure must abort before listing/demotion, so a real
+		// admin is never wrongly demoted on a backend blip.
+		assert.Error(t, s.MakeSuperUsers(context.Background()))
+		relSvc.AssertNotCalled(t, "List", mock.Anything, mock.Anything)
+		userSvc.AssertNotCalled(t, "UnSudo", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("skips a configured entry that resolves to no user (not-found)", func(t *testing.T) {
+		userSvc := new(mockUserService)
+		relSvc := new(mockRelationService)
+
+		userSvc.On("Sudo", mock.Anything, "missing-user", schema.AdminRelationName).Return(nil)
+		userSvc.On("GetByID", mock.Anything, "missing-user").Return(user.User{}, user.ErrNotExist)
+
+		// A genuinely missing entry is skipped (not aborted); reconciliation continues
+		// and still demotes admins absent from config.
+		relSvc.On("List", mock.Anything, platformFilter).Return([]relation.Relation{
+			platformAdminRel("drop-id", schema.UserPrincipal),
+		}, nil)
+		userSvc.On("UnSudo", mock.Anything, "drop-id", schema.AdminRelationName).Return(nil)
+
+		s := Service{
+			adminConfig:     AdminConfig{Users: []string{"missing-user"}, Authoritative: true},
+			userService:     userSvc,
+			relationService: relSvc,
+		}
+
+		assert.NoError(t, s.MakeSuperUsers(context.Background()))
+		userSvc.AssertExpectations(t)
+		relSvc.AssertExpectations(t)
+	})
 }
 
 func Test_migratePATRelations(t *testing.T) {

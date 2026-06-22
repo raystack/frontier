@@ -301,10 +301,15 @@ func (s Service) reconcileSuperUsers(ctx context.Context) error {
 		}
 		u, err := s.userService.GetByID(ctx, entry)
 		if err != nil {
-			// An entry that doesn't resolve to a user (e.g. a UUID/slug that was
-			// never created) cannot be an admin; skip it, matching the promote path.
-			slog.WarnContext(ctx, "skipping unresolvable admin config entry during reconciliation", "entry", entry, "err", err.Error())
-			continue
+			// Skip only genuinely missing users (e.g. a UUID/slug that was never
+			// created) — they can't be admins anyway. Any other error (a transient
+			// backend/DB failure) must abort: otherwise a real configured admin
+			// could look "absent from config" and be wrongly demoted below.
+			if errors.Is(err, user.ErrNotExist) {
+				slog.WarnContext(ctx, "skipping unresolvable admin config entry during reconciliation", "entry", entry, "err", err.Error())
+				continue
+			}
+			return fmt.Errorf("reconciling superusers: resolving configured admin %q: %w", entry, err)
 		}
 		desiredIDs[u.ID] = struct{}{}
 	}
