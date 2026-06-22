@@ -481,9 +481,9 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 	}
 
 	// audit the grant for both admin and member relations
-	event := pkgAuditRecord.PlatformAdminGrantedEvent
+	event := pkgAuditRecord.PlatformAdminAddedEvent
 	if relationName == schema.MemberRelationName {
-		event = pkgAuditRecord.PlatformMemberGrantedEvent
+		event = pkgAuditRecord.PlatformMemberAddedEvent
 	}
 	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
 }
@@ -529,9 +529,9 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 		return err
 	}
 
-	event := pkgAuditRecord.PlatformAdminRevokedEvent
+	event := pkgAuditRecord.PlatformAdminRemovedEvent
 	if relationName == schema.MemberRelationName {
-		event = pkgAuditRecord.PlatformMemberRevokedEvent
+		event = pkgAuditRecord.PlatformMemberRemovedEvent
 	}
 	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
 }

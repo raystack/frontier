@@ -48,7 +48,7 @@ func TestService_Sudo(t *testing.T) {
 		rel.On("CheckPermission", ctx, platformRel(schema.PlatformSudoPermission)).Return(false, nil)
 		rel.On("Create", ctx, platformRel(schema.AdminRelationName)).Return(relation.Relation{}, nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
-			return r.Event == pkgAuditRecord.PlatformAdminGrantedEvent && r.Target != nil && r.Target.ID == suID
+			return r.Event == pkgAuditRecord.PlatformAdminAddedEvent && r.Target != nil && r.Target.ID == suID
 		})).Return(models.AuditRecord{}, nil)
 
 		if err := svc.Sudo(ctx, suID, schema.AdminRelationName); err != nil {
@@ -62,7 +62,7 @@ func TestService_Sudo(t *testing.T) {
 		rel.On("CheckPermission", ctx, platformRel(schema.PlatformCheckPermission)).Return(false, nil)
 		rel.On("Create", ctx, platformRel(schema.MemberRelationName)).Return(relation.Relation{}, nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
-			return r.Event == pkgAuditRecord.PlatformMemberGrantedEvent && r.Target != nil && r.Target.ID == suID
+			return r.Event == pkgAuditRecord.PlatformMemberAddedEvent && r.Target != nil && r.Target.ID == suID
 		})).Return(models.AuditRecord{}, nil)
 
 		if err := svc.Sudo(ctx, suID, schema.MemberRelationName); err != nil {
@@ -89,7 +89,7 @@ func TestService_UnSudo(t *testing.T) {
 		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(true, nil)
 		rel.On("Delete", ctx, platformRel(schema.AdminRelationName)).Return(nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
-			return r.Event == pkgAuditRecord.PlatformAdminRevokedEvent && r.Target != nil && r.Target.ID == suID
+			return r.Event == pkgAuditRecord.PlatformAdminRemovedEvent && r.Target != nil && r.Target.ID == suID
 		})).Return(models.AuditRecord{}, nil)
 
 		if err := svc.UnSudo(ctx, suID, schema.AdminRelationName); err != nil {
@@ -113,7 +113,7 @@ func TestService_UnSudo(t *testing.T) {
 		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(true, nil)
 		rel.On("Delete", ctx, platformRel(schema.MemberRelationName)).Return(nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
-			return r.Event == pkgAuditRecord.PlatformMemberRevokedEvent && r.Target != nil && r.Target.ID == suID
+			return r.Event == pkgAuditRecord.PlatformMemberRemovedEvent && r.Target != nil && r.Target.ID == suID
 		})).Return(models.AuditRecord{}, nil)
 
 		if err := svc.UnSudo(ctx, suID, schema.MemberRelationName); err != nil {

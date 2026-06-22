@@ -216,7 +216,7 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 	}
 
 	// audit the grant for both admin and member relations
-	return s.recordPlatformAuditRecord(ctx, currentUser, platformGrantedEvent(relationName), relationName)
+	return s.recordPlatformAuditRecord(ctx, currentUser, platformAddedEvent(relationName), relationName)
 }
 
 // UnSudo removes a platform relation (admin or member) from a user.
@@ -260,23 +260,23 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 		return err
 	}
 
-	return s.recordPlatformAuditRecord(ctx, currentUser, platformRevokedEvent(relationName), relationName)
+	return s.recordPlatformAuditRecord(ctx, currentUser, platformRemovedEvent(relationName), relationName)
 }
 
-// platformGrantedEvent / platformRevokedEvent map a platform relation to its
+// platformAddedEvent / platformRemovedEvent map a platform relation to its
 // audit event. relationName is always admin or member at the call sites.
-func platformGrantedEvent(relationName string) pkgAuditRecord.Event {
+func platformAddedEvent(relationName string) pkgAuditRecord.Event {
 	if relationName == schema.MemberRelationName {
-		return pkgAuditRecord.PlatformMemberGrantedEvent
+		return pkgAuditRecord.PlatformMemberAddedEvent
 	}
-	return pkgAuditRecord.PlatformAdminGrantedEvent
+	return pkgAuditRecord.PlatformAdminAddedEvent
 }
 
-func platformRevokedEvent(relationName string) pkgAuditRecord.Event {
+func platformRemovedEvent(relationName string) pkgAuditRecord.Event {
 	if relationName == schema.MemberRelationName {
-		return pkgAuditRecord.PlatformMemberRevokedEvent
+		return pkgAuditRecord.PlatformMemberRemovedEvent
 	}
-	return pkgAuditRecord.PlatformAdminRevokedEvent
+	return pkgAuditRecord.PlatformAdminRemovedEvent
 }
 
 // recordPlatformAuditRecord writes an audit record for a platform relation

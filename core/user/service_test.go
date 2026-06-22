@@ -700,7 +700,7 @@ func TestService_Sudo(t *testing.T) {
 				}).Return(relation.Relation{}, nil)
 
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
-					return r.Event == pkgAuditRecord.PlatformAdminGrantedEvent && r.Target != nil && r.Target.ID == "test-id"
+					return r.Event == pkgAuditRecord.PlatformAdminAddedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
@@ -814,7 +814,7 @@ func TestService_Sudo(t *testing.T) {
 				}).Return(relation.Relation{}, nil)
 
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
-					return r.Event == pkgAuditRecord.PlatformMemberGrantedEvent && r.Target != nil && r.Target.ID == "test-id"
+					return r.Event == pkgAuditRecord.PlatformMemberAddedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
@@ -900,7 +900,7 @@ func TestService_UnSudo(t *testing.T) {
 				}).Return(nil)
 
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
-					return r.Event == pkgAuditRecord.PlatformAdminRevokedEvent && r.Target != nil && r.Target.ID == "test-id"
+					return r.Event == pkgAuditRecord.PlatformAdminRemovedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
@@ -955,7 +955,7 @@ func TestService_UnSudo(t *testing.T) {
 				}).Return(nil)
 
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
-					return r.Event == pkgAuditRecord.PlatformMemberRevokedEvent && r.Target != nil && r.Target.ID == "test-id"
+					return r.Event == pkgAuditRecord.PlatformMemberRemovedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
