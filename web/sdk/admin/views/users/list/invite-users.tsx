@@ -244,7 +244,8 @@ export const InviteUser = () => {
                             }}>
                             {organizations?.map(org => (
                               <Select.Item key={org.id} value={org.id ?? ""}>
-                                {org.name}
+                                {/* show display title (matches the org list & invite email); fall back to the slug if unset */}
+                                {org.title || org.name}
                               </Select.Item>
                             ))}
                           </Select.Content>
