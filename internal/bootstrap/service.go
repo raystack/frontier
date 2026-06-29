@@ -16,7 +16,6 @@ import (
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
-	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
@@ -43,13 +42,10 @@ type RoleService interface {
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
-	List(ctx context.Context, flt relation.Filter) ([]relation.Relation, error)
 }
 
 type UserService interface {
 	Sudo(ctx context.Context, id string, relationName string) error
-	UnSudo(ctx context.Context, id string, relationName string) error
-	GetByID(ctx context.Context, id string) (user.User, error)
 }
 
 type FileService interface {
@@ -92,12 +88,6 @@ type AdminConfig struct {
 	// Users are a list of email-ids/uuids which needs to be promoted as superusers
 	// if email is provided and user doesn't exist, user is created by default
 	Users []string `yaml:"users" mapstructure:"users"`
-
-	// Authoritative, when true, makes the configured Users list the single source
-	// of truth for human superusers: at boot any human holding the platform admin
-	// relation that is NOT in Users is demoted. Service accounts are never touched.
-	// WARNING: with an empty/misconfigured list this demotes ALL human superusers.
-	Authoritative bool `yaml:"authoritative" mapstructure:"authoritative" default:"false"`
 }
 
 type Service struct {
@@ -268,74 +258,15 @@ func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermissio
 	return filteredPermissions
 }
 
-// MakeSuperUsers promotes the configured users to superuser. When the admin
-// config is Authoritative, it then demotes any human superuser no longer present
-// in the config (see reconcileSuperUsers).
+// MakeSuperUsers promotes the configured users to superuser (additive). Ongoing
+// platform-user management (incl. removal) is handled out-of-band via the GitOps
+// reconcile flow, not at boot.
 func (s Service) MakeSuperUsers(ctx context.Context) error {
 	for _, userID := range s.adminConfig.Users {
 		userID = strings.TrimSpace(userID)
 		slog.DebugContext(ctx, "promoting user to superuser", "user_id", userID)
 		if err := s.userService.Sudo(ctx, userID, schema.AdminRelationName); err != nil {
 			return err
-		}
-	}
-
-	if !s.adminConfig.Authoritative {
-		return nil
-	}
-	return s.reconcileSuperUsers(ctx)
-}
-
-// reconcileSuperUsers demotes any human user holding the platform admin relation
-// that is not present in the configured admin list. Service accounts and the
-// member relation are never touched. This makes config the source of truth for
-// the human-superuser set; with an empty/misconfigured list it demotes everyone.
-func (s Service) reconcileSuperUsers(ctx context.Context) error {
-	// Desired set: resolve each config entry to its canonical user ID so the diff
-	// is keyed by ID (an admin listed by both email and UUID collapses to one).
-	desiredIDs := make(map[string]struct{}, len(s.adminConfig.Users))
-	for _, entry := range s.adminConfig.Users {
-		entry = strings.TrimSpace(entry)
-		if entry == "" {
-			continue
-		}
-		u, err := s.userService.GetByID(ctx, entry)
-		if err != nil {
-			// Skip only genuinely missing users (e.g. a UUID/slug that was never
-			// created) — they can't be admins anyway. Any other error (a transient
-			// backend/DB failure) must abort: otherwise a real configured admin
-			// could look "absent from config" and be wrongly demoted below.
-			if errors.Is(err, user.ErrNotExist) {
-				slog.WarnContext(ctx, "skipping unresolvable admin config entry during reconciliation", "entry", entry, "err", err.Error())
-				continue
-			}
-			return fmt.Errorf("reconciling superusers: resolving configured admin %q: %w", entry, err)
-		}
-		desiredIDs[u.ID] = struct{}{}
-	}
-
-	// Current set: every relation on the platform object.
-	relations, err := s.relationService.List(ctx, relation.Filter{
-		Object: relation.Object{
-			ID:        schema.PlatformID,
-			Namespace: schema.PlatformNamespace,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("reconciling superusers: listing platform relations: %w", err)
-	}
-
-	for _, rel := range relations {
-		// Only reconcile human-user admins; leave service accounts and members alone.
-		if rel.RelationName != schema.AdminRelationName || rel.Subject.Namespace != schema.UserPrincipal {
-			continue
-		}
-		if _, ok := desiredIDs[rel.Subject.ID]; ok {
-			continue
-		}
-		slog.InfoContext(ctx, "demoting superuser not present in admin config", "user_id", rel.Subject.ID)
-		if err := s.userService.UnSudo(ctx, rel.Subject.ID, schema.AdminRelationName); err != nil {
-			return fmt.Errorf("reconciling superusers: demoting user %s: %w", rel.Subject.ID, err)
 		}
 	}
 	return nil
