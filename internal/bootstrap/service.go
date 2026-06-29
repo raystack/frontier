@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/raystack/frontier/billing/plan"
 
@@ -42,10 +41,6 @@ type RoleService interface {
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
-}
-
-type UserService interface {
-	Sudo(ctx context.Context, id string, relationName string) error
 }
 
 type FileService interface {
@@ -85,12 +80,9 @@ type ServiceUserBackfiller interface {
 
 // AdminConfig is platform administration configuration
 type AdminConfig struct {
-	// Users are a list of email-ids/uuids which needs to be promoted as superusers
-	// if email is provided and user doesn't exist, user is created by default
-	Users []string `yaml:"users" mapstructure:"users"`
-
-	// Bootstrap seeds a superuser service account from config (client_id/secret)
-	// so automation (e.g. GitOps) has a superuser identity without a chicken-and-egg.
+	// Bootstrap seeds a superuser service account from config (client_id/secret) so
+	// automation (e.g. GitOps) has a superuser identity without a chicken-and-egg.
+	// All other platform-user management is handled out-of-band via GitOps reconcile.
 	Bootstrap SuperUserBootstrapConfig `yaml:"bootstrap" mapstructure:"bootstrap"`
 }
 
@@ -102,7 +94,6 @@ type Service struct {
 	roleService       RoleService
 	permissionService PermissionService
 	authzEngine       AuthzEngine
-	userService       UserService
 	relationService   RelationService
 	policyService     PolicyService
 	serviceuserRepo   ServiceUserBackfiller
@@ -123,7 +114,6 @@ func NewBootstrapService(
 	namespaceService NamespaceService,
 	roleService RoleService,
 	actionService PermissionService,
-	userService UserService,
 	authzEngine AuthzEngine,
 	relationService RelationService,
 	policyService PolicyService,
@@ -142,7 +132,6 @@ func NewBootstrapService(
 		namespaceService:  namespaceService,
 		roleService:       roleService,
 		permissionService: actionService,
-		userService:       userService,
 		authzEngine:       authzEngine,
 		planService:       planService,
 		planLocalRepo:     planLocalRepo,
@@ -270,20 +259,6 @@ func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermissio
 		}
 	}
 	return filteredPermissions
-}
-
-// MakeSuperUsers promotes the configured users to superuser (additive). Ongoing
-// platform-user management (incl. removal) is handled out-of-band via the GitOps
-// reconcile flow, not at boot.
-func (s Service) MakeSuperUsers(ctx context.Context) error {
-	for _, userID := range s.adminConfig.Users {
-		userID = strings.TrimSpace(userID)
-		slog.DebugContext(ctx, "promoting user to superuser", "user_id", userID)
-		if err := s.userService.Sudo(ctx, userID, schema.AdminRelationName); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // MigrateRoles migrate predefined roles to org

@@ -55,39 +55,6 @@ func (m *mockRelationService) Delete(ctx context.Context, rel relation.Relation)
 	return args.Error(0)
 }
 
-// mockUserService implements bootstrap.UserService (additive promote only).
-type mockUserService struct{ mock.Mock }
-
-func (m *mockUserService) Sudo(ctx context.Context, id, relationName string) error {
-	return m.Called(ctx, id, relationName).Error(0)
-}
-
-func TestMakeSuperUsers(t *testing.T) {
-	t.Run("promotes each configured user as platform admin (trimmed)", func(t *testing.T) {
-		userSvc := new(mockUserService)
-		userSvc.On("Sudo", mock.Anything, "alice@x.com", schema.AdminRelationName).Return(nil)
-		userSvc.On("Sudo", mock.Anything, "bob@x.com", schema.AdminRelationName).Return(nil)
-
-		s := Service{
-			adminConfig: AdminConfig{Users: []string{"alice@x.com", "  bob@x.com  "}},
-			userService: userSvc,
-		}
-		assert.NoError(t, s.MakeSuperUsers(context.Background()))
-		userSvc.AssertExpectations(t)
-	})
-
-	t.Run("returns the error when a promotion fails", func(t *testing.T) {
-		userSvc := new(mockUserService)
-		userSvc.On("Sudo", mock.Anything, "alice@x.com", schema.AdminRelationName).Return(errors.New("boom"))
-
-		s := Service{
-			adminConfig: AdminConfig{Users: []string{"alice@x.com"}},
-			userService: userSvc,
-		}
-		assert.Error(t, s.MakeSuperUsers(context.Background()))
-	})
-}
-
 func Test_migratePATRelations(t *testing.T) {
 	t.Run("should create PAT wildcards for allowed permissions", func(t *testing.T) {
 		roleSvc := new(mockRoleService)
