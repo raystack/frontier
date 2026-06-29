@@ -88,6 +88,10 @@ type AdminConfig struct {
 	// Users are a list of email-ids/uuids which needs to be promoted as superusers
 	// if email is provided and user doesn't exist, user is created by default
 	Users []string `yaml:"users" mapstructure:"users"`
+
+	// Bootstrap seeds a superuser service account from config (client_id/secret)
+	// so automation (e.g. GitOps) has a superuser identity without a chicken-and-egg.
+	Bootstrap SuperUserBootstrapConfig `yaml:"bootstrap" mapstructure:"bootstrap"`
 }
 
 type Service struct {
@@ -103,6 +107,10 @@ type Service struct {
 	policyService     PolicyService
 	serviceuserRepo   ServiceUserBackfiller
 	patDeniedPerms    map[string]struct{}
+
+	suCreator   ServiceUserCreator
+	suCredStore ServiceUserCredentialStore
+	suPromoter  SuperUserPromoter
 
 	planService   PlanService
 	planLocalRepo BillingPlanRepository
@@ -123,6 +131,9 @@ func NewBootstrapService(
 	patDeniedPerms map[string]struct{},
 	planService PlanService,
 	planLocalRepo BillingPlanRepository,
+	suCreator ServiceUserCreator,
+	suCredStore ServiceUserCredentialStore,
+	suPromoter SuperUserPromoter,
 ) *Service {
 	return &Service{
 		logger:            logger,
@@ -139,6 +150,9 @@ func NewBootstrapService(
 		policyService:     policyService,
 		serviceuserRepo:   serviceuserRepo,
 		patDeniedPerms:    patDeniedPerms,
+		suCreator:         suCreator,
+		suCredStore:       suCredStore,
+		suPromoter:        suPromoter,
 	}
 }
 

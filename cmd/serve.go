@@ -216,6 +216,10 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 	if err = deps.BootstrapService.MakeSuperUsers(ctx); err != nil {
 		return err
 	}
+	// ensure the config-seeded bootstrap superuser service account (for automation/GitOps)
+	if err = deps.BootstrapService.EnsureBootstrapSuperUser(ctx); err != nil {
+		return err
+	}
 
 	// Backfill legacy SU org policies. Non-fatal: this runs over unbounded
 	// customer data and a single stuck row shouldn't brick the server.
@@ -577,6 +581,9 @@ func buildAPIDependencies(
 		cfg.App.PAT.DeniedPermissionsSet(),
 		planService,
 		planBlobRepository,
+		svUserRepo,
+		scUserCredRepo,
+		serviceUserService,
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
