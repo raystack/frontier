@@ -99,9 +99,8 @@ func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
 		_, err := r.client.AddPlatformUser(ctx, authReq(req, r.header))
 		return err
 	case opRemove:
-		// Principal-level removal (strips all platform relations). Relation-selective
-		// removal lands with the proton `relation` field (task #20).
-		req := &frontierv1beta1.RemovePlatformUserRequest{}
+		// relation-selective removal (proton #489): strip only op.Relation.
+		req := &frontierv1beta1.RemovePlatformUserRequest{Relation: op.Relation}
 		if op.Type == principalTypeUser {
 			req.UserId = op.Ref
 		} else {

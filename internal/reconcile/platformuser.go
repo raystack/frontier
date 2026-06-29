@@ -53,7 +53,7 @@ type Op struct {
 
 func (o Op) String() string {
 	if o.Action == opRemove {
-		return fmt.Sprintf("remove %s %s (all platform relations)", o.Type, o.Ref)
+		return fmt.Sprintf("remove %s %s (%s)", o.Type, o.Ref, o.Relation)
 	}
 	return fmt.Sprintf("add %s %s as %s", o.Type, o.Ref, o.Relation)
 }
@@ -87,13 +87,13 @@ func specMatchesPrincipal(s PlatformUserSpec, p platformPrincipal) bool {
 	return p.Type == principalTypeUser && s.Ref != "" && strings.EqualFold(s.Ref, p.Email)
 }
 
-// diffPlatformUsers converges current platform principals to the desired spec.
-//
-// For each current principal it computes the desired relation set (the specs that match
-// it). If that differs from what it currently holds, the principal is reconciled:
-// removed, then re-granted each desired relation (the only correct option with today's
-// principal-level RemovePlatformUser). Desired entries that match no current principal
-// are new and are simply added. The result is deterministic given stable input order.
+// platformRelationOrder gives operations a stable, deterministic order.
+var platformRelationOrder = []string{schema.AdminRelationName, schema.MemberRelationName}
+
+// diffPlatformUsers converges current platform principals to the desired spec at
+// the (principal, relation) granularity: each current relation no longer desired is
+// removed (relation-selectively), each desired relation not present is added. Desired
+// entries matching no current principal are new and are added. Output is deterministic.
 func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) ([]Op, error) {
 	for _, s := range desired {
 		if err := validateSpec(s); err != nil {
@@ -104,30 +104,35 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 	var ops []Op
 	matched := make([]bool, len(desired))
 
-	// Reconcile each existing principal against its desired relations.
 	for _, p := range current {
 		want := map[string]struct{}{}
-		var addRefs []string // desired relations to (re)grant, in spec order
 		for i, s := range desired {
 			if specMatchesPrincipal(s, p) {
 				matched[i] = true
-				if _, dup := want[s.Role]; !dup {
-					want[s.Role] = struct{}{}
-					addRefs = append(addRefs, s.Role)
-				}
+				want[s.Role] = struct{}{}
 			}
 		}
-		if relationsEqual(p.Relations, want) {
-			continue // already converged
+		// remove current relations that are no longer desired
+		for _, rel := range platformRelationOrder {
+			if _, has := p.Relations[rel]; !has {
+				continue
+			}
+			if _, wanted := want[rel]; !wanted {
+				ops = append(ops, Op{Action: opRemove, Type: p.Type, Ref: p.ID, Relation: rel})
+			}
 		}
-		// drift: strip the principal, then re-grant exactly the desired relations.
-		ops = append(ops, Op{Action: opRemove, Type: p.Type, Ref: p.ID})
-		for _, rel := range addRefs {
-			ops = append(ops, Op{Action: opAdd, Type: p.Type, Ref: p.ID, Relation: rel})
+		// add desired relations not already held
+		for _, rel := range platformRelationOrder {
+			if _, wanted := want[rel]; !wanted {
+				continue
+			}
+			if _, has := p.Relations[rel]; !has {
+				ops = append(ops, Op{Action: opAdd, Type: p.Type, Ref: p.ID, Relation: rel})
+			}
 		}
 	}
 
-	// Add desired entries that don't correspond to any current platform principal.
+	// add desired entries that match no current platform principal
 	seenNewRef := map[string]struct{}{}
 	for i, s := range desired {
 		if matched[i] {
@@ -142,16 +147,4 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 	}
 
 	return ops, nil
-}
-
-func relationsEqual(a, b map[string]struct{}) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for k := range a {
-		if _, ok := b[k]; !ok {
-			return false
-		}
-	}
-	return true
 }

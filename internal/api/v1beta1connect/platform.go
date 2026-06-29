@@ -33,10 +33,16 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error) {
-	// Remove the principal from the platform entirely: strip both the admin
-	// (superuser) and member (check) relations. Each UnSudo is a no-op for a
-	// relation the principal doesn't hold.
+	// By default remove the principal from the platform entirely (both admin and
+	// member). When a relation is set, scope removal to just that one — e.g. to
+	// demote an admin to member. Each UnSudo is a no-op for a relation not held.
 	platformRelations := []string{schema.AdminRelationName, schema.MemberRelationName}
+	if rel := req.Msg.GetRelation(); rel != "" {
+		if !schema.IsPlatformRelation(rel) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		platformRelations = []string{rel}
+	}
 
 	if req.Msg.GetUserId() != "" {
 		for _, relationName := range platformRelations {

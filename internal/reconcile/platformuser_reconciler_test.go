@@ -55,6 +55,7 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		assert.Equal(t, 2, rep.Applied)
 		if assert.Len(t, api.removed, 1) {
 			assert.Equal(t, "drop-id", api.removed[0].GetUserId())
+			assert.Equal(t, schema.AdminRelationName, api.removed[0].GetRelation())
 		}
 		if assert.Len(t, api.added, 1) {
 			assert.Equal(t, "new@x.com", api.added[0].GetUserId())

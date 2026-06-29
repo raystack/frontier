@@ -58,7 +58,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 			[]platformPrincipal{principal("user", "drop-id", "drop@x.com", admin)},
 		)
 		assert.NoError(t, err)
-		assert.Equal(t, []Op{{Action: opRemove, Type: "user", Ref: "drop-id"}}, ops)
+		assert.Equal(t, []Op{{Action: opRemove, Type: "user", Ref: "drop-id", Relation: admin}}, ops)
 	})
 
 	t.Run("role change removes then re-adds the desired relation", func(t *testing.T) {
@@ -68,7 +68,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 		)
 		assert.NoError(t, err)
 		assert.Equal(t, []Op{
-			{Action: opRemove, Type: "user", Ref: "alice-id"},
+			{Action: opRemove, Type: "user", Ref: "alice-id", Relation: admin},
 			{Action: opAdd, Type: "user", Ref: "alice-id", Relation: member},
 		}, ops)
 	})
@@ -86,7 +86,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 		)
 		assert.NoError(t, err)
 		assert.Equal(t, []Op{
-			{Action: opRemove, Type: "user", Ref: "drop-id"},
+			{Action: opRemove, Type: "user", Ref: "drop-id", Relation: admin},
 			{Action: opAdd, Type: "user", Ref: "new@x.com", Relation: member},
 		}, ops)
 	})
