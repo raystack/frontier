@@ -56,7 +56,7 @@ func bcryptHash(t *testing.T, secret string) string {
 func TestEnsureBootstrapSuperUser(t *testing.T) {
 	ctx := context.Background()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	const clientID = "gitops-bootstrap"
+	const clientID = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 
 	t.Run("no-op when not configured", func(t *testing.T) {
 		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
@@ -65,6 +65,14 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		creds.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
 		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("rejects a non-uuid client_id", func(t *testing.T) {
+		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		cfg := SuperUserBootstrapConfig{ClientID: "not-a-uuid", ClientSecret: "s3cret"}
+
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
+		creds.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
 	})
 
 	t.Run("creates service user + credential + promotes when absent", func(t *testing.T) {

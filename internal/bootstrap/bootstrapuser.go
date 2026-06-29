@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/raystack/frontier/core/serviceuser"
@@ -83,6 +84,11 @@ func ensureBootstrapSuperUser(
 		return nil
 	}
 	clientID := strings.TrimSpace(cfg.ClientID)
+	// client_id is the service-user credential's id, which is a UUID column; a
+	// non-UUID would otherwise fail with an opaque SQL error deep in the lookup.
+	if _, err := uuid.Parse(clientID); err != nil {
+		return fmt.Errorf("bootstrap superuser: client_id must be a valid uuid: %w", err)
+	}
 
 	cred, err := creds.Get(ctx, clientID)
 	switch {
