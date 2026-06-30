@@ -49,6 +49,10 @@ func (c SuperUserBootstrapConfig) title() string {
 // is the repository's Create, not serviceuser.Service.Create.
 type ServiceUserCreator interface {
 	Create(ctx context.Context, su serviceuser.ServiceUser) (serviceuser.ServiceUser, error)
+	// Delete removes a service user by id. Used to roll back a just-created
+	// bootstrap service user when credential creation fails, so repeated boot
+	// failures don't accumulate credential-less orphan rows.
+	Delete(ctx context.Context, id string) error
 }
 
 // ServiceUserCredentialStore manages client-secret credentials keyed by id.
@@ -127,7 +131,8 @@ func createBootstrapSuperUser(
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.ClientSecret), bootstrapBcryptCost)
 	if err != nil {
-		return fmt.Errorf("bootstrap superuser: hash secret: %w", err)
+		return cleanupOrphanBootstrapSU(ctx, logger, users, su.ID,
+			fmt.Errorf("bootstrap superuser: hash secret: %w", err))
 	}
 	if _, err := creds.Create(ctx, serviceuser.Credential{
 		ID:            clientID,
@@ -136,11 +141,25 @@ func createBootstrapSuperUser(
 		SecretHash:    string(hash),
 		Title:         cfg.title(),
 	}); err != nil {
-		return fmt.Errorf("bootstrap superuser: create credential: %w", err)
+		return cleanupOrphanBootstrapSU(ctx, logger, users, su.ID,
+			fmt.Errorf("bootstrap superuser: create credential: %w", err))
 	}
 	logger.InfoContext(ctx, "created bootstrap superuser service account",
 		"client_id", clientID, "serviceuser_id", su.ID)
 	return promoteBootstrapSuperUser(ctx, promoter, su.ID)
+}
+
+// cleanupOrphanBootstrapSU best-effort deletes a service user created moments
+// earlier when a later step (hashing, credential creation) fails. Without it the
+// row would be orphaned — credential-less and unpromoted — and the next boot,
+// still finding no credential, would create another. The original cause is always
+// returned; a failed cleanup is only logged (the next boot retries anyway).
+func cleanupOrphanBootstrapSU(ctx context.Context, logger *slog.Logger, users ServiceUserCreator, suID string, cause error) error {
+	if err := users.Delete(ctx, suID); err != nil {
+		logger.WarnContext(ctx, "failed to roll back orphan bootstrap service user",
+			"serviceuser_id", suID, "err", err.Error())
+	}
+	return cause
 }
 
 // rotateBootstrapSecret replaces the stored secret. The credential repo has no

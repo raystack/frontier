@@ -22,6 +22,10 @@ func (m *mockSUCreator) Create(ctx context.Context, su serviceuser.ServiceUser) 
 	return args.Get(0).(serviceuser.ServiceUser), args.Error(1)
 }
 
+func (m *mockSUCreator) Delete(ctx context.Context, id string) error {
+	return m.Called(ctx, id).Error(0)
+}
+
 type mockCredStore struct{ mock.Mock }
 
 func (m *mockCredStore) Get(ctx context.Context, id string) (serviceuser.Credential, error) {
@@ -148,6 +152,21 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		assert.Equal(t, clientID, rotated.ID)
 		assert.Equal(t, "su-id", rotated.ServiceUserID)
 		assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(rotated.SecretHash), []byte("new-secret")))
+	})
+
+	t.Run("rolls back the service user when credential creation fails", func(t *testing.T) {
+		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
+
+		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
+		users.On("Create", mock.Anything, mock.Anything).Return(serviceuser.ServiceUser{ID: "su-id"}, nil)
+		creds.On("Create", mock.Anything, mock.Anything).Return(serviceuser.Credential{}, errors.New("db down"))
+		users.On("Delete", mock.Anything, "su-id").Return(nil)
+
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
+		users.AssertExpectations(t) // Create + compensating Delete both invoked
+		creds.AssertExpectations(t)
+		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("aborts on a non-not-found credential lookup error", func(t *testing.T) {
