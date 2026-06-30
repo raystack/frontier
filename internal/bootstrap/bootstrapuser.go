@@ -73,26 +73,6 @@ func (s Service) EnsureBootstrapSuperUser(ctx context.Context) error {
 	return ensureBootstrapSuperUser(ctx, s.logger, s.adminConfig.Bootstrap, s.suCreator, s.suCredStore, s.suPromoter)
 }
 
-// BootstrapServiceUserID returns the service-user id of the config-bootstrapped
-// superuser service account, resolved from the credential keyed by the configured
-// client_id. It returns "" when no bootstrap SA is configured (or not yet created).
-// Callers use it to protect this break-glass identity from removal: it is managed
-// at boot, not via the API, while reconcile is authoritative over service accounts.
-func (s Service) BootstrapServiceUserID(ctx context.Context) (string, error) {
-	cfg := s.adminConfig.Bootstrap
-	if !cfg.enabled() {
-		return "", nil
-	}
-	cred, err := s.suCredStore.Get(ctx, strings.TrimSpace(cfg.ClientID))
-	if err != nil {
-		if errors.Is(err, serviceuser.ErrCredNotExist) {
-			return "", nil
-		}
-		return "", fmt.Errorf("bootstrap superuser: resolve service-user id: %w", err)
-	}
-	return cred.ServiceUserID, nil
-}
-
 // ensureBootstrapSuperUser holds the testable core. The account lives in the
 // platform/nil org (serviceusers.org_id is nullable, no FK) and is created
 // without org membership. Idempotency is keyed on the credential id (client_id):
@@ -143,6 +123,7 @@ func createBootstrapSuperUser(
 	promoter SuperUserPromoter,
 ) error {
 	su, err := users.Create(ctx, serviceuser.ServiceUser{
+		ID:    schema.BootstrapServiceUserID, // fixed, well-known id (see schema.BootstrapServiceUserID)
 		OrgID: schema.PlatformOrgID.String(),
 		Title: cfg.title(),
 	})

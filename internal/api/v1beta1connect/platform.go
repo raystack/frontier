@@ -51,15 +51,11 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 			}
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
-		// Protect the config-bootstrapped break-glass SA. It is seeded and managed
-		// at boot, not via this API, while reconcile is authoritative over service
-		// accounts — without this guard an apply (or a stray call) would strip its
-		// superuser access until the next restart.
-		bootstrapID, err := h.bootstrapService.BootstrapServiceUserID(ctx)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.BootstrapLookup: %w", err))
-		}
-		if bootstrapID != "" && bootstrapID == req.Msg.GetServiceuserId() {
+		// Protect the config-bootstrapped break-glass SA (well-known id). It is
+		// seeded and managed at boot, not via this API, while reconcile is
+		// authoritative over service accounts — without this guard an apply (or a
+		// stray call) would strip its superuser access until the next restart.
+		if req.Msg.GetServiceuserId() == schema.BootstrapServiceUserID {
 			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("cannot remove the bootstrap superuser service account"))
 		}
 		for _, relationName := range platformRelations {
@@ -120,22 +116,11 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.GetServiceUsersByIDs: service_user_ids=%v: %w", serviceUserIDs, err))
 		}
-		// Flag the config-bootstrapped SA so authoritative reconcilers exclude it
-		// from their plan; the server-side guard in RemovePlatformUser also refuses
-		// to strip it, but flagging keeps the reconcile plan accurate (no spurious
-		// remove that would then be denied and fail the run).
-		bootstrapSUID, err := h.bootstrapService.BootstrapServiceUserID(ctx)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.BootstrapLookup: %w", err))
-		}
 		for _, u := range serviceUsers {
 			if u.Metadata == nil {
 				u.Metadata = make(map[string]any)
 			}
 			stampPlatformRelations(u.Metadata, serviceUserRelations[u.ID])
-			// Always set the flag from the server's own resolution, overriding any
-			// stored metadata, so a service user can't self-flag to dodge reconcile.
-			u.Metadata["bootstrap"] = bootstrapSUID != "" && u.ID == bootstrapSUID
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformServiceUser: entity_id=%s: %w", u.ID, err))

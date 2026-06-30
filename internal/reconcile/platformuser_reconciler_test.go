@@ -55,14 +55,14 @@ func platformUserPBRelations(t *testing.T, id, email string, relations ...string
 	return &frontierv1beta1.User{Id: id, Email: email, Metadata: md}
 }
 
-// protectedServiceUserPB mimics a bootstrap SA flagged by ListPlatformUsers.
-func protectedServiceUserPB(t *testing.T, id string, relations ...string) *frontierv1beta1.ServiceUser {
+// serviceUserPBRelations builds a platform service-user list entry.
+func serviceUserPBRelations(t *testing.T, id string, relations ...string) *frontierv1beta1.ServiceUser {
 	t.Helper()
 	vals := make([]interface{}, len(relations))
 	for i, r := range relations {
 		vals[i] = r
 	}
-	md, err := structpb.NewStruct(map[string]interface{}{"relations": vals, "bootstrap": true})
+	md, err := structpb.NewStruct(map[string]interface{}{"relations": vals})
 	if err != nil {
 		t.Fatalf("struct: %v", err)
 	}
@@ -117,11 +117,11 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		assert.Empty(t, api.removed)
 	})
 
-	t.Run("never removes the flagged bootstrap service account", func(t *testing.T) {
-		// empty desired state => fully authoritative removal, but the flagged
-		// bootstrap SA must be excluded and left untouched.
+	t.Run("never removes the bootstrap service account (well-known id)", func(t *testing.T) {
+		// empty desired state => fully authoritative removal, but the bootstrap SA
+		// is matched by its well-known id and must be excluded and left untouched.
 		api := &fakePlatformUserAPI{sus: []*frontierv1beta1.ServiceUser{
-			protectedServiceUserPB(t, "boot-su", schema.AdminRelationName),
+			serviceUserPBRelations(t, schema.BootstrapServiceUserID, schema.AdminRelationName),
 		}}
 		rep, err := NewPlatformUserReconciler(api, "").Reconcile(context.Background(), []byte("[]\n"), false)
 

@@ -92,7 +92,8 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
 		users.On("Create", mock.Anything, mock.MatchedBy(func(su serviceuser.ServiceUser) bool {
-			return su.OrgID == schema.PlatformOrgID.String() && su.Title == defaultBootstrapTitle
+			return su.ID == schema.BootstrapServiceUserID &&
+				su.OrgID == schema.PlatformOrgID.String() && su.Title == defaultBootstrapTitle
 		})).Return(serviceuser.ServiceUser{ID: "su-id"}, nil)
 		// Capture the credential and verify the hash once after the call rather
 		// than inside the matcher: testify re-invokes argument matchers, and bcrypt
@@ -178,50 +179,5 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
 		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
-	})
-}
-
-func TestBootstrapServiceUserID(t *testing.T) {
-	ctx := context.Background()
-	const clientID = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
-	cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
-
-	t.Run("empty when not configured", func(t *testing.T) {
-		creds := new(mockCredStore)
-		s := Service{suCredStore: creds}
-
-		id, err := s.BootstrapServiceUserID(ctx)
-		assert.NoError(t, err)
-		assert.Empty(t, id)
-		creds.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
-	})
-
-	t.Run("returns the service-user id of the configured credential", func(t *testing.T) {
-		creds := new(mockCredStore)
-		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{ServiceUserID: "su-id"}, nil)
-		s := Service{adminConfig: AdminConfig{Bootstrap: cfg}, suCredStore: creds}
-
-		id, err := s.BootstrapServiceUserID(ctx)
-		assert.NoError(t, err)
-		assert.Equal(t, "su-id", id)
-	})
-
-	t.Run("empty when the credential does not exist yet", func(t *testing.T) {
-		creds := new(mockCredStore)
-		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
-		s := Service{adminConfig: AdminConfig{Bootstrap: cfg}, suCredStore: creds}
-
-		id, err := s.BootstrapServiceUserID(ctx)
-		assert.NoError(t, err)
-		assert.Empty(t, id)
-	})
-
-	t.Run("errors on a backend failure", func(t *testing.T) {
-		creds := new(mockCredStore)
-		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, errors.New("db down"))
-		s := Service{adminConfig: AdminConfig{Bootstrap: cfg}, suCredStore: creds}
-
-		_, err := s.BootstrapServiceUserID(ctx)
-		assert.Error(t, err)
 	})
 }

@@ -67,9 +67,6 @@ type PermissionService interface {
 type BootstrapService interface {
 	AppendSchema(ctx context.Context, definition schema.ServiceDefinition) error
 	BuiltinPermissions(ctx context.Context) (map[string]struct{}, error)
-	// BootstrapServiceUserID returns the service-user id of the config-bootstrapped
-	// superuser SA (or "" if none), used to protect it from removal.
-	BootstrapServiceUserID(ctx context.Context) (string, error)
 }
 
 type WebhookService interface {
