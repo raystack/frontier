@@ -116,7 +116,8 @@ arrows above resolve.
 
 There are two layers, and it helps to keep them apart:
 
-- **The schema** (generated above) fixes the *paths* a check can travel.
+- **The schema** (the [generated rules](#what-rules-get-generated)) fixes the *paths* a check can
+  travel.
 - **The roles** decide *which permissions a principal actually holds*.
 
 A principal gets access to a custom action only when both line up. Here is who can `get` a
@@ -172,9 +173,9 @@ Check(
 ### These actions are not special — it is a modeling choice
 
 Frontier and SpiceDB do not treat `create` or `list` differently from `get`, `update`, or
-`delete`. The generator builds the same set of rules for every action, and to the engine
-`createcomputemachine` is just another permission slug. There is no built-in idea of "this one is
-a create permission".
+`delete`. The generator builds the [same set of rules](#what-rules-get-generated) for every
+action, and to the engine `createcomputemachine` is just another permission slug. There is no
+built-in idea of "this one is a create permission".
 
 So why put them on the container? It falls out of how RBAC checks work. Every check asks one
 question: *does this subject have this permission on this object?* That means every action needs
@@ -285,15 +286,19 @@ You do not have to set up any roles for these. They work as soon as the resource
 - **Platform admin** — can do everything.
 - The **user who created a resource** — can act on that one resource.
 
-This works because the generated rules already include the owner and admin permissions. So an
-owner or an admin is covered without the action being listed in any role.
+This works because the [generated rules](#what-rules-get-generated) already include the owner and
+admin permissions. So an owner or an admin is covered without the action being listed in any role.
+
+You never need to list a custom action on these roles. `app_project_administer` (Project Owner)
+and `app_organization_administer` (Org Owner) already grant every custom action through the
+schema, so listing them again would just be repeating what the schema already does.
 
 ### Does not work by default
 
 These roles get nothing on a custom resource until you grant it:
 
 - Org Admin, Org Member, Access Manager
-- Project Manager, Project Viewer, Project Member
+- Project Manager, Project Viewer
 
 If you want one of these roles to use a custom action, you grant it in the config file. You have
 two choices: add the action to a built-in role, or make your own role.
