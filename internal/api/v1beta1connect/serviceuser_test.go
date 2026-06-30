@@ -1012,6 +1012,23 @@ func TestHandler_ListServiceUserCredentials(t *testing.T) {
 	}
 }
 
+func TestHandler_DeleteServiceUser_BootstrapGuard(t *testing.T) {
+	t.Run("refuses to delete the bootstrap superuser service account", func(t *testing.T) {
+		// the guard rejects before reaching the service, so Delete must never be called.
+		mockServiceUserSvc := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: mockServiceUserSvc}
+
+		resp, err := h.DeleteServiceUser(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+
+		assert.Nil(t, resp)
+		assert.Error(t, err)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		mockServiceUserSvc.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+	})
+}
+
 func TestHandler_DeleteServiceUserCredential(t *testing.T) {
 	tests := []struct {
 		name    string

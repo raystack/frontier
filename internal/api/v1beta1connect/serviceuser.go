@@ -173,6 +173,12 @@ func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect
 	serviceUserID := request.Msg.GetId()
 	orgID := request.Msg.GetOrgId()
 
+	// The config-bootstrapped break-glass SA (well-known id) is managed via
+	// app.admin.bootstrap, not the API; never let it be deleted.
+	if serviceUserID == schema.BootstrapServiceUserID {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("the bootstrap superuser service account is managed via app.admin.bootstrap and cannot be deleted"))
+	}
+
 	err := h.serviceUserService.Delete(ctx, serviceUserID)
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "DeleteServiceUser", err,
