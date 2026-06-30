@@ -33,10 +33,6 @@ type SuperUserBootstrapConfig struct {
 	Title        string `yaml:"title" mapstructure:"title"`
 }
 
-func (c SuperUserBootstrapConfig) enabled() bool {
-	return strings.TrimSpace(c.ClientID) != "" && c.ClientSecret != ""
-}
-
 func (c SuperUserBootstrapConfig) title() string {
 	if t := strings.TrimSpace(c.Title); t != "" {
 		return t
@@ -86,10 +82,16 @@ func ensureBootstrapSuperUser(
 	creds ServiceUserCredentialStore,
 	promoter SuperUserPromoter,
 ) error {
-	if !cfg.enabled() {
-		return nil
-	}
 	clientID := strings.TrimSpace(cfg.ClientID)
+	// Reserve the no-op path for "fully unset". A half-configured bootstrap
+	// (only one of client_id/client_secret) is a misconfiguration that would
+	// silently skip seeding the superuser — fail fast instead.
+	switch {
+	case clientID == "" && cfg.ClientSecret == "":
+		return nil
+	case clientID == "" || cfg.ClientSecret == "":
+		return errors.New("bootstrap superuser: client_id and client_secret must be set together")
+	}
 	// client_id is the service-user credential's id, which is a UUID column; a
 	// non-UUID would otherwise fail with an opaque SQL error deep in the lookup.
 	if _, err := uuid.Parse(clientID); err != nil {

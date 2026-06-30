@@ -78,6 +78,15 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 
+	t.Run("rejects a half-configured bootstrap (one of id/secret missing)", func(t *testing.T) {
+		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{ClientID: clientID}, users, creds, prom))
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{ClientSecret: "s3cret"}, users, creds, prom))
+		creds.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
+		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+	})
+
 	t.Run("rejects a non-uuid client_id", func(t *testing.T) {
 		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: "not-a-uuid", ClientSecret: "s3cret"}

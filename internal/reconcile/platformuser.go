@@ -20,7 +20,7 @@ const (
 // the role label and the relation name are the same string ("admin" / "member").
 type PlatformUserSpec struct {
 	Type string `yaml:"type"` // "user" | "serviceuser"
-	Ref  string `yaml:"ref"`  // email/uuid/slug for a user; id for a service user
+	Ref  string `yaml:"ref"`  // email or uuid for a user; id for a service user
 	Role string `yaml:"role"` // "admin" | "member"
 }
 
@@ -72,6 +72,12 @@ func validateSpec(s PlatformUserSpec) error {
 	if strings.TrimSpace(s.Ref) == "" {
 		return fmt.Errorf("empty ref")
 	}
+	// The bootstrap SA is server-managed (seeded at boot, removal-guarded); it must
+	// not be reconciled, so reject it on the desired side too — not just skipped on
+	// the current side.
+	if s.Type == principalTypeServiceUser && strings.TrimSpace(s.Ref) == schema.BootstrapServiceUserID {
+		return fmt.Errorf("ref %q is the bootstrap service account, which is server-managed and cannot be reconciled", s.Ref)
+	}
 	return nil
 }
 
@@ -101,7 +107,11 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 		}
 	}
 
-	var ops []Op
+	// Collect adds and removes separately so adds can be emitted first (see the
+	// return). Apply is sequential, so an add-before-remove order means a role
+	// transition (e.g. admin→member) never leaves a principal with no platform
+	// access if a later op fails.
+	var adds, removes []Op
 	matched := make([]bool, len(desired))
 
 	for _, p := range current {
@@ -112,22 +122,14 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 				want[s.Role] = struct{}{}
 			}
 		}
-		// remove current relations that are no longer desired
 		for _, rel := range platformRelationOrder {
-			if _, has := p.Relations[rel]; !has {
-				continue
-			}
-			if _, wanted := want[rel]; !wanted {
-				ops = append(ops, Op{Action: opRemove, Type: p.Type, Ref: p.ID, Relation: rel})
-			}
-		}
-		// add desired relations not already held
-		for _, rel := range platformRelationOrder {
-			if _, wanted := want[rel]; !wanted {
-				continue
-			}
-			if _, has := p.Relations[rel]; !has {
-				ops = append(ops, Op{Action: opAdd, Type: p.Type, Ref: p.ID, Relation: rel})
+			_, has := p.Relations[rel]
+			_, wanted := want[rel]
+			switch {
+			case wanted && !has:
+				adds = append(adds, Op{Action: opAdd, Type: p.Type, Ref: p.ID, Relation: rel})
+			case has && !wanted:
+				removes = append(removes, Op{Action: opRemove, Type: p.Type, Ref: p.ID, Relation: rel})
 			}
 		}
 	}
@@ -143,8 +145,8 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 			continue
 		}
 		seenNewRef[key] = struct{}{}
-		ops = append(ops, Op{Action: opAdd, Type: s.Type, Ref: s.Ref, Relation: s.Role})
+		adds = append(adds, Op{Action: opAdd, Type: s.Type, Ref: s.Ref, Relation: s.Role})
 	}
 
-	return ops, nil
+	return append(adds, removes...), nil
 }

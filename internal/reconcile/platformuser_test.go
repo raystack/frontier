@@ -61,15 +61,16 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Equal(t, []Op{{Action: opRemove, Type: "user", Ref: "drop-id", Relation: admin}}, ops)
 	})
 
-	t.Run("role change removes then re-adds the desired relation", func(t *testing.T) {
+	t.Run("role change adds the new relation before removing the old", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
 			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Role: member}},
 			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin)},
 		)
 		assert.NoError(t, err)
+		// add-before-remove so a failed apply never leaves the principal access-less.
 		assert.Equal(t, []Op{
-			{Action: opRemove, Type: "user", Ref: "alice-id", Relation: admin},
 			{Action: opAdd, Type: "user", Ref: "alice-id", Relation: member},
+			{Action: opRemove, Type: "user", Ref: "alice-id", Relation: admin},
 		}, ops)
 	})
 
@@ -85,9 +86,10 @@ func TestDiffPlatformUsers(t *testing.T) {
 			},
 		)
 		assert.NoError(t, err)
+		// adds first, then removes (across principals).
 		assert.Equal(t, []Op{
-			{Action: opRemove, Type: "user", Ref: "drop-id", Relation: admin},
 			{Action: opAdd, Type: "user", Ref: "new@x.com", Relation: member},
+			{Action: opRemove, Type: "user", Ref: "drop-id", Relation: admin},
 		}, ops)
 	})
 
@@ -124,6 +126,12 @@ func TestDiffPlatformUsers(t *testing.T) {
 
 	t.Run("rejects an empty ref", func(t *testing.T) {
 		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "", Role: admin}}, nil)
+		assert.Error(t, err)
+	})
+
+	t.Run("rejects the server-managed bootstrap service account", func(t *testing.T) {
+		_, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "serviceuser", Ref: schema.BootstrapServiceUserID, Role: admin}}, nil)
 		assert.Error(t, err)
 	})
 }

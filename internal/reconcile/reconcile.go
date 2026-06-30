@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -59,6 +60,12 @@ func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRu
 		specBytes, err := yaml.Marshal(&doc.Spec)
 		if err != nil {
 			return reports, fmt.Errorf("marshal spec for kind %q: %w", doc.Kind, err)
+		}
+		// An absent or null spec marshals to "null"/"" — almost always a typo (e.g.
+		// `spce:`). Never treat that as an authoritative empty state that would strip
+		// every principal; an intentional empty is `spec: []`.
+		if s := strings.TrimSpace(string(specBytes)); s == "" || s == "null" {
+			return reports, fmt.Errorf("document kind %q is missing its spec", doc.Kind)
 		}
 		rep, err := rec.Reconcile(ctx, specBytes, dryRun)
 		if err != nil {

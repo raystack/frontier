@@ -143,7 +143,8 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 	// seed the platform superuser the production way: the config-bootstrapped service
 	// account grants the test admin superuser via the platform API (no boot-time human flow).
 	if err := PromoteBootstrapAdmin(context.Background(), te.AdminClient, OrgAdminEmail); err != nil {
-		return nil, err
+		// containers + server are already up; tear them down so we don't leak.
+		return nil, errors.Join(err, te.Close())
 	}
 	return te, nil
 }
