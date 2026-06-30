@@ -17,6 +17,13 @@ const (
 	// Global IDs
 	PlatformID = "platform"
 
+	// BootstrapServiceUserID is the fixed, well-known service-user id of the
+	// config-bootstrapped superuser SA (app.admin.bootstrap). It is deliberately
+	// a non-nil sentinel: uuid.Nil is reserved for the audit "system" actor, so a
+	// real principal must not use it. This well-known id lets the platform API
+	// refuse to remove the SA and the reconciler exclude it, without a lookup.
+	BootstrapServiceUserID = "00000000-0000-0000-0000-000000000001"
+
 	// namespace
 	PlatformNamespace     = "app/platform"
 	OrganizationNamespace = "app/organization"

@@ -51,6 +51,13 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 			}
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
+		// Protect the config-bootstrapped break-glass SA (well-known id). It is
+		// seeded and managed at boot, not via this API, while reconcile is
+		// authoritative over service accounts — without this guard an apply (or a
+		// stray call) would strip its superuser access until the next restart.
+		if req.Msg.GetServiceuserId() == schema.BootstrapServiceUserID {
+			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("cannot remove the bootstrap superuser service account"))
+		}
 		for _, relationName := range platformRelations {
 			if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId(), relationName); err != nil {
 				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.ServiceUserUnSudo: service_user_id=%s relation=%s: %w", req.Msg.GetServiceuserId(), relationName, err))

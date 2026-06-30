@@ -25,7 +25,9 @@ type ServiceUserRepository struct {
 
 type serviceUserWithContext struct {
 	ServiceUser
-	OrgName string `db:"org_name"`
+	// OrgName is nullable: a platform-level service user (e.g. the config bootstrap
+	// superuser) has no real organization row, so the org_name subquery is NULL.
+	OrgName sql.NullString `db:"org_name"`
 }
 
 func NewServiceUserRepository(dbc *db.Client) *ServiceUserRepository {
@@ -130,7 +132,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 				AuditResource{
 					ID:   result.OrgID,
 					Type: auditrecord.OrganizationType,
-					Name: result.OrgName,
+					Name: result.OrgName.String,
 				},
 				&AuditTarget{
 					ID:   result.ID,
@@ -307,7 +309,7 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 				AuditResource{
 					ID:   result.OrgID,
 					Type: auditrecord.OrganizationType,
-					Name: result.OrgName,
+					Name: result.OrgName.String,
 				},
 				&AuditTarget{
 					ID:   result.ID,

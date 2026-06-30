@@ -1012,6 +1012,55 @@ func TestHandler_ListServiceUserCredentials(t *testing.T) {
 	}
 }
 
+func TestHandler_BootstrapSAImmutable(t *testing.T) {
+	// The bootstrap SA (well-known id) must be immutable via the API: no delete and
+	// no minting of credentials/keys/tokens (which would be a rotation-proof
+	// superuser backdoor). Each guard must reject before touching the service.
+	t.Run("DeleteServiceUser is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.DeleteServiceUser(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		su.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+	})
+
+	t.Run("CreateServiceUserCredential is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.CreateServiceUserCredential(context.Background(), connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		su.AssertNotCalled(t, "CreateSecret", mock.Anything, mock.Anything)
+	})
+
+	t.Run("CreateServiceUserToken is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.CreateServiceUserToken(context.Background(), connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		su.AssertNotCalled(t, "CreateToken", mock.Anything, mock.Anything)
+	})
+
+	t.Run("CreateServiceUserJWK is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.CreateServiceUserJWK(context.Background(), connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		su.AssertNotCalled(t, "CreateKey", mock.Anything, mock.Anything)
+	})
+}
+
 func TestHandler_DeleteServiceUserCredential(t *testing.T) {
 	tests := []struct {
 		name    string
