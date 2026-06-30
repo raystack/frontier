@@ -14,3 +14,35 @@
   height: var(--rs-space-5);
   width: var(--rs-space-5);
 }
+
+.billing-header > span {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.billing-edit {
+  opacity: 0;
+  transition: opacity 120ms ease-in-out;
+}
+
+.billing-section:hover .billing-edit,
+.billing-section:focus-within .billing-edit {
+  opacity: 1;
+}
+
+/* These rules re-create a "disabled but still hoverable (so the tooltip shows)"
+   icon button. This behaviour should ideally be provided by the apsara
+   IconButton/Tooltip components rather than worked around here. */
+.billing-section:hover .billing-edit-disabled,
+.billing-section:focus-within .billing-edit-disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.billing-section:hover .billing-edit-disabled:hover,
+.billing-section:hover .billing-edit-disabled:active {
+  background-color: transparent;
+  color: var(--rs-color-foreground-base-secondary);
+}
