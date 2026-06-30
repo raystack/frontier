@@ -9,12 +9,10 @@ Frontier lets services register their own resource types (for example `compute/m
 Once registered, Frontier can answer permission checks on those resources the same way it
 does for built-in types like projects and organizations.
 
-This page explains three things:
+This page explains two things:
 
 1. How a custom resource type is loaded into Frontier.
 2. What permission rules Frontier generates for it, and which role each action ends up with.
-3. Why a role can **list** a resource but still fail to **get** a single one. This is the part
-   that surprises people most, so it has its own section.
 
 ---
 
@@ -52,14 +50,10 @@ At startup Frontier runs a bootstrap step (`MigrateSchema`) that does the follow
 This step is idempotent. It runs on every boot and recreates the same schema, so adding a new
 resource config and restarting is all it takes to register a new type.
 
-```mermaid
-flowchart LR
-    A[resource config files] --> B[ServiceDefinition]
-    C[base_schema.zed] --> D[merge + generate rules]
-    B --> D
-    D --> E[validate]
-    E --> F[(Postgres: permissions)]
-    E --> G[(SpiceDB: schema)]
+```text
+  resource config files ─┐
+                         ├─→ merge + generate rules ─→ validate ─┬─→ Postgres (permissions)
+  base_schema.zed ───────┘                                       └─→ SpiceDB (schema)
 ```
 
 ---
@@ -275,65 +269,6 @@ rule the generator would otherwise leave unused.
 
 ---
 
-## Listing vs getting: why a role can see a list but not open an item
-
-This is the part worth reading twice.
-
-Frontier checks **list** and **get** with two different engines, and they accept different
-permissions. A role can pass one and fail the other.
-
-### Getting one resource
-
-A `get` is a real SpiceDB check on the resource (for example `compute/machine#get`). It walks
-the chain above:
-
-```
-compute/machine#get
-  -> project->compute_machine_get
-       -> org->compute_machine_get
-            -> granted->app_organization_administer   (Org Owner)
-             + granted->compute_machine_get            (a role that lists the action)
-```
-
-At the org step, the only org-level keys that open the door are
-`app_organization_administer` or a literal `compute_machine_get` grant. The Org Admin role has
-neither, so its `get` is denied.
-
-### Listing resources
-
-Listing usually starts by asking "which projects can this user see?" That question is answered
-from Postgres policy rows, not from a per-resource SpiceDB check. The service treats a broader
-set of org permissions as proof that a user can see every project in the org:
-
-```
-OrganizationProjectInheritPerms = { app_organization_administer, app_project_get, app_project_administer }
-```
-
-The Org Admin role holds `app_project_get`, which is in that set. So when a caller lists
-projects with inheritance turned on, the Admin sees **every project in the org** — and a
-service that lists its resources per visible project will then list every resource too.
-
-### The result
-
-For the Org Admin role:
-
-| Operation | Engine | Org-level key it accepts | Admin passes? |
-| --- | --- | --- | --- |
-| List projects in org | Postgres policy check | `app_project_get` (among others) | Yes |
-| List resources (per visible project) | Postgres policy check | `app_project_get` (among others) | Yes |
-| Get one resource | SpiceDB resource check | `app_organization_administer` or the literal action grant | No |
-
-So an Org Admin can end up seeing a full list of resources where every item returns "permission
-denied" when opened. The fix is a data change or a schema change:
-
-- **Data change**: add the resource action (for example `compute_machine_get`) to a role the
-  user holds — at the org level (so the org rule's `granted->compute_machine_get` matches) or
-  at the project level.
-- **Schema change**: change the generator so the org-level rule for custom actions also accepts
-  `app_project_get`. This is broader and affects every custom resource, so weigh it carefully.
-
----
-
 ## Quick reference
 
 - A custom resource is registered from a config file listing a `service/resource` namespace and
@@ -341,5 +276,5 @@ denied" when opened. The fix is a data change or a schema change:
 - Bootstrap merges generated rules into the base schema on every boot and writes them to SpiceDB.
 - The **resource owner**, **platform admin**, and **Org Owner** can always perform every action
   on a resource. Project and direct grants depend on the roles in use.
-- **Listing** accepts `app_project_get` as org-wide visibility; **getting** does not. That gap is
-  why a role can list resources it cannot open.
+- Per-item actions (`get`, `update`, `delete`) live on the resource namespace; project-level
+  actions (`create`, `list`) live on `user/project` and are checked against the project.
