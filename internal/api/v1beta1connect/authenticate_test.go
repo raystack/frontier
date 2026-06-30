@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	frontiererrors "github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -35,7 +36,8 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 				authn.EXPECT().GetPrincipal(mock.Anything,
 					authenticate.SessionClientAssertion,
 					authenticate.ClientCredentialsClientAssertion,
-					authenticate.JWTGrantClientAssertion).Return(authenticate.Principal{
+					authenticate.JWTGrantClientAssertion,
+					authenticate.PATClientAssertion).Return(authenticate.Principal{
 					ID:   serviceUserID,
 					Type: schema.ServiceUserPrincipal,
 					ServiceUser: &serviceuser.ServiceUser{
@@ -62,7 +64,8 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 				authn.EXPECT().GetPrincipal(mock.Anything,
 					authenticate.SessionClientAssertion,
 					authenticate.ClientCredentialsClientAssertion,
-					authenticate.JWTGrantClientAssertion).Return(authenticate.Principal{
+					authenticate.JWTGrantClientAssertion,
+					authenticate.PATClientAssertion).Return(authenticate.Principal{
 					ID:   serviceUserID,
 					Type: schema.ServiceUserPrincipal,
 					ServiceUser: &serviceuser.ServiceUser{
@@ -133,6 +136,29 @@ func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConnectHandler_AuthToken_RejectsDisallowedCredential(t *testing.T) {
+	mockAuthnSrv := new(mocks.AuthnService)
+	mockOrgSrv := new(mocks.OrganizationService)
+
+	// a credential type outside AuthToken's allowed list resolves to unauthenticated
+	mockAuthnSrv.EXPECT().GetPrincipal(mock.Anything,
+		authenticate.SessionClientAssertion,
+		authenticate.ClientCredentialsClientAssertion,
+		authenticate.JWTGrantClientAssertion,
+		authenticate.PATClientAssertion).
+		Return(authenticate.Principal{}, frontiererrors.ErrUnauthenticated)
+
+	handler := &ConnectHandler{
+		authnService: mockAuthnSrv,
+		orgService:   mockOrgSrv,
+		authConfig:   authenticate.Config{},
+	}
+
+	_, err := handler.AuthToken(context.Background(), connect.NewRequest(&frontierv1beta1.AuthTokenRequest{}))
+	assert.Error(t, err)
+	assert.Equal(t, connect.CodeUnauthenticated, connect.CodeOf(err))
 }
 
 func TestConnectHandler_GetJWKs(t *testing.T) {
