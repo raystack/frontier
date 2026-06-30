@@ -34,6 +34,7 @@ import {
   toastManager
 } from '@raystack/apsara';
 import { useFrontier } from '~/client/contexts/FrontierContext';
+import { useTerminology, type TerminologyMap } from '../../../hooks/useTerminology';
 import { DEFAULT_DATE_FORMAT } from '~/client/utils/constants';
 import { usePermissions } from '~/client/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '../../../../utils';
@@ -51,31 +52,37 @@ const ORG_UPDATE_PERMISSION = `${PERMISSIONS.OrganizationNamespace.replace(
 const roleGrantsOrgUpdate = (role: Role) =>
   role.permissions?.includes(ORG_UPDATE_PERMISSION) ?? false;
 
-const baseFields = {
+const getBaseFields = (t: TerminologyMap) => ({
   title: yup.string().required('Name is required'),
-  orgRoleId: yup.string().required('Organization role is required'),
-  projectRoleId: yup.string().required('Project role is required'),
+  orgRoleId: yup
+    .string()
+    .required(`${t.organization({ case: 'capital' })} role is required`),
+  projectRoleId: yup
+    .string()
+    .required(`${t.project({ case: 'capital' })} role is required`),
   projectIds: yup
     .array()
     .of(yup.string().required())
     .default([])
-};
+});
 
-const createPATSchema = yup
-  .object({
-    ...baseFields,
-    expiry: yup.string().required('Expiry date is required')
-  })
-  .required();
+const getCreatePATSchema = (t: TerminologyMap) =>
+  yup
+    .object({
+      ...getBaseFields(t),
+      expiry: yup.string().required('Expiry date is required')
+    })
+    .required();
 
-const updatePATSchema = yup
-  .object({
-    ...baseFields,
-    expiry: yup.string().default('')
-  })
-  .required();
+const getUpdatePATSchema = (t: TerminologyMap) =>
+  yup
+    .object({
+      ...getBaseFields(t),
+      expiry: yup.string().default('')
+    })
+    .required();
 
-type FormData = yup.InferType<typeof createPATSchema>;
+type FormData = yup.InferType<ReturnType<typeof getCreatePATSchema>>;
 
 export interface PATFormDialogProps {
   handle: ReturnType<typeof Dialog.createHandle>;
@@ -91,10 +98,16 @@ export function PATFormDialog({
   onUpdated
 }: PATFormDialogProps) {
   const { activeOrganization: organization, config } = useFrontier();
+  const t = useTerminology();
   const orgId = organization?.id || '';
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
   const isUpdateMode = Boolean(initialData);
+
+  const patSchema = useMemo(
+    () => (isUpdateMode ? getUpdatePATSchema(t) : getCreatePATSchema(t)),
+    [t, isUpdateMode]
+  );
 
   const {
     register,
@@ -108,7 +121,7 @@ export function PATFormDialog({
     clearErrors,
     formState: { errors, isSubmitting, isDirty }
   } = useForm<FormData>({
-    resolver: yupResolver(isUpdateMode ? updatePATSchema : createPATSchema),
+    resolver: yupResolver(patSchema),
     defaultValues: {
       title: '',
       expiry: '',
@@ -292,7 +305,7 @@ export function PATFormDialog({
       ) {
         setError('projectIds', {
           type: 'manual',
-          message: 'At least one project is required'
+          message: `At least one ${t.project({ case: 'lower' })} is required`
         });
         return;
       }
@@ -479,7 +492,7 @@ export function PATFormDialog({
                   )}
 
                   <Flex direction="column" gap={2}>
-                    <Label>Organization Role</Label>
+                    <Label>{t.organization({ case: 'capital' })} Role</Label>
                     <Controller
                       name="orgRoleId"
                       control={control}
@@ -509,7 +522,7 @@ export function PATFormDialog({
                   </Flex>
 
                   <Flex direction="column" gap={2}>
-                    <Label>Project Role</Label>
+                    <Label>{t.project({ case: 'capital' })} Role</Label>
                     <Controller
                       name="projectRoleId"
                       control={control}
@@ -540,7 +553,7 @@ export function PATFormDialog({
 
                   <Flex direction="column" gap={5}>
                     <Flex direction="column" gap={4}>
-                      <Label>Projects</Label>
+                      <Label>{t.project({ case: 'capital', plural: true })}</Label>
                       <Radio.Group
                         value={projectAccess}
                         onValueChange={(val: string) => {
@@ -570,7 +583,7 @@ export function PATFormDialog({
                               disabled={isOrgAdmin}
                             />
                             <Text size="small" variant="secondary">
-                              Selective projects
+                              Selective {t.project({ case: 'lower', plural: true })}
                             </Text>
                           </Flex>
                         </Flex>
@@ -598,7 +611,9 @@ export function PATFormDialog({
                               }}
                             >
                               <Select.Trigger>
-                                <Select.Value placeholder="Select projects">
+                                <Select.Value
+                              placeholder={`Select ${t.project({ case: 'lower', plural: true })}`}
+                            >
                                   {selectedIds.length === 0 ? null : (
                                     <Flex gap={2} align="center">
                                       {visible.map(id => (

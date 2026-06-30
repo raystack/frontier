@@ -49,6 +49,7 @@ import {
 } from './components/regenerate-pat-dialog';
 import { RevokePATDialog } from './components/revoke-pat-dialog';
 import { getExpiryOptionValue, getExpiryReferenceDayjs } from './utils';
+import { useTerminology } from '../../hooks/useTerminology';
 import styles from './pat-details-view.module.css';
 
 dayjs.extend(relativeTime);
@@ -93,6 +94,7 @@ export function PATDetailsView({
   onDeleteSuccess
 }: PATDetailsViewProps) {
   const { activeOrganization: organization, config } = useFrontier();
+  const t = useTerminology();
   const orgId = organization?.id || '';
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
@@ -363,15 +365,19 @@ export function PATDetailsView({
               {createdOn && <DetailRow label="Created on:">{createdOn}</DetailRow>}
               {lastUsed && <DetailRow label="Last used:">{lastUsed}</DetailRow>}
               {orgRoleName && (
-                <DetailRow label="Organization role:">{orgRoleName}</DetailRow>
+                <DetailRow label={`${t.organization({ case: 'capital' })} role:`}>
+                  {orgRoleName}
+                </DetailRow>
               )}
               {projectRoleName && (
-                <DetailRow label="Project role:">{projectRoleName}</DetailRow>
+                <DetailRow label={`${t.project({ case: 'capital' })} role:`}>
+                  {projectRoleName}
+                </DetailRow>
               )}
-              <DetailRow label="Projects:">
+              <DetailRow label={`${t.project({ case: 'capital', plural: true })}:`}>
                 {isAllProjects || scopeProjects.length === 0 ? (
                   <Text size="small" weight="medium">
-                    All projects
+                    All {t.project({ case: 'lower', plural: true })}
                   </Text>
                 ) : (
                   <PATProjectChips projects={scopeProjects} />
