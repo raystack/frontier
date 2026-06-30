@@ -116,6 +116,12 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
     const orgId = activeOrganization?.id || '';
     if (!orgId) return;
 
+    // Open the tab synchronously within the click gesture so popup blockers
+    // allow it; it is navigated once the portal URL is ready. Opened without
+    // 'noopener' so we can set its location, then opener is severed for safety.
+    const portalTab = window.open('', '_blank');
+    if (portalTab) portalTab.opener = null;
+
     try {
       const query = qs.stringify(
         {
@@ -144,10 +150,15 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
         })
       );
       const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
-      if (checkoutUrl) {
-        window.location.href = checkoutUrl;
+      if (checkoutUrl && portalTab) {
+        portalTab.location.href = checkoutUrl;
+      } else if (checkoutUrl) {
+        window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        portalTab?.close();
       }
     } catch (err) {
+      portalTab?.close();
       console.error(err);
     }
   }, [
