@@ -271,6 +271,86 @@ rule the generator would otherwise leave unused.
 
 ---
 
+## Which roles can use a custom action
+
+When you register a custom resource, some roles can use its actions right away. Other roles get
+nothing until you grant them.
+
+### Works by default
+
+You do not have to set up any roles for these. They work as soon as the resource is registered:
+
+- **Org Owner** — can do every action on every custom resource in the org.
+- **Project Owner** — can do every action on resources in their project.
+- **Platform admin** — can do everything.
+- The **user who created a resource** — can act on that one resource.
+
+This works because the generated rules already include the owner and admin permissions. So an
+owner or an admin is covered without the action being listed in any role.
+
+### Does not work by default
+
+These roles get nothing on a custom resource until you grant it:
+
+- Org Admin, Org Member, Access Manager
+- Project Manager, Project Viewer, Project Member
+
+If you want one of these roles to use a custom action, you grant it in the config file. You have
+two choices: add the action to a built-in role, or make your own role.
+
+### Choice 1: add the action to a built-in role
+
+List the built-in role by its name and give it the permissions you want. This example lets the
+Project Viewer read and list machines:
+
+```yaml
+roles:
+  - name: app_project_viewer        # the built-in Project Viewer role
+    title: Project Viewer
+    scopes:
+      - app/project
+    permissions:
+      - app/project:get             # keep what the role already had
+      - app/project:resourcelist
+      - compute/machine:get
+      - user/project:listcomputemachine
+```
+
+One thing to watch: when you list a role that already exists, Frontier **replaces** its whole
+permission set with the one you write. It does not add to the old set. So you must include the
+permissions the role already had, or it will lose them. In the example, `app/project:get` is
+kept so the role can still open the project.
+
+### Choice 2: make your own role
+
+You can also add a brand new role. Give it a name that is not already in use, a scope, and the
+permissions you want:
+
+```yaml
+roles:
+  - name: compute_machine_operator     # your own new role
+    title: Machine Operator
+    scopes:
+      - app/project
+    permissions:
+      - compute/machine:get
+      - compute/machine:update
+      - user/project:createcomputemachine
+      - user/project:listcomputemachine
+```
+
+A new role starts empty, so you only list what you want it to have. After boot, you assign this
+role to a user or group on a project, the same way you assign any other role.
+
+### In short
+
+- Owners and admins get every custom action for free.
+- Every other role gets an action only when you grant it.
+- Re-using a built-in role name replaces its permissions, so list everything you want it to keep.
+- A new role name creates a fresh role with exactly the permissions you list.
+
+---
+
 ## Quick reference
 
 - A custom resource is registered from a config file listing a `service/resource` namespace and
