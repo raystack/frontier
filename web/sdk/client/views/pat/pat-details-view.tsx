@@ -370,12 +370,14 @@ export function PATDetailsView({
                 </DetailRow>
               )}
               {projectRoleName && (
-                <DetailRow label="Project role:">{projectRoleName}</DetailRow>
+                <DetailRow label={`${t.project({ case: 'capital' })} role:`}>
+                  {projectRoleName}
+                </DetailRow>
               )}
-              <DetailRow label="Projects:">
+              <DetailRow label={`${t.project({ case: 'capital', plural: true })}:`}>
                 {isAllProjects || scopeProjects.length === 0 ? (
                   <Text size="small" weight="medium">
-                    All projects
+                    All {t.project({ case: 'lower', plural: true })}
                   </Text>
                 ) : (
                   <PATProjectChips projects={scopeProjects} />
