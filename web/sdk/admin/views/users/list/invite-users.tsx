@@ -24,7 +24,7 @@ import {
   FrontierServiceQueries,
   ListRolesRequestSchema,
 } from "@raystack/proton/frontier";
-import {create} from "@bufbuild/protobuf";
+import { create } from "@bufbuild/protobuf";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../hooks/useTerminology";
 
@@ -49,7 +49,7 @@ export const InviteUser = () => {
     error: organizationsError,
   } = useQuery(
     AdminServiceQueries.searchOrganizations,
-    create(SearchOrganizationsRequestSchema, {query: {}}),
+    create(SearchOrganizationsRequestSchema, { query: {} }),
     {
       select: (data) => data?.organizations || [],
     }
@@ -231,6 +231,7 @@ export const InviteUser = () => {
                       <>
                         <Select
                           {...rest}
+                          autocomplete
                           onValueChange={value => field.onChange(value)}>
                           <Select.Trigger ref={ref}>
                             <Select.Value
@@ -238,13 +239,14 @@ export const InviteUser = () => {
                             />
                           </Select.Trigger>
                           <Select.Content
+                            searchPlaceholder={`Search ${t.organization({ case: "lower" })}`}
                             style={{
                               maxHeight: 280,
                               overflowY: "auto",
                             }}>
                             {organizations?.map(org => (
                               <Select.Item key={org.id} value={org.id ?? ""}>
-                                {org.name}
+                                {org.title || org.name}
                               </Select.Item>
                             ))}
                           </Select.Content>
