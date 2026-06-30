@@ -54,9 +54,9 @@ func bcryptHash(t *testing.T, secret string) string {
 }
 
 func TestEnsureBootstrapSuperUser(t *testing.T) {
-	// Cost 14 is intentionally slow; the create/rotate paths and the bcrypt
-	// comparisons in the matchers below would otherwise blow the test timeout
-	// under `-race -count 2`. Behaviour is identical at any cost.
+	// Cost 14 is intentionally slow; under `-race -count 2` even a handful of
+	// hash/compare calls blow the 150s test timeout (measured ~151s). Behaviour is
+	// identical at any cost, so run the unit test at the minimum.
 	orig := bootstrapBcryptCost
 	bootstrapBcryptCost = bcrypt.MinCost
 	t.Cleanup(func() { bootstrapBcryptCost = orig })
