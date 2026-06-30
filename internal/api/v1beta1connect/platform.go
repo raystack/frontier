@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sort"
 	"strings"
 
@@ -59,8 +60,11 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 		// seeded and managed at boot, not via this API, while reconcile is
 		// authoritative over service accounts — without this guard an apply (or a
 		// stray call) would strip its superuser access until the next restart.
+		// Respond with the generic permission error (don't reveal that this id is the
+		// protected SA); the specific reason is logged only.
 		if req.Msg.GetServiceuserId() == schema.BootstrapServiceUserID {
-			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("cannot remove the bootstrap superuser service account"))
+			slog.WarnContext(ctx, "refused removal of the bootstrap superuser service account", "service_user_id", req.Msg.GetServiceuserId())
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 		}
 		for _, relationName := range platformRelations {
 			if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId(), relationName); err != nil {

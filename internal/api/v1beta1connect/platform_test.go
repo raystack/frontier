@@ -53,6 +53,8 @@ func TestHandler_RemovePlatformUser(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, resp)
 		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		// must not reveal that this id is the protected bootstrap SA.
+		assert.NotContains(t, err.Error(), "bootstrap")
 		serviceUserSvc.AssertNotCalled(t, "UnSudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 

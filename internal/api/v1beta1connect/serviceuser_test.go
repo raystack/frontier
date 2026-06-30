@@ -1024,6 +1024,7 @@ func TestHandler_BootstrapSAImmutable(t *testing.T) {
 		}))
 		assert.Nil(t, resp)
 		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
 		su.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 	})
 
@@ -1035,6 +1036,7 @@ func TestHandler_BootstrapSAImmutable(t *testing.T) {
 		}))
 		assert.Nil(t, resp)
 		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
 		su.AssertNotCalled(t, "CreateSecret", mock.Anything, mock.Anything)
 	})
 
@@ -1046,6 +1048,7 @@ func TestHandler_BootstrapSAImmutable(t *testing.T) {
 		}))
 		assert.Nil(t, resp)
 		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
 		su.AssertNotCalled(t, "CreateToken", mock.Anything, mock.Anything)
 	})
 
@@ -1057,6 +1060,7 @@ func TestHandler_BootstrapSAImmutable(t *testing.T) {
 		}))
 		assert.Nil(t, resp)
 		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
 		su.AssertNotCalled(t, "CreateKey", mock.Anything, mock.Anything)
 	})
 }

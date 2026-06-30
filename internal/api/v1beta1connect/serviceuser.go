@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -173,9 +174,13 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 // only via app.admin.bootstrap at boot — the API must never delete it or mint
 // credentials/keys/tokens for it (which would create a persistent, rotation-proof
 // superuser backdoor). Not even platform superusers are allowed.
-func errBootstrapSAImmutable(id string) error {
+//
+// The response is the generic permission error so it doesn't reveal that this id
+// is the protected SA; the specific reason is logged only.
+func errBootstrapSAImmutable(ctx context.Context, id string) error {
 	if id == schema.BootstrapServiceUserID {
-		return connect.NewError(connect.CodePermissionDenied, fmt.Errorf("the bootstrap superuser service account is managed via app.admin.bootstrap and cannot be modified through the API"))
+		slog.WarnContext(ctx, "refused API mutation of the bootstrap superuser service account", "service_user_id", id)
+		return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 	}
 	return nil
 }
@@ -185,7 +190,7 @@ func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect
 	serviceUserID := request.Msg.GetId()
 	orgID := request.Msg.GetOrgId()
 
-	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
 		return nil, err
 	}
 
@@ -214,7 +219,7 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
 
-	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
 		return nil, err
 	}
 
@@ -332,7 +337,7 @@ func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, reques
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
 
-	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
 		return nil, err
 	}
 
@@ -388,7 +393,7 @@ func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *co
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
 
-	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
 		return nil, err
 	}
 
