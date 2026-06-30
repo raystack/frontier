@@ -95,25 +95,19 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 }
 
 func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
+	// exactly one of the two ids is set, by principal type.
+	userID, serviceUserID := op.principalIDs()
 	switch op.Action {
 	case opAdd:
-		req := &frontierv1beta1.AddPlatformUserRequest{Relation: op.Relation}
-		if op.Type == principalTypeUser {
-			req.UserId = op.Ref
-		} else {
-			req.ServiceuserId = op.Ref
-		}
-		_, err := r.client.AddPlatformUser(ctx, authReq(req, r.header))
+		_, err := r.client.AddPlatformUser(ctx, authReq(&frontierv1beta1.AddPlatformUserRequest{
+			UserId: userID, ServiceuserId: serviceUserID, Relation: op.Relation,
+		}, r.header))
 		return err
 	case opRemove:
 		// relation-selective removal (proton #489): strip only op.Relation.
-		req := &frontierv1beta1.RemovePlatformUserRequest{Relation: op.Relation}
-		if op.Type == principalTypeUser {
-			req.UserId = op.Ref
-		} else {
-			req.ServiceuserId = op.Ref
-		}
-		_, err := r.client.RemovePlatformUser(ctx, authReq(req, r.header))
+		_, err := r.client.RemovePlatformUser(ctx, authReq(&frontierv1beta1.RemovePlatformUserRequest{
+			UserId: userID, ServiceuserId: serviceUserID, Relation: op.Relation,
+		}, r.header))
 		return err
 	default:
 		return fmt.Errorf("unknown op action %q", op.Action)

@@ -58,6 +58,15 @@ func (o Op) String() string {
 	return fmt.Sprintf("add %s %s as %s", o.Type, o.Ref, o.Relation)
 }
 
+// principalIDs maps the op's ref onto the request id fields: a user ref fills
+// user_id, anything else fills serviceuser_id. Exactly one is non-empty.
+func (o Op) principalIDs() (userID, serviceUserID string) {
+	if o.Type == principalTypeUser {
+		return o.Ref, ""
+	}
+	return "", o.Ref
+}
+
 func validateSpec(s PlatformUserSpec) error {
 	switch s.Type {
 	case principalTypeUser, principalTypeServiceUser:
