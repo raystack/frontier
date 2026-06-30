@@ -1,12 +1,12 @@
-import { Amount, CopyButton, Flex, Link, List, Text } from "@raystack/apsara";
+import { Amount, CopyButton, Flex, IconButton, Link, List, Text, Tooltip, toastManager } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
 import { convertBillingAddressToString } from "../../../../utils/helper";
 import Skeleton from "react-loading-skeleton";
 import { useContext, useEffect } from "react";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { CalendarIcon, Pencil1Icon } from "@radix-ui/react-icons";
 import { OrganizationContext } from "../contexts/organization-context";
-import { useQuery } from "@connectrpc/connect-query";
-import { FrontierServiceQueries, GetUpcomingInvoiceRequestSchema } from "@raystack/proton/frontier";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
+import { CreateCheckoutRequestSchema, FrontierServiceQueries, GetUpcomingInvoiceRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { timestampToDayjs } from "../../../../utils/connect-timestamp";
 
@@ -39,9 +39,83 @@ export const BillingDetailsSection = () => {
     ? "https://dashboard.stripe.com/customers/" + billingAccount?.providerId
     : "";
 
+  const { mutateAsync: createCheckout, isPending: isPortalLoading } =
+    useMutation(FrontierServiceQueries.createCheckout, {
+      onError: (error) => {
+        toastManager.add({
+          title: "Something went wrong",
+          description: error.rawMessage,
+          type: "error",
+        });
+        console.error("Unable to open billing portal:", error);
+      },
+    });
+
+  const isBillingPortalDisabled = isPortalLoading || !billingAccountId;
+
+  const handleOpenBillingPortal = async () => {
+    if (isBillingPortalDisabled) return;
+    const returnUrl = window.location.href;
+    // Open the tab synchronously within the click gesture so popup blockers
+    // allow it; it is navigated once the portal URL is ready. Opened without
+    // "noopener" so we can set its location, then opener is severed for safety.
+    const portalTab = window.open("", "_blank");
+    if (portalTab) portalTab.opener = null;
+    try {
+      const resp = await createCheckout(
+        create(CreateCheckoutRequestSchema, {
+          orgId: organizationId,
+          cancelUrl: returnUrl,
+          successUrl: returnUrl,
+          setupBody: { paymentMethod: false, customerPortal: true },
+        })
+      );
+      const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
+      if (checkoutUrl && portalTab) {
+        portalTab.location.href = checkoutUrl;
+      } else if (checkoutUrl) {
+        window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+      } else {
+        portalTab?.close();
+      }
+    } catch {
+      // the error toast is surfaced by the mutation's onError handler
+      portalTab?.close();
+    }
+  };
+
   return (
-    <List>
-      <List.Header>Billing</List.Header>
+    <List className={styles["billing-section"]}>
+      <List.Header className={styles["billing-header"]}>
+        Billing
+        <Tooltip>
+          {/* aria-disabled (not the native attribute) keeps the trigger
+              hoverable so the tooltip shows even when the action is disabled */}
+          <Tooltip.Trigger
+            render={
+              <IconButton
+                size={2}
+                aria-label="Update billing details"
+                data-test-id="admin-billing-portal-button"
+                aria-disabled={isBillingPortalDisabled}
+                className={
+                  isBillingPortalDisabled
+                    ? `${styles["billing-edit"]} ${styles["billing-edit-disabled"]}`
+                    : styles["billing-edit"]
+                }
+                onClick={handleOpenBillingPortal}
+              >
+                <Pencil1Icon />
+              </IconButton>
+            }
+          />
+          <Tooltip.Content>
+            {billingAccountId
+              ? "Update billing details"
+              : "No billing account for this organization"}
+          </Tooltip.Content>
+        </Tooltip>
+      </List.Header>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
           Name
