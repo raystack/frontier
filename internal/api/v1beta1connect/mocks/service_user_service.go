@@ -1070,17 +1070,17 @@ func (_c *ServiceUserService_Sudo_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
-// UnSudo provides a mock function with given fields: ctx, id
-func (_m *ServiceUserService) UnSudo(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// UnSudo provides a mock function with given fields: ctx, id, relationName
+func (_m *ServiceUserService) UnSudo(ctx context.Context, id string, relationName string) error {
+	ret := _m.Called(ctx, id, relationName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UnSudo")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, relationName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1096,13 +1096,14 @@ type ServiceUserService_UnSudo_Call struct {
 // UnSudo is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *ServiceUserService_Expecter) UnSudo(ctx interface{}, id interface{}) *ServiceUserService_UnSudo_Call {
-	return &ServiceUserService_UnSudo_Call{Call: _e.mock.On("UnSudo", ctx, id)}
+//   - relationName string
+func (_e *ServiceUserService_Expecter) UnSudo(ctx interface{}, id interface{}, relationName interface{}) *ServiceUserService_UnSudo_Call {
+	return &ServiceUserService_UnSudo_Call{Call: _e.mock.On("UnSudo", ctx, id, relationName)}
 }
 
-func (_c *ServiceUserService_UnSudo_Call) Run(run func(ctx context.Context, id string)) *ServiceUserService_UnSudo_Call {
+func (_c *ServiceUserService_UnSudo_Call) Run(run func(ctx context.Context, id string, relationName string)) *ServiceUserService_UnSudo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
@@ -1112,7 +1113,7 @@ func (_c *ServiceUserService_UnSudo_Call) Return(_a0 error) *ServiceUserService_
 	return _c
 }
 
-func (_c *ServiceUserService_UnSudo_Call) RunAndReturn(run func(context.Context, string) error) *ServiceUserService_UnSudo_Call {
+func (_c *ServiceUserService_UnSudo_Call) RunAndReturn(run func(context.Context, string, string) error) *ServiceUserService_UnSudo_Call {
 	_c.Call.Return(run)
 	return _c
 }

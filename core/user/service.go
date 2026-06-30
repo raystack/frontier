@@ -14,8 +14,10 @@ import (
 
 	"github.com/raystack/frontier/pkg/utils"
 
+	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/str"
 )
@@ -34,19 +36,25 @@ type SessionService interface {
 	DeleteByUserID(ctx context.Context, userID string) error
 }
 
+type AuditRecordRepository interface {
+	Create(ctx context.Context, auditRecord models.AuditRecord) (models.AuditRecord, error)
+}
+
 type Service struct {
-	repository      Repository
-	relationService RelationService
-	sessionService  SessionService
-	Now             func() time.Time
+	repository            Repository
+	relationService       RelationService
+	sessionService        SessionService
+	auditRecordRepository AuditRecordRepository
+	Now                   func() time.Time
 }
 
 func NewService(repository Repository, relationRepo RelationService,
-	sessionService SessionService) *Service {
+	sessionService SessionService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
-		repository:      repository,
-		relationService: relationRepo,
-		sessionService:  sessionService,
+		repository:            repository,
+		relationService:       relationRepo,
+		sessionService:        sessionService,
+		auditRecordRepository: auditRecordRepository,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -173,19 +181,19 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		return err
 	}
 
-	// check if already su
-	permissionName := ""
+	// validate the requested platform relation
 	switch relationName {
-	case schema.MemberRelationName:
-		permissionName = schema.PlatformCheckPermission
-	case schema.AdminRelationName:
-		permissionName = schema.PlatformSudoPermission
-	}
-	if permissionName == "" {
+	case schema.MemberRelationName, schema.AdminRelationName:
+	default:
 		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
 	}
 
-	if ok, err := s.IsSudo(ctx, currentUser.ID, permissionName); err != nil {
+	// Idempotent on the exact relation tuple, not the derived permission:
+	// `check` is granted by both admin and member, so a permission check would
+	// skip creating the member tuple for an existing admin. That breaks
+	// downgrade (Sudo member then UnSudo admin), which UnSudo evaluates at the
+	// relation level — keep the two symmetric.
+	if ok, err := s.IsSudo(ctx, currentUser.ID, relationName); err != nil {
 		return err
 	} else if ok {
 		return nil
@@ -203,29 +211,46 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		},
 		RelationName: relationName,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	// audit the grant for both admin and member relations
+	event := pkgAuditRecord.PlatformAdminAddedEvent
+	if relationName == schema.MemberRelationName {
+		event = pkgAuditRecord.PlatformMemberAddedEvent
+	}
+	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
 }
 
-// UnSudo remove platform permissions to user
-// only remove the 'member' relation if it exists
-func (s Service) UnSudo(ctx context.Context, id string) error {
+// UnSudo removes a platform relation (admin or member) from a user.
+// It removes the exact relation requested — an `admin` relation can now actually
+// be stripped. Both admin and member grants/removals are audited.
+func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
+	switch relationName {
+	case schema.AdminRelationName, schema.MemberRelationName:
+	default:
+		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
+	}
+
 	currentUser, err := s.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	relationName := schema.MemberRelationName
-	// to check if the user has member relation, we need to check if the user has `check`
-	// permission on platform
-	if ok, err := s.IsSudo(ctx, currentUser.ID, schema.PlatformCheckPermission); err != nil {
+	// Only act (and audit) when the specific relation actually exists, so the
+	// revoke event reflects a real state change. Checking the relation directly
+	// is precise for both admin and member.
+	present, err := s.IsSudo(ctx, currentUser.ID, relationName)
+	if err != nil {
 		return err
-	} else if !ok {
-		// not needed
+	}
+	if !present {
 		return nil
 	}
 
 	// unmark su
-	err = s.relationService.Delete(ctx, relation.Relation{
+	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        schema.PlatformID,
 			Namespace: schema.PlatformNamespace,
@@ -235,6 +260,37 @@ func (s Service) UnSudo(ctx context.Context, id string) error {
 			Namespace: schema.UserPrincipal,
 		},
 		RelationName: relationName,
+	}); err != nil {
+		return err
+	}
+
+	event := pkgAuditRecord.PlatformAdminRemovedEvent
+	if relationName == schema.MemberRelationName {
+		event = pkgAuditRecord.PlatformMemberRemovedEvent
+	}
+	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
+}
+
+// recordPlatformAuditRecord writes an audit record for a platform relation
+// (admin or member) grant/revoke. Actor is left empty so the repository enriches
+// it from context — the acting principal on request paths, or the system actor
+// (uuid.Nil) for boot-time/config-driven changes.
+func (s Service) recordPlatformAuditRecord(ctx context.Context, u User, event pkgAuditRecord.Event, relationName string) error {
+	_, err := s.auditRecordRepository.Create(ctx, models.AuditRecord{
+		Event: event,
+		Resource: models.Resource{
+			ID:   schema.PlatformID,
+			Type: pkgAuditRecord.PlatformType,
+			Name: schema.PlatformID,
+		},
+		Target: &models.Target{
+			ID:   u.ID,
+			Type: pkgAuditRecord.UserType,
+			Name: u.Name,
+		},
+		OrgID:      schema.PlatformOrgID.String(),
+		OccurredAt: s.Now(),
+		Metadata:   map[string]any{"relation": relationName},
 	})
 	return err
 }

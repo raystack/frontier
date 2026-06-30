@@ -142,7 +142,7 @@ type UserService interface {
 	Disable(ctx context.Context, id string) error
 	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
 	Sudo(ctx context.Context, id string, relationName string) error
-	UnSudo(ctx context.Context, id string) error
+	UnSudo(ctx context.Context, id string, relationName string) error
 	Search(ctx context.Context, rql *rql.Query) (user.SearchUserResponse, error)
 	Export(ctx context.Context) ([]byte, string, error)
 }
@@ -280,7 +280,7 @@ type ServiceUserService interface {
 	ListByOrg(ctx context.Context, orgID string) ([]serviceuser.ServiceUser, error)
 	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
 	Sudo(ctx context.Context, id string, relationName string) error
-	UnSudo(ctx context.Context, id string) error
+	UnSudo(ctx context.Context, id string, relationName string) error
 	GetByIDs(ctx context.Context, ids []string) ([]serviceuser.ServiceUser, error)
 }
 
