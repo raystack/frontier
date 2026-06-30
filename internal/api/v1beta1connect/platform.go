@@ -133,9 +133,9 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 				u.Metadata = make(map[string]any)
 			}
 			stampPlatformRelations(u.Metadata, serviceUserRelations[u.ID])
-			if bootstrapSUID != "" && u.ID == bootstrapSUID {
-				u.Metadata["bootstrap"] = true
-			}
+			// Always set the flag from the server's own resolution, overriding any
+			// stored metadata, so a service user can't self-flag to dodge reconcile.
+			u.Metadata["bootstrap"] = bootstrapSUID != "" && u.ID == bootstrapSUID
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformServiceUser: entity_id=%s: %w", u.ID, err))

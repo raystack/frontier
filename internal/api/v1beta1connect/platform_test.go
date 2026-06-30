@@ -144,8 +144,8 @@ func TestHandler_ListPlatformUsers(t *testing.T) {
 			if su.GetId() == "boot-su" {
 				assert.True(t, fields["bootstrap"].GetBoolValue())
 			} else {
-				_, flagged := fields["bootstrap"]
-				assert.False(t, flagged)
+				// the flag is always set by the server; non-bootstrap SAs get false.
+				assert.False(t, fields["bootstrap"].GetBoolValue())
 			}
 		}
 	})
