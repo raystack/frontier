@@ -41,10 +41,12 @@ At startup Frontier runs a bootstrap step (`MigrateSchema`) that does the follow
 
 1. Reads every resource config file into a `ServiceDefinition` (the list of namespaces and
    their actions).
-2. Loads the base SpiceDB schema (`base_schema.zed`), which defines users, organizations,
+2. Loads the permissions already in Postgres — including any added later through the
+   `CreatePermission` API — and merges them in, so a restart does not drop them.
+3. Loads the base SpiceDB schema (`base_schema.zed`), which defines users, organizations,
    projects, roles, and role bindings.
-3. Generates extra rules for each custom action and merges them into the base schema.
-4. Validates the merged schema, writes the permission list to Postgres, and writes the full
+4. Generates extra rules for each custom action and merges them into the base schema.
+5. Validates the merged schema, writes the permission list to Postgres, and writes the full
    schema to SpiceDB.
 
 This step is idempotent. It runs on every boot and recreates the same schema, so adding a new
@@ -60,7 +62,8 @@ resource config and restarting is all it takes to register a new type.
 
 ## What rules get generated
 
-For **each** action on a custom resource, the generator adds a rule in four places. The
+For **each** action on a custom resource, the generator adds an entry in five places: the
+resource namespace, `app/organization`, `app/project`, `app/rolebinding`, and `app/role`. The
 action name is flattened into a single slug: namespace `compute/machine` with action `get`
 becomes `compute_machine_get`.
 
