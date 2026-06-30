@@ -168,15 +168,25 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 	}), nil
 }
 
+// errBootstrapSAImmutable returns a PermissionDenied error when id is the
+// config-bootstrapped break-glass SA (well-known id). That account is managed
+// only via app.admin.bootstrap at boot — the API must never delete it or mint
+// credentials/keys/tokens for it (which would create a persistent, rotation-proof
+// superuser backdoor). Not even platform superusers are allowed.
+func errBootstrapSAImmutable(id string) error {
+	if id == schema.BootstrapServiceUserID {
+		return connect.NewError(connect.CodePermissionDenied, fmt.Errorf("the bootstrap superuser service account is managed via app.admin.bootstrap and cannot be modified through the API"))
+	}
+	return nil
+}
+
 func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserResponse], error) {
 	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 	orgID := request.Msg.GetOrgId()
 
-	// The config-bootstrapped break-glass SA (well-known id) is managed via
-	// app.admin.bootstrap, not the API; never let it be deleted.
-	if serviceUserID == schema.BootstrapServiceUserID {
-		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("the bootstrap superuser service account is managed via app.admin.bootstrap and cannot be deleted"))
+	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+		return nil, err
 	}
 
 	err := h.serviceUserService.Delete(ctx, serviceUserID)
@@ -203,6 +213,10 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
+
+	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+		return nil, err
+	}
 
 	svCred, err := h.serviceUserService.CreateKey(ctx, serviceuser.Credential{
 		ServiceUserID: serviceUserID,
@@ -318,6 +332,10 @@ func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, reques
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
 
+	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+		return nil, err
+	}
+
 	secret, err := h.serviceUserService.CreateSecret(ctx, serviceuser.Credential{
 		ServiceUserID: serviceUserID,
 		Title:         title,
@@ -369,6 +387,10 @@ func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, reques
 func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserTokenRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserTokenResponse], error) {
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
+
+	if err := errBootstrapSAImmutable(serviceUserID); err != nil {
+		return nil, err
+	}
 
 	secret, err := h.serviceUserService.CreateToken(ctx, serviceuser.Credential{
 		ServiceUserID: serviceUserID,
