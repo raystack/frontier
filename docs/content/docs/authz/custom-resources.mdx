@@ -207,13 +207,12 @@ there, and the generator mirrors it onto the real project as
 effect, `user/project` is the config-legal way to hang project-level capabilities off
 `app/project`.
 
-> **Don't confuse two things.** A role *can* list an `app/project` permission — for example a
-> Project Viewer role with `app/project:get` in its `permissions`. That is allowed because `get`
-> already exists on `app/project` in the base schema; the role is just pointing at an existing
-> permission. Filtering only blocks *defining* a new permission under `app/*` in the
-> `permissions:` section. So you can reference `app/project:get`, but you cannot create
-> `app/project:createcomputemachine`. The slug also follows its namespace, so it ends up as
-> `user_project_createcomputemachine`, not `app_project_createcomputemachine`.
+> A role can still *reference* an `app/project` permission — for example a Project Viewer role
+> that lists `app/project:get`. That works because `get` already exists on `app/project` in the
+> base schema. The filter only blocks *adding* a new permission under `app/*` from config. So you
+> can point a role at `app/project:get`, but you cannot define `app/project:createcomputemachine`.
+> The slug follows its namespace too, so it comes out as `user_project_createcomputemachine`, not
+> `app_project_createcomputemachine`.
 
 ### Config
 
