@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/relation"
@@ -17,6 +18,8 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 	if !schema.IsPlatformRelation(relationName) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
+	// IsPlatformRelation is case-insensitive; normalize so it matches Sudo's exact switch.
+	relationName = strings.ToLower(relationName)
 
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.Sudo(ctx, req.Msg.GetUserId(), relationName); err != nil {
@@ -41,7 +44,8 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 		if !schema.IsPlatformRelation(rel) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		platformRelations = []string{rel}
+		// normalize: IsPlatformRelation is case-insensitive but UnSudo matches exactly.
+		platformRelations = []string{strings.ToLower(rel)}
 	}
 
 	if req.Msg.GetUserId() != "" {

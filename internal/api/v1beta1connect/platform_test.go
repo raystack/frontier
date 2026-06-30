@@ -58,6 +58,21 @@ func TestHandler_RemovePlatformUser(t *testing.T) {
 		assert.NotNil(t, resp)
 	})
 
+	t.Run("normalizes a mixed-case relation before forwarding", func(t *testing.T) {
+		userSvc := mocks.NewUserService(t)
+		// "Admin" is valid (IsPlatformRelation is case-insensitive); UnSudo must
+		// receive the lowercase relation so its exact switch matches.
+		userSvc.EXPECT().UnSudo(mock.Anything, "u1", schema.AdminRelationName).Return(nil)
+
+		h := &ConnectHandler{userService: userSvc}
+		resp, err := h.RemovePlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.RemovePlatformUserRequest{
+			UserId:   "u1",
+			Relation: "Admin",
+		}))
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+
 	t.Run("rejects an invalid relation", func(t *testing.T) {
 		h := &ConnectHandler{}
 		resp, err := h.RemovePlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.RemovePlatformUserRequest{
@@ -71,6 +86,31 @@ func TestHandler_RemovePlatformUser(t *testing.T) {
 	t.Run("rejects a request with neither id", func(t *testing.T) {
 		h := &ConnectHandler{}
 		resp, err := h.RemovePlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.RemovePlatformUserRequest{}))
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+	})
+}
+
+func TestHandler_AddPlatformUser(t *testing.T) {
+	t.Run("normalizes a mixed-case relation before forwarding to Sudo", func(t *testing.T) {
+		userSvc := mocks.NewUserService(t)
+		userSvc.EXPECT().Sudo(mock.Anything, "u1", schema.AdminRelationName).Return(nil)
+
+		h := &ConnectHandler{userService: userSvc}
+		resp, err := h.AddPlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			UserId:   "u1",
+			Relation: "Admin",
+		}))
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+	})
+
+	t.Run("rejects an invalid relation", func(t *testing.T) {
+		h := &ConnectHandler{}
+		resp, err := h.AddPlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			UserId:   "u1",
+			Relation: "owner",
+		}))
 		assert.Error(t, err)
 		assert.Nil(t, resp)
 	})
