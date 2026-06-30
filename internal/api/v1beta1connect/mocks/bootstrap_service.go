@@ -69,6 +69,62 @@ func (_c *BootstrapService_AppendSchema_Call) RunAndReturn(run func(context.Cont
 	return _c
 }
 
+// BootstrapServiceUserID provides a mock function with given fields: ctx
+func (_m *BootstrapService) BootstrapServiceUserID(ctx context.Context) (string, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BootstrapServiceUserID")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (string, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// BootstrapService_BootstrapServiceUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BootstrapServiceUserID'
+type BootstrapService_BootstrapServiceUserID_Call struct {
+	*mock.Call
+}
+
+// BootstrapServiceUserID is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *BootstrapService_Expecter) BootstrapServiceUserID(ctx interface{}) *BootstrapService_BootstrapServiceUserID_Call {
+	return &BootstrapService_BootstrapServiceUserID_Call{Call: _e.mock.On("BootstrapServiceUserID", ctx)}
+}
+
+func (_c *BootstrapService_BootstrapServiceUserID_Call) Run(run func(ctx context.Context)) *BootstrapService_BootstrapServiceUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *BootstrapService_BootstrapServiceUserID_Call) Return(_a0 string, _a1 error) *BootstrapService_BootstrapServiceUserID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *BootstrapService_BootstrapServiceUserID_Call) RunAndReturn(run func(context.Context) (string, error)) *BootstrapService_BootstrapServiceUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // BuiltinPermissions provides a mock function with given fields: ctx
 func (_m *BootstrapService) BuiltinPermissions(ctx context.Context) (map[string]struct{}, error) {
 	ret := _m.Called(ctx)

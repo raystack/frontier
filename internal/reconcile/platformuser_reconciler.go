@@ -78,6 +78,11 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 		})
 	}
 	for _, su := range resp.Msg.GetServiceusers() {
+		// The config-bootstrapped break-glass SA is server-managed and flagged as
+		// such; never reconcile (and so never try to remove) it.
+		if isProtectedPrincipal(su.GetMetadata()) {
+			continue
+		}
 		current = append(current, platformPrincipal{
 			Type:      principalTypeServiceUser,
 			ID:        su.GetId(),
@@ -85,6 +90,18 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 		})
 	}
 	return current, nil
+}
+
+// isProtectedPrincipal reports whether ListPlatformUsers flagged this principal as
+// server-managed (the bootstrap SA), in which case reconcilers must leave it alone.
+func isProtectedPrincipal(md *structpb.Struct) bool {
+	if md == nil {
+		return false
+	}
+	if v, ok := md.GetFields()["bootstrap"]; ok {
+		return v.GetBoolValue()
+	}
+	return false
 }
 
 func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {

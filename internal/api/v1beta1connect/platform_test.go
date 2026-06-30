@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -34,13 +35,31 @@ func TestHandler_RemovePlatformUser(t *testing.T) {
 		serviceUserSvc := mocks.NewServiceUserService(t)
 		serviceUserSvc.EXPECT().UnSudo(mock.Anything, "s1", schema.AdminRelationName).Return(nil)
 		serviceUserSvc.EXPECT().UnSudo(mock.Anything, "s1", schema.MemberRelationName).Return(nil)
+		bootstrapSvc := mocks.NewBootstrapService(t)
+		bootstrapSvc.EXPECT().BootstrapServiceUserID(mock.Anything).Return("", nil)
 
-		h := &ConnectHandler{serviceUserService: serviceUserSvc}
+		h := &ConnectHandler{serviceUserService: serviceUserSvc, bootstrapService: bootstrapSvc}
 		resp, err := h.RemovePlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.RemovePlatformUserRequest{
 			ServiceuserId: "s1",
 		}))
 		assert.NoError(t, err)
 		assert.NotNil(t, resp)
+	})
+
+	t.Run("refuses to remove the bootstrap superuser service account", func(t *testing.T) {
+		serviceUserSvc := mocks.NewServiceUserService(t)
+		bootstrapSvc := mocks.NewBootstrapService(t)
+		// the target is the protected bootstrap SA -> reject before any UnSudo.
+		bootstrapSvc.EXPECT().BootstrapServiceUserID(mock.Anything).Return("boot-su", nil)
+
+		h := &ConnectHandler{serviceUserService: serviceUserSvc, bootstrapService: bootstrapSvc}
+		resp, err := h.RemovePlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.RemovePlatformUserRequest{
+			ServiceuserId: "boot-su",
+		}))
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		serviceUserSvc.AssertNotCalled(t, "UnSudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("removes only the specified relation when relation is set", func(t *testing.T) {
@@ -101,6 +120,33 @@ func TestHandler_ListPlatformUsers(t *testing.T) {
 			assert.ElementsMatch(t, []string{schema.AdminRelationName, schema.MemberRelationName}, got)
 			// "relation" stays populated for backward compatibility.
 			assert.NotEmpty(t, fields["relation"].GetStringValue())
+		}
+	})
+
+	t.Run("flags the bootstrap service account so reconcilers exclude it", func(t *testing.T) {
+		relationSvc := mocks.NewRelationService(t)
+		serviceUserSvc := mocks.NewServiceUserService(t)
+		bootstrapSvc := mocks.NewBootstrapService(t)
+
+		relationSvc.EXPECT().List(mock.Anything, mock.Anything).Return([]relation.Relation{
+			{Subject: relation.Subject{ID: "boot-su", Namespace: schema.ServiceUserPrincipal}, RelationName: schema.AdminRelationName},
+			{Subject: relation.Subject{ID: "other-su", Namespace: schema.ServiceUserPrincipal}, RelationName: schema.MemberRelationName},
+		}, nil)
+		serviceUserSvc.EXPECT().GetByIDs(mock.Anything, []string{"boot-su", "other-su"}).
+			Return([]serviceuser.ServiceUser{{ID: "boot-su"}, {ID: "other-su"}}, nil)
+		bootstrapSvc.EXPECT().BootstrapServiceUserID(mock.Anything).Return("boot-su", nil)
+
+		h := &ConnectHandler{relationService: relationSvc, serviceUserService: serviceUserSvc, bootstrapService: bootstrapSvc}
+		resp, err := h.ListPlatformUsers(context.Background(), connect.NewRequest(&frontierv1beta1.ListPlatformUsersRequest{}))
+		assert.NoError(t, err)
+		for _, su := range resp.Msg.GetServiceusers() {
+			fields := su.GetMetadata().GetFields()
+			if su.GetId() == "boot-su" {
+				assert.True(t, fields["bootstrap"].GetBoolValue())
+			} else {
+				_, flagged := fields["bootstrap"]
+				assert.False(t, flagged)
+			}
 		}
 	})
 }
