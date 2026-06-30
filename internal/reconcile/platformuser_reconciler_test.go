@@ -41,6 +41,20 @@ func platformUserPB(t *testing.T, id, email, relation string) *frontierv1beta1.U
 	return &frontierv1beta1.User{Id: id, Email: email, Metadata: md}
 }
 
+// platformUserPBRelations stamps the full "relations" list the way ListPlatformUsers does.
+func platformUserPBRelations(t *testing.T, id, email string, relations ...string) *frontierv1beta1.User {
+	t.Helper()
+	vals := make([]interface{}, len(relations))
+	for i, r := range relations {
+		vals[i] = r
+	}
+	md, err := structpb.NewStruct(map[string]interface{}{"relations": vals})
+	if err != nil {
+		t.Fatalf("struct: %v", err)
+	}
+	return &frontierv1beta1.User{Id: id, Email: email, Metadata: md}
+}
+
 func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 	// desired: one new admin; the existing "drop" admin is absent -> removed.
 	specYAML := []byte("- {type: user, ref: new@x.com, role: admin}\n")
@@ -87,5 +101,23 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		assert.Empty(t, rep.Planned)
 		assert.Empty(t, api.added)
 		assert.Empty(t, api.removed)
+	})
+
+	t.Run("strips the extra relation when the principal holds both (relations list)", func(t *testing.T) {
+		// alice is desired as admin only but currently holds admin + member;
+		// the reconciler must read both relations and revoke member exactly.
+		yamlSpec := []byte("- {type: user, ref: alice@x.com, role: admin}\n")
+		api := &fakePlatformUserAPI{users: []*frontierv1beta1.User{
+			platformUserPBRelations(t, "alice-id", "alice@x.com", schema.AdminRelationName, schema.MemberRelationName),
+		}}
+		rep, err := NewPlatformUserReconciler(api, "").Reconcile(context.Background(), yamlSpec, false)
+
+		assert.NoError(t, err)
+		assert.Equal(t, 1, rep.Applied)
+		assert.Empty(t, api.added)
+		if assert.Len(t, api.removed, 1) {
+			assert.Equal(t, "alice-id", api.removed[0].GetUserId())
+			assert.Equal(t, schema.MemberRelationName, api.removed[0].GetRelation())
+		}
 	})
 }

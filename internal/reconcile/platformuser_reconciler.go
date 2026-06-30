@@ -113,16 +113,28 @@ func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
 	}
 }
 
-// relationsFromMetadata reads the platform relation that ListPlatformUsers stamps
-// into each principal's metadata under "relation".
+// relationsFromMetadata reads the platform relations ListPlatformUsers stamps into
+// each principal's metadata. It prefers the full "relations" list (so a principal
+// holding both admin and member is reconciled exactly) and falls back to the
+// single "relation" field for backward compatibility.
 func relationsFromMetadata(md *structpb.Struct) map[string]struct{} {
 	rels := map[string]struct{}{}
 	if md == nil {
 		return rels
 	}
-	if v, ok := md.GetFields()["relation"]; ok {
-		if name := v.GetStringValue(); name != "" {
-			rels[name] = struct{}{}
+	fields := md.GetFields()
+	if v, ok := fields["relations"]; ok {
+		for _, item := range v.GetListValue().GetValues() {
+			if name := item.GetStringValue(); name != "" {
+				rels[name] = struct{}{}
+			}
+		}
+	}
+	if len(rels) == 0 {
+		if v, ok := fields["relation"]; ok {
+			if name := v.GetStringValue(); name != "" {
+				rels[name] = struct{}{}
+			}
 		}
 	}
 	return rels

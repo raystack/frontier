@@ -91,6 +91,27 @@ func TestDiffPlatformUsers(t *testing.T) {
 		}, ops)
 	})
 
+	t.Run("strips the extra relation when a principal holds both but only one is desired", func(t *testing.T) {
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Role: admin}},
+			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin, member)},
+		)
+		assert.NoError(t, err)
+		assert.Equal(t, []Op{{Action: opRemove, Type: "user", Ref: "alice-id", Relation: member}}, ops)
+	})
+
+	t.Run("keeps both relations when both are desired", func(t *testing.T) {
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{
+				{Type: "user", Ref: "alice@x.com", Role: admin},
+				{Type: "user", Ref: "alice@x.com", Role: member},
+			},
+			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin, member)},
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
 	t.Run("rejects an invalid role", func(t *testing.T) {
 		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "a@x.com", Role: "owner"}}, nil)
 		assert.Error(t, err)

@@ -3,11 +3,11 @@ package v1beta1connect
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -73,15 +73,15 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.ListRelations: %w", err))
 	}
 
-	subjectRelationMap := make(map[string]string)
+	// A principal can hold both admin and member; collect every relation per
+	// subject (deduped) so callers see the full set rather than just whichever
+	// tuple happened to be listed last. The reconciler relies on this to know
+	// exactly which relations to revoke.
+	userRelations := platformRelationsBySubject(relations, schema.UserPrincipal)
+	serviceUserRelations := platformRelationsBySubject(relations, schema.ServiceUserPrincipal)
 
 	// fetch users
-	userIDs := utils.Map(utils.Filter(relations, func(r relation.Relation) bool {
-		return r.Subject.Namespace == schema.UserPrincipal
-	}), func(r relation.Relation) string {
-		subjectRelationMap[r.Subject.ID] = r.RelationName
-		return r.Subject.ID
-	})
+	userIDs := sortedSubjectIDs(userRelations)
 	userPBs := make([]*frontierv1beta1.User, 0, len(userIDs))
 	if len(userIDs) > 0 {
 		users, err := h.userService.GetByIDs(ctx, userIDs)
@@ -92,7 +92,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			if u.Metadata == nil {
 				u.Metadata = make(map[string]any)
 			}
-			u.Metadata["relation"] = subjectRelationMap[u.ID]
+			stampPlatformRelations(u.Metadata, userRelations[u.ID])
 			userPB, err := transformUserToPB(u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformUser: entity_id=%s: %w", u.ID, err))
@@ -102,12 +102,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 	}
 
 	// fetch service users
-	serviceUserIDs := utils.Map(utils.Filter(relations, func(r relation.Relation) bool {
-		return r.Subject.Namespace == schema.ServiceUserPrincipal
-	}), func(r relation.Relation) string {
-		subjectRelationMap[r.Subject.ID] = r.RelationName
-		return r.Subject.ID
-	})
+	serviceUserIDs := sortedSubjectIDs(serviceUserRelations)
 	serviceUserPBs := make([]*frontierv1beta1.ServiceUser, 0, len(serviceUserIDs))
 	if len(serviceUserIDs) > 0 {
 		serviceUsers, err := h.serviceUserService.GetByIDs(ctx, serviceUserIDs)
@@ -118,7 +113,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			if u.Metadata == nil {
 				u.Metadata = make(map[string]any)
 			}
-			u.Metadata["relation"] = subjectRelationMap[u.ID]
+			stampPlatformRelations(u.Metadata, serviceUserRelations[u.ID])
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformServiceUser: entity_id=%s: %w", u.ID, err))
@@ -131,4 +126,55 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		Users:        userPBs,
 		Serviceusers: serviceUserPBs,
 	}), nil
+}
+
+// platformRelationsBySubject groups platform relation names (admin/member) by
+// subject id for the given principal namespace, deduped and sorted for stable
+// output.
+func platformRelationsBySubject(relations []relation.Relation, namespace string) map[string][]string {
+	sets := map[string]map[string]struct{}{}
+	for _, r := range relations {
+		if r.Subject.Namespace != namespace {
+			continue
+		}
+		if sets[r.Subject.ID] == nil {
+			sets[r.Subject.ID] = map[string]struct{}{}
+		}
+		sets[r.Subject.ID][r.RelationName] = struct{}{}
+	}
+	out := make(map[string][]string, len(sets))
+	for id, set := range sets {
+		rels := make([]string, 0, len(set))
+		for rel := range set {
+			rels = append(rels, rel)
+		}
+		sort.Strings(rels)
+		out[id] = rels
+	}
+	return out
+}
+
+// sortedSubjectIDs returns the subject ids in deterministic order.
+func sortedSubjectIDs(m map[string][]string) []string {
+	ids := make([]string, 0, len(m))
+	for id := range m {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	return ids
+}
+
+// stampPlatformRelations records a principal's platform relations in its
+// metadata: "relations" carries the full set (consumed by the reconciler) while
+// "relation" keeps the first one for backward compatibility.
+func stampPlatformRelations(md map[string]any, rels []string) {
+	if len(rels) == 0 {
+		return
+	}
+	md["relation"] = rels[0]
+	anyRels := make([]any, len(rels))
+	for i, r := range rels {
+		anyRels[i] = r
+	}
+	md["relations"] = anyRels
 }
