@@ -281,8 +281,9 @@ nothing until you grant them.
 
 You do not have to set up any roles for these. They work as soon as the resource is registered:
 
-- **Org Owner** — can do every action on every custom resource in the org.
-- **Project Owner** — can do every action on resources in their project.
+- **Org Owner** (`app_organization_owner`) — can do every action on every custom resource in the
+  org.
+- **Project Owner** (`app_project_owner`) — can do every action on resources in their project.
 - **Platform admin** — can do everything.
 - The **user who created a resource** — can act on that one resource.
 
@@ -297,8 +298,9 @@ schema, so listing them again would just be repeating what the schema already do
 
 These roles get nothing on a custom resource until you grant it:
 
-- Org Admin, Org Member, Access Manager
-- Project Manager, Project Viewer
+- Org Admin (`app_organization_manager`), Org Member (`app_organization_viewer`), Access Manager
+  (`app_organization_accessmanager`)
+- Project Manager (`app_project_manager`), Project Viewer (`app_project_viewer`)
 
 If you want one of these roles to use a custom action, you grant it in the config file. You have
 two choices: add the action to a built-in role, or make your own role.
