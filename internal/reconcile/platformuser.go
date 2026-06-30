@@ -41,14 +41,14 @@ const (
 	opRemove opAction = "remove"
 )
 
-// Op is a single planned change. Add targets a (ref, relation); remove targets a
-// principal by id (current RemovePlatformUser strips all relations — relation-selective
-// removal lands with the proton `relation` field, see issue #1710 / task #20).
+// Op is a single planned change against one (principal, relation): add ensures the
+// relation, remove strips just that relation (relation-selective). Ref is the desired
+// entry's ref for add (email/id) and the current principal's id for remove.
 type Op struct {
 	Action   opAction
 	Type     string
-	Ref      string // ref for add (email/id); principal id for remove
-	Relation string // add only
+	Ref      string
+	Relation string
 }
 
 func (o Op) String() string {
