@@ -45,7 +45,9 @@ func TestService_Sudo(t *testing.T) {
 	t.Run("grants admin relation and audits the grant", func(t *testing.T) {
 		svc, repo, _, rel, _, audit := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		rel.On("CheckPermission", ctx, platformRel(schema.PlatformSudoPermission)).Return(false, nil)
+		// Sudo is idempotent on the exact relation (admin), not the superuser
+		// permission — symmetric with UnSudo.
+		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(false, nil)
 		rel.On("Create", ctx, platformRel(schema.AdminRelationName)).Return(relation.Relation{}, nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
 			return r.Event == pkgAuditRecord.PlatformAdminAddedEvent && r.Target != nil && r.Target.ID == suID
@@ -59,7 +61,9 @@ func TestService_Sudo(t *testing.T) {
 	t.Run("grants member relation and audits the grant", func(t *testing.T) {
 		svc, repo, _, rel, _, audit := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		rel.On("CheckPermission", ctx, platformRel(schema.PlatformCheckPermission)).Return(false, nil)
+		// member is checked at the relation level so an existing admin still gets
+		// the member tuple created (downgrade path).
+		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(false, nil)
 		rel.On("Create", ctx, platformRel(schema.MemberRelationName)).Return(relation.Relation{}, nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
 			return r.Event == pkgAuditRecord.PlatformMemberAddedEvent && r.Target != nil && r.Target.ID == suID

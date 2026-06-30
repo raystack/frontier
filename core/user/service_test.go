@@ -668,7 +668,7 @@ func TestService_Sudo(t *testing.T) {
 							ID:        schema.PlatformID,
 							Namespace: schema.PlatformNamespace,
 						},
-						RelationName: schema.PlatformSudoPermission,
+						RelationName: schema.AdminRelationName,
 					},
 				}).Return([]relation.CheckPair{
 					{
@@ -681,7 +681,7 @@ func TestService_Sudo(t *testing.T) {
 								ID:        schema.PlatformID,
 								Namespace: schema.PlatformNamespace,
 							},
-							RelationName: schema.PlatformSudoPermission,
+							RelationName: schema.AdminRelationName,
 						},
 						Status: false,
 					},
@@ -729,7 +729,7 @@ func TestService_Sudo(t *testing.T) {
 							ID:        schema.PlatformID,
 							Namespace: schema.PlatformNamespace,
 						},
-						RelationName: schema.PlatformSudoPermission,
+						RelationName: schema.AdminRelationName,
 					},
 				}).Return([]relation.CheckPair{
 					{
@@ -742,7 +742,7 @@ func TestService_Sudo(t *testing.T) {
 								ID:        schema.PlatformID,
 								Namespace: schema.PlatformNamespace,
 							},
-							RelationName: schema.PlatformSudoPermission,
+							RelationName: schema.AdminRelationName,
 						},
 						Status: true,
 					},
@@ -782,7 +782,7 @@ func TestService_Sudo(t *testing.T) {
 							ID:        schema.PlatformID,
 							Namespace: schema.PlatformNamespace,
 						},
-						RelationName: schema.PlatformCheckPermission,
+						RelationName: schema.MemberRelationName,
 					},
 				}).Return([]relation.CheckPair{
 					{
@@ -795,7 +795,7 @@ func TestService_Sudo(t *testing.T) {
 								ID:        schema.PlatformID,
 								Namespace: schema.PlatformNamespace,
 							},
-							RelationName: schema.PlatformCheckPermission,
+							RelationName: schema.MemberRelationName,
 						},
 						Status: false,
 					},

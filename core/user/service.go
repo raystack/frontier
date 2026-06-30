@@ -181,19 +181,19 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		return err
 	}
 
-	// check if already su
-	permissionName := ""
+	// validate the requested platform relation
 	switch relationName {
-	case schema.MemberRelationName:
-		permissionName = schema.PlatformCheckPermission
-	case schema.AdminRelationName:
-		permissionName = schema.PlatformSudoPermission
-	}
-	if permissionName == "" {
+	case schema.MemberRelationName, schema.AdminRelationName:
+	default:
 		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
 	}
 
-	if ok, err := s.IsSudo(ctx, currentUser.ID, permissionName); err != nil {
+	// Idempotent on the exact relation tuple, not the derived permission:
+	// `check` is granted by both admin and member, so a permission check would
+	// skip creating the member tuple for an existing admin. That breaks
+	// downgrade (Sudo member then UnSudo admin), which UnSudo evaluates at the
+	// relation level — keep the two symmetric.
+	if ok, err := s.IsSudo(ctx, currentUser.ID, relationName); err != nil {
 		return err
 	} else if ok {
 		return nil
