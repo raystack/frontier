@@ -90,17 +90,24 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		users.On("Create", mock.Anything, mock.MatchedBy(func(su serviceuser.ServiceUser) bool {
 			return su.OrgID == schema.PlatformOrgID.String() && su.Title == defaultBootstrapTitle
 		})).Return(serviceuser.ServiceUser{ID: "su-id"}, nil)
-		creds.On("Create", mock.Anything, mock.MatchedBy(func(c serviceuser.Credential) bool {
-			return c.ID == clientID && c.ServiceUserID == "su-id" &&
-				c.Type == serviceuser.ClientSecretCredentialType &&
-				bcrypt.CompareHashAndPassword([]byte(c.SecretHash), []byte("s3cret")) == nil
-		})).Return(serviceuser.Credential{ID: clientID}, nil)
+		// Capture the credential and verify the hash once after the call rather
+		// than inside the matcher: testify re-invokes argument matchers, and bcrypt
+		// is costly enough there to stall CI.
+		var created serviceuser.Credential
+		creds.On("Create", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) { created = args.Get(1).(serviceuser.Credential) }).
+			Return(serviceuser.Credential{ID: clientID}, nil)
 		prom.On("Sudo", mock.Anything, "su-id", schema.AdminRelationName).Return(nil)
 
 		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
 		users.AssertExpectations(t)
 		creds.AssertExpectations(t)
 		prom.AssertExpectations(t)
+
+		assert.Equal(t, clientID, created.ID)
+		assert.Equal(t, "su-id", created.ServiceUserID)
+		assert.Equal(t, serviceuser.ClientSecretCredentialType, created.Type)
+		assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(created.SecretHash), []byte("s3cret")))
 	})
 
 	t.Run("ensures superuser without rotating when the secret matches", func(t *testing.T) {
@@ -127,16 +134,20 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 			ID: clientID, ServiceUserID: "su-id", SecretHash: bcryptHash(t, "old-secret"), Title: "t",
 		}, nil)
 		creds.On("Delete", mock.Anything, clientID).Return(nil)
-		creds.On("Create", mock.Anything, mock.MatchedBy(func(c serviceuser.Credential) bool {
-			return c.ID == clientID && c.ServiceUserID == "su-id" &&
-				bcrypt.CompareHashAndPassword([]byte(c.SecretHash), []byte("new-secret")) == nil
-		})).Return(serviceuser.Credential{ID: clientID}, nil)
+		var rotated serviceuser.Credential
+		creds.On("Create", mock.Anything, mock.Anything).
+			Run(func(args mock.Arguments) { rotated = args.Get(1).(serviceuser.Credential) }).
+			Return(serviceuser.Credential{ID: clientID}, nil)
 		prom.On("Sudo", mock.Anything, "su-id", schema.AdminRelationName).Return(nil)
 
 		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
 		creds.AssertExpectations(t)
 		prom.AssertExpectations(t)
 		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+
+		assert.Equal(t, clientID, rotated.ID)
+		assert.Equal(t, "su-id", rotated.ServiceUserID)
+		assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(rotated.SecretHash), []byte("new-secret")))
 	})
 
 	t.Run("aborts on a non-not-found credential lookup error", func(t *testing.T) {
