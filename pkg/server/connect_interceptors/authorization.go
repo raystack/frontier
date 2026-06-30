@@ -636,6 +636,12 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetPolicy": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		// A platform superuser may read any policy, including ones whose resource
+		// has been deleted: the resource-scoped check below cannot resolve once
+		// the resource no longer exists in the graph.
+		if err := handler.IsSuperUser(ctx, req); err == nil {
+			return nil
+		}
 		pbreq := req.(*connect.Request[frontierv1beta1.GetPolicyRequest])
 		policyResp, err := handler.GetPolicy(ctx, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: pbreq.Msg.GetId()}))
 		if err != nil {
@@ -658,6 +664,13 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return ErrNotAvailable
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeletePolicy": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		// A platform superuser may delete any policy, including ones whose resource
+		// has been deleted: the resource-scoped check below cannot resolve once
+		// the resource no longer exists in the graph, which would otherwise leave
+		// orphaned policies impossible to clean up.
+		if err := handler.IsSuperUser(ctx, req); err == nil {
+			return nil
+		}
 		pbreq := req.(*connect.Request[frontierv1beta1.DeletePolicyRequest])
 		policyResp, err := handler.GetPolicy(ctx, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: pbreq.Msg.GetId()}))
 		if err != nil {
