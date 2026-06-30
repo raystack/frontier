@@ -34,6 +34,7 @@ import {
   toastManager
 } from '@raystack/apsara';
 import { useFrontier } from '~/client/contexts/FrontierContext';
+import { useTerminology } from '../../../hooks/useTerminology';
 import { DEFAULT_DATE_FORMAT } from '~/client/utils/constants';
 import { usePermissions } from '~/client/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '../../../../utils';
@@ -51,31 +52,33 @@ const ORG_UPDATE_PERMISSION = `${PERMISSIONS.OrganizationNamespace.replace(
 const roleGrantsOrgUpdate = (role: Role) =>
   role.permissions?.includes(ORG_UPDATE_PERMISSION) ?? false;
 
-const baseFields = {
+const getBaseFields = (orgLabel: string) => ({
   title: yup.string().required('Name is required'),
-  orgRoleId: yup.string().required('Organization role is required'),
+  orgRoleId: yup.string().required(`${orgLabel} role is required`),
   projectRoleId: yup.string().required('Project role is required'),
   projectIds: yup
     .array()
     .of(yup.string().required())
     .default([])
-};
+});
 
-const createPATSchema = yup
-  .object({
-    ...baseFields,
-    expiry: yup.string().required('Expiry date is required')
-  })
-  .required();
+const getCreatePATSchema = (orgLabel: string) =>
+  yup
+    .object({
+      ...getBaseFields(orgLabel),
+      expiry: yup.string().required('Expiry date is required')
+    })
+    .required();
 
-const updatePATSchema = yup
-  .object({
-    ...baseFields,
-    expiry: yup.string().default('')
-  })
-  .required();
+const getUpdatePATSchema = (orgLabel: string) =>
+  yup
+    .object({
+      ...getBaseFields(orgLabel),
+      expiry: yup.string().default('')
+    })
+    .required();
 
-type FormData = yup.InferType<typeof createPATSchema>;
+type FormData = yup.InferType<ReturnType<typeof getCreatePATSchema>>;
 
 export interface PATFormDialogProps {
   handle: ReturnType<typeof Dialog.createHandle>;
@@ -91,10 +94,18 @@ export function PATFormDialog({
   onUpdated
 }: PATFormDialogProps) {
   const { activeOrganization: organization, config } = useFrontier();
+  const t = useTerminology();
   const orgId = organization?.id || '';
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
   const isUpdateMode = Boolean(initialData);
+
+  const orgLabel = t.organization({ case: 'capital' });
+  const patSchema = useMemo(
+    () =>
+      isUpdateMode ? getUpdatePATSchema(orgLabel) : getCreatePATSchema(orgLabel),
+    [orgLabel, isUpdateMode]
+  );
 
   const {
     register,
@@ -108,7 +119,7 @@ export function PATFormDialog({
     clearErrors,
     formState: { errors, isSubmitting, isDirty }
   } = useForm<FormData>({
-    resolver: yupResolver(isUpdateMode ? updatePATSchema : createPATSchema),
+    resolver: yupResolver(patSchema),
     defaultValues: {
       title: '',
       expiry: '',
@@ -479,7 +490,7 @@ export function PATFormDialog({
                   )}
 
                   <Flex direction="column" gap={2}>
-                    <Label>Organization Role</Label>
+                    <Label>{t.organization({ case: 'capital' })} Role</Label>
                     <Controller
                       name="orgRoleId"
                       control={control}
