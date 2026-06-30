@@ -127,18 +127,18 @@ custom resource and how each one reaches it.
 | --- | --- | --- |
 | Resource owner (creator) | `owner` arrow on the resource | Yes, on create |
 | Platform admin | `platform->superuser` | Yes |
-| Org Owner role (`app_organization_administer`) | org rule's `granted->app_organization_administer` | **Yes** — every custom action, for free |
+| Owner role (`app_organization_owner`) | org rule's `granted->app_organization_administer` | **Yes** — every custom action, for free |
 | Org `owner` relation | org rule's `owner` arrow | Yes |
 | A project role that lists the action | `project->compute_machine_get` -> `granted->compute_machine_get` | Only if the role lists it |
 | A project admin role (`app_project_administer`) | `project->compute_machine_get` -> `granted->app_project_administer` | Only if the role grants project admin |
 | A direct grant on the resource | `granted->compute_machine_get` on the resource | Only if a policy is set on the resource |
 
-The key point about the **Org Owner** role: the org-level rule hardcodes
+The key point about the **Owner** role (`app_organization_owner`): the org-level rule hardcodes
 `granted->app_organization_administer`. So whoever holds the Owner role on an organization can
 perform **every** custom action on **every** resource in that org, without any project or
 resource grant. This is on purpose.
 
-The **Org Admin** role (`app_organization_manager`) is different. Its permissions are:
+The **Admin** role (`app_organization_manager`) is different. Its permissions are:
 
 ```
 app_organization_update, app_organization_get, app_organization_projectcreate,
@@ -146,7 +146,7 @@ app_organization_projectlist, app_organization_groupcreate, app_organization_gro
 app_organization_serviceusermanage, app_project_get, app_project_update
 ```
 
-None of these appears anywhere in the custom-action rules above. So the Org Admin role does
+None of these appears anywhere in the custom-action rules above. So the Admin role does
 **not** get custom resource actions through org inheritance. To act on a custom resource, an
 Admin would need a project role that lists the action, a project admin role, or a direct grant
 on the resource.
@@ -237,7 +237,7 @@ permissions:
   # app/* namespaces are reserved for the base schema and get filtered out.
   - name: createcomputemachine
     namespace: user/project
-  - name: listcomputemachine
+  - name: listcomputemachines
     namespace: user/project
 
 roles:
@@ -247,7 +247,7 @@ roles:
       - app/project
     permissions:
       - user/project:createcomputemachine
-      - user/project:listcomputemachine
+      - user/project:listcomputemachines
 ```
 
 This does three things:
@@ -281,7 +281,7 @@ nothing until you grant them.
 
 You do not have to set up any roles for these. They work as soon as the resource is registered:
 
-- **Org Owner** (`app_organization_owner`) — can do every action on every custom resource in the
+- **Owner** (`app_organization_owner`) — can do every action on every custom resource in the
   org.
 - **Project Owner** (`app_project_owner`) — can do every action on resources in their project.
 - **Platform admin** — can do everything.
@@ -291,14 +291,14 @@ This works because the [generated rules](#what-rules-get-generated) already incl
 admin permissions. So an owner or an admin is covered without the action being listed in any role.
 
 You never need to list a custom action on these roles. `app_project_administer` (Project Owner)
-and `app_organization_administer` (Org Owner) already grant every custom action through the
+and `app_organization_administer` (Owner) already grant every custom action through the
 schema, so listing them again would just be repeating what the schema already does.
 
 ### Does not work by default
 
 These roles get nothing on a custom resource until you grant it:
 
-- Org Admin (`app_organization_manager`), Org Member (`app_organization_viewer`), Access Manager
+- Admin (`app_organization_manager`), Member (`app_organization_viewer`), Access Manager
   (`app_organization_accessmanager`)
 - Project Manager (`app_project_manager`), Project Viewer (`app_project_viewer`)
 
@@ -320,7 +320,7 @@ roles:
       - app/project:get             # keep what the role already had
       - app/project:resourcelist
       - compute/machine:get
-      - user/project:listcomputemachine
+      - user/project:listcomputemachines
 ```
 
 One thing to watch: when you list a role that already exists, Frontier **replaces** its whole
@@ -343,7 +343,7 @@ roles:
       - compute/machine:get
       - compute/machine:update
       - user/project:createcomputemachine
-      - user/project:listcomputemachine
+      - user/project:listcomputemachines
 ```
 
 A new role starts empty, so you only list what you want it to have. After boot, you assign this
@@ -363,7 +363,7 @@ role to a user or group on a project, the same way you assign any other role.
 - A custom resource is registered from a config file listing a `service/resource` namespace and
   its actions.
 - Bootstrap merges generated rules into the base schema on every boot and writes them to SpiceDB.
-- The **resource owner**, **platform admin**, and **Org Owner** can always perform every action
+- The **resource owner**, **platform admin**, and **Owner** (`app_organization_owner`) can always perform every action
   on a resource. Project and direct grants depend on the roles in use.
 - Per-item actions (`get`, `update`, `delete`) live on the resource namespace; project-level
   actions (`create`, `list`) live on `user/project` and are checked against the project.
