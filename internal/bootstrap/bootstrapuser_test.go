@@ -46,7 +46,7 @@ func (m *mockSUPromoter) Sudo(ctx context.Context, id, relationName string) erro
 
 func bcryptHash(t *testing.T, secret string) string {
 	t.Helper()
-	h, err := bcrypt.GenerateFromPassword([]byte(secret), bcrypt.MinCost)
+	h, err := bcrypt.GenerateFromPassword([]byte(secret), bootstrapBcryptCost)
 	if err != nil {
 		t.Fatalf("hash: %v", err)
 	}
@@ -54,6 +54,13 @@ func bcryptHash(t *testing.T, secret string) string {
 }
 
 func TestEnsureBootstrapSuperUser(t *testing.T) {
+	// Cost 14 is intentionally slow; the create/rotate paths and the bcrypt
+	// comparisons in the matchers below would otherwise blow the test timeout
+	// under `-race -count 2`. Behaviour is identical at any cost.
+	orig := bootstrapBcryptCost
+	bootstrapBcryptCost = bcrypt.MinCost
+	t.Cleanup(func() { bootstrapBcryptCost = orig })
+
 	ctx := context.Background()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	const clientID = "f47ac10b-58cc-4372-a567-0e02b2c3d479"

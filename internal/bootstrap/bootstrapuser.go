@@ -15,7 +15,9 @@ import (
 )
 
 // bootstrapBcryptCost matches serviceuser.CreateSecret's cost for client secrets.
-const bootstrapBcryptCost = 14
+// It is a var (not a const) so unit tests can lower it to bcrypt.MinCost — cost 14
+// is deliberately expensive and, run under `-race -count 2`, blows the test timeout.
+var bootstrapBcryptCost = 14
 
 const defaultBootstrapTitle = "GitOps Bootstrap Superuser"
 
