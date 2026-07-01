@@ -17,7 +17,7 @@ import (
 func TestHandler_RemovePlatformUser(t *testing.T) {
 	t.Run("removes both admin and member relations for a user", func(t *testing.T) {
 		userSvc := mocks.NewUserService(t)
-		// both platform relations are stripped; each UnSudo is a no-op for a relation
+		// both platform relations are removed; each UnSudo does nothing for a relation
 		// the user doesn't hold.
 		userSvc.EXPECT().UnSudo(mock.Anything, "u1", schema.AdminRelationName).Return(nil)
 		userSvc.EXPECT().UnSudo(mock.Anything, "u1", schema.MemberRelationName).Return(nil)
@@ -126,7 +126,7 @@ func TestHandler_ListPlatformUsers(t *testing.T) {
 			{Subject: relation.Subject{ID: "u1", Namespace: schema.UserPrincipal}, RelationName: schema.AdminRelationName},
 			{Subject: relation.Subject{ID: "u1", Namespace: schema.UserPrincipal}, RelationName: schema.MemberRelationName},
 		}, nil)
-		// a single, deduped id is fetched even though two tuples were listed.
+		// a single id is fetched (with duplicates removed) even though two relations were listed.
 		userSvc.EXPECT().GetByIDs(mock.Anything, []string{"u1"}).Return([]user.User{{ID: "u1"}}, nil)
 
 		h := &ConnectHandler{relationService: relationSvc, userService: userSvc}
