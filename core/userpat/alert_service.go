@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 	htmltemplate "html/template"
+	"log/slog"
 	"math"
 	texttemplate "text/template"
 	"time"
-
-	"log/slog"
 
 	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/organization"
@@ -34,8 +33,8 @@ const (
 	defaultExpiryReminderSubject = `Your personal access token "{{.Title}}" expires in {{.DaysLeft}} days`
 	defaultExpiredNoticeSubject  = `Your personal access token "{{.Title}}" has expired`
 
-	expiryReminderMetadataKey = "expiry_reminder_sent_at"
-	expiredNoticeMetadataKey  = "expired_notice_sent_at"
+	ExpiryReminderMetadataKey = "expiry_reminder_sent_at"
+	ExpiredNoticeMetadataKey  = "expired_notice_sent_at"
 )
 
 // AlertUserService resolves user details from user ID.
@@ -167,7 +166,7 @@ func (s *AlertService) sendExpiryReminders(ctx context.Context) {
 	}
 
 	for _, pat := range pats {
-		if err := s.sendAlert(ctx, pat, subjectTpl, bodyTpl, expiryReminderMetadataKey, pkgauditrecord.PATExpiryReminderEvent); err != nil {
+		if err := s.sendAlert(ctx, pat, subjectTpl, bodyTpl, ExpiryReminderMetadataKey, pkgauditrecord.PATExpiryReminderEvent); err != nil {
 			s.logger.ErrorContext(ctx, "failed to send expiry reminder",
 				"pat_id", pat.ID, "error", err)
 		}
@@ -191,7 +190,7 @@ func (s *AlertService) sendExpiredNotices(ctx context.Context) {
 	}
 
 	for _, pat := range pats {
-		if err := s.sendAlert(ctx, pat, subjectTpl, bodyTpl, expiredNoticeMetadataKey, pkgauditrecord.PATExpiredNoticeEvent); err != nil {
+		if err := s.sendAlert(ctx, pat, subjectTpl, bodyTpl, ExpiredNoticeMetadataKey, pkgauditrecord.PATExpiredNoticeEvent); err != nil {
 			s.logger.ErrorContext(ctx, "failed to send expired notice",
 				"pat_id", pat.ID, "error", err)
 		}

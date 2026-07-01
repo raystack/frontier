@@ -56,11 +56,6 @@ export const BillingDetailsSection = () => {
   const handleOpenBillingPortal = async () => {
     if (isBillingPortalDisabled) return;
     const returnUrl = window.location.href;
-    // Open the tab synchronously within the click gesture so popup blockers
-    // allow it; it is navigated once the portal URL is ready. Opened without
-    // "noopener" so we can set its location, then opener is severed for safety.
-    const portalTab = window.open("", "_blank");
-    if (portalTab) portalTab.opener = null;
     try {
       const resp = await createCheckout(
         create(CreateCheckoutRequestSchema, {
@@ -71,16 +66,11 @@ export const BillingDetailsSection = () => {
         })
       );
       const checkoutUrl = resp?.checkoutSession?.checkoutUrl;
-      if (checkoutUrl && portalTab) {
-        portalTab.location.href = checkoutUrl;
-      } else if (checkoutUrl) {
-        window.open(checkoutUrl, "_blank", "noopener,noreferrer");
-      } else {
-        portalTab?.close();
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
       }
     } catch {
       // the error toast is surfaced by the mutation's onError handler
-      portalTab?.close();
     }
   };
 

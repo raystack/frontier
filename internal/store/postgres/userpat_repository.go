@@ -12,6 +12,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 
+	"github.com/raystack/frontier/core/userpat"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/pkg/db"
@@ -327,6 +328,8 @@ func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string
 			"secret_hash":    secretHash,
 			"expires_at":     expiresAt,
 			"regenerated_at": time.Now().UTC(),
+			// Reset the alert-sent keys so the new expiry cycle re-sends reminders.
+			"metadata": goqu.L("COALESCE(metadata, '{}'::jsonb) - ? - ?", userpat.ExpiryReminderMetadataKey, userpat.ExpiredNoticeMetadataKey),
 		}).
 		Where(
 			goqu.Ex{"id": id},
@@ -360,7 +363,7 @@ func (r UserPATRepository) ListExpiryReminderPending(ctx context.Context, days i
 		goqu.Ex{"deleted_at": nil},
 		goqu.L("expires_at > NOW()"),
 		goqu.L("expires_at <= NOW() + make_interval(days => ?)", days),
-		goqu.L("(metadata->>'expiry_reminder_sent_at') IS NULL"),
+		goqu.L("(metadata->>?) IS NULL", userpat.ExpiryReminderMetadataKey),
 	).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", queryErr, err)
@@ -386,7 +389,7 @@ func (r UserPATRepository) ListExpiredNoticePending(ctx context.Context) ([]mode
 	query, params, err := dialect.From(TABLE_USER_PATS).Where(
 		goqu.Ex{"deleted_at": nil},
 		goqu.L("expires_at < NOW()"),
-		goqu.L("(metadata->>'expired_notice_sent_at') IS NULL"),
+		goqu.L("(metadata->>?) IS NULL", userpat.ExpiredNoticeMetadataKey),
 	).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", queryErr, err)

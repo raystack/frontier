@@ -380,21 +380,28 @@ func (s Service) GetBySecret(ctx context.Context, credID string, reqSecret strin
 func (s Service) GetByJWT(ctx context.Context, token string) (ServiceUser, error) {
 	insecureToken, err := jwt.ParseInsecure([]byte(token))
 	if err != nil {
-		return ServiceUser{}, fmt.Errorf("invalid serviceuser token: %w", err)
+		return ServiceUser{}, fmt.Errorf("%w: %v", ErrTokenNotJWT, err)
 	}
 	tokenKID, ok := insecureToken.Get(jwk.KeyIDKey)
 	if !ok {
-		return ServiceUser{}, fmt.Errorf("invalid key id from token")
+		return ServiceUser{}, fmt.Errorf("missing key id in token: %w", ErrInvalidKeyID)
 	}
-	cred, err := s.credRepo.Get(ctx, tokenKID.(string))
+	kid, ok := tokenKID.(string)
+	if !ok {
+		return ServiceUser{}, fmt.Errorf("key id is not a string: %w", ErrInvalidKeyID)
+	}
+	if _, err := uuid.Parse(kid); err != nil {
+		return ServiceUser{}, fmt.Errorf("key id is not a valid uuid: %w", ErrInvalidKeyID)
+	}
+	cred, err := s.credRepo.Get(ctx, kid)
 	if err != nil {
-		return ServiceUser{}, fmt.Errorf("credential invalid of kid %s: %w", tokenKID.(string), err)
+		return ServiceUser{}, fmt.Errorf("credential invalid of kid %s: %w", kid, err)
 	}
 
 	// verify token
 	_, err = jwt.Parse([]byte(token), jwt.WithKeySet(cred.PublicKey))
 	if err != nil {
-		return ServiceUser{}, fmt.Errorf("invalid serviceuser token: %w", err)
+		return ServiceUser{}, fmt.Errorf("%w: %v", ErrInvalidCred, err)
 	}
 	return s.repo.GetByID(ctx, cred.ServiceUserID)
 }
