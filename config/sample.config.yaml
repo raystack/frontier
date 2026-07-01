@@ -184,7 +184,8 @@ app:
     # guaranteed superuser identity without a chicken-and-egg. The account is ensured and
     # promoted to superuser on every boot (idempotent); the secret is rotated if it changes
     # here. Authenticate with: Authorization: Basic base64(client_id:client_secret).
-    # Leave client_id/client_secret empty to disable.
+    # Leave client_id/client_secret empty to disable — but then no superuser is seeded and,
+    # since granting one is itself superuser-gated, none can be created via the API either.
     # client_id must be a UUID (it is the service-account credential id); generate one
     # (e.g. uuidgen) and keep it stable. client_secret is your chosen password.
     bootstrap:

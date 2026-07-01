@@ -65,11 +65,11 @@ func printReconcileReport(cmd *cli.Command, rep reconcile.Report) {
 		cmd.Printf("%s: no changes\n", rep.Kind)
 		return
 	}
-	verb := "applied"
+	verb, count := "applied", rep.Applied
 	if rep.DryRun {
-		verb = "planned"
+		verb, count = "planned", len(rep.Planned)
 	}
-	cmd.Printf("%s (%s %d):\n", rep.Kind, verb, len(rep.Planned))
+	cmd.Printf("%s (%s %d):\n", rep.Kind, verb, count)
 	for _, p := range rep.Planned {
 		cmd.Printf("  - %s\n", p)
 	}

@@ -56,12 +56,9 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 			}
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
-		// Protect the config-bootstrapped break-glass SA (well-known id). It is
-		// seeded and managed at boot, not via this API, while reconcile is
-		// authoritative over service accounts — without this guard an apply (or a
-		// stray call) would strip its superuser access until the next restart.
-		// Respond with the generic permission error (don't reveal that this id is the
-		// protected SA); the specific reason is logged only.
+		// The bootstrap SA is server-managed (seeded at boot), so it can't be removed
+		// via this API. Return the generic permission error and log the reason —
+		// the response must not reveal that this id is the protected SA.
 		if req.Msg.GetServiceuserId() == schema.BootstrapServiceUserID {
 			slog.WarnContext(ctx, "refused removal of the bootstrap superuser service account", "service_user_id", req.Msg.GetServiceuserId())
 			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)

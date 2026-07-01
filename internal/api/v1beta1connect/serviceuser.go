@@ -325,6 +325,8 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 		switch {
 		case err == serviceuser.ErrCredNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
+		case errors.Is(err, serviceuser.ErrProtected):
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserJWK: key_id=%s: %w", keyID, err))
 		}
@@ -384,6 +386,9 @@ func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, reques
 
 	err := h.serviceUserService.DeleteSecret(ctx, secretID)
 	if err != nil {
+		if errors.Is(err, serviceuser.ErrProtected) {
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserCredential: secret_id=%s: %w", secretID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}), nil
@@ -439,6 +444,9 @@ func (h *ConnectHandler) DeleteServiceUserToken(ctx context.Context, request *co
 
 	err := h.serviceUserService.DeleteToken(ctx, tokenID)
 	if err != nil {
+		if errors.Is(err, serviceuser.ErrProtected) {
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserToken: token_id=%s: %w", tokenID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserTokenResponse{}), nil

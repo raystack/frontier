@@ -345,3 +345,31 @@ func TestService_ListByOrg(t *testing.T) {
 		})
 	}
 }
+
+func TestService_DeleteKey_BootstrapProtected(t *testing.T) {
+	ctx := context.Background()
+	const credID = "cred-1"
+
+	t.Run("refuses deleting a credential owned by the bootstrap SA", func(t *testing.T) {
+		svc, _, credRepo, _, _, _ := newTestService(t)
+		credRepo.On("Get", ctx, credID).Return(
+			serviceuser.Credential{ID: credID, ServiceUserID: schema.BootstrapServiceUserID}, nil)
+
+		err := svc.DeleteSecret(ctx, credID) // funnels through DeleteKey
+		if !errors.Is(err, serviceuser.ErrProtected) {
+			t.Fatalf("want ErrProtected, got %v", err)
+		}
+		credRepo.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+	})
+
+	t.Run("deletes a credential of a normal service user", func(t *testing.T) {
+		svc, _, credRepo, _, _, _ := newTestService(t)
+		credRepo.On("Get", ctx, credID).Return(
+			serviceuser.Credential{ID: credID, ServiceUserID: "11111111-2222-3333-4444-555555555555"}, nil)
+		credRepo.On("Delete", ctx, credID).Return(nil)
+
+		if err := svc.DeleteToken(ctx, credID); err != nil { // also funnels through DeleteKey
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+}
