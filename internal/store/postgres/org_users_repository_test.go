@@ -146,6 +146,26 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 			wantArgs: []interface{}{"%john%"},
 		},
 		{
+			name: "ilike operator",
+			filter: rql.Filter{
+				Name:     "title",
+				Operator: "ilike",
+				Value:    "%john%",
+			},
+			wantSQL:  `(CAST("users"."title" AS TEXT) ILIKE $1)`,
+			wantArgs: []interface{}{"%john%"},
+		},
+		{
+			name: "notilike operator",
+			filter: rql.Filter{
+				Name:     "title",
+				Operator: "notilike",
+				Value:    "%john%",
+			},
+			wantSQL:  `(CAST("users"."title" AS TEXT) NOT ILIKE $1)`,
+			wantArgs: []interface{}{"%john%"},
+		},
+		{
 			name: "in operator",
 			filter: rql.Filter{
 				Name:     "state",
@@ -163,6 +183,25 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 			},
 			wantSQL:  `(("users"."title" IS NULL) OR ("users"."title" = $1))`,
 			wantArgs: []interface{}{""},
+		},
+		{
+			name: "datetime gte operator",
+			filter: rql.Filter{
+				Name:     "org_joined_at",
+				Operator: "gte",
+				Value:    "2024-01-01T00:00:00Z",
+			},
+			wantSQL:  `("policies"."created_at" >= $1)`,
+			wantArgs: []interface{}{"2024-01-01T00:00:00Z"},
+		},
+		{
+			name: "ilike operator not allowed on datetime column",
+			filter: rql.Filter{
+				Name:     "org_joined_at",
+				Operator: "ilike",
+				Value:    "%2024%",
+			},
+			wantErr: true,
 		},
 		{
 			name: "invalid operator",
