@@ -36,9 +36,10 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error) {
-	// By default remove the principal from the platform entirely (both admin and
-	// member). When a relation is set, scope removal to just that one — e.g. to
-	// demote an admin to member. Each UnSudo is a no-op for a relation not held.
+	// By default, remove the user or service account from the platform completely
+	// (both admin and member). If a relation is set, remove just that one — for
+	// example, to turn an admin into a member. UnSudo does nothing if they don't
+	// hold that relation.
 	platformRelations := []string{schema.AdminRelationName, schema.MemberRelationName}
 	if rel := req.Msg.GetRelation(); rel != "" {
 		if !schema.IsPlatformRelation(rel) {
@@ -77,10 +78,10 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.ListRelations: %w", err))
 	}
 
-	// A principal can hold both admin and member; collect every relation per
-	// subject (deduped) so callers see the full set rather than just whichever
-	// tuple happened to be listed last. The reconciler relies on this to know
-	// exactly which relations to revoke.
+	// A user or service account can hold both admin and member. Collect every
+	// relation for each subject, with duplicates removed, so callers see all of
+	// them and not just the last one listed. The reconciler needs this to know
+	// exactly which relations to remove.
 	userRelations := platformRelationsBySubject(relations, schema.UserPrincipal)
 	serviceUserRelations := platformRelationsBySubject(relations, schema.ServiceUserPrincipal)
 
@@ -132,9 +133,9 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 	}), nil
 }
 
-// platformRelationsBySubject groups platform relation names (admin/member) by
-// subject id for the given principal namespace, deduped and sorted for stable
-// output.
+// platformRelationsBySubject groups the platform relation names (admin/member)
+// by subject id for the given namespace. Duplicates are removed and the result
+// is sorted so the output is stable.
 func platformRelationsBySubject(relations []relation.Relation, namespace string) map[string][]string {
 	sets := map[string]map[string]struct{}{}
 	for _, r := range relations {
@@ -158,7 +159,7 @@ func platformRelationsBySubject(relations []relation.Relation, namespace string)
 	return out
 }
 
-// sortedSubjectIDs returns the subject ids in deterministic order.
+// sortedSubjectIDs returns the subject ids in sorted order.
 func sortedSubjectIDs(m map[string][]string) []string {
 	ids := make([]string, 0, len(m))
 	for id := range m {
@@ -168,9 +169,9 @@ func sortedSubjectIDs(m map[string][]string) []string {
 	return ids
 }
 
-// stampPlatformRelations records a principal's platform relations in its
-// metadata: "relations" carries the full set (consumed by the reconciler) while
-// "relation" keeps the first one for backward compatibility.
+// stampPlatformRelations records a subject's platform relations in its metadata.
+// "relations" holds all of them (used by the reconciler); "relation" keeps the
+// first one for backward compatibility.
 func stampPlatformRelations(md map[string]any, rels []string) {
 	if len(rels) == 0 {
 		return
