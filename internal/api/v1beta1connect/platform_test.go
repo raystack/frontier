@@ -43,6 +43,21 @@ func TestHandler_RemovePlatformUser(t *testing.T) {
 		assert.NotNil(t, resp)
 	})
 
+	t.Run("refuses to remove the bootstrap superuser service account", func(t *testing.T) {
+		serviceUserSvc := mocks.NewServiceUserService(t)
+		// the target is the well-known bootstrap SA -> reject before any UnSudo.
+		h := &ConnectHandler{serviceUserService: serviceUserSvc}
+		resp, err := h.RemovePlatformUser(context.Background(), connect.NewRequest(&frontierv1beta1.RemovePlatformUserRequest{
+			ServiceuserId: schema.BootstrapServiceUserID,
+		}))
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		// must not reveal that this id is the protected bootstrap SA.
+		assert.NotContains(t, err.Error(), "bootstrap")
+		serviceUserSvc.AssertNotCalled(t, "UnSudo", mock.Anything, mock.Anything, mock.Anything)
+	})
+
 	t.Run("removes only the specified relation when relation is set", func(t *testing.T) {
 		userSvc := mocks.NewUserService(t)
 		// only the admin relation is stripped; an UnSudo for member would be an

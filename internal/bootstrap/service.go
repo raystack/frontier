@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/raystack/frontier/billing/plan"
 
@@ -42,10 +41,6 @@ type RoleService interface {
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
-}
-
-type UserService interface {
-	Sudo(ctx context.Context, id string, relationName string) error
 }
 
 type FileService interface {
@@ -85,9 +80,11 @@ type ServiceUserBackfiller interface {
 
 // AdminConfig is platform administration configuration
 type AdminConfig struct {
-	// Users are a list of email-ids/uuids which needs to be promoted as superusers
-	// if email is provided and user doesn't exist, user is created by default
-	Users []string `yaml:"users" mapstructure:"users"`
+	// Bootstrap seeds a superuser service account from config (client_id/secret) so
+	// automation (e.g. GitOps) always has a superuser to log in as. This means you
+	// don't need an existing superuser to create the first one. Everything else about
+	// platform users is managed separately, through the GitOps reconcile flow.
+	Bootstrap SuperUserBootstrapConfig `yaml:"bootstrap" mapstructure:"bootstrap"`
 }
 
 type Service struct {
@@ -98,11 +95,14 @@ type Service struct {
 	roleService       RoleService
 	permissionService PermissionService
 	authzEngine       AuthzEngine
-	userService       UserService
 	relationService   RelationService
 	policyService     PolicyService
 	serviceuserRepo   ServiceUserBackfiller
 	patDeniedPerms    map[string]struct{}
+
+	suCreator   ServiceUserCreator
+	suCredStore ServiceUserCredentialStore
+	suPromoter  SuperUserPromoter
 
 	planService   PlanService
 	planLocalRepo BillingPlanRepository
@@ -115,7 +115,6 @@ func NewBootstrapService(
 	namespaceService NamespaceService,
 	roleService RoleService,
 	actionService PermissionService,
-	userService UserService,
 	authzEngine AuthzEngine,
 	relationService RelationService,
 	policyService PolicyService,
@@ -123,6 +122,9 @@ func NewBootstrapService(
 	patDeniedPerms map[string]struct{},
 	planService PlanService,
 	planLocalRepo BillingPlanRepository,
+	suCreator ServiceUserCreator,
+	suCredStore ServiceUserCredentialStore,
+	suPromoter SuperUserPromoter,
 ) *Service {
 	return &Service{
 		logger:            logger,
@@ -131,7 +133,6 @@ func NewBootstrapService(
 		namespaceService:  namespaceService,
 		roleService:       roleService,
 		permissionService: actionService,
-		userService:       userService,
 		authzEngine:       authzEngine,
 		planService:       planService,
 		planLocalRepo:     planLocalRepo,
@@ -139,6 +140,9 @@ func NewBootstrapService(
 		policyService:     policyService,
 		serviceuserRepo:   serviceuserRepo,
 		patDeniedPerms:    patDeniedPerms,
+		suCreator:         suCreator,
+		suCredStore:       suCredStore,
+		suPromoter:        suPromoter,
 	}
 }
 
@@ -256,18 +260,6 @@ func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermissio
 		}
 	}
 	return filteredPermissions
-}
-
-// MakeSuperUsers promote ordinary users to superuser
-func (s Service) MakeSuperUsers(ctx context.Context) error {
-	for _, userID := range s.adminConfig.Users {
-		userID = strings.TrimSpace(userID)
-		slog.DebugContext(ctx, "promoting user to superuser", "user_id", userID)
-		if err := s.userService.Sudo(ctx, userID, schema.AdminRelationName); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // MigrateRoles migrate predefined roles to org

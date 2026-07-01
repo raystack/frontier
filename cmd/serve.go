@@ -212,8 +212,9 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 	if err = deps.BootstrapService.MigrateRoles(ctx); err != nil {
 		return err
 	}
-	// promote normal users to superusers
-	if err = deps.BootstrapService.MakeSuperUsers(ctx); err != nil {
+	// ensure the config-seeded bootstrap superuser service account (for automation/GitOps).
+	// all other platform-user management is handled out-of-band via the GitOps reconcile flow.
+	if err = deps.BootstrapService.EnsureBootstrapSuperUser(ctx); err != nil {
 		return err
 	}
 
@@ -569,7 +570,6 @@ func buildAPIDependencies(
 		namespaceService,
 		roleService,
 		permissionService,
-		userService,
 		authzSchemaRepository,
 		relationService,
 		policyService,
@@ -577,6 +577,9 @@ func buildAPIDependencies(
 		cfg.App.PAT.DeniedPermissionsSet(),
 		planService,
 		planBlobRepository,
+		svUserRepo,
+		scUserCredRepo,
+		serviceUserService,
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,

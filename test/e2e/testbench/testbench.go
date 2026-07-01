@@ -1,6 +1,7 @@
 package testbench
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -17,6 +18,7 @@ import (
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/internal/bootstrap"
 	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/frontier/pkg/db"
 )
@@ -94,7 +96,10 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 		PreSharedKey: preSharedKey,
 		Consistency:  spicedb.ConsistencyLevelBestEffort.String(),
 	}
-	appConfig.App.Admin.Users = []string{OrgAdminEmail}
+	appConfig.App.Admin.Bootstrap = bootstrap.SuperUserBootstrapConfig{
+		ClientID:     BootstrapClientID,
+		ClientSecret: BootstrapClientSecret,
+	}
 	appConfig.App.Webhook.EncryptionKey = "kmm4ECoWU21K2ZoyTcYLd6w7DfhoUoap"
 	appConfig.Billing.StripeWebhookSecrets = []string{"whsec_test_secret"}
 	appConfig.App.Authentication.Token.Claims.AddOrgIDsClaim = true
@@ -134,6 +139,13 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 
 	// let frontier start
 	time.Sleep(time.Second * 2)
+
+	// seed the platform superuser the production way: the config-bootstrapped service
+	// account grants the test admin superuser via the platform API (no boot-time human flow).
+	if err := PromoteBootstrapAdmin(context.Background(), te.AdminClient, OrgAdminEmail); err != nil {
+		// containers + server are already up; tear them down so we don't leak.
+		return nil, errors.Join(err, te.Close())
+	}
 	return te, nil
 }
 

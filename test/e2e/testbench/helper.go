@@ -3,15 +3,18 @@ package testbench
 import (
 	"context"
 	_ "embed"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate/strategy"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 )
@@ -30,7 +33,41 @@ var (
 const (
 	OrgAdminEmail = "admin1-group1-org1@raystack.org"
 	TestOTP       = "123456"
+
+	// Bootstrap superuser service-account credentials, seeded via App.Admin.Bootstrap.
+	// Used to grant the test admin platform superuser, mirroring the production GitOps flow.
+	// client_id is a credential UUID (serviceuser_credentials.id is a uuid column).
+	BootstrapClientID     = "11111111-2222-3333-4444-555555555555"
+	BootstrapClientSecret = "e2e-bootstrap-secret"
 )
+
+// PromoteBootstrapAdmin authenticates as the config-bootstrapped superuser service
+// account (HTTP Basic client credentials) and grants the given user the platform
+// admin (superuser) relation — the same path GitOps uses in production.
+func PromoteBootstrapAdmin(ctx context.Context, ad frontierv1beta1connect.AdminServiceClient, email string) error {
+	basic := base64.StdEncoding.EncodeToString([]byte(BootstrapClientID + ":" + BootstrapClientSecret))
+	authCtx := ContextWithHeaders(ctx, map[string]string{"Authorization": "Basic " + basic})
+
+	// Retry while the server is still coming up (CodeUnavailable). When multiple
+	// suites run in one process, a prior suite's Close() SIGINTs the process, so the
+	// next testbench's server can take a moment to accept connections.
+	var lastErr error
+	for i := 0; i < 60; i++ {
+		_, err := ad.AddPlatformUser(authCtx, connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
+			UserId:   email,
+			Relation: schema.AdminRelationName,
+		}))
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		if connect.CodeOf(err) != connect.CodeUnavailable {
+			return fmt.Errorf("promote bootstrap admin: %w", err)
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+	return fmt.Errorf("promote bootstrap admin (server unavailable after retries): %w", lastErr)
+}
 
 // headersKey is the context key for storing headers to be sent with ConnectRPC requests.
 type headersKey struct{}
