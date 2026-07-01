@@ -71,7 +71,7 @@ func serviceUserPBRelations(t *testing.T, id string, relations ...string) *front
 
 func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 	// desired: one new admin; the existing "drop" admin is absent -> removed.
-	specYAML := []byte("- {type: user, ref: new@x.com, role: admin}\n")
+	specYAML := []byte("- {type: user, ref: new@x.com, relation: admin}\n")
 
 	t.Run("applies adds and removes", func(t *testing.T) {
 		api := &fakePlatformUserAPI{users: []*frontierv1beta1.User{
@@ -134,7 +134,7 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 	t.Run("strips the extra relation when the principal holds both (relations list)", func(t *testing.T) {
 		// alice is desired as admin only but currently holds admin + member;
 		// the reconciler must read both relations and revoke member exactly.
-		yamlSpec := []byte("- {type: user, ref: alice@x.com, role: admin}\n")
+		yamlSpec := []byte("- {type: user, ref: alice@x.com, relation: admin}\n")
 		api := &fakePlatformUserAPI{users: []*frontierv1beta1.User{
 			platformUserPBRelations(t, "alice-id", "alice@x.com", schema.AdminRelationName, schema.MemberRelationName),
 		}}

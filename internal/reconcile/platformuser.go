@@ -16,12 +16,13 @@ const (
 )
 
 // PlatformUserSpec is one desired platform-user entry from the YAML spec.
-// Role maps directly to the platform relation (admin -> superuser, member -> check);
-// the role label and the relation name are the same string ("admin" / "member").
+// Relation is the platform relation to grant — admin (-> superuser) or member
+// (-> check). It is deliberately "relation", not "role": "role" is a distinct
+// RBAC concept in Frontier, whereas these are SpiceDB relation names.
 type PlatformUserSpec struct {
-	Type string `yaml:"type"` // "user" | "serviceuser"
-	Ref  string `yaml:"ref"`  // email or uuid for a user; id for a service user
-	Role string `yaml:"role"` // "admin" | "member"
+	Type     string `yaml:"type"`     // "user" | "serviceuser"
+	Ref      string `yaml:"ref"`      // email or uuid for a user; id for a service user
+	Relation string `yaml:"relation"` // "admin" | "member"
 }
 
 // platformPrincipal is the current state of one platform principal (from ListPlatformUsers),
@@ -73,10 +74,10 @@ func validateSpec(s PlatformUserSpec) error {
 	default:
 		return fmt.Errorf("invalid type %q (want %q or %q)", s.Type, principalTypeUser, principalTypeServiceUser)
 	}
-	switch s.Role {
+	switch s.Relation {
 	case schema.AdminRelationName, schema.MemberRelationName:
 	default:
-		return fmt.Errorf("invalid role %q (want %q or %q)", s.Role, schema.AdminRelationName, schema.MemberRelationName)
+		return fmt.Errorf("invalid relation %q (want %q or %q)", s.Relation, schema.AdminRelationName, schema.MemberRelationName)
 	}
 	if strings.TrimSpace(s.Ref) == "" {
 		return fmt.Errorf("empty ref")
@@ -128,7 +129,7 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 		for i, s := range desired {
 			if specMatchesPrincipal(s, p) {
 				matched[i] = true
-				want[s.Role] = struct{}{}
+				want[s.Relation] = struct{}{}
 			}
 		}
 		for _, rel := range platformRelationOrder {
@@ -149,12 +150,12 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 		if matched[i] {
 			continue
 		}
-		key := s.Type + "\x00" + s.Ref + "\x00" + s.Role
+		key := s.Type + "\x00" + s.Ref + "\x00" + s.Relation
 		if _, dup := seenNewRef[key]; dup {
 			continue
 		}
 		seenNewRef[key] = struct{}{}
-		adds = append(adds, Op{Action: opAdd, Type: s.Type, Ref: s.Ref, Relation: s.Role})
+		adds = append(adds, Op{Action: opAdd, Type: s.Type, Ref: s.Ref, Relation: s.Relation})
 	}
 
 	return append(adds, removes...), nil

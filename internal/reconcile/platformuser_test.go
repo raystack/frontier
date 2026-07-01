@@ -27,7 +27,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 
 	t.Run("new user is added", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
-			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Role: admin}},
+			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Relation: admin}},
 			nil,
 		)
 		assert.NoError(t, err)
@@ -36,7 +36,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 
 	t.Run("new service user is added", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
-			[]PlatformUserSpec{{Type: "serviceuser", Ref: "su-1", Role: member}},
+			[]PlatformUserSpec{{Type: "serviceuser", Ref: "su-1", Relation: member}},
 			nil,
 		)
 		assert.NoError(t, err)
@@ -45,7 +45,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 
 	t.Run("already-correct principal is a no-op (matched by email)", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
-			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Role: admin}},
+			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Relation: admin}},
 			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin)},
 		)
 		assert.NoError(t, err)
@@ -61,9 +61,9 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Equal(t, []Op{{Action: opRemove, Type: "user", Ref: "drop-id", Relation: admin}}, ops)
 	})
 
-	t.Run("role change adds the new relation before removing the old", func(t *testing.T) {
+	t.Run("relation change adds the new relation before removing the old", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
-			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Role: member}},
+			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Relation: member}},
 			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin)},
 		)
 		assert.NoError(t, err)
@@ -77,8 +77,8 @@ func TestDiffPlatformUsers(t *testing.T) {
 	t.Run("mixed: keep one, add one, remove one", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
 			[]PlatformUserSpec{
-				{Type: "user", Ref: "keep@x.com", Role: admin}, // already correct
-				{Type: "user", Ref: "new@x.com", Role: member}, // new -> add
+				{Type: "user", Ref: "keep@x.com", Relation: admin}, // already correct
+				{Type: "user", Ref: "new@x.com", Relation: member}, // new -> add
 			},
 			[]platformPrincipal{
 				principal("user", "keep-id", "keep@x.com", admin), // matches keep -> no-op
@@ -95,7 +95,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 
 	t.Run("strips the extra relation when a principal holds both but only one is desired", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
-			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Role: admin}},
+			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Relation: admin}},
 			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin, member)},
 		)
 		assert.NoError(t, err)
@@ -105,8 +105,8 @@ func TestDiffPlatformUsers(t *testing.T) {
 	t.Run("keeps both relations when both are desired", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
 			[]PlatformUserSpec{
-				{Type: "user", Ref: "alice@x.com", Role: admin},
-				{Type: "user", Ref: "alice@x.com", Role: member},
+				{Type: "user", Ref: "alice@x.com", Relation: admin},
+				{Type: "user", Ref: "alice@x.com", Relation: member},
 			},
 			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin, member)},
 		)
@@ -114,24 +114,24 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Empty(t, ops)
 	})
 
-	t.Run("rejects an invalid role", func(t *testing.T) {
-		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "a@x.com", Role: "owner"}}, nil)
+	t.Run("rejects an invalid relation", func(t *testing.T) {
+		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "a@x.com", Relation: "owner"}}, nil)
 		assert.Error(t, err)
 	})
 
 	t.Run("rejects an invalid type", func(t *testing.T) {
-		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "group", Ref: "a@x.com", Role: admin}}, nil)
+		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "group", Ref: "a@x.com", Relation: admin}}, nil)
 		assert.Error(t, err)
 	})
 
 	t.Run("rejects an empty ref", func(t *testing.T) {
-		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "", Role: admin}}, nil)
+		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "", Relation: admin}}, nil)
 		assert.Error(t, err)
 	})
 
 	t.Run("rejects the server-managed bootstrap service account", func(t *testing.T) {
 		_, err := diffPlatformUsers(
-			[]PlatformUserSpec{{Type: "serviceuser", Ref: schema.BootstrapServiceUserID, Role: admin}}, nil)
+			[]PlatformUserSpec{{Type: "serviceuser", Ref: schema.BootstrapServiceUserID, Relation: admin}}, nil)
 		assert.Error(t, err)
 	})
 }
