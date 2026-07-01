@@ -105,7 +105,7 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		assert.Empty(t, api.removed)
 	})
 
-	t.Run("no changes when already converged", func(t *testing.T) {
+	t.Run("no changes when already matching", func(t *testing.T) {
 		api := &fakePlatformUserAPI{users: []*frontierv1beta1.User{
 			platformUserPB(t, "new-id", "new@x.com", schema.AdminRelationName),
 		}}
@@ -117,9 +117,9 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		assert.Empty(t, api.removed)
 	})
 
-	t.Run("never removes the bootstrap service account (well-known id)", func(t *testing.T) {
-		// empty desired state => fully authoritative removal, but the bootstrap SA
-		// is matched by its well-known id and must be excluded and left untouched.
+	t.Run("never removes the bootstrap service account (fixed id)", func(t *testing.T) {
+		// an empty desired state would remove everyone, but the bootstrap SA is
+		// matched by its fixed id and must be left out and untouched.
 		api := &fakePlatformUserAPI{sus: []*frontierv1beta1.ServiceUser{
 			serviceUserPBRelations(t, schema.BootstrapServiceUserID, schema.AdminRelationName),
 		}}

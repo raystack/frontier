@@ -42,9 +42,9 @@ const (
 	opRemove opAction = "remove"
 )
 
-// Op is a single planned change against one (principal, relation): add ensures the
-// relation, remove strips just that relation (relation-selective). Ref is the desired
-// entry's ref for add (email/id) and the current principal's id for remove.
+// Op is a single planned change to one (principal, relation). "add" grants the
+// relation; "remove" takes away just that one relation. Ref holds the desired
+// entry's ref for an add (email or id), and the current principal's id for a remove.
 type Op struct {
 	Action   opAction
 	Type     string
@@ -82,11 +82,11 @@ func validateSpec(s PlatformUserSpec) error {
 	if strings.TrimSpace(s.Ref) == "" {
 		return fmt.Errorf("empty ref")
 	}
-	// The bootstrap SA is server-managed (seeded at boot, removal-guarded); it must
-	// not be reconciled, so reject it on the desired side too — not just skipped on
-	// the current side.
+	// The server manages the bootstrap SA (it seeds it at boot and blocks removal),
+	// so it must not be reconciled. Reject it on the desired side too, not just skip
+	// it on the current side.
 	if s.Type == principalTypeServiceUser && strings.TrimSpace(s.Ref) == schema.BootstrapServiceUserID {
-		return fmt.Errorf("ref %q is the bootstrap service account, which is server-managed and cannot be reconciled", s.Ref)
+		return fmt.Errorf("ref %q is the bootstrap service account, which the server manages and cannot be reconciled", s.Ref)
 	}
 	return nil
 }
@@ -103,13 +103,14 @@ func specMatchesPrincipal(s PlatformUserSpec, p platformPrincipal) bool {
 	return p.Type == principalTypeUser && s.Ref != "" && strings.EqualFold(s.Ref, p.Email)
 }
 
-// platformRelationOrder gives operations a stable, deterministic order.
+// platformRelationOrder gives operations a stable, fixed order.
 var platformRelationOrder = []string{schema.AdminRelationName, schema.MemberRelationName}
 
-// diffPlatformUsers converges current platform principals to the desired spec at
-// the (principal, relation) granularity: each current relation no longer desired is
-// removed (relation-selectively), each desired relation not present is added. Desired
-// entries matching no current principal are new and are added. Output is deterministic.
+// diffPlatformUsers works out the changes needed to make the current platform
+// principals match the desired spec, one (principal, relation) at a time. A current
+// relation that is no longer wanted is removed. A wanted relation that is missing is
+// added. A desired entry that matches no current principal is new, so it is added.
+// The output order is fixed.
 func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) ([]Op, error) {
 	for _, s := range desired {
 		if err := validateSpec(s); err != nil {
@@ -117,10 +118,10 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 		}
 	}
 
-	// Collect adds and removes separately so adds can be emitted first (see the
-	// return). Apply is sequential, so an add-before-remove order means a role
-	// transition (e.g. admin→member) never leaves a principal with no platform
-	// access if a later op fails.
+	// Collect adds and removes separately so adds come first (see the return).
+	// Apply runs in order, so doing adds before removes means a relation change
+	// (e.g. admin -> member) never leaves someone with no platform access if a
+	// later op fails.
 	var adds, removes []Op
 	matched := make([]bool, len(desired))
 

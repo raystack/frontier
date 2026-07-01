@@ -57,9 +57,9 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 			}
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
-		// The bootstrap SA is server-managed (seeded at boot), so it can't be removed
-		// via this API. Return the generic permission error and log the reason —
-		// the response must not reveal that this id is the protected SA.
+		// The server manages the bootstrap SA (it seeds it at boot), so it can't be
+		// removed through this API. Return the generic permission error and log why.
+		// The response must not reveal that this id is the protected SA.
 		if req.Msg.GetServiceuserId() == schema.BootstrapServiceUserID {
 			slog.WarnContext(ctx, "refused removal of the bootstrap superuser service account", "service_user_id", req.Msg.GetServiceuserId())
 			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)

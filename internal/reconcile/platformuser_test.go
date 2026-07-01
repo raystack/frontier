@@ -43,7 +43,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Equal(t, []Op{{Action: opAdd, Type: "serviceuser", Ref: "su-1", Relation: member}}, ops)
 	})
 
-	t.Run("already-correct principal is a no-op (matched by email)", func(t *testing.T) {
+	t.Run("already-correct principal makes no change (matched by email)", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
 			[]PlatformUserSpec{{Type: "user", Ref: "alice@x.com", Relation: admin}},
 			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin)},
@@ -81,7 +81,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 				{Type: "user", Ref: "new@x.com", Relation: member}, // new -> add
 			},
 			[]platformPrincipal{
-				principal("user", "keep-id", "keep@x.com", admin), // matches keep -> no-op
+				principal("user", "keep-id", "keep@x.com", admin), // matches keep -> no change
 				principal("user", "drop-id", "drop@x.com", admin), // not desired -> remove
 			},
 		)
@@ -129,7 +129,7 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("rejects the server-managed bootstrap service account", func(t *testing.T) {
+	t.Run("rejects the bootstrap service account (the server manages it)", func(t *testing.T) {
 		_, err := diffPlatformUsers(
 			[]PlatformUserSpec{{Type: "serviceuser", Ref: schema.BootstrapServiceUserID, Relation: admin}}, nil)
 		assert.Error(t, err)
@@ -164,8 +164,8 @@ func TestSpecRefMatching(t *testing.T) {
 	})
 
 	// end-to-end through the diff: a user referenced by id and a service user by id
-	// both converge to no-ops when already in the desired relation.
-	t.Run("diff converges: user by id + serviceuser by id already correct", func(t *testing.T) {
+	// both make no change when already in the desired relation.
+	t.Run("diff makes no change: user by id + serviceuser by id already correct", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
 			[]PlatformUserSpec{
 				{Type: "user", Ref: "user-uuid-1", Relation: admin},

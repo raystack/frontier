@@ -69,7 +69,7 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	const clientID = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 
-	t.Run("no-op when not configured", func(t *testing.T) {
+	t.Run("does nothing when not configured", func(t *testing.T) {
 		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 
 		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{}, users, creds, prom))

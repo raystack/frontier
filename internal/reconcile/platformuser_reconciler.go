@@ -20,7 +20,7 @@ type PlatformUserAPI interface {
 	RemovePlatformUser(context.Context, *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error)
 }
 
-// PlatformUserReconciler converges platform admins/members to the desired spec.
+// PlatformUserReconciler makes platform admins and members match the desired spec.
 type PlatformUserReconciler struct {
 	client PlatformUserAPI
 	header string // "key:value" auth header applied to each request (may be empty)
@@ -79,9 +79,9 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 		})
 	}
 	for _, su := range resp.Msg.GetServiceusers() {
-		// The config-bootstrapped break-glass SA has a fixed, well-known id; it is
-		// server-managed (seeded at boot, removal-guarded), so never reconcile — and
-		// so never try to remove — it.
+		// The bootstrap SA (created from config at boot) has a fixed id. The server
+		// manages it and blocks removal, so never reconcile it — that way we never
+		// try to remove it.
 		if su.GetId() == schema.BootstrapServiceUserID {
 			continue
 		}
@@ -104,7 +104,7 @@ func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
 		}, r.header))
 		return err
 	case opRemove:
-		// relation-selective removal (proton #489): strip only op.Relation.
+		// remove only op.Relation, not both (proton #489).
 		_, err := r.client.RemovePlatformUser(ctx, authReq(&frontierv1beta1.RemovePlatformUserRequest{
 			UserId: userID, ServiceuserId: serviceUserID, Relation: op.Relation,
 		}, r.header))
@@ -114,9 +114,9 @@ func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
 	}
 }
 
-// relationsFromMetadata reads the platform relations ListPlatformUsers stamps into
-// each principal's metadata. It prefers the full "relations" list (so a principal
-// holding both admin and member is reconciled exactly) and falls back to the
+// relationsFromMetadata reads the platform relations that ListPlatformUsers records
+// in each principal's metadata. It uses the full "relations" list when present (so
+// someone holding both admin and member is handled correctly), and falls back to the
 // single "relation" field for backward compatibility.
 func relationsFromMetadata(md *structpb.Struct) map[string]struct{} {
 	rels := map[string]struct{}{}

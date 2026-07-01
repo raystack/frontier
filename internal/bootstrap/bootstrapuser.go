@@ -21,12 +21,12 @@ var bootstrapBcryptCost = 14
 
 const defaultBootstrapTitle = "GitOps Bootstrap Superuser"
 
-// SuperUserBootstrapConfig configures a config-seeded superuser service account.
-// It supplies a username/password-style credential (client_id + client_secret)
-// so automation (e.g. the GitOps reconcile flow) has a guaranteed superuser
-// identity at boot — removing the chicken-and-egg of needing a superuser to
-// create the first superuser. The secret is operator-provided and rotated when
-// it changes. Leave client_id/client_secret empty to disable.
+// SuperUserBootstrapConfig configures a superuser service account seeded from
+// config. It gives a username/password-style credential (client_id + client_secret)
+// so automation (like the GitOps reconcile flow) always has a superuser to log in as
+// at boot. This means you don't need an existing superuser to create the first one.
+// You provide the secret, and it is rotated when it changes. Leave client_id and
+// client_secret empty to turn this off.
 type SuperUserBootstrapConfig struct {
 	ClientID     string `yaml:"client_id" mapstructure:"client_id"`
 	ClientSecret string `yaml:"client_secret" mapstructure:"client_secret"`
@@ -45,9 +45,9 @@ func (c SuperUserBootstrapConfig) title() string {
 // is the repository's Create, not serviceuser.Service.Create.
 type ServiceUserCreator interface {
 	Create(ctx context.Context, su serviceuser.ServiceUser) (serviceuser.ServiceUser, error)
-	// Delete removes a service user by id. Used to roll back a just-created
-	// bootstrap service user when credential creation fails, so repeated boot
-	// failures don't accumulate credential-less orphan rows.
+	// Delete removes a service user by id. Used to undo a just-created bootstrap
+	// service user when creating its credential fails, so repeated boot failures
+	// don't leave behind service-user rows with no credential.
 	Delete(ctx context.Context, id string) error
 }
 
@@ -63,17 +63,19 @@ type SuperUserPromoter interface {
 	Sudo(ctx context.Context, id, relationName string) error
 }
 
-// EnsureBootstrapSuperUser idempotently ensures the configured superuser service
-// account exists and is a platform superuser. No-op when not configured.
+// EnsureBootstrapSuperUser makes sure the configured superuser service account
+// exists and is a platform superuser. It is safe to run on every boot. It does
+// nothing when the account is not configured.
 func (s Service) EnsureBootstrapSuperUser(ctx context.Context) error {
 	return ensureBootstrapSuperUser(ctx, s.logger, s.adminConfig.Bootstrap, s.suCreator, s.suCredStore, s.suPromoter)
 }
 
 // ensureBootstrapSuperUser holds the testable core. The account lives in the
 // platform/nil org (serviceusers.org_id is nullable, no FK) and is created
-// without org membership. Idempotency is keyed on the credential id (client_id):
-//   - absent: create the service user + client-secret credential + promote;
-//   - present: rotate the secret if it changed, then (re)ensure the superuser relation.
+// without org membership. It decides what to do based on whether the credential
+// id (client_id) already exists:
+//   - not there: create the service user + client-secret credential + promote it;
+//   - there: rotate the secret if it changed, then make sure the superuser relation is set.
 func ensureBootstrapSuperUser(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -83,9 +85,9 @@ func ensureBootstrapSuperUser(
 	promoter SuperUserPromoter,
 ) error {
 	clientID := strings.TrimSpace(cfg.ClientID)
-	// Reserve the no-op path for "fully unset". A half-configured bootstrap
-	// (only one of client_id/client_secret) is a misconfiguration that would
-	// silently skip seeding the superuser — fail fast instead.
+	// Only skip when the config is fully unset. A half-configured bootstrap (only
+	// one of client_id/client_secret) is a mistake that would quietly skip seeding
+	// the superuser — fail early instead.
 	switch {
 	case clientID == "" && cfg.ClientSecret == "":
 		return nil
@@ -125,7 +127,7 @@ func createBootstrapSuperUser(
 	promoter SuperUserPromoter,
 ) error {
 	su, err := users.Create(ctx, serviceuser.ServiceUser{
-		ID:    schema.BootstrapServiceUserID, // fixed, well-known id (see schema.BootstrapServiceUserID)
+		ID:    schema.BootstrapServiceUserID, // fixed id (see schema.BootstrapServiceUserID)
 		OrgID: schema.PlatformOrgID.String(),
 		Title: cfg.title(),
 	})
@@ -152,11 +154,11 @@ func createBootstrapSuperUser(
 	return promoteBootstrapSuperUser(ctx, promoter, su.ID)
 }
 
-// cleanupOrphanBootstrapSU best-effort deletes a service user created moments
-// earlier when a later step (hashing, credential creation) fails. Without it the
-// row would be orphaned — credential-less and unpromoted — and the next boot,
-// still finding no credential, would create another. The original cause is always
-// returned; a failed cleanup is only logged (the next boot retries anyway).
+// cleanupOrphanBootstrapSU tries to delete a service user that was just created
+// when a later step (hashing, or creating the credential) fails. Without it the
+// row would be left behind with no credential and no superuser grant, and the next
+// boot, still finding no credential, would create another one. The original error
+// is always returned; a failed cleanup is only logged (the next boot retries anyway).
 func cleanupOrphanBootstrapSU(ctx context.Context, logger *slog.Logger, users ServiceUserCreator, suID string, cause error) error {
 	if err := users.Delete(ctx, suID); err != nil {
 		logger.WarnContext(ctx, "failed to roll back orphan bootstrap service user",

@@ -1,8 +1,8 @@
-// Package reconcile converges Frontier platform resources to a declarative
-// desired-state file via the admin API. It is a small framework: each resource
-// kind implements Reconciler and registers under its kind, so new kinds
-// (roles, plans, products, traits, ...) plug in without changing the command
-// or file format. PlatformUser is the first kind.
+// Package reconcile makes Frontier platform resources match a desired-state
+// file, through the admin API. It is a small framework: each resource kind
+// implements Reconciler and registers under its kind, so new kinds (roles,
+// plans, products, traits, ...) plug in without changing the command or the
+// file format. PlatformUser is the first kind.
 package reconcile
 
 import (
@@ -15,7 +15,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Reconciler converges a single resource kind from its desired-state spec.
+// Reconciler makes a single resource kind match its desired-state spec.
 type Reconciler interface {
 	Kind() string
 	Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error)
@@ -35,9 +35,9 @@ type document struct {
 	Spec yaml.Node `yaml:"spec"`
 }
 
-// Run parses a (possibly multi-document) desired-state file and dispatches each
-// document to the registered reconciler for its kind. Documents apply in file
-// order; the first error aborts and returns the reports gathered so far.
+// Run parses a (possibly multi-document) desired-state file and sends each
+// document to the reconciler registered for its kind. Documents apply in file
+// order. The first error stops the run and returns the reports gathered so far.
 func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRun bool) ([]Report, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	var reports []Report
@@ -61,9 +61,9 @@ func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRu
 		if err != nil {
 			return reports, fmt.Errorf("marshal spec for kind %q: %w", doc.Kind, err)
 		}
-		// An absent or null spec marshals to "null"/"" — almost always a typo (e.g.
-		// `spce:`). Never treat that as an authoritative empty state that would strip
-		// every principal; an intentional empty is `spec: []`.
+		// A missing or null spec marshals to "null"/"" — almost always a typo (e.g.
+		// `spce:`). Don't treat that as an empty list that would remove every user;
+		// an empty list you meant to write is `spec: []`.
 		if s := strings.TrimSpace(string(specBytes)); s == "" || s == "null" {
 			return reports, fmt.Errorf("document kind %q is missing its spec", doc.Kind)
 		}

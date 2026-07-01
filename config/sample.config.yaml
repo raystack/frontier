@@ -180,14 +180,15 @@ app:
   # platform level administration
   admin:
     # bootstrap seeds a superuser SERVICE ACCOUNT from config (a username/password-style
-    # client_id + client_secret) so automation like the GitOps reconcile flow has a
-    # guaranteed superuser identity without a chicken-and-egg. The account is ensured and
-    # promoted to superuser on every boot (idempotent); the secret is rotated if it changes
-    # here. Authenticate with: Authorization: Basic base64(client_id:client_secret).
-    # Leave client_id/client_secret empty to disable — but then no superuser is seeded and,
-    # since granting one is itself superuser-gated, none can be created via the API either.
-    # client_id must be a UUID (it is the service-account credential id); generate one
-    # (e.g. uuidgen) and keep it stable. client_secret is your chosen password.
+    # client_id + client_secret), so automation like the GitOps reconcile flow always has
+    # a superuser to log in as. This means you don't need an existing superuser to create
+    # the first one. The account is created and promoted to superuser on every boot (safe
+    # to run again), and the secret is rotated if you change it here. Log in with:
+    # Authorization: Basic base64(client_id:client_secret).
+    # Leave client_id/client_secret empty to turn this off — but then no superuser is
+    # seeded, and since granting one needs a superuser, none can be created via the API
+    # either. client_id must be a UUID (it is the service-account credential id); generate
+    # one (e.g. uuidgen) and keep it stable. client_secret is your chosen password.
     bootstrap:
       client_id: ""
       client_secret: ""

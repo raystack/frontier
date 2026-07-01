@@ -17,13 +17,13 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 	)
 	cmd := &cli.Command{
 		Use:   "reconcile",
-		Short: "Reconcile declarative platform configuration to a desired-state file",
+		Short: "Reconcile platform configuration to a desired-state file",
 		Long: heredoc.Doc(`
-			Converge platform resources to a declarative YAML spec via the admin API.
+			Make platform resources match a desired-state YAML file, through the admin API.
 
-			Currently supports the PlatformUser kind (platform admins/members). The file
-			is the source of truth: entries present are ensured, entries absent are removed.
-			Authenticate as a superuser (e.g. the bootstrap service account) via --header.
+			Supports the PlatformUser kind (platform admins and members) for now. The file
+			decides who has access: anyone listed is added, anyone not listed is removed.
+			Log in as a superuser (for example the bootstrap service account) with --header.
 		`),
 		Example: heredoc.Doc(`
 			$ frontier reconcile -f platform-users.yaml --dry-run -H "Authorization:Basic <base64>"

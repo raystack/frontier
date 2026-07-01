@@ -16,7 +16,7 @@ func (f *fakeReconciler) Reconcile(_ context.Context, _ []byte, _ bool) (Report,
 }
 
 func TestRun_SpecHandling(t *testing.T) {
-	t.Run("rejects a document missing its spec (not an authoritative empty state)", func(t *testing.T) {
+	t.Run("rejects a document missing its spec (not an empty list)", func(t *testing.T) {
 		rec := &fakeReconciler{}
 		reg := map[string]Reconciler{KindPlatformUser: rec}
 
