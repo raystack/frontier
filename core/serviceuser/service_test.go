@@ -6,11 +6,16 @@ import (
 	"io"
 	"log/slog"
 	"testing"
+	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/serviceuser/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/utils"
 )
 
 func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService) {
@@ -226,4 +231,87 @@ func TestService_ListByOrg(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestService_GetByJWT_Classification(t *testing.T) {
+	ctx := context.Background()
+
+	// buildToken signs a jwt carrying kid in its claims and returns the matching public set.
+	buildToken := func(t *testing.T, kid string) ([]byte, jwk.Set) {
+		t.Helper()
+		key, err := utils.CreateJWKWithKID(kid)
+		if err != nil {
+			t.Fatalf("CreateJWKWithKID: %v", err)
+		}
+		tok, err := utils.BuildToken(key, "issuer", "subject", time.Hour, nil)
+		if err != nil {
+			t.Fatalf("BuildToken: %v", err)
+		}
+		set := jwk.NewSet()
+		if err := set.AddKey(key); err != nil {
+			t.Fatalf("AddKey: %v", err)
+		}
+		pub, err := utils.GetPublicKeySet(ctx, set)
+		if err != nil {
+			t.Fatalf("GetPublicKeySet: %v", err)
+		}
+		return tok, pub
+	}
+
+	t.Run("not a jwt skips with ErrTokenNotJWT", func(t *testing.T) {
+		svc, _, _, _, _ := newTestService(t)
+		if _, err := svc.GetByJWT(ctx, "fpt_not-a-jwt"); !errors.Is(err, serviceuser.ErrTokenNotJWT) {
+			t.Errorf("GetByJWT() error = %v, want errors.Is(ErrTokenNotJWT)", err)
+		}
+	})
+
+	t.Run("malformed (non-uuid) kid skips with ErrInvalidKeyID", func(t *testing.T) {
+		svc, _, _, _, _ := newTestService(t)
+		tok, _ := buildToken(t, "not-a-uuid")
+		// credRepo.Get must not be called for a malformed kid
+		if _, err := svc.GetByJWT(ctx, string(tok)); !errors.Is(err, serviceuser.ErrInvalidKeyID) {
+			t.Errorf("GetByJWT() error = %v, want errors.Is(ErrInvalidKeyID)", err)
+		}
+	})
+
+	t.Run("non-string kid skips with ErrInvalidKeyID", func(t *testing.T) {
+		svc, _, _, _, _ := newTestService(t)
+		key, err := utils.CreateJWKWithKID("33333333-3333-3333-3333-333333333333")
+		if err != nil {
+			t.Fatalf("CreateJWKWithKID: %v", err)
+		}
+		tok, err := jwt.NewBuilder().Claim(jwk.KeyIDKey, 12345).Build()
+		if err != nil {
+			t.Fatalf("Build: %v", err)
+		}
+		signed, err := jwt.Sign(tok, jwt.WithKey(jwa.RS256, key))
+		if err != nil {
+			t.Fatalf("Sign: %v", err)
+		}
+		if _, err := svc.GetByJWT(ctx, string(signed)); !errors.Is(err, serviceuser.ErrInvalidKeyID) {
+			t.Errorf("GetByJWT() error = %v, want errors.Is(ErrInvalidKeyID)", err)
+		}
+	})
+
+	t.Run("unknown kid skips with ErrCredNotExist", func(t *testing.T) {
+		svc, _, credRepo, _, _ := newTestService(t)
+		kid := "11111111-1111-1111-1111-111111111111"
+		tok, _ := buildToken(t, kid)
+		credRepo.On("Get", ctx, kid).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
+		if _, err := svc.GetByJWT(ctx, string(tok)); !errors.Is(err, serviceuser.ErrCredNotExist) {
+			t.Errorf("GetByJWT() error = %v, want errors.Is(ErrCredNotExist)", err)
+		}
+	})
+
+	t.Run("bad signature stops with ErrInvalidCred", func(t *testing.T) {
+		svc, _, credRepo, _, _ := newTestService(t)
+		kid := "22222222-2222-2222-2222-222222222222"
+		tok, _ := buildToken(t, kid)      // signed by one key
+		_, otherPub := buildToken(t, kid) // verified against a different key with the same kid
+		credRepo.On("Get", ctx, kid).Return(
+			serviceuser.Credential{ID: kid, ServiceUserID: "su-1", PublicKey: otherPub}, nil)
+		if _, err := svc.GetByJWT(ctx, string(tok)); !errors.Is(err, serviceuser.ErrInvalidCred) {
+			t.Errorf("GetByJWT() error = %v, want errors.Is(ErrInvalidCred)", err)
+		}
+	})
 }

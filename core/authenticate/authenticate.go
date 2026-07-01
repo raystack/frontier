@@ -35,9 +35,6 @@ const (
 	// AccessTokenClientAssertion is used to authenticate using access token generated
 	// by the system for the user
 	AccessTokenClientAssertion ClientAssertion = "access_token"
-	// OpaqueTokenClientAssertion is used to authenticate using opaque token generated
-	// for API clients
-	OpaqueTokenClientAssertion ClientAssertion = "opaque"
 	// JWTGrantClientAssertion is used to authenticate using JWT token generated
 	// using public/private key pair that provides access token for the client
 	JWTGrantClientAssertion ClientAssertion = "jwt_grant"
@@ -60,7 +57,6 @@ var APIAssertions = []ClientAssertion{
 	PATClientAssertion,
 	AccessTokenClientAssertion,
 	JWTGrantClientAssertion,
-	OpaqueTokenClientAssertion,
 	// ClientCredentialsClientAssertion should be removed in future to avoid DDOS attacks on CPU
 	// and should only be allowed to be used get access token for the client
 	ClientCredentialsClientAssertion,
@@ -138,6 +134,8 @@ type Principal struct {
 	// Type is the namespace of principal
 	// E.g. app/user, app/serviceuser, app/pat
 	Type string
+	// AuthVia is the credential type that authenticated this principal
+	AuthVia ClientAssertion
 
 	User        *user.User
 	ServiceUser *serviceuser.ServiceUser
