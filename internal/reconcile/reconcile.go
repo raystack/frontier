@@ -69,7 +69,9 @@ func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRu
 		}
 		rep, err := rec.Reconcile(ctx, specBytes, dryRun)
 		if err != nil {
-			return reports, fmt.Errorf("reconcile %s: %w", doc.Kind, err)
+			// Keep this document's report. On a partial apply, rep still holds what
+			// was applied before the failure, so the caller can show it.
+			return append(reports, rep), fmt.Errorf("reconcile %s: %w", doc.Kind, err)
 		}
 		reports = append(reports, rep)
 	}
