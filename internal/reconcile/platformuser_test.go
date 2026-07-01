@@ -135,3 +135,48 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+// TestSpecRefMatching covers the accepted `ref` forms: a user may be referenced by
+// id or by email (case-insensitive); a service user only by id.
+func TestSpecRefMatching(t *testing.T) {
+	admin := schema.AdminRelationName
+	userP := principal("user", "user-uuid-1", "alice@x.com")
+	suP := principal("serviceuser", "su-uuid-1", "") // service users carry no email
+
+	t.Run("user matches by id", func(t *testing.T) {
+		assert.True(t, specMatchesPrincipal(PlatformUserSpec{Type: "user", Ref: "user-uuid-1", Relation: admin}, userP))
+	})
+	t.Run("user matches by email (case-insensitive)", func(t *testing.T) {
+		assert.True(t, specMatchesPrincipal(PlatformUserSpec{Type: "user", Ref: "Alice@X.com", Relation: admin}, userP))
+	})
+	t.Run("service user matches by id", func(t *testing.T) {
+		assert.True(t, specMatchesPrincipal(PlatformUserSpec{Type: "serviceuser", Ref: "su-uuid-1", Relation: admin}, suP))
+	})
+	t.Run("service user does NOT match by email (email is user-only)", func(t *testing.T) {
+		suWithEmail := principal("serviceuser", "su-uuid-1", "svc@x.com")
+		assert.False(t, specMatchesPrincipal(PlatformUserSpec{Type: "serviceuser", Ref: "svc@x.com", Relation: admin}, suWithEmail))
+	})
+	t.Run("no match when the type differs", func(t *testing.T) {
+		assert.False(t, specMatchesPrincipal(PlatformUserSpec{Type: "serviceuser", Ref: "user-uuid-1", Relation: admin}, userP))
+	})
+	t.Run("no match on an unrelated ref", func(t *testing.T) {
+		assert.False(t, specMatchesPrincipal(PlatformUserSpec{Type: "user", Ref: "bob@x.com", Relation: admin}, userP))
+	})
+
+	// end-to-end through the diff: a user referenced by id and a service user by id
+	// both converge to no-ops when already in the desired relation.
+	t.Run("diff converges: user by id + serviceuser by id already correct", func(t *testing.T) {
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{
+				{Type: "user", Ref: "user-uuid-1", Relation: admin},
+				{Type: "serviceuser", Ref: "su-uuid-1", Relation: admin},
+			},
+			[]platformPrincipal{
+				principal("user", "user-uuid-1", "alice@x.com", admin),
+				principal("serviceuser", "su-uuid-1", "", admin),
+			},
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+}
