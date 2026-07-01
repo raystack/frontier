@@ -358,6 +358,63 @@ func (s *UserPATRepositoryTestSuite) TestListByUser_EmptyWhenNoTokens() {
 	s.Empty(got)
 }
 
+func (s *UserPATRepositoryTestSuite) TestRegenerate() {
+	s.Run("clears alert-sent keys but preserves other metadata", func() {
+		s.truncateTokens()
+
+		created, err := s.repository.Create(s.ctx, models.PAT{
+			UserID:     s.users[0].ID,
+			OrgID:      s.orgs[0].ID,
+			Title:      "regen-token",
+			SecretHash: "hashRegenOld",
+			Metadata: map[string]any{
+				"expiry_reminder_sent_at": "2026-01-01T00:00:00Z",
+				"expired_notice_sent_at":  "2026-01-02T00:00:00Z",
+				"env":                     "prod",
+			},
+			ExpiresAt: time.Now().Add(time.Hour),
+		})
+		s.Require().NoError(err)
+
+		newExpiry := time.Now().Add(72 * time.Hour).Truncate(time.Microsecond)
+		regenerated, err := s.repository.Regenerate(s.ctx, created.ID, "hashRegenNew", newExpiry)
+		s.Require().NoError(err)
+
+		s.Equal("hashRegenNew", regenerated.SecretHash)
+		s.WithinDuration(newExpiry, regenerated.ExpiresAt, time.Microsecond)
+		s.Require().NotNil(regenerated.RegeneratedAt)
+		s.NotContains(regenerated.Metadata, "expiry_reminder_sent_at")
+		s.NotContains(regenerated.Metadata, "expired_notice_sent_at")
+		s.Equal("prod", regenerated.Metadata["env"])
+	})
+
+	s.Run("makes a previously-alerted PAT eligible for reminders again", func() {
+		s.truncateTokens()
+
+		created, err := s.repository.Create(s.ctx, models.PAT{
+			UserID:     s.users[0].ID,
+			OrgID:      s.orgs[0].ID,
+			Title:      "regen-eligible",
+			SecretHash: "hashEligibleOld",
+			Metadata:   map[string]any{"expiry_reminder_sent_at": "2026-01-01T00:00:00Z"},
+			ExpiresAt:  time.Now().Add(48 * time.Hour),
+		})
+		s.Require().NoError(err)
+
+		pending, err := s.repository.ListExpiryReminderPending(s.ctx, 3)
+		s.Require().NoError(err)
+		s.Empty(pending)
+
+		_, err = s.repository.Regenerate(s.ctx, created.ID, "hashEligibleNew", time.Now().Add(48*time.Hour))
+		s.Require().NoError(err)
+
+		pending, err = s.repository.ListExpiryReminderPending(s.ctx, 3)
+		s.Require().NoError(err)
+		s.Require().Len(pending, 1)
+		s.Equal(created.ID, pending[0].ID)
+	})
+}
+
 func TestUserPATRepository(t *testing.T) {
 	suite.Run(t, new(UserPATRepositoryTestSuite))
 }
