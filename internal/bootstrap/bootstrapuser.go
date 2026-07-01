@@ -40,14 +40,17 @@ func (c SuperUserBootstrapConfig) title() string {
 	return defaultBootstrapTitle
 }
 
-// ServiceUserCreator creates a bare service-user row. The bootstrap superuser
-// deliberately skips org membership (a platform superuser needs none), so this
-// is the repository's Create, not serviceuser.Service.Create.
+// ServiceUserCreator creates and looks up a bare service-user row. The bootstrap
+// superuser deliberately skips org membership (a platform superuser needs none),
+// so this is the repository's Create/GetByID, not serviceuser.Service.
 type ServiceUserCreator interface {
+	// GetByID looks up a service user by id and returns serviceuser.ErrNotExist
+	// when it does not exist. Used to reuse the fixed-id bootstrap row instead of
+	// creating a duplicate.
+	GetByID(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 	Create(ctx context.Context, su serviceuser.ServiceUser) (serviceuser.ServiceUser, error)
-	// Delete removes a service user by id. Used to undo a just-created bootstrap
-	// service user when creating its credential fails, so repeated boot failures
-	// don't leave behind service-user rows with no credential.
+	// Delete removes a service user by id. Used to roll back a bootstrap row that
+	// this boot just created, when the credential write then fails.
 	Delete(ctx context.Context, id string) error
 }
 
@@ -126,42 +129,68 @@ func createBootstrapSuperUser(
 	creds ServiceUserCredentialStore,
 	promoter SuperUserPromoter,
 ) error {
-	su, err := users.Create(ctx, serviceuser.ServiceUser{
-		ID:    schema.BootstrapServiceUserID, // fixed id (see schema.BootstrapServiceUserID)
-		OrgID: schema.PlatformOrgID.String(),
-		Title: cfg.title(),
-	})
+	suID, created, err := ensureBootstrapServiceUser(ctx, cfg, users)
 	if err != nil {
-		return fmt.Errorf("bootstrap superuser: create service user: %w", err)
+		return err
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.ClientSecret), bootstrapBcryptCost)
 	if err != nil {
-		return cleanupOrphanBootstrapSU(ctx, logger, users, su.ID,
+		return rollbackFreshBootstrapSU(ctx, logger, users, suID, created,
 			fmt.Errorf("bootstrap superuser: hash secret: %w", err))
 	}
+	// creds.Create runs only because ensureBootstrapSuperUser already saw the
+	// credential (id == clientID) is missing, so we never add a second credential
+	// for the bootstrap SA.
 	if _, err := creds.Create(ctx, serviceuser.Credential{
 		ID:            clientID,
-		ServiceUserID: su.ID,
+		ServiceUserID: suID,
 		Type:          serviceuser.ClientSecretCredentialType,
 		SecretHash:    string(hash),
 		Title:         cfg.title(),
 	}); err != nil {
-		return cleanupOrphanBootstrapSU(ctx, logger, users, su.ID,
+		return rollbackFreshBootstrapSU(ctx, logger, users, suID, created,
 			fmt.Errorf("bootstrap superuser: create credential: %w", err))
 	}
 	logger.InfoContext(ctx, "created bootstrap superuser service account",
-		"client_id", clientID, "serviceuser_id", su.ID)
-	return promoteBootstrapSuperUser(ctx, promoter, su.ID)
+		"client_id", clientID, "serviceuser_id", suID)
+	return promoteBootstrapSuperUser(ctx, promoter, suID)
 }
 
-// cleanupOrphanBootstrapSU tries to delete a service user that was just created
-// when a later step (hashing, or creating the credential) fails. Without it the
-// row would be left behind with no credential and no superuser grant, and the next
-// boot, still finding no credential, would create another one. The original error
-// is always returned; a failed cleanup is only logged (the next boot retries anyway).
-func cleanupOrphanBootstrapSU(ctx context.Context, logger *slog.Logger, users ServiceUserCreator, suID string, cause error) error {
+// ensureBootstrapServiceUser returns the fixed-id bootstrap service-user row,
+// creating it only when it does not already exist. Reusing an existing row keeps
+// recovery idempotent: if an earlier boot created the row but failed before
+// writing the credential (or a rotation deleted the credential), we must not try
+// to create a second row with the same id. The bool reports whether this call
+// created the row.
+func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfig, users ServiceUserCreator) (string, bool, error) {
+	id := schema.BootstrapServiceUserID
+	if _, err := users.GetByID(ctx, id); err == nil {
+		return id, false, nil
+	} else if !errors.Is(err, serviceuser.ErrNotExist) {
+		return "", false, fmt.Errorf("bootstrap superuser: get service user: %w", err)
+	}
+	su, err := users.Create(ctx, serviceuser.ServiceUser{
+		ID:    id, // fixed id (see schema.BootstrapServiceUserID)
+		OrgID: schema.PlatformOrgID.String(),
+		Title: cfg.title(),
+	})
+	if err != nil {
+		return "", false, fmt.Errorf("bootstrap superuser: create service user: %w", err)
+	}
+	return su.ID, true, nil
+}
+
+// rollbackFreshBootstrapSU deletes the service-user row when a later step fails,
+// but only if THIS boot created it. If we reused an existing row (an earlier boot
+// created it, or a rotation left it in place), we leave it — the next boot finds
+// it by its fixed id and retries the missing credential. Recovery is idempotent,
+// so a failed rollback is not fatal. The original error is always returned.
+func rollbackFreshBootstrapSU(ctx context.Context, logger *slog.Logger, users ServiceUserCreator, suID string, created bool, cause error) error {
+	if !created {
+		return cause
+	}
 	if err := users.Delete(ctx, suID); err != nil {
-		logger.WarnContext(ctx, "failed to roll back orphan bootstrap service user",
+		logger.WarnContext(ctx, "failed to roll back freshly created bootstrap service user",
 			"serviceuser_id", suID, "err", err.Error())
 	}
 	return cause
