@@ -906,7 +906,7 @@ func TestService_UnSudo(t *testing.T) {
 			},
 		},
 		{
-			name:    "admin removal is a no-op when user is not a superuser",
+			name:    "admin removal makes no change when user is not a superuser",
 			wantErr: false,
 			args: args{
 				id:           "test-id",
@@ -961,7 +961,7 @@ func TestService_UnSudo(t *testing.T) {
 			},
 		},
 		{
-			name:    "member removal is a no-op when the relation is absent",
+			name:    "member removal makes no change when the relation is absent",
 			wantErr: false,
 			args: args{
 				id:           "test-id",

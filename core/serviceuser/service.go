@@ -461,11 +461,11 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
 	}
 
-	// Idempotent on the exact relation tuple, not the derived permission:
-	// `check` is granted by both admin and member, so a permission check would
-	// skip creating the member tuple for an existing admin. That breaks
-	// downgrade (Sudo member then UnSudo admin), which UnSudo evaluates at the
-	// relation level — keep the two symmetric.
+	// Check the exact relation, not the permission it grants. Running this again
+	// is safe. Both admin and member grant `check`, so checking the permission
+	// would skip creating the member relation for someone who is already an admin.
+	// That breaks a downgrade (Sudo member, then UnSudo admin), because UnSudo
+	// works at the relation level. Keep the two the same.
 	if ok, err := s.IsSudo(ctx, currentUser.ID, relationName); err != nil {
 		return err
 	} else if ok {
@@ -544,9 +544,10 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
 }
 
-// recordPlatformAuditRecord writes an audit record for a platform relation
-// (admin or member) grant/revoke on a service user. Actor is left empty so the
-// repository enriches it from context (acting principal, or system actor at boot).
+// recordPlatformAuditRecord writes an audit record when a platform relation
+// (admin or member) is granted or removed on a service user. Actor is left empty,
+// so the repository fills it in from the context (the caller, or the system actor
+// at boot).
 func (s Service) recordPlatformAuditRecord(ctx context.Context, su ServiceUser, event pkgAuditRecord.Event, relationName string) error {
 	_, err := s.auditRecordRepository.Create(ctx, models.AuditRecord{
 		Event: event,

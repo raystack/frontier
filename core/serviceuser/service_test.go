@@ -32,8 +32,8 @@ func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *moc
 func TestService_Sudo(t *testing.T) {
 	ctx := context.Background()
 	const suID = "550e8400-e29b-41d4-a716-446655440000"
-	// platformRel builds the platform relation tuple used by IsSudo's check and by
-	// Create/Delete (field order in the literal is irrelevant for struct equality).
+	// platformRel builds the platform relation used by IsSudo's check and by
+	// Create/Delete (field order in the literal doesn't matter for struct equality).
 	platformRel := func(rel string) relation.Relation {
 		return relation.Relation{
 			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
@@ -45,8 +45,8 @@ func TestService_Sudo(t *testing.T) {
 	t.Run("grants admin relation and audits the grant", func(t *testing.T) {
 		svc, repo, _, rel, _, audit := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		// Sudo is idempotent on the exact relation (admin), not the superuser
-		// permission — symmetric with UnSudo.
+		// Sudo checks the exact relation (admin), not the superuser permission, and
+		// is safe to run again — the same way UnSudo works.
 		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(false, nil)
 		rel.On("Create", ctx, platformRel(schema.AdminRelationName)).Return(relation.Relation{}, nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
@@ -61,8 +61,8 @@ func TestService_Sudo(t *testing.T) {
 	t.Run("grants member relation and audits the grant", func(t *testing.T) {
 		svc, repo, _, rel, _, audit := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
-		// member is checked at the relation level so an existing admin still gets
-		// the member tuple created (downgrade path).
+		// member is checked at the relation level, so an existing admin still gets
+		// the member relation created (the downgrade path).
 		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(false, nil)
 		rel.On("Create", ctx, platformRel(schema.MemberRelationName)).Return(relation.Relation{}, nil)
 		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
@@ -101,7 +101,7 @@ func TestService_UnSudo(t *testing.T) {
 		}
 	})
 
-	t.Run("admin removal is a no-op when the relation is absent", func(t *testing.T) {
+	t.Run("admin removal makes no change when the relation is absent", func(t *testing.T) {
 		svc, repo, _, rel, _, _ := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
 		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(false, nil)
@@ -125,7 +125,7 @@ func TestService_UnSudo(t *testing.T) {
 		}
 	})
 
-	t.Run("member removal is a no-op when the relation is absent", func(t *testing.T) {
+	t.Run("member removal makes no change when the relation is absent", func(t *testing.T) {
 		svc, repo, _, rel, _, _ := newTestService(t)
 		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
 		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(false, nil)
