@@ -72,7 +72,7 @@ func ensureBootstrapSuperUser(
 	ctx context.Context,
 	logger *slog.Logger,
 	cfg SuperUserBootstrapConfig,
-	users ServiceUserCreator,
+	serviceUsers ServiceUserCreator,
 	creds ServiceUserCredentialStore,
 	promoter SuperUserPromoter,
 ) error {
@@ -92,7 +92,7 @@ func ensureBootstrapSuperUser(
 	cred, err := creds.Get(ctx, clientID)
 	switch {
 	case errors.Is(err, serviceuser.ErrCredNotExist):
-		return createBootstrapSuperUser(ctx, logger, cfg, clientID, users, creds, promoter)
+		return createBootstrapSuperUser(ctx, logger, cfg, clientID, serviceUsers, creds, promoter)
 	case err != nil:
 		return fmt.Errorf("bootstrap superuser: get credential %q: %w", clientID, err)
 	}
@@ -111,17 +111,17 @@ func createBootstrapSuperUser(
 	logger *slog.Logger,
 	cfg SuperUserBootstrapConfig,
 	clientID string,
-	users ServiceUserCreator,
+	serviceUsers ServiceUserCreator,
 	creds ServiceUserCredentialStore,
 	promoter SuperUserPromoter,
 ) error {
-	suID, created, err := ensureBootstrapServiceUser(ctx, cfg, users)
+	suID, created, err := ensureBootstrapServiceUser(ctx, cfg, serviceUsers)
 	if err != nil {
 		return err
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.ClientSecret), bootstrapBcryptCost)
 	if err != nil {
-		return rollbackFreshBootstrapSU(ctx, logger, users, suID, created,
+		return rollbackFreshBootstrapSU(ctx, logger, serviceUsers, suID, created,
 			fmt.Errorf("bootstrap superuser: hash secret: %w", err))
 	}
 	// Reached only because the caller saw the credential is missing, so this never
@@ -133,7 +133,7 @@ func createBootstrapSuperUser(
 		SecretHash:    string(hash),
 		Title:         cfg.title(),
 	}); err != nil {
-		return rollbackFreshBootstrapSU(ctx, logger, users, suID, created,
+		return rollbackFreshBootstrapSU(ctx, logger, serviceUsers, suID, created,
 			fmt.Errorf("bootstrap superuser: create credential: %w", err))
 	}
 	logger.InfoContext(ctx, "created bootstrap superuser service account",
@@ -144,14 +144,14 @@ func createBootstrapSuperUser(
 // ensureBootstrapServiceUser returns the fixed-id bootstrap row, creating it only if
 // absent so recovery is idempotent (never a duplicate row). The bool reports whether
 // this call created it.
-func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfig, users ServiceUserCreator) (string, bool, error) {
+func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfig, serviceUsers ServiceUserCreator) (string, bool, error) {
 	id := schema.BootstrapServiceUserID
-	if _, err := users.GetByID(ctx, id); err == nil {
+	if _, err := serviceUsers.GetByID(ctx, id); err == nil {
 		return id, false, nil
 	} else if !errors.Is(err, serviceuser.ErrNotExist) {
 		return "", false, fmt.Errorf("bootstrap superuser: get service user: %w", err)
 	}
-	su, err := users.Create(ctx, serviceuser.ServiceUser{
+	su, err := serviceUsers.Create(ctx, serviceuser.ServiceUser{
 		ID:    id,
 		OrgID: schema.PlatformOrgID.String(),
 		Title: cfg.title(),
@@ -165,11 +165,11 @@ func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfi
 // rollbackFreshBootstrapSU deletes the row on failure only if this boot created it;
 // a reused (possibly promoted) row is left for the next boot to retry. Rollback is
 // best-effort — the original error is always returned.
-func rollbackFreshBootstrapSU(ctx context.Context, logger *slog.Logger, users ServiceUserCreator, suID string, created bool, cause error) error {
+func rollbackFreshBootstrapSU(ctx context.Context, logger *slog.Logger, serviceUsers ServiceUserCreator, suID string, created bool, cause error) error {
 	if !created {
 		return cause
 	}
-	if err := users.Delete(ctx, suID); err != nil {
+	if err := serviceUsers.Delete(ctx, suID); err != nil {
 		logger.WarnContext(ctx, "failed to roll back freshly created bootstrap service user",
 			"serviceuser_id", suID, "err", err.Error())
 	}

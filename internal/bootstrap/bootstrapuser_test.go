@@ -75,38 +75,38 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 	const clientID = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 
 	t.Run("does nothing when not configured", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 
-		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{}, users, creds, prom))
+		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{}, serviceUsers, creds, prom))
 		creds.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
-		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		serviceUsers.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("rejects a half-configured bootstrap (one of id/secret missing)", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 
-		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{ClientID: clientID}, users, creds, prom))
-		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{ClientSecret: "s3cret"}, users, creds, prom))
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{ClientID: clientID}, serviceUsers, creds, prom))
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, SuperUserBootstrapConfig{ClientSecret: "s3cret"}, serviceUsers, creds, prom))
 		creds.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
-		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		serviceUsers.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
 	t.Run("rejects a non-uuid client_id", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: "not-a-uuid", ClientSecret: "s3cret"}
 
-		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
 		creds.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
 	})
 
 	t.Run("creates service user + credential + promotes when absent", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
-		users.On("GetByID", mock.Anything, schema.BootstrapServiceUserID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
-		users.On("Create", mock.Anything, mock.MatchedBy(func(su serviceuser.ServiceUser) bool {
+		serviceUsers.On("GetByID", mock.Anything, schema.BootstrapServiceUserID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+		serviceUsers.On("Create", mock.Anything, mock.MatchedBy(func(su serviceuser.ServiceUser) bool {
 			return su.ID == schema.BootstrapServiceUserID &&
 				su.OrgID == schema.PlatformOrgID.String() && su.Title == defaultBootstrapTitle
 		})).Return(serviceuser.ServiceUser{ID: "su-id"}, nil)
@@ -119,8 +119,8 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 			Return(serviceuser.Credential{ID: clientID}, nil)
 		prom.On("Sudo", mock.Anything, "su-id", schema.AdminRelationName).Return(nil)
 
-		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
-		users.AssertExpectations(t)
+		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
+		serviceUsers.AssertExpectations(t)
 		creds.AssertExpectations(t)
 		prom.AssertExpectations(t)
 
@@ -131,7 +131,7 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 	})
 
 	t.Run("ensures superuser without rotating when the secret matches", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
@@ -139,15 +139,15 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		}, nil)
 		prom.On("Sudo", mock.Anything, "su-id", schema.AdminRelationName).Return(nil)
 
-		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
+		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
 		prom.AssertExpectations(t)
 		creds.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 		creds.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
-		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		serviceUsers.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 	})
 
 	t.Run("rotates the secret when it changed, then ensures superuser", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "new-secret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
@@ -160,10 +160,10 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 			Return(serviceuser.Credential{ID: clientID}, nil)
 		prom.On("Sudo", mock.Anything, "su-id", schema.AdminRelationName).Return(nil)
 
-		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
+		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
 		creds.AssertExpectations(t)
 		prom.AssertExpectations(t)
-		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		serviceUsers.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 
 		assert.Equal(t, clientID, rotated.ID)
 		assert.Equal(t, "su-id", rotated.ServiceUserID)
@@ -171,28 +171,28 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 	})
 
 	t.Run("rolls back the service user when credential creation fails", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
-		users.On("GetByID", mock.Anything, schema.BootstrapServiceUserID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
-		users.On("Create", mock.Anything, mock.Anything).Return(serviceuser.ServiceUser{ID: "su-id"}, nil)
+		serviceUsers.On("GetByID", mock.Anything, schema.BootstrapServiceUserID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+		serviceUsers.On("Create", mock.Anything, mock.Anything).Return(serviceuser.ServiceUser{ID: "su-id"}, nil)
 		creds.On("Create", mock.Anything, mock.Anything).Return(serviceuser.Credential{}, errors.New("db down"))
-		users.On("Delete", mock.Anything, "su-id").Return(nil)
+		serviceUsers.On("Delete", mock.Anything, "su-id").Return(nil)
 
-		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
-		users.AssertExpectations(t) // Create + compensating Delete both invoked
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
+		serviceUsers.AssertExpectations(t) // Create + compensating Delete both invoked
 		creds.AssertExpectations(t)
 		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("recovers by reusing the existing service user when its credential is missing", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
 
 		// The row already exists (an earlier boot created it, or a rotation deleted
 		// the credential and left the row) but the credential is gone.
-		users.On("GetByID", mock.Anything, schema.BootstrapServiceUserID).
+		serviceUsers.On("GetByID", mock.Anything, schema.BootstrapServiceUserID).
 			Return(serviceuser.ServiceUser{ID: schema.BootstrapServiceUserID}, nil)
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
 		var created serviceuser.Credential
@@ -201,25 +201,25 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 			Return(serviceuser.Credential{ID: clientID}, nil)
 		prom.On("Sudo", mock.Anything, schema.BootstrapServiceUserID, schema.AdminRelationName).Return(nil)
 
-		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
+		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
 		creds.AssertExpectations(t)
 		prom.AssertExpectations(t)
 		// Reused the row: no second service user, and no rollback of the existing one.
-		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
-		users.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+		serviceUsers.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		serviceUsers.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
 		// Exactly one credential, linked to the fixed row.
 		assert.Equal(t, clientID, created.ID)
 		assert.Equal(t, schema.BootstrapServiceUserID, created.ServiceUserID)
 	})
 
 	t.Run("aborts on a non-not-found credential lookup error", func(t *testing.T) {
-		users, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{}, errors.New("db down"))
 
-		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, users, creds, prom))
-		users.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
+		serviceUsers.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 }
