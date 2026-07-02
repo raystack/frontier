@@ -366,8 +366,10 @@ func (r OrgUsersRepository) buildNonRoleFilterCondition(filter rql.Filter) (goqu
 		return goqu.Cast(goqu.I(columnName), "TEXT").ILike(filter.Value.(string)), nil
 	case "notilike":
 		return goqu.Cast(goqu.I(columnName), "TEXT").NotILike(filter.Value.(string)), nil
-	default: // eq, neq
+	case "eq", "neq":
 		return goqu.Ex{columnName: goqu.Op{filter.Operator: filter.Value.(string)}}, nil
+	default:
+		return nil, wrapBadOperatorError(filter.Operator, filter.Name)
 	}
 }
 
