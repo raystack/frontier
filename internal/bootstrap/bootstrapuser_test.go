@@ -135,9 +135,9 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
-			ID: clientID, ServiceUserID: "su-id", SecretHash: bcryptHash(t, "s3cret"),
+			ID: clientID, ServiceUserID: schema.BootstrapServiceUserID, SecretHash: bcryptHash(t, "s3cret"),
 		}, nil)
-		prom.On("Sudo", mock.Anything, "su-id", schema.AdminRelationName).Return(nil)
+		prom.On("Sudo", mock.Anything, schema.BootstrapServiceUserID, schema.AdminRelationName).Return(nil)
 
 		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
 		prom.AssertExpectations(t)
@@ -151,14 +151,14 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "new-secret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
-			ID: clientID, ServiceUserID: "su-id", SecretHash: bcryptHash(t, "old-secret"), Title: "t",
+			ID: clientID, ServiceUserID: schema.BootstrapServiceUserID, SecretHash: bcryptHash(t, "old-secret"), Title: "t",
 		}, nil)
 		creds.On("Delete", mock.Anything, clientID).Return(nil)
 		var rotated serviceuser.Credential
 		creds.On("Create", mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) { rotated = args.Get(1).(serviceuser.Credential) }).
 			Return(serviceuser.Credential{ID: clientID}, nil)
-		prom.On("Sudo", mock.Anything, "su-id", schema.AdminRelationName).Return(nil)
+		prom.On("Sudo", mock.Anything, schema.BootstrapServiceUserID, schema.AdminRelationName).Return(nil)
 
 		assert.NoError(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
 		creds.AssertExpectations(t)
@@ -166,8 +166,24 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		serviceUsers.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 
 		assert.Equal(t, clientID, rotated.ID)
-		assert.Equal(t, "su-id", rotated.ServiceUserID)
+		assert.Equal(t, schema.BootstrapServiceUserID, rotated.ServiceUserID)
 		assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(rotated.SecretHash), []byte("new-secret")))
+	})
+
+	t.Run("refuses when the credential belongs to another service user", func(t *testing.T) {
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
+
+		// A mistyped client_id pointing at another SA's credential must fail boot,
+		// not rotate that credential or promote its owner.
+		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
+			ID: clientID, ServiceUserID: "22222222-2222-2222-2222-222222222222", SecretHash: bcryptHash(t, "other-secret"),
+		}, nil)
+
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
+		creds.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+		creds.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("rolls back the service user when credential creation fails", func(t *testing.T) {

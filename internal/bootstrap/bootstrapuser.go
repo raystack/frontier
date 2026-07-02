@@ -96,6 +96,12 @@ func ensureBootstrapSuperUser(
 	case err != nil:
 		return fmt.Errorf("bootstrap superuser: get credential %q: %w", clientID, err)
 	}
+	// A misconfigured client_id pointing at another SA's credential would silently
+	// rotate that credential and promote the wrong principal — fail loudly instead.
+	if cred.ServiceUserID != schema.BootstrapServiceUserID {
+		return fmt.Errorf("bootstrap superuser: credential %q belongs to service user %q, want bootstrap service user %q",
+			clientID, cred.ServiceUserID, schema.BootstrapServiceUserID)
+	}
 
 	if bcrypt.CompareHashAndPassword([]byte(cred.SecretHash), []byte(cfg.ClientSecret)) != nil {
 		if err := rotateBootstrapSecret(ctx, cfg, clientID, cred, creds); err != nil {
