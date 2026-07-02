@@ -12,4 +12,7 @@ var (
 	ErrConflict     = errors.New("service user already exist")
 	ErrEmptyKey     = errors.New("empty key")
 	ErrDisabled     = errors.New("service user is disabled")
+	// ErrProtected marks a server-managed service user (the config-bootstrapped
+	// bootstrap SA) whose credentials must not be mutated via the API.
+	ErrProtected = errors.New("service user is protected")
 )

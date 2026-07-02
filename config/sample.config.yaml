@@ -179,12 +179,20 @@ app:
 
   # platform level administration
   admin:
-    # Email list of users which needs to be converted as superusers
-    # if the user is already present in the system, it is promoted to su
-    # if not, a new account is created with provided email id and promoted to su.
-    # UUIDs/slugs of existing users can also be provided instead of email ids
-    # but in that case a new user will not be created.
-    users: []
+    # bootstrap seeds a superuser SERVICE ACCOUNT from config (a username/password-style
+    # client_id + client_secret), so automation like the GitOps reconcile flow always has
+    # a superuser to log in as. This means you don't need an existing superuser to create
+    # the first one. The account is created and promoted to superuser on every boot (safe
+    # to run again), and the secret is rotated if you change it here. Log in with:
+    # Authorization: Basic base64(client_id:client_secret).
+    # Leave client_id/client_secret empty to turn this off — but then no superuser is
+    # seeded, and since granting one needs a superuser, none can be created via the API
+    # either. client_id must be a UUID (it is the service-account credential id); generate
+    # one (e.g. uuidgen) and keep it stable. client_secret is your chosen password.
+    bootstrap:
+      client_id: ""
+      client_secret: ""
+      # title: "GitOps Bootstrap Superuser"
   # smtp configuration for sending emails
   mailer:
     smtp_host: smtp.example.com

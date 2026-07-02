@@ -3,11 +3,13 @@ package v1beta1connect
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"sort"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -17,6 +19,8 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 	if !schema.IsPlatformRelation(relationName) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
+	// IsPlatformRelation is case-insensitive; normalize so it matches Sudo's exact switch.
+	relationName = strings.ToLower(relationName)
 
 	if req.Msg.GetUserId() != "" {
 		if err := h.userService.Sudo(ctx, req.Msg.GetUserId(), relationName); err != nil {
@@ -33,13 +37,34 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error) {
+	// No relation set → remove both admin and member; a relation scopes removal to
+	// just that one (e.g. demote admin to member).
+	platformRelations := []string{schema.AdminRelationName, schema.MemberRelationName}
+	if rel := req.Msg.GetRelation(); rel != "" {
+		if !schema.IsPlatformRelation(rel) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		}
+		// normalize: IsPlatformRelation is case-insensitive but UnSudo matches exactly.
+		platformRelations = []string{strings.ToLower(rel)}
+	}
+
 	if req.Msg.GetUserId() != "" {
-		if err := h.userService.UnSudo(ctx, req.Msg.GetUserId()); err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.UserUnSudo: user_id=%s: %w", req.Msg.GetUserId(), err))
+		for _, relationName := range platformRelations {
+			if err := h.userService.UnSudo(ctx, req.Msg.GetUserId(), relationName); err != nil {
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.UserUnSudo: user_id=%s relation=%s: %w", req.Msg.GetUserId(), relationName, err))
+			}
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
-		if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId()); err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.ServiceUserUnSudo: service_user_id=%s: %w", req.Msg.GetServiceuserId(), err))
+		// The bootstrap SA can't be removed via the API. Return the generic permission
+		// error (must not reveal it's the protected SA) and log the real reason.
+		if req.Msg.GetServiceuserId() == schema.BootstrapServiceUserID {
+			slog.WarnContext(ctx, "refused removal of the bootstrap superuser service account", "service_user_id", req.Msg.GetServiceuserId())
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		}
+		for _, relationName := range platformRelations {
+			if err := h.serviceUserService.UnSudo(ctx, req.Msg.GetServiceuserId(), relationName); err != nil {
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemovePlatformUser.ServiceUserUnSudo: service_user_id=%s relation=%s: %w", req.Msg.GetServiceuserId(), relationName, err))
+			}
 		}
 	} else {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -58,15 +83,12 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.ListRelations: %w", err))
 	}
 
-	subjectRelationMap := make(map[string]string)
+	// A subject can hold both admin and member; collect all relations per subject so
+	// the reconciler knows exactly which to remove, not just the last one listed.
+	userRelations := platformRelationsBySubject(relations, schema.UserPrincipal)
+	serviceUserRelations := platformRelationsBySubject(relations, schema.ServiceUserPrincipal)
 
-	// fetch users
-	userIDs := utils.Map(utils.Filter(relations, func(r relation.Relation) bool {
-		return r.Subject.Namespace == schema.UserPrincipal
-	}), func(r relation.Relation) string {
-		subjectRelationMap[r.Subject.ID] = r.RelationName
-		return r.Subject.ID
-	})
+	userIDs := sortedSubjectIDs(userRelations)
 	userPBs := make([]*frontierv1beta1.User, 0, len(userIDs))
 	if len(userIDs) > 0 {
 		users, err := h.userService.GetByIDs(ctx, userIDs)
@@ -77,7 +99,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			if u.Metadata == nil {
 				u.Metadata = make(map[string]any)
 			}
-			u.Metadata["relation"] = subjectRelationMap[u.ID]
+			stampPlatformRelations(u.Metadata, userRelations[u.ID])
 			userPB, err := transformUserToPB(u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformUser: entity_id=%s: %w", u.ID, err))
@@ -86,13 +108,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		}
 	}
 
-	// fetch service users
-	serviceUserIDs := utils.Map(utils.Filter(relations, func(r relation.Relation) bool {
-		return r.Subject.Namespace == schema.ServiceUserPrincipal
-	}), func(r relation.Relation) string {
-		subjectRelationMap[r.Subject.ID] = r.RelationName
-		return r.Subject.ID
-	})
+	serviceUserIDs := sortedSubjectIDs(serviceUserRelations)
 	serviceUserPBs := make([]*frontierv1beta1.ServiceUser, 0, len(serviceUserIDs))
 	if len(serviceUserIDs) > 0 {
 		serviceUsers, err := h.serviceUserService.GetByIDs(ctx, serviceUserIDs)
@@ -103,7 +119,7 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 			if u.Metadata == nil {
 				u.Metadata = make(map[string]any)
 			}
-			u.Metadata["relation"] = subjectRelationMap[u.ID]
+			stampPlatformRelations(u.Metadata, serviceUserRelations[u.ID])
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
 				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.TransformServiceUser: entity_id=%s: %w", u.ID, err))
@@ -116,4 +132,53 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		Users:        userPBs,
 		Serviceusers: serviceUserPBs,
 	}), nil
+}
+
+// platformRelationsBySubject groups platform relation names by subject id for the
+// namespace, deduped and sorted for stable output.
+func platformRelationsBySubject(relations []relation.Relation, namespace string) map[string][]string {
+	sets := map[string]map[string]struct{}{}
+	for _, r := range relations {
+		if r.Subject.Namespace != namespace {
+			continue
+		}
+		if sets[r.Subject.ID] == nil {
+			sets[r.Subject.ID] = map[string]struct{}{}
+		}
+		sets[r.Subject.ID][r.RelationName] = struct{}{}
+	}
+	out := make(map[string][]string, len(sets))
+	for id, set := range sets {
+		rels := make([]string, 0, len(set))
+		for rel := range set {
+			rels = append(rels, rel)
+		}
+		sort.Strings(rels)
+		out[id] = rels
+	}
+	return out
+}
+
+// sortedSubjectIDs returns the subject ids in sorted order.
+func sortedSubjectIDs(m map[string][]string) []string {
+	ids := make([]string, 0, len(m))
+	for id := range m {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	return ids
+}
+
+// stampPlatformRelations writes a subject's relations to metadata: "relations" (all,
+// used by the reconciler) and "relation" (the first, for backward compatibility).
+func stampPlatformRelations(md map[string]any, rels []string) {
+	if len(rels) == 0 {
+		return
+	}
+	md["relation"] = rels[0]
+	anyRels := make([]any, len(rels))
+	for i, r := range rels {
+		anyRels[i] = r
+	}
+	md["relations"] = anyRels
 }

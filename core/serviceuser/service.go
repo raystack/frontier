@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"time"
 
 	"golang.org/x/crypto/sha3"
 
@@ -18,8 +19,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
 )
 
@@ -51,20 +54,26 @@ type MembershipService interface {
 	ListPrincipalIDsByResource(ctx context.Context, resourceID, resourceType, principalType string) ([]string, error)
 }
 
-type Service struct {
-	log               *slog.Logger
-	repo              Repository
-	credRepo          CredentialRepository
-	relationService   RelationService
-	membershipService MembershipService
+type AuditRecordRepository interface {
+	Create(ctx context.Context, auditRecord models.AuditRecord) (models.AuditRecord, error)
 }
 
-func NewService(logger *slog.Logger, repo Repository, credRepo CredentialRepository, relService RelationService) *Service {
+type Service struct {
+	log                   *slog.Logger
+	repo                  Repository
+	credRepo              CredentialRepository
+	relationService       RelationService
+	membershipService     MembershipService
+	auditRecordRepository AuditRecordRepository
+}
+
+func NewService(logger *slog.Logger, repo Repository, credRepo CredentialRepository, relService RelationService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
-		log:             logger,
-		repo:            repo,
-		credRepo:        credRepo,
-		relationService: relService,
+		log:                   logger,
+		repo:                  repo,
+		credRepo:              credRepo,
+		relationService:       relService,
+		auditRecordRepository: auditRecordRepository,
 	}
 }
 
@@ -245,6 +254,14 @@ func (s Service) GetKey(ctx context.Context, credID string) (Credential, error) 
 }
 
 func (s Service) DeleteKey(ctx context.Context, credID string) error {
+	// Never let a credential/key/token of the config-bootstrapped bootstrap SA be
+	// deleted via the API — it is server-managed (rotated at boot). Boot rotation
+	// deletes via the repository directly, so it is unaffected by this guard.
+	if cred, err := s.credRepo.Get(ctx, credID); err == nil && cred.ServiceUserID == schema.BootstrapServiceUserID {
+		s.log.WarnContext(ctx, "refused deleting a credential of the bootstrap superuser service account",
+			"serviceuser_id", cred.ServiceUserID, "credential_id", credID)
+		return ErrProtected
+	}
 	return s.credRepo.Delete(ctx, credID)
 }
 
@@ -444,25 +461,22 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		return err
 	}
 
-	// check if already su
-	permissionName := ""
+	// validate the requested platform relation
 	switch relationName {
-	case schema.MemberRelationName:
-		permissionName = schema.PlatformCheckPermission
-	case schema.AdminRelationName:
-		permissionName = schema.PlatformSudoPermission
-	}
-	if permissionName == "" {
+	case schema.MemberRelationName, schema.AdminRelationName:
+	default:
 		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
 	}
 
-	if ok, err := s.IsSudo(ctx, currentUser.ID, permissionName); err != nil {
+	// Act on the exact relation, not the permission it grants: admin and member both
+	// grant `check`, so a permission check would skip adding member to an existing
+	// admin and break the admin->member downgrade. Safe to run again.
+	if ok, err := s.IsSudo(ctx, currentUser.ID, relationName); err != nil {
 		return err
 	} else if ok {
 		return nil
 	}
 
-	// mark su
 	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        schema.PlatformID,
@@ -474,29 +488,46 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 		},
 		RelationName: relationName,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	// audit the grant for both admin and member relations
+	event := pkgAuditRecord.PlatformAdminAddedEvent
+	if relationName == schema.MemberRelationName {
+		event = pkgAuditRecord.PlatformMemberAddedEvent
+	}
+	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
 }
 
-// UnSudo remove platform permissions to user
-// only remove the 'member' relation if it exists
-func (s Service) UnSudo(ctx context.Context, id string) error {
+// UnSudo removes a platform relation (admin or member) from a service user.
+// It removes the exact relation requested — an `admin` relation can now actually
+// be stripped. Both admin and member grants/removals are audited.
+func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
+	switch relationName {
+	case schema.AdminRelationName, schema.MemberRelationName:
+	default:
+		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
+	}
+
 	currentUser, err := s.Get(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	relationName := schema.MemberRelationName
-	// to check if the user has member relation, we need to check if the user has `check`
-	// permission on platform
-	if ok, err := s.IsSudo(ctx, currentUser.ID, schema.PlatformCheckPermission); err != nil {
+	// Only act (and audit) when the specific relation actually exists, so the
+	// revoke event reflects a real state change. Checking the relation directly
+	// is precise for both admin and member.
+	present, err := s.IsSudo(ctx, currentUser.ID, relationName)
+	if err != nil {
 		return err
-	} else if !ok {
-		// not needed
+	}
+	if !present {
 		return nil
 	}
 
 	// unmark su
-	err = s.relationService.Delete(ctx, relation.Relation{
+	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        schema.PlatformID,
 			Namespace: schema.PlatformNamespace,
@@ -506,6 +537,35 @@ func (s Service) UnSudo(ctx context.Context, id string) error {
 			Namespace: schema.ServiceUserPrincipal,
 		},
 		RelationName: relationName,
+	}); err != nil {
+		return err
+	}
+
+	event := pkgAuditRecord.PlatformAdminRemovedEvent
+	if relationName == schema.MemberRelationName {
+		event = pkgAuditRecord.PlatformMemberRemovedEvent
+	}
+	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
+}
+
+// recordPlatformAuditRecord logs a platform admin/member grant or revoke on a service
+// user. Actor is left empty; the repository fills it from context (caller or boot).
+func (s Service) recordPlatformAuditRecord(ctx context.Context, su ServiceUser, event pkgAuditRecord.Event, relationName string) error {
+	_, err := s.auditRecordRepository.Create(ctx, models.AuditRecord{
+		Event: event,
+		Resource: models.Resource{
+			ID:   schema.PlatformID,
+			Type: pkgAuditRecord.PlatformType,
+			Name: schema.PlatformID,
+		},
+		Target: &models.Target{
+			ID:   su.ID,
+			Type: pkgAuditRecord.ServiceUserType,
+			Name: su.Title,
+		},
+		OrgID:      schema.PlatformOrgID.String(),
+		OccurredAt: time.Now().UTC(),
+		Metadata:   map[string]any{"relation": relationName},
 	})
 	return err
 }

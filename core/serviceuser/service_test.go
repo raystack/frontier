@@ -11,23 +11,141 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/serviceuser/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
+	"github.com/stretchr/testify/mock"
 )
 
-func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService) {
+func newTestService(t *testing.T) (*serviceuser.Service, *mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService, *mocks.AuditRecordRepository) {
 	t.Helper()
 	repo := mocks.NewRepository(t)
 	credRepo := mocks.NewCredentialRepository(t)
 	relSvc := mocks.NewRelationService(t)
 	memSvc := mocks.NewMembershipService(t)
+	auditRepo := mocks.NewAuditRecordRepository(t)
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	svc := serviceuser.NewService(logger, repo, credRepo, relSvc)
+	svc := serviceuser.NewService(logger, repo, credRepo, relSvc, auditRepo)
 	svc.SetMembershipService(memSvc)
-	return svc, repo, credRepo, relSvc, memSvc
+	return svc, repo, credRepo, relSvc, memSvc, auditRepo
+}
+
+func TestService_Sudo(t *testing.T) {
+	ctx := context.Background()
+	const suID = "550e8400-e29b-41d4-a716-446655440000"
+	// platformRel builds the platform relation used by IsSudo's check and by
+	// Create/Delete (field order in the literal doesn't matter for struct equality).
+	platformRel := func(rel string) relation.Relation {
+		return relation.Relation{
+			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+			RelationName: rel,
+		}
+	}
+
+	t.Run("grants admin relation and audits the grant", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		// Sudo checks the exact relation (admin), not the superuser permission, and
+		// is safe to run again — the same way UnSudo works.
+		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(false, nil)
+		rel.On("Create", ctx, platformRel(schema.AdminRelationName)).Return(relation.Relation{}, nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformAdminAddedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.Sudo(ctx, suID, schema.AdminRelationName); err != nil {
+			t.Fatalf("Sudo() error = %v", err)
+		}
+	})
+
+	t.Run("grants member relation and audits the grant", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		// member is checked at the relation level, so an existing admin still gets
+		// the member relation created (the downgrade path).
+		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(false, nil)
+		rel.On("Create", ctx, platformRel(schema.MemberRelationName)).Return(relation.Relation{}, nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformMemberAddedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.Sudo(ctx, suID, schema.MemberRelationName); err != nil {
+			t.Fatalf("Sudo() error = %v", err)
+		}
+	})
+}
+
+func TestService_UnSudo(t *testing.T) {
+	ctx := context.Background()
+	const suID = "550e8400-e29b-41d4-a716-446655440000"
+	platformRel := func(rel string) relation.Relation {
+		return relation.Relation{
+			Object:       relation.Object{ID: schema.PlatformID, Namespace: schema.PlatformNamespace},
+			Subject:      relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
+			RelationName: rel,
+		}
+	}
+
+	t.Run("removes admin relation and audits the revoke", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		// UnSudo checks the relation directly (admin), not the superuser permission
+		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(true, nil)
+		rel.On("Delete", ctx, platformRel(schema.AdminRelationName)).Return(nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformAdminRemovedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.AdminRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("admin removal makes no change when the relation is absent", func(t *testing.T) {
+		svc, repo, _, rel, _, _ := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.AdminRelationName)).Return(false, nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.AdminRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("removes member relation and audits the revoke", func(t *testing.T) {
+		svc, repo, _, rel, _, audit := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(true, nil)
+		rel.On("Delete", ctx, platformRel(schema.MemberRelationName)).Return(nil)
+		audit.On("Create", ctx, mock.MatchedBy(func(r models.AuditRecord) bool {
+			return r.Event == pkgAuditRecord.PlatformMemberRemovedEvent && r.Target != nil && r.Target.ID == suID
+		})).Return(models.AuditRecord{}, nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.MemberRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("member removal makes no change when the relation is absent", func(t *testing.T) {
+		svc, repo, _, rel, _, _ := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, Title: "svc"}, nil)
+		rel.On("CheckPermission", ctx, platformRel(schema.MemberRelationName)).Return(false, nil)
+
+		if err := svc.UnSudo(ctx, suID, schema.MemberRelationName); err != nil {
+			t.Fatalf("UnSudo() error = %v", err)
+		}
+	})
+
+	t.Run("rejects an invalid relation name", func(t *testing.T) {
+		svc, _, _, _, _, _ := newTestService(t)
+		if err := svc.UnSudo(ctx, suID, "owner"); err == nil {
+			t.Fatal("UnSudo() expected error for invalid relation, got nil")
+		}
+	})
 }
 
 func TestService_Delete(t *testing.T) {
@@ -108,7 +226,7 @@ func TestService_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, repo, cred, rel, mem := newTestService(t)
+			svc, repo, cred, rel, mem, _ := newTestService(t)
 			tt.setup(repo, cred, rel, mem)
 
 			err := svc.Delete(ctx, suID)
@@ -152,7 +270,7 @@ func TestService_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, repo, _, _, _ := newTestService(t)
+			svc, repo, _, _, _, _ := newTestService(t)
 			tt.setup(repo)
 
 			_, err := svc.Get(ctx, tt.id)
@@ -219,7 +337,7 @@ func TestService_ListByOrg(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc, repo, _, _, mem := newTestService(t)
+			svc, repo, _, _, mem, _ := newTestService(t)
 			tt.setup(repo, mem)
 
 			got, err := svc.ListByOrg(ctx, orgID)
@@ -231,6 +349,34 @@ func TestService_ListByOrg(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestService_DeleteKey_BootstrapProtected(t *testing.T) {
+	ctx := context.Background()
+	const credID = "cred-1"
+
+	t.Run("refuses deleting a credential owned by the bootstrap SA", func(t *testing.T) {
+		svc, _, credRepo, _, _, _ := newTestService(t)
+		credRepo.On("Get", ctx, credID).Return(
+			serviceuser.Credential{ID: credID, ServiceUserID: schema.BootstrapServiceUserID}, nil)
+
+		err := svc.DeleteSecret(ctx, credID) // funnels through DeleteKey
+		if !errors.Is(err, serviceuser.ErrProtected) {
+			t.Fatalf("want ErrProtected, got %v", err)
+		}
+		credRepo.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+	})
+
+	t.Run("deletes a credential of a normal service user", func(t *testing.T) {
+		svc, _, credRepo, _, _, _ := newTestService(t)
+		credRepo.On("Get", ctx, credID).Return(
+			serviceuser.Credential{ID: credID, ServiceUserID: "11111111-2222-3333-4444-555555555555"}, nil)
+		credRepo.On("Delete", ctx, credID).Return(nil)
+
+		if err := svc.DeleteToken(ctx, credID); err != nil { // also funnels through DeleteKey
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
 }
 
 func TestService_GetByJWT_Classification(t *testing.T) {
@@ -259,14 +405,14 @@ func TestService_GetByJWT_Classification(t *testing.T) {
 	}
 
 	t.Run("not a jwt skips with ErrTokenNotJWT", func(t *testing.T) {
-		svc, _, _, _, _ := newTestService(t)
+		svc, _, _, _, _, _ := newTestService(t)
 		if _, err := svc.GetByJWT(ctx, "fpt_not-a-jwt"); !errors.Is(err, serviceuser.ErrTokenNotJWT) {
 			t.Errorf("GetByJWT() error = %v, want errors.Is(ErrTokenNotJWT)", err)
 		}
 	})
 
 	t.Run("malformed (non-uuid) kid skips with ErrInvalidKeyID", func(t *testing.T) {
-		svc, _, _, _, _ := newTestService(t)
+		svc, _, _, _, _, _ := newTestService(t)
 		tok, _ := buildToken(t, "not-a-uuid")
 		// credRepo.Get must not be called for a malformed kid
 		if _, err := svc.GetByJWT(ctx, string(tok)); !errors.Is(err, serviceuser.ErrInvalidKeyID) {
@@ -275,7 +421,7 @@ func TestService_GetByJWT_Classification(t *testing.T) {
 	})
 
 	t.Run("non-string kid skips with ErrInvalidKeyID", func(t *testing.T) {
-		svc, _, _, _, _ := newTestService(t)
+		svc, _, _, _, _, _ := newTestService(t)
 		key, err := utils.CreateJWKWithKID("33333333-3333-3333-3333-333333333333")
 		if err != nil {
 			t.Fatalf("CreateJWKWithKID: %v", err)
@@ -294,7 +440,7 @@ func TestService_GetByJWT_Classification(t *testing.T) {
 	})
 
 	t.Run("unknown kid skips with ErrCredNotExist", func(t *testing.T) {
-		svc, _, credRepo, _, _ := newTestService(t)
+		svc, _, credRepo, _, _, _ := newTestService(t)
 		kid := "11111111-1111-1111-1111-111111111111"
 		tok, _ := buildToken(t, kid)
 		credRepo.On("Get", ctx, kid).Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
@@ -304,7 +450,7 @@ func TestService_GetByJWT_Classification(t *testing.T) {
 	})
 
 	t.Run("bad signature stops with ErrInvalidCred", func(t *testing.T) {
-		svc, _, credRepo, _, _ := newTestService(t)
+		svc, _, credRepo, _, _, _ := newTestService(t)
 		kid := "22222222-2222-2222-2222-222222222222"
 		tok, _ := buildToken(t, kid)      // signed by one key
 		_, otherPub := buildToken(t, kid) // verified against a different key with the same kid
