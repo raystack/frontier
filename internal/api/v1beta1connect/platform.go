@@ -37,10 +37,8 @@ func (h *ConnectHandler) AddPlatformUser(ctx context.Context, req *connect.Reque
 }
 
 func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Request[frontierv1beta1.RemovePlatformUserRequest]) (*connect.Response[frontierv1beta1.RemovePlatformUserResponse], error) {
-	// By default, remove the user or service account from the platform completely
-	// (both admin and member). If a relation is set, remove just that one — for
-	// example, to turn an admin into a member. UnSudo does nothing if they don't
-	// hold that relation.
+	// No relation set → remove both admin and member; a relation scopes removal to
+	// just that one (e.g. demote admin to member).
 	platformRelations := []string{schema.AdminRelationName, schema.MemberRelationName}
 	if rel := req.Msg.GetRelation(); rel != "" {
 		if !schema.IsPlatformRelation(rel) {
@@ -57,9 +55,8 @@ func (h *ConnectHandler) RemovePlatformUser(ctx context.Context, req *connect.Re
 			}
 		}
 	} else if req.Msg.GetServiceuserId() != "" {
-		// The server manages the bootstrap SA (it seeds it at boot), so it can't be
-		// removed through this API. Return the generic permission error and log why.
-		// The response must not reveal that this id is the protected SA.
+		// The bootstrap SA can't be removed via the API. Return the generic permission
+		// error (must not reveal it's the protected SA) and log the real reason.
 		if req.Msg.GetServiceuserId() == schema.BootstrapServiceUserID {
 			slog.WarnContext(ctx, "refused removal of the bootstrap superuser service account", "service_user_id", req.Msg.GetServiceuserId())
 			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
@@ -86,14 +83,11 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlatformUsers.ListRelations: %w", err))
 	}
 
-	// A user or service account can hold both admin and member. Collect every
-	// relation for each subject, with duplicates removed, so callers see all of
-	// them and not just the last one listed. The reconciler needs this to know
-	// exactly which relations to remove.
+	// A subject can hold both admin and member; collect all relations per subject so
+	// the reconciler knows exactly which to remove, not just the last one listed.
 	userRelations := platformRelationsBySubject(relations, schema.UserPrincipal)
 	serviceUserRelations := platformRelationsBySubject(relations, schema.ServiceUserPrincipal)
 
-	// fetch users
 	userIDs := sortedSubjectIDs(userRelations)
 	userPBs := make([]*frontierv1beta1.User, 0, len(userIDs))
 	if len(userIDs) > 0 {
@@ -114,7 +108,6 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 		}
 	}
 
-	// fetch service users
 	serviceUserIDs := sortedSubjectIDs(serviceUserRelations)
 	serviceUserPBs := make([]*frontierv1beta1.ServiceUser, 0, len(serviceUserIDs))
 	if len(serviceUserIDs) > 0 {
@@ -141,9 +134,8 @@ func (h *ConnectHandler) ListPlatformUsers(ctx context.Context, req *connect.Req
 	}), nil
 }
 
-// platformRelationsBySubject groups the platform relation names (admin/member)
-// by subject id for the given namespace. Duplicates are removed and the result
-// is sorted so the output is stable.
+// platformRelationsBySubject groups platform relation names by subject id for the
+// namespace, deduped and sorted for stable output.
 func platformRelationsBySubject(relations []relation.Relation, namespace string) map[string][]string {
 	sets := map[string]map[string]struct{}{}
 	for _, r := range relations {
@@ -177,9 +169,8 @@ func sortedSubjectIDs(m map[string][]string) []string {
 	return ids
 }
 
-// stampPlatformRelations records a subject's platform relations in its metadata.
-// "relations" holds all of them (used by the reconciler); "relation" keeps the
-// first one for backward compatibility.
+// stampPlatformRelations writes a subject's relations to metadata: "relations" (all,
+// used by the reconciler) and "relation" (the first, for backward compatibility).
 func stampPlatformRelations(md map[string]any, rels []string) {
 	if len(rels) == 0 {
 		return

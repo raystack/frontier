@@ -80,10 +80,8 @@ type ServiceUserBackfiller interface {
 
 // AdminConfig is platform administration configuration
 type AdminConfig struct {
-	// Bootstrap seeds a superuser service account from config (client_id/secret) so
-	// automation (e.g. GitOps) always has a superuser to log in as. This means you
-	// don't need an existing superuser to create the first one. Everything else about
-	// platform users is managed separately, through the GitOps reconcile flow.
+	// Bootstrap seeds a superuser service account from config so automation (e.g.
+	// GitOps) always has a superuser to log in as. See SuperUserBootstrapConfig.
 	Bootstrap SuperUserBootstrapConfig `yaml:"bootstrap" mapstructure:"bootstrap"`
 }
 

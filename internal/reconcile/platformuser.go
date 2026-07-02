@@ -16,17 +16,16 @@ const (
 )
 
 // PlatformUserSpec is one desired platform-user entry from the YAML spec.
-// Relation is the platform relation to grant — admin (-> superuser) or member
-// (-> check). It is deliberately "relation", not "role": "role" is a distinct
-// RBAC concept in Frontier, whereas these are SpiceDB relation names.
+// Relation is "admin" or "member" — a SpiceDB relation, not an RBAC "role"
+// (a separate concept in Frontier), hence the field name.
 type PlatformUserSpec struct {
 	Type     string `yaml:"type"`     // "user" | "serviceuser"
 	Ref      string `yaml:"ref"`      // email or uuid for a user; id for a service user
 	Relation string `yaml:"relation"` // "admin" | "member"
 }
 
-// platformPrincipal is the current state of one platform principal (from ListPlatformUsers),
-// with the set of platform relations it currently holds.
+// platformPrincipal is the current state of one platform principal, as returned
+// by ListPlatformUsers.
 type platformPrincipal struct {
 	Type      string
 	ID        string
@@ -34,7 +33,6 @@ type platformPrincipal struct {
 	Relations map[string]struct{}
 }
 
-// opAction is an apply operation kind.
 type opAction string
 
 const (
@@ -42,9 +40,8 @@ const (
 	opRemove opAction = "remove"
 )
 
-// Op is a single planned change to one (principal, relation). "add" grants the
-// relation; "remove" takes away just that one relation. Ref holds the desired
-// entry's ref for an add (email or id), and the current principal's id for a remove.
+// Op is a single planned change to one (principal, relation). Ref is the desired
+// entry's ref for an add (email or id) and the current principal's id for a remove.
 type Op struct {
 	Action   opAction
 	Type     string
@@ -60,7 +57,7 @@ func (o Op) String() string {
 }
 
 // principalIDs maps the op's ref onto the request id fields: a user ref fills
-// user_id, anything else fills serviceuser_id. Exactly one is non-empty.
+// user_id, otherwise serviceuser_id. Exactly one is non-empty.
 func (o Op) principalIDs() (userID, serviceUserID string) {
 	if o.Type == principalTypeUser {
 		return o.Ref, ""
@@ -82,17 +79,15 @@ func validateSpec(s PlatformUserSpec) error {
 	if strings.TrimSpace(s.Ref) == "" {
 		return fmt.Errorf("empty ref")
 	}
-	// The server manages the bootstrap SA (it seeds it at boot and blocks removal),
-	// so it must not be reconciled. Reject it on the desired side too, not just skip
-	// it on the current side.
+	// The bootstrap SA is server-managed; reject it here too, not just skip it on the current side.
 	if s.Type == principalTypeServiceUser && strings.TrimSpace(s.Ref) == schema.BootstrapServiceUserID {
 		return fmt.Errorf("ref %q is the bootstrap service account, which the server manages and cannot be reconciled", s.Ref)
 	}
 	return nil
 }
 
-// specMatchesPrincipal reports whether a desired spec refers to a current principal.
-// Users match by id or email; service users by id.
+// specMatchesPrincipal reports whether a desired spec refers to a current
+// principal: users match by id or email, service users by id.
 func specMatchesPrincipal(s PlatformUserSpec, p platformPrincipal) bool {
 	if s.Type != p.Type {
 		return false
@@ -103,14 +98,10 @@ func specMatchesPrincipal(s PlatformUserSpec, p platformPrincipal) bool {
 	return p.Type == principalTypeUser && s.Ref != "" && strings.EqualFold(s.Ref, p.Email)
 }
 
-// platformRelationOrder gives operations a stable, fixed order.
 var platformRelationOrder = []string{schema.AdminRelationName, schema.MemberRelationName}
 
-// diffPlatformUsers works out the changes needed to make the current platform
-// principals match the desired spec, one (principal, relation) at a time. A current
-// relation that is no longer wanted is removed. A wanted relation that is missing is
-// added. A desired entry that matches no current principal is new, so it is added.
-// The output order is fixed.
+// diffPlatformUsers returns the ops that make the current platform principals
+// match the desired spec, per (principal, relation). Order is stable.
 func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) ([]Op, error) {
 	for _, s := range desired {
 		if err := validateSpec(s); err != nil {
@@ -118,10 +109,8 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 		}
 	}
 
-	// Collect adds and removes separately so adds come first (see the return).
-	// Apply runs in order, so doing adds before removes means a relation change
-	// (e.g. admin -> member) never leaves someone with no platform access if a
-	// later op fails.
+	// Emit adds before removes so a relation change (admin -> member) never drops
+	// all access if a later op fails.
 	var adds, removes []Op
 	matched := make([]bool, len(desired))
 
@@ -145,7 +134,6 @@ func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) 
 		}
 	}
 
-	// add desired entries that match no current platform principal
 	seenNewRef := map[string]struct{}{}
 	for i, s := range desired {
 		if matched[i] {

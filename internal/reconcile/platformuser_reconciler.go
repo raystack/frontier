@@ -79,9 +79,7 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 		})
 	}
 	for _, su := range resp.Msg.GetServiceusers() {
-		// The bootstrap SA (created from config at boot) has a fixed id. The server
-		// manages it and blocks removal, so never reconcile it — that way we never
-		// try to remove it.
+		// Never reconcile the bootstrap SA — it is server-managed and removal-blocked.
 		if su.GetId() == schema.BootstrapServiceUserID {
 			continue
 		}
@@ -95,7 +93,6 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 }
 
 func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
-	// exactly one of the two ids is set, by principal type.
 	userID, serviceUserID := op.principalIDs()
 	switch op.Action {
 	case opAdd:
@@ -104,7 +101,7 @@ func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
 		}, r.header))
 		return err
 	case opRemove:
-		// remove only op.Relation, not both (proton #489).
+		// relation-selective removal (proton #489)
 		_, err := r.client.RemovePlatformUser(ctx, authReq(&frontierv1beta1.RemovePlatformUserRequest{
 			UserId: userID, ServiceuserId: serviceUserID, Relation: op.Relation,
 		}, r.header))
@@ -114,10 +111,8 @@ func (r *PlatformUserReconciler) apply(ctx context.Context, op Op) error {
 	}
 }
 
-// relationsFromMetadata reads the platform relations that ListPlatformUsers records
-// in each principal's metadata. It uses the full "relations" list when present (so
-// someone holding both admin and member is handled correctly), and falls back to the
-// single "relation" field for backward compatibility.
+// relationsFromMetadata reads the platform relations ListPlatformUsers records in a
+// principal's metadata: the "relations" list, falling back to "relation".
 func relationsFromMetadata(md *structpb.Struct) map[string]struct{} {
 	rels := map[string]struct{}{}
 	if md == nil {

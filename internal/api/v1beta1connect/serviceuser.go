@@ -169,14 +169,11 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 	}), nil
 }
 
-// errBootstrapSAImmutable returns a PermissionDenied error when id is the bootstrap
-// SA (its fixed id). That account is managed only through app.admin.bootstrap at
-// boot. The API must never delete it or create credentials, keys, or tokens for it.
-// Doing so would leave a superuser way in that config can't rotate away. Not even
-// platform superusers are allowed.
-//
-// The response is the generic permission error, so it doesn't reveal that this id is
-// the protected SA. The specific reason is only logged.
+// errBootstrapSAImmutable returns PermissionDenied when id is the bootstrap SA. That
+// account is managed only via app.admin.bootstrap at boot; the API must never delete
+// it or mint credentials/keys/tokens for it (that would be an un-rotatable backdoor),
+// not even for superusers. The error is generic so it can't reveal the protected id;
+// the real reason is only logged.
 func errBootstrapSAImmutable(ctx context.Context, id string) error {
 	if id == schema.BootstrapServiceUserID {
 		slog.WarnContext(ctx, "refused API mutation of the bootstrap superuser service account", "service_user_id", id)

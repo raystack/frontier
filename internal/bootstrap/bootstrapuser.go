@@ -14,19 +14,15 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
-// bootstrapBcryptCost matches serviceuser.CreateSecret's cost for client secrets.
-// It is a var (not a const) so unit tests can lower it to bcrypt.MinCost — cost 14
-// is deliberately expensive and, run under `-race -count 2`, blows the test timeout.
+// bootstrapBcryptCost is a var (not const) so tests can drop it to bcrypt.MinCost;
+// cost 14 under `-race -count 2` blows the test timeout.
 var bootstrapBcryptCost = 14
 
 const defaultBootstrapTitle = "GitOps Bootstrap Superuser"
 
-// SuperUserBootstrapConfig configures a superuser service account seeded from
-// config. It gives a username/password-style credential (client_id + client_secret)
-// so automation (like the GitOps reconcile flow) always has a superuser to log in as
-// at boot. This means you don't need an existing superuser to create the first one.
-// You provide the secret, and it is rotated when it changes. Leave client_id and
-// client_secret empty to turn this off.
+// SuperUserBootstrapConfig configures a superuser service account seeded from config,
+// so automation (like GitOps reconcile) always has a superuser to log in as at boot —
+// no existing superuser needed to create the first one. Leave both fields empty to disable.
 type SuperUserBootstrapConfig struct {
 	ClientID     string `yaml:"client_id" mapstructure:"client_id"`
 	ClientSecret string `yaml:"client_secret" mapstructure:"client_secret"`
@@ -40,17 +36,14 @@ func (c SuperUserBootstrapConfig) title() string {
 	return defaultBootstrapTitle
 }
 
-// ServiceUserCreator creates and looks up a bare service-user row. The bootstrap
-// superuser deliberately skips org membership (a platform superuser needs none),
-// so this is the repository's Create/GetByID, not serviceuser.Service.
+// ServiceUserCreator creates and looks up a bare service-user row (no org membership;
+// a platform superuser needs none), backed by the repository, not serviceuser.Service.
 type ServiceUserCreator interface {
-	// GetByID looks up a service user by id and returns serviceuser.ErrNotExist
-	// when it does not exist. Used to reuse the fixed-id bootstrap row instead of
-	// creating a duplicate.
+	// GetByID returns serviceuser.ErrNotExist when absent, letting us reuse the
+	// fixed-id bootstrap row instead of creating a duplicate.
 	GetByID(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 	Create(ctx context.Context, su serviceuser.ServiceUser) (serviceuser.ServiceUser, error)
-	// Delete removes a service user by id. Used to roll back a bootstrap row that
-	// this boot just created, when the credential write then fails.
+	// Delete rolls back a row this boot just created when the credential write fails.
 	Delete(ctx context.Context, id string) error
 }
 
@@ -66,19 +59,15 @@ type SuperUserPromoter interface {
 	Sudo(ctx context.Context, id, relationName string) error
 }
 
-// EnsureBootstrapSuperUser makes sure the configured superuser service account
-// exists and is a platform superuser. It is safe to run on every boot. It does
-// nothing when the account is not configured.
+// EnsureBootstrapSuperUser makes sure the configured superuser service account exists
+// and is a platform superuser. Safe to run on every boot; a no-op when unconfigured.
 func (s Service) EnsureBootstrapSuperUser(ctx context.Context) error {
 	return ensureBootstrapSuperUser(ctx, s.logger, s.adminConfig.Bootstrap, s.suCreator, s.suCredStore, s.suPromoter)
 }
 
-// ensureBootstrapSuperUser holds the testable core. The account lives in the
-// platform/nil org (serviceusers.org_id is nullable, no FK) and is created
-// without org membership. It decides what to do based on whether the credential
-// id (client_id) already exists:
-//   - not there: create the service user + client-secret credential + promote it;
-//   - there: rotate the secret if it changed, then make sure the superuser relation is set.
+// ensureBootstrapSuperUser is the testable core, keyed on the credential id (client_id):
+// if the credential is absent it creates the service user + credential + promotes;
+// if present it rotates the secret when it changed, then re-asserts the superuser relation.
 func ensureBootstrapSuperUser(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -88,17 +77,14 @@ func ensureBootstrapSuperUser(
 	promoter SuperUserPromoter,
 ) error {
 	clientID := strings.TrimSpace(cfg.ClientID)
-	// Only skip when the config is fully unset. A half-configured bootstrap (only
-	// one of client_id/client_secret) is a mistake that would quietly skip seeding
-	// the superuser — fail early instead.
+	// Skip only when fully unset; a half-configured bootstrap is a mistake, so fail fast.
 	switch {
 	case clientID == "" && cfg.ClientSecret == "":
 		return nil
 	case clientID == "" || cfg.ClientSecret == "":
 		return errors.New("bootstrap superuser: client_id and client_secret must be set together")
 	}
-	// client_id is the service-user credential's id, which is a UUID column; a
-	// non-UUID would otherwise fail with an opaque SQL error deep in the lookup.
+	// client_id is a UUID credential-id column; validate up front for a clear error.
 	if _, err := uuid.Parse(clientID); err != nil {
 		return fmt.Errorf("bootstrap superuser: client_id must be a valid uuid: %w", err)
 	}
@@ -138,9 +124,8 @@ func createBootstrapSuperUser(
 		return rollbackFreshBootstrapSU(ctx, logger, users, suID, created,
 			fmt.Errorf("bootstrap superuser: hash secret: %w", err))
 	}
-	// creds.Create runs only because ensureBootstrapSuperUser already saw the
-	// credential (id == clientID) is missing, so we never add a second credential
-	// for the bootstrap SA.
+	// Reached only because the caller saw the credential is missing, so this never
+	// adds a second credential for the bootstrap SA.
 	if _, err := creds.Create(ctx, serviceuser.Credential{
 		ID:            clientID,
 		ServiceUserID: suID,
@@ -156,12 +141,9 @@ func createBootstrapSuperUser(
 	return promoteBootstrapSuperUser(ctx, promoter, suID)
 }
 
-// ensureBootstrapServiceUser returns the fixed-id bootstrap service-user row,
-// creating it only when it does not already exist. Reusing an existing row keeps
-// recovery idempotent: if an earlier boot created the row but failed before
-// writing the credential (or a rotation deleted the credential), we must not try
-// to create a second row with the same id. The bool reports whether this call
-// created the row.
+// ensureBootstrapServiceUser returns the fixed-id bootstrap row, creating it only if
+// absent so recovery is idempotent (never a duplicate row). The bool reports whether
+// this call created it.
 func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfig, users ServiceUserCreator) (string, bool, error) {
 	id := schema.BootstrapServiceUserID
 	if _, err := users.GetByID(ctx, id); err == nil {
@@ -170,7 +152,7 @@ func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfi
 		return "", false, fmt.Errorf("bootstrap superuser: get service user: %w", err)
 	}
 	su, err := users.Create(ctx, serviceuser.ServiceUser{
-		ID:    id, // fixed id (see schema.BootstrapServiceUserID)
+		ID:    id,
 		OrgID: schema.PlatformOrgID.String(),
 		Title: cfg.title(),
 	})
@@ -180,11 +162,9 @@ func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfi
 	return su.ID, true, nil
 }
 
-// rollbackFreshBootstrapSU deletes the service-user row when a later step fails,
-// but only if THIS boot created it. If we reused an existing row (an earlier boot
-// created it, or a rotation left it in place), we leave it — the next boot finds
-// it by its fixed id and retries the missing credential. Recovery is idempotent,
-// so a failed rollback is not fatal. The original error is always returned.
+// rollbackFreshBootstrapSU deletes the row on failure only if this boot created it;
+// a reused (possibly promoted) row is left for the next boot to retry. Rollback is
+// best-effort — the original error is always returned.
 func rollbackFreshBootstrapSU(ctx context.Context, logger *slog.Logger, users ServiceUserCreator, suID string, created bool, cause error) error {
 	if !created {
 		return cause
@@ -196,8 +176,8 @@ func rollbackFreshBootstrapSU(ctx context.Context, logger *slog.Logger, users Se
 	return cause
 }
 
-// rotateBootstrapSecret replaces the stored secret. The credential repo has no
-// update, so delete + recreate with the same id (a brief gap at boot is fine).
+// rotateBootstrapSecret replaces the stored secret. The credential repo has no update,
+// so it deletes and recreates with the same id (a brief gap at boot is fine).
 func rotateBootstrapSecret(
 	ctx context.Context,
 	cfg SuperUserBootstrapConfig,
