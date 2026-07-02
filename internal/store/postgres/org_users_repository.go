@@ -325,15 +325,28 @@ func (r OrgUsersRepository) buildHasAnyRoleSubquery(orgID string) *goqu.SelectDa
 }
 
 func (r OrgUsersRepository) buildNonRoleFilterCondition(filter rql.Filter) (goqu.Expression, error) {
-	//this list will always be a subset of all RQL supported operators
-	supportedStringOperators := []string{"eq", "neq", "like", "in", "notin", "notlike", "empty", "notempty"}
-	supportedDateTimeOperators := []string{"eq", "neq", "gt", "lt", "gte", "lte"}
-
-	if !slices.Contains(supportedStringOperators, filter.Operator) && !slices.Contains(supportedDateTimeOperators, filter.Operator) {
-		return nil, wrapBadOperatorError(filter.Operator, filter.Name)
+	// Route by the column's declared datatype so that string-only operators
+	// (like/ilike/in/empty) are rejected on the datetime column org_joined_at.
+	datatype, err := rql.GetDataTypeOfField(filter.Name, svc.AggregatedUser{})
+	if err != nil {
+		return nil, err
 	}
 
 	columnName := r.getNonRoleColumnName(filter.Name)
+
+	if datatype == "datetime" {
+		supportedDateTimeOperators := []string{"eq", "neq", "gt", "lt", "gte", "lte"}
+		if !slices.Contains(supportedDateTimeOperators, filter.Operator) {
+			return nil, wrapBadOperatorError(filter.Operator, filter.Name)
+		}
+		return goqu.Ex{columnName: goqu.Op{filter.Operator: filter.Value.(string)}}, nil
+	}
+
+	// string columns
+	supportedStringOperators := []string{"eq", "neq", "like", "ilike", "in", "notin", "notlike", "notilike", "empty", "notempty"}
+	if !slices.Contains(supportedStringOperators, filter.Operator) {
+		return nil, wrapBadOperatorError(filter.Operator, filter.Name)
+	}
 
 	switch filter.Operator {
 	case "empty":
@@ -342,14 +355,21 @@ func (r OrgUsersRepository) buildNonRoleFilterCondition(filter rql.Filter) (goqu
 		return goqu.And(goqu.I(columnName).IsNotNull(), goqu.I(columnName).Neq("")), nil
 	case "in", "notin":
 		return goqu.Ex{columnName: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")}}, nil
+	// like/notlike are case-sensitive (SQL LIKE); ilike/notilike are case-insensitive
+	// (SQL ILIKE). The caller owns the wildcards (e.g. "%foo%") in every case — the
+	// DataTable filter sends them pre-wrapped.
 	case "like":
-		searchPattern := "%" + filter.Value.(string) + "%"
-		return goqu.Cast(goqu.I(columnName), "TEXT").ILike(searchPattern), nil
+		return goqu.Cast(goqu.I(columnName), "TEXT").Like(filter.Value.(string)), nil
 	case "notlike":
-		searchPattern := "%" + filter.Value.(string) + "%"
-		return goqu.Cast(goqu.I(columnName), "TEXT").NotILike(searchPattern), nil
-	default: // eq, neq
+		return goqu.Cast(goqu.I(columnName), "TEXT").NotLike(filter.Value.(string)), nil
+	case "ilike":
+		return goqu.Cast(goqu.I(columnName), "TEXT").ILike(filter.Value.(string)), nil
+	case "notilike":
+		return goqu.Cast(goqu.I(columnName), "TEXT").NotILike(filter.Value.(string)), nil
+	case "eq", "neq":
 		return goqu.Ex{columnName: goqu.Op{filter.Operator: filter.Value.(string)}}, nil
+	default:
+		return nil, wrapBadOperatorError(filter.Operator, filter.Name)
 	}
 }
 
