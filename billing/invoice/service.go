@@ -507,23 +507,7 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 			}
 		}
 
-		// check if invoice line items are of type credit and matches the current range
-		// if yes, don't create a new invoice
-		var alreadyInvoiced bool
-		if lastOverdraftInvoice != nil {
-			for _, item := range lastOverdraftInvoice.Items {
-				if item.TimeRangeEnd != nil && item.TimeRangeStart.Before(startRange) {
-					// if before the start range, update the start range
-					startRange = *item.TimeRangeEnd
-				}
-
-				if item.TimeRangeStart != nil && item.TimeRangeStart.Equal(startRange) &&
-					item.TimeRangeEnd != nil && item.TimeRangeEnd.Equal(endRange) {
-					alreadyInvoiced = true
-					break
-				}
-			}
-		}
+		startRange, alreadyInvoiced := computeOverdraftWindow(startRange, endRange, lastOverdraftInvoice)
 		if alreadyInvoiced {
 			continue
 		}
@@ -570,6 +554,30 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 		return errors.Join(errs...)
 	}
 	return nil
+}
+
+// computeOverdraftWindow returns the start of the invoice window for the
+// customer and whether the current range is already covered by the last
+// credit overdraft invoice. startRange is the fallback window start when no
+// overdraft invoice exists, normally the customer creation time.
+func computeOverdraftWindow(startRange time.Time, endRange time.Time, lastOverdraftInvoice *Invoice) (time.Time, bool) {
+	var alreadyInvoiced bool
+	if lastOverdraftInvoice != nil {
+		for _, item := range lastOverdraftInvoice.Items {
+			if item.TimeRangeEnd == nil {
+				continue
+			}
+			// move the window start past the range billed by the last invoice
+			if item.TimeRangeEnd.After(startRange) {
+				startRange = *item.TimeRangeEnd
+			}
+			if !item.TimeRangeEnd.Before(endRange) {
+				// the last invoice already covers the current range end
+				alreadyInvoiced = true
+			}
+		}
+	}
+	return startRange, alreadyInvoiced
 }
 
 // getCreditOverdraftEndDate get range start and end, end date will be the current date with time set to 00:00:00
