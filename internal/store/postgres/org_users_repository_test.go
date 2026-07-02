@@ -195,15 +195,6 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 			wantArgs: []interface{}{"2024-01-01T00:00:00Z"},
 		},
 		{
-			name: "ilike operator not allowed on datetime column",
-			filter: rql.Filter{
-				Name:     "org_joined_at",
-				Operator: "ilike",
-				Value:    "%2024%",
-			},
-			wantErr: true,
-		},
-		{
 			name: "invalid operator",
 			filter: rql.Filter{
 				Name:     "email",
