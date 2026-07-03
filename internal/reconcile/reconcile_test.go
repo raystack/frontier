@@ -46,6 +46,19 @@ func TestRun_SpecHandling(t *testing.T) {
 	})
 }
 
+func TestExport_Errors(t *testing.T) {
+	t.Run("unknown kind", func(t *testing.T) {
+		_, err := Export(context.Background(), map[string]Reconciler{}, "Nope")
+		assert.ErrorContains(t, err, `no reconciler registered for kind "Nope"`)
+	})
+
+	t.Run("kind without export support", func(t *testing.T) {
+		reg := map[string]Reconciler{KindPlatformUser: &fakeReconciler{}}
+		_, err := Export(context.Background(), reg, KindPlatformUser)
+		assert.ErrorContains(t, err, `does not support export`)
+	})
+}
+
 func TestRun_ReturnsPartialReportOnError(t *testing.T) {
 	reg := map[string]Reconciler{KindPlatformUser: partialReconciler{}}
 

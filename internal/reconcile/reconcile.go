@@ -20,6 +20,13 @@ type Reconciler interface {
 	Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error)
 }
 
+// Exporter is the optional reverse of Reconciler: it reads the current server
+// state and returns it as a spec value, ready to be marshalled into a
+// desired-state document. Reconciling the exported document must plan no changes.
+type Exporter interface {
+	Export(ctx context.Context) (spec any, err error)
+}
+
 // Report summarises what a reconcile did, or would do when dryRun.
 type Report struct {
 	Kind    string
@@ -73,4 +80,29 @@ func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRu
 		reports = append(reports, rep)
 	}
 	return reports, nil
+}
+
+// Export renders the current server state of one kind as a desired-state YAML
+// document that Run accepts as-is.
+func Export(ctx context.Context, registry map[string]Reconciler, kind string) ([]byte, error) {
+	rec, ok := registry[kind]
+	if !ok {
+		return nil, fmt.Errorf("no reconciler registered for kind %q", kind)
+	}
+	exp, ok := rec.(Exporter)
+	if !ok {
+		return nil, fmt.Errorf("kind %q does not support export", kind)
+	}
+	spec, err := exp.Export(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("export %s: %w", kind, err)
+	}
+	out, err := yaml.Marshal(struct {
+		Kind string `yaml:"kind"`
+		Spec any    `yaml:"spec"`
+	}{Kind: kind, Spec: spec})
+	if err != nil {
+		return nil, fmt.Errorf("marshal %s export: %w", kind, err)
+	}
+	return out, nil
 }
