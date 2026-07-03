@@ -8,6 +8,11 @@
   padding: 0;
 }
 
+.avatarWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
 .avatar {
   position: absolute;
   inset: 0;
@@ -22,7 +27,7 @@
   border-color: transparent;
 }
 
-/* On hover, hide avatar and restore dashed border */
+/* On hover, hide avatar and restore dashed border + upload icon */
 .iconButton:hover .avatar {
   opacity: 0;
   visibility: hidden;
@@ -30,6 +35,16 @@
 
 .iconButton:hover {
   border-color: var(--rs-color-border-accent-primary);
+}
+
+.cornerButton {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: var(--rs-color-background-base-primary);
+  border: 1px solid var(--rs-color-border-base-primary);
+  border-radius: var(--rs-radius-full);
+  box-shadow: var(--rs-shadow-sm);
 }
 
 .uploadIcon {

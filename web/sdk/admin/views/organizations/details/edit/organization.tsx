@@ -71,6 +71,7 @@ function getDefaultValue(organization: Organization, industries: string[]) {
   return {
     title: organization?.title || "",
     name: organization?.name || "",
+    avatar: organization?.avatar || "",
     size: metadata?.size || 0,
     type: type,
     otherType: otherType,
