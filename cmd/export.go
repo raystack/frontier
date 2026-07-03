@@ -44,8 +44,10 @@ func ExportCommand(cliConfig *Config) *cli.Command {
 			if err != nil {
 				return err
 			}
-			cmd.Print(string(out))
-			return nil
+			// cobra's cmd.Print falls back to stderr; the document must go to
+			// stdout so redirecting to a file works.
+			_, err = fmt.Fprint(cmd.OutOrStdout(), string(out))
+			return err
 		},
 	}
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value> for auth, e.g. 'Authorization:Basic <base64>'")
