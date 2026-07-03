@@ -70,6 +70,10 @@ func reconcileRegistry(adminClient frontierv1beta1connect.AdminServiceClient, he
 // printReconcileReport writes the report to stdout. cobra's cmd.Printf falls
 // back to stderr, which breaks piping and redirecting the plan.
 func printReconcileReport(cmd *cli.Command, rep reconcile.Report) {
+	// a failed document yields a zero-value report; there is nothing to print
+	if rep.Kind == "" {
+		return
+	}
 	out := cmd.OutOrStdout()
 	if len(rep.Planned) == 0 {
 		fmt.Fprintf(out, "%s: no changes\n", rep.Kind)
