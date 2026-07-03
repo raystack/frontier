@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -12,10 +11,7 @@ import (
 )
 
 func ExportCommand(cliConfig *Config) *cli.Command {
-	var (
-		output string
-		header string
-	)
+	var header string
 	cmd := &cli.Command{
 		Use:   "export <kind>",
 		Short: "Export the current state of a kind as a desired-state file",
@@ -27,7 +23,7 @@ func ExportCommand(cliConfig *Config) *cli.Command {
 		`),
 		Example: heredoc.Doc(`
 			$ frontier export platformuser -H "Authorization:Basic <base64>"
-			$ frontier export platformuser -o platform-users.yaml -H "Authorization:Basic <base64>"
+			$ frontier export platformuser -H "Authorization:Basic <base64>" > platform-users.yaml
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -48,14 +44,10 @@ func ExportCommand(cliConfig *Config) *cli.Command {
 			if err != nil {
 				return err
 			}
-			if output == "" {
-				cmd.Print(string(out))
-				return nil
-			}
-			return os.WriteFile(output, out, 0o644)
+			cmd.Print(string(out))
+			return nil
 		},
 	}
-	cmd.Flags().StringVarP(&output, "output", "o", "", "Write to this file instead of stdout")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value> for auth, e.g. 'Authorization:Basic <base64>'")
 	bindFlagsFromClientConfig(cmd)
 	return cmd
