@@ -8,9 +8,15 @@ import {
 import { Flex, Select, Switch, Text, TextArea, Input } from "@raystack/apsara";
 import React, { CSSProperties } from "react";
 
-import { Control, Controller, UseFormRegister } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  UseFormRegister,
+  useFormState,
+} from "react-hook-form";
 import { capitalizeFirstLetter } from "../utils/helper";
 import Skeleton from "react-loading-skeleton";
+import styles from "./custom-field.module.css";
 
 type CustomFieldNameProps = {
   name: string;
@@ -40,6 +46,8 @@ export const CustomFieldName = ({
   CustomFieldNameProps &
   React.RefAttributes<HTMLDivElement>) => {
   const inputTitle = capitalizeFirstLetter(title || name);
+  const { errors } = useFormState({ control, name });
+  const errorMessage = errors?.[name]?.message as string | undefined;
   return (
     <FormField
       name={name}
@@ -174,6 +182,11 @@ export const CustomFieldName = ({
             />
           )}
         </FormControl>
+        {errorMessage ? (
+          <Text size="small" className={styles.errorMessage}>
+            {errorMessage}
+          </Text>
+        ) : null}
       </Flex>
     </FormField>
   );
