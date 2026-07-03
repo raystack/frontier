@@ -1,10 +1,9 @@
 import {
   Button,
   Dialog,
+  Field,
   Flex,
-  Label,
   Select,
-  Text,
   TextArea,
   toastManager
 } from '@raystack/apsara';
@@ -109,6 +108,26 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
 
   const isSubmitting = methods?.formState?.isSubmitting;
   const errors = methods?.formState?.errors;
+
+  const values = methods.watch(['emails', 'role']);
+
+  const isDisabled = useMemo(() => {
+    const [emails, role] = values;
+    const emailValue = Array.isArray(emails)
+      ? emails.join(',')
+      : ((emails as string) ?? '');
+    const emailList = emailValue
+      .split(',')
+      .map(e => e.trim())
+      .filter(str => str.length > 0);
+    return (
+      emailList.length <= 0 ||
+      !role ||
+      isSubmitting ||
+      Boolean(errors?.emails)
+    );
+  }, [isSubmitting, values, errors?.emails]);
+
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <Dialog.Content width={600}>
@@ -119,10 +138,9 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
             </Dialog.Header>
             <Dialog.Body className={styles['invite-users-dialog-body']}>
               <Flex direction="column" gap={7}>
-                <Flex direction="column" gap={2}>
-                  <Label className={styles['invite-users-dialog-label']}>
-                    Emails
-                  </Label>
+                <Field
+                  label="Emails"
+                  error={errors?.emails?.message || errors?.emails?.[0]?.message}>
                   <Controller
                     name="emails"
                     control={methods.control}
@@ -138,17 +156,9 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                       );
                     }}
                   />
-                  {errors?.emails?.message || errors?.emails?.length ? (
-                    <Text size="mini" className={styles['form-error-message']}>
-                      {errors?.emails?.message || errors?.emails?.[0]?.message}
-                    </Text>
-                  ) : null}
-                </Flex>
+                </Field>
 
-                <Flex direction="column" gap={2}>
-                  <Label className={styles['invite-users-dialog-label']}>
-                    Role
-                  </Label>
+                <Field label="Role" error={errors?.role?.message}>
                   <Controller
                     name="role"
                     control={methods.control}
@@ -177,19 +187,14 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                       );
                     }}
                   />
-
-                  {errors?.role?.message && (
-                    <Text size="mini" className={styles['form-error-message']}>
-                      {errors?.role?.message}
-                    </Text>
-                  )}
-                </Flex>
+                </Field>
               </Flex>
             </Dialog.Body>
             <Dialog.Footer>
               <Button
                 data-test-id="invite-users-invite-button"
                 type="submit"
+                disabled={isDisabled}
                 loading={isSubmitting}
                 loaderText="Inviting..."
               >

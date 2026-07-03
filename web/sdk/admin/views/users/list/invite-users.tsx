@@ -2,11 +2,11 @@ import { useMemo, useState, useEffect } from "react";
 import {
   Button,
   Dialog,
+  Field,
   Flex,
-  Label,
   Select,
-  Text,
   TextArea,
+  Skeleton,
   toastManager,
 } from "@raystack/apsara";
 import { PlusIcon } from "@radix-ui/react-icons";
@@ -15,7 +15,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SCOPES, DEFAULT_ROLES } from "../../../utils/constants";
 import styles from "./invite-users.module.css";
-import Skeleton from "react-loading-skeleton";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
@@ -67,6 +66,8 @@ export const InviteUser = () => {
     }
   );
 
+  const isLoading = isRolesLoading || isOrganizationsLoading;
+
   useEffect(() => {
     if (organizationsError) {
       console.error("Failed to fetch organizations:", organizationsError);
@@ -89,12 +90,33 @@ export const InviteUser = () => {
     handleSubmit,
     control,
     reset,
+    watch,
   } = useForm<InviteSchemaType>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
       role: defaultRoleId,
     },
   });
+
+  const values = watch(["emails", "role", "organizationId"]);
+
+  const isDisabled = useMemo(() => {
+    const [emails, role, organizationId] = values;
+    const emailValue = Array.isArray(emails)
+      ? emails.join(",")
+      : ((emails as string) ?? "");
+    const emailList = emailValue
+      .split(",")
+      .map(e => e.trim())
+      .filter(str => str.length > 0);
+    return (
+      emailList.length <= 0 ||
+      !role ||
+      !organizationId ||
+      isSubmitting ||
+      Boolean(errors?.emails)
+    );
+  }, [isSubmitting, values, errors?.emails]);
 
   const { mutateAsync: inviteUser } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
@@ -149,46 +171,41 @@ export const InviteUser = () => {
           </Dialog.Header>
           <Dialog.Body className={styles["invite-users-dialog-body"]}>
             <Flex direction="column" gap={7}>
-              <Flex direction="column" gap={2}>
-                <Label className={styles["invite-users-dialog-label"]}>
-                  Emails
-                </Label>
-                <Controller
-                  name="emails"
-                  control={control}
-                  render={({ field }) => {
-                    const { value, ...rest } = field;
-                    return (
-                      <TextArea
-                        {...rest}
-                        value={Array.isArray(value) ? value.join(", ") : (value ?? "") as string}
-                        placeholder="abc@example.com, xyz@example.com"
-                        className={styles["invite-users-emails-textarea"]}
-                      />
-                    );
-                  }}
-                />
-                {(errors?.emails?.message || errors?.emails?.length) && (
-                  <Text size="mini" className={styles["form-error-message"]}>
-                    {errors?.emails?.message || errors?.emails?.[0]?.message}
-                  </Text>
-                )}
-              </Flex>
+              {isLoading ? (
+                <Skeleton height="80px" />
+              ) : (
+                <Field
+                  label="Emails"
+                  error={errors?.emails?.message || errors?.emails?.[0]?.message}>
+                  <Controller
+                    name="emails"
+                    control={control}
+                    render={({ field }) => {
+                      const { value, ...rest } = field;
+                      return (
+                        <TextArea
+                          {...rest}
+                          value={Array.isArray(value) ? value.join(", ") : (value ?? "") as string}
+                          placeholder="abc@example.com, xyz@example.com"
+                          className={styles["invite-users-emails-textarea"]}
+                        />
+                      );
+                    }}
+                  />
+                </Field>
+              )}
 
-              <Flex direction="column" gap={2}>
-                <Label className={styles["invite-users-dialog-label"]}>
-                  Invite as
-                </Label>
-                <Controller
-                  name="role"
-                  defaultValue={defaultRoleId}
-                  disabled={isRolesLoading}
-                  control={control}
-                  render={({ field, fieldState: { error } }) => {
-                    const { ref, ...rest } = field;
-                    if (isRolesLoading) return <Skeleton height={33} />;
-                    return (
-                      <>
+              <Field label="Invite as" error={errors?.role?.message}>
+                {isLoading ? (
+                  <Skeleton height="36px" />
+                ) : (
+                  <Controller
+                    name="role"
+                    defaultValue={defaultRoleId}
+                    control={control}
+                    render={({ field }) => {
+                      const { ref, ...rest } = field;
+                      return (
                         <Select
                           {...rest}
                           onValueChange={value => field.onChange(value)}>
@@ -203,72 +220,54 @@ export const InviteUser = () => {
                             ))}
                           </Select.Content>
                         </Select>
-                        {error && (
-                          <Text
-                            size="mini"
-                            className={styles["form-error-message"]}>
-                            {error?.message}
-                          </Text>
-                        )}
-                      </>
-                    );
-                  }}
-                />
-              </Flex>
+                      );
+                    }}
+                  />
+                )}
+              </Field>
 
-              <Flex direction="column" gap={2}>
-                <Label className={styles["invite-users-dialog-label"]}>
-                  {t.organization({ case: "capital" })}
-                </Label>
-                <Controller
+              <Field
+                label={t.organization({ case: "capital" })}
+                error={errors?.organizationId?.message}>
+                {isLoading ? (<Skeleton height="36px" />) : (<Controller
                   name="organizationId"
-                  disabled={isOrganizationsLoading}
                   control={control}
-                  render={({ field, fieldState: { error } }) => {
+                  render={({ field }) => {
                     const { ref, ...rest } = field;
-                    if (isOrganizationsLoading) return <Skeleton height={33} />;
                     return (
-                      <>
-                        <Select
-                          {...rest}
-                          autocomplete
-                          onValueChange={value => field.onChange(value)}>
-                          <Select.Trigger ref={ref}>
-                            <Select.Value
-                              placeholder={`Select ${t.organization({ case: "capital" })}`}
-                            />
-                          </Select.Trigger>
-                          <Select.Content
-                            searchPlaceholder={`Search ${t.organization({ case: "lower" })}`}
-                            style={{
-                              maxHeight: 280,
-                              overflowY: "auto",
-                            }}>
-                            {organizations?.map(org => (
-                              <Select.Item key={org.id} value={org.id ?? ""}>
-                                {org.title || org.name}
-                              </Select.Item>
-                            ))}
-                          </Select.Content>
-                        </Select>
-                        {error && (
-                          <Text
-                            size="mini"
-                            className={styles["form-error-message"]}>
-                            {error?.message}
-                          </Text>
-                        )}
-                      </>
+                      <Select
+                        {...rest}
+                        autocomplete
+                        onValueChange={value => field.onChange(value)}>
+                        <Select.Trigger ref={ref}>
+                          <Select.Value
+                            placeholder={`Select ${t.organization({ case: "capital" })}`}
+                          />
+                        </Select.Trigger>
+                        <Select.Content
+                          searchPlaceholder={`Search ${t.organization({ case: "lower" })}`}
+                          style={{
+                            maxHeight: 280,
+                            overflowY: "auto",
+                          }}>
+                          {organizations?.map(org => (
+                            <Select.Item key={org.id} value={org.id ?? ""}>
+                              {org.title || org.name}
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select>
                     );
                   }}
-                />
-              </Flex>
+                />)}
+              </Field>
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>
             <Button
               data-test-id="users-list-invite-user-submit-btn"
               type="submit"
+              disabled={isLoading || isDisabled}
               loading={isSubmitting}
               loaderText="Sending...">
               Send invite
