@@ -105,7 +105,7 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 	}
 
 	logger.Info("ui server starting", "http-port", uiConfig.Port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), withSecurityHeaders(http.DefaultServeMux, uiSecurityHeaders)); err != nil {
 		logger.Error("ui server failed", "err", err)
 	}
 }

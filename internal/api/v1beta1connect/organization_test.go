@@ -8,6 +8,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
@@ -110,6 +111,22 @@ func TestHandler_ListOrganizations(t *testing.T) {
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}
+}
+
+func TestHandler_CreateOrganization_InvalidAvatar(t *testing.T) {
+	mockOrgSrv := new(mocks.OrganizationService)
+	mockMetaSrv := new(mocks.MetaSchemaService)
+	mockMetaSrv.EXPECT().Validate(mock.Anything, mock.Anything).Return(nil)
+	mockOrgSrv.EXPECT().Create(mock.Anything, mock.Anything).Return(organization.Organization{}, avatar.ErrInvalid)
+	h := &ConnectHandler{orgService: mockOrgSrv, metaSchemaService: mockMetaSrv}
+
+	_, err := h.CreateOrganization(context.Background(), connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Name:   "acme",
+			Avatar: "data:image/svg+xml;base64,PHN2Zy8+",
+		},
+	}))
+	assert.Equal(t, connect.CodeInvalidArgument, connect.CodeOf(err))
 }
 
 func TestHandler_CreateOrganization(t *testing.T) {

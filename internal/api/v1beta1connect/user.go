@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
@@ -140,6 +141,8 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		case errors.Is(errors.Unwrap(err), user.ErrKeyDoesNotExists):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, avatar.ErrInvalid):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateUser: user_email=%s user_name=%s: %w", email, name, err))
 		}
@@ -276,6 +279,8 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, user.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(err, avatar.ErrInvalid):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateUser: user_id=%s user_email=%s: %w", id, email, err))
 		}
@@ -339,6 +344,8 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, user.ErrInvalidDetails):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, avatar.ErrInvalid):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateCurrentUser: principal_id=%s principal_type=%s: %w", principal.ID, principal.Type, err))
 		}

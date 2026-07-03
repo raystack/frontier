@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/organization/mocks"
 	"github.com/raystack/frontier/core/preference"
@@ -14,6 +15,44 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+func TestService_CreateRejectsInvalidAvatar(t *testing.T) {
+	svc := organization.NewService(
+		mocks.NewRepository(t),
+		mocks.NewRelationService(t),
+		mocks.NewUserService(t),
+		mocks.NewAuthnService(t),
+		mocks.NewPolicyService(t),
+		mocks.NewPreferencesService(t),
+		mocks.NewRoleService(t),
+		avatar.Config{},
+	)
+
+	_, err := svc.Create(context.Background(), organization.Organization{
+		Name:   "acme",
+		Avatar: "data:image/svg+xml;base64,PHN2Zy8+",
+	})
+	assert.ErrorIs(t, err, avatar.ErrInvalid)
+}
+
+func TestService_UpdateRejectsInvalidAvatar(t *testing.T) {
+	svc := organization.NewService(
+		mocks.NewRepository(t),
+		mocks.NewRelationService(t),
+		mocks.NewUserService(t),
+		mocks.NewAuthnService(t),
+		mocks.NewPolicyService(t),
+		mocks.NewPreferencesService(t),
+		mocks.NewRoleService(t),
+		avatar.Config{},
+	)
+
+	_, err := svc.Update(context.Background(), organization.Organization{
+		ID:     uuid.New().String(),
+		Avatar: "http://169.254.169.254/latest/meta-data/",
+	})
+	assert.ErrorIs(t, err, avatar.ErrInvalid)
+}
 
 func TestService_Get(t *testing.T) {
 	mockRepo := mocks.NewRepository(t)
@@ -24,7 +63,7 @@ func TestService_Get(t *testing.T) {
 	mockPrefSvc := mocks.NewPreferencesService(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc, avatar.Config{})
 
 	t.Run("should return orgs when fetched by id (by calling repo.GetByID)", func(t *testing.T) {
 		IDParam := uuid.New()
@@ -82,7 +121,7 @@ func TestService_GetRaw(t *testing.T) {
 	mockPrefSvc := mocks.NewPreferencesService(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc, avatar.Config{})
 
 	t.Run("should return an org based on ID passed", func(t *testing.T) {
 		IDParam := uuid.New()
@@ -139,7 +178,7 @@ func TestService_GetDefaultOrgStateOnCreate(t *testing.T) {
 	mockPrefSvc := mocks.NewPreferencesService(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc, avatar.Config{})
 
 	t.Run("should return org state to be set on creation, as per preferences", func(t *testing.T) {
 		expectedPrefs := map[string]string{
@@ -170,7 +209,7 @@ func TestService_AttachToPlatform(t *testing.T) {
 	mockPrefSvc := mocks.NewPreferencesService(t)
 
 	mockRoleSvc := mocks.NewRoleService(t)
-	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc)
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc, mockRoleSvc, avatar.Config{})
 
 	inputOrgID := "some-org-id"
 	relationToBeCreated := relation.Relation{
@@ -212,7 +251,7 @@ func TestService_List(t *testing.T) {
 		mockPrefSvc := mocks.NewPreferencesService(t)
 		mockRoleSvc := mocks.NewRoleService(t)
 		svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc,
-			mockPolicySvc, mockPrefSvc, mockRoleSvc)
+			mockPolicySvc, mockPrefSvc, mockRoleSvc, avatar.Config{})
 		return svc, mockRepo
 	}
 

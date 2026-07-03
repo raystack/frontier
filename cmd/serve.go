@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -28,8 +29,6 @@ import (
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/core/userpat"
-
-	"slices"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
@@ -433,13 +432,13 @@ func buildAPIDependencies(
 	// back here because role.Service depends on permission.Service
 	permissionService.SetRoleService(roleService)
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
-	userService := user.NewService(userRepository, relationService, sessionService, auditRecordRepository)
+	userService := user.NewService(userRepository, relationService, sessionService, auditRecordRepository, cfg.App.Avatar)
 	patValidator := userpat.NewValidator(logger, userPATRepo, cfg.App.PAT)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
-		authnService, policyService, preferenceService, roleService)
+		authnService, policyService, preferenceService, roleService, cfg.App.Avatar)
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService, policyService,
 		authnService, serviceUserService, groupService, roleService)

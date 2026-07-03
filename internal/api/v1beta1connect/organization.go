@@ -10,6 +10,7 @@ import (
 
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
@@ -130,6 +131,8 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 				"org_name", request.Msg.GetBody().GetName(),
 				"org_title", request.Msg.GetBody().GetTitle())
 			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		case errors.Is(err, avatar.ErrInvalid):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganization.Create: org_name=%s org_title=%s: %w", request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), err))
 		}
@@ -171,6 +174,8 @@ func (h *ConnectHandler) AdminCreateOrganization(ctx context.Context, request *c
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, organization.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(err, avatar.ErrInvalid):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AdminCreateOrganization.AdminCreate: org_name=%s org_title=%s owner_email=%s: %w", request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetOrgOwnerEmail(), err))
 		}
@@ -223,6 +228,8 @@ func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connec
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		case errors.Is(err, organization.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
+		case errors.Is(err, avatar.ErrInvalid):
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), err))
 		}

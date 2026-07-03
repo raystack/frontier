@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/avatar"
 
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
@@ -79,11 +80,12 @@ type Service struct {
 	prefService       PreferencesService
 	roleService       RoleService
 	membershipService MembershipService
+	avatarConfig      avatar.Config
 }
 
 func NewService(repository Repository, relationService RelationService,
 	userService UserService, authnService AuthnService, policyService PolicyService,
-	prefService PreferencesService, roleService RoleService) *Service {
+	prefService PreferencesService, roleService RoleService, avatarConfig avatar.Config) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
@@ -92,6 +94,7 @@ func NewService(repository Repository, relationService RelationService,
 		policyService:   policyService,
 		prefService:     prefService,
 		roleService:     roleService,
+		avatarConfig:    avatarConfig,
 	}
 }
 
@@ -149,6 +152,9 @@ func (s Service) GetDefaultOrgStateOnCreate(ctx context.Context) (State, error) 
 }
 
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
+	if err := avatar.Validate(org.Avatar, s.avatarConfig); err != nil {
+		return Organization{}, err
+	}
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return Organization{}, fmt.Errorf("%w: %s", user.ErrNotExist, err.Error())
@@ -239,6 +245,9 @@ func (s Service) List(ctx context.Context, f Filter) ([]Organization, error) {
 }
 
 func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
+	if err := avatar.Validate(org.Avatar, s.avatarConfig); err != nil {
+		return Organization{}, err
+	}
 	if org.ID != "" {
 		return s.repository.UpdateByID(ctx, org)
 	}
@@ -281,6 +290,9 @@ func (s Service) MemberCount(ctx context.Context, orgID string) (int64, error) {
 }
 
 func (s Service) AdminCreate(ctx context.Context, org Organization, ownerEmail string) (Organization, error) {
+	if err := avatar.Validate(org.Avatar, s.avatarConfig); err != nil {
+		return Organization{}, err
+	}
 	// Validate email
 	if !user.IsValidEmail(ownerEmail) {
 		return Organization{}, user.ErrInvalidEmail

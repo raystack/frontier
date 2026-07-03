@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
@@ -45,16 +46,18 @@ type Service struct {
 	relationService       RelationService
 	sessionService        SessionService
 	auditRecordRepository AuditRecordRepository
+	avatarConfig          avatar.Config
 	Now                   func() time.Time
 }
 
 func NewService(repository Repository, relationRepo RelationService,
-	sessionService SessionService, auditRecordRepository AuditRecordRepository) *Service {
+	sessionService SessionService, auditRecordRepository AuditRecordRepository, avatarConfig avatar.Config) *Service {
 	return &Service{
 		repository:            repository,
 		relationService:       relationRepo,
 		sessionService:        sessionService,
 		auditRecordRepository: auditRecordRepository,
+		avatarConfig:          avatarConfig,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -82,6 +85,9 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 }
 
 func (s Service) Create(ctx context.Context, user User) (User, error) {
+	if err := avatar.Validate(user.Avatar, s.avatarConfig); err != nil {
+		return User{}, err
+	}
 	return s.repository.Create(ctx, User{
 		Name:     strings.ToLower(user.Name),
 		Email:    strings.ToLower(user.Email),
@@ -102,6 +108,9 @@ func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 // one security concern is that we need to ensure users can't misuse it to takeover
 // invitations created for other users.
 func (s Service) Update(ctx context.Context, toUpdate User) (User, error) {
+	if err := avatar.Validate(toUpdate.Avatar, s.avatarConfig); err != nil {
+		return User{}, err
+	}
 	id := toUpdate.ID
 	toUpdate.Email = strings.ToLower(toUpdate.Email)
 	toUpdate.Name = strings.ToLower(toUpdate.Name)

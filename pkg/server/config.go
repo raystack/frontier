@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 
@@ -84,6 +85,8 @@ type Config struct {
 
 	Webhook webhook.Config `yaml:"webhook" mapstructure:"webhook"`
 	PAT     userpat.Config `yaml:"pat" mapstructure:"pat"`
+
+	Avatar avatar.Config `yaml:"avatar" mapstructure:"avatar"`
 
 	// AdditionalTraitsPath is a file path to a YAML file containing additional preference traits
 	// These traits are merged with DefaultTraits at startup

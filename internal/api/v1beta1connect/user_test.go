@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/permission"
@@ -121,6 +122,21 @@ func TestConnectHandler_ListUsers(t *testing.T) {
 			assert.EqualValues(t, err, tt.err)
 		})
 	}
+}
+
+func TestConnectHandler_CreateUser_InvalidAvatar(t *testing.T) {
+	mockUserSrv := new(mocks.UserService)
+	mockUserSrv.EXPECT().Create(mock.Anything, mock.Anything).Return(user.User{}, avatar.ErrInvalid)
+	h := &ConnectHandler{userService: mockUserSrv}
+
+	ctx := authenticate.SetContextWithEmail(context.Background(), "test@test.com")
+	_, err := h.CreateUser(ctx, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+		Body: &frontierv1beta1.UserRequestBody{
+			Email:  "test@test.com",
+			Avatar: "javascript:alert(1)",
+		},
+	}))
+	assert.Equal(t, connect.CodeInvalidArgument, connect.CodeOf(err))
 }
 
 func TestConnectHandler_CreateUser(t *testing.T) {

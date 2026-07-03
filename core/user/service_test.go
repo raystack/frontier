@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/avatar"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/user/mocks"
@@ -26,6 +27,33 @@ func mockService(t *testing.T) (*mocks.Repository, *mocks.RelationService, *mock
 	sessionService := mocks.NewSessionService(t)
 	auditRecordRepository := mocks.NewAuditRecordRepository(t)
 	return repo, relationService, sessionService, auditRecordRepository
+}
+
+func TestService_CreateRejectsInvalidAvatar(t *testing.T) {
+	repo, relationService, sessionService, auditRecordRepository := mockService(t)
+	svc := user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
+
+	_, err := svc.Create(context.Background(), user.User{
+		Email:  "test@email.com",
+		Avatar: "javascript:alert(document.cookie)",
+	})
+	if !errors.Is(err, avatar.ErrInvalid) {
+		t.Fatalf("expected ErrInvalidAvatar, got %v", err)
+	}
+}
+
+func TestService_UpdateRejectsInvalidAvatar(t *testing.T) {
+	repo, relationService, sessionService, auditRecordRepository := mockService(t)
+	svc := user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
+
+	_, err := svc.Update(context.Background(), user.User{
+		ID:     uuid.New().String(),
+		Email:  "test@email.com",
+		Avatar: "https://attacker.example/collect",
+	})
+	if !errors.Is(err, avatar.ErrInvalid) {
+		t.Fatalf("expected ErrInvalidAvatar, got %v", err)
+	}
 }
 
 func TestService_GetByID(t *testing.T) {
@@ -51,7 +79,7 @@ func TestService_GetByID(t *testing.T) {
 					ID:   testID.String(),
 					Name: "test",
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -70,7 +98,7 @@ func TestService_GetByID(t *testing.T) {
 					Name:  "test",
 					Email: "test@test.com",
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -87,7 +115,7 @@ func TestService_GetByID(t *testing.T) {
 					ID:   testID.String(),
 					Name: "test",
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -98,7 +126,7 @@ func TestService_GetByID(t *testing.T) {
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
 				repo.EXPECT().GetByName(mock.Anything, "invalid").Return(user.User{}, errors.New("not found"))
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -132,7 +160,7 @@ func TestService_Create(t *testing.T) {
 				Name:   "test",
 				Email:  "test@email.com",
 				State:  "enable",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				Metadata: map[string]any{
 					"key": "value",
@@ -142,7 +170,7 @@ func TestService_Create(t *testing.T) {
 				ID:     "test-id",
 				Name:   "test",
 				Email:  "test@email.com",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				State:  user.Enabled,
 				Metadata: map[string]any{
@@ -158,7 +186,7 @@ func TestService_Create(t *testing.T) {
 					Name:   "test",
 					Email:  "test@email.com",
 					State:  user.Enabled,
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -168,7 +196,7 @@ func TestService_Create(t *testing.T) {
 					Name:   "test",
 					Email:  "test@email.com",
 					State:  user.Enabled,
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -176,7 +204,7 @@ func TestService_Create(t *testing.T) {
 					CreatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -194,7 +222,7 @@ func TestService_Create(t *testing.T) {
 					Email: "test",
 					State: user.Enabled,
 				}).Return(user.User{}, errors.New("failed to create"))
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -251,7 +279,7 @@ func TestService_List(t *testing.T) {
 						Name: "test-2",
 					},
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -284,7 +312,7 @@ func TestService_Update(t *testing.T) {
 			user: user.User{
 				ID:     "test@email.com",
 				Name:   "test",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				Metadata: map[string]any{
 					"key": "value",
@@ -294,7 +322,7 @@ func TestService_Update(t *testing.T) {
 				ID:     "test-id",
 				Name:   "test",
 				Email:  "test@email.com",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				State:  user.Enabled,
 				Metadata: map[string]any{
@@ -309,7 +337,7 @@ func TestService_Update(t *testing.T) {
 				repo.EXPECT().UpdateByEmail(mock.Anything, user.User{
 					ID:     "test@email.com",
 					Name:   "test",
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -319,7 +347,7 @@ func TestService_Update(t *testing.T) {
 					Name:   "test",
 					Email:  "test@email.com",
 					State:  user.Enabled,
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -327,7 +355,7 @@ func TestService_Update(t *testing.T) {
 					CreatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -335,7 +363,7 @@ func TestService_Update(t *testing.T) {
 			user: user.User{
 				ID:     "test",
 				Name:   "test",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				Metadata: map[string]any{
 					"key": "value",
@@ -345,7 +373,7 @@ func TestService_Update(t *testing.T) {
 				ID:     "test-id",
 				Name:   "test",
 				Email:  "test@email.com",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				State:  user.Enabled,
 				Metadata: map[string]any{
@@ -360,7 +388,7 @@ func TestService_Update(t *testing.T) {
 				repo.EXPECT().UpdateByName(mock.Anything, user.User{
 					ID:     "test",
 					Name:   "test",
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -370,7 +398,7 @@ func TestService_Update(t *testing.T) {
 					Name:   "test",
 					Email:  "test@email.com",
 					State:  user.Enabled,
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -378,7 +406,7 @@ func TestService_Update(t *testing.T) {
 					CreatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -386,7 +414,7 @@ func TestService_Update(t *testing.T) {
 			user: user.User{
 				ID:     testID.String(),
 				Name:   "test",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				Metadata: map[string]any{
 					"key": "value",
@@ -396,7 +424,7 @@ func TestService_Update(t *testing.T) {
 				ID:     testID.String(),
 				Name:   "test",
 				Email:  "test@email.com",
-				Avatar: "abc",
+				Avatar: "data:image/jpeg;base64,/9j/",
 				Title:  "tesT",
 				State:  user.Enabled,
 				Metadata: map[string]any{
@@ -411,7 +439,7 @@ func TestService_Update(t *testing.T) {
 				repo.EXPECT().UpdateByID(mock.Anything, user.User{
 					ID:     testID.String(),
 					Name:   "test",
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -421,7 +449,7 @@ func TestService_Update(t *testing.T) {
 					Name:   "test",
 					Email:  "test@email.com",
 					State:  user.Enabled,
-					Avatar: "abc",
+					Avatar: "data:image/jpeg;base64,/9j/",
 					Title:  "tesT",
 					Metadata: map[string]any{
 						"key": "value",
@@ -429,7 +457,7 @@ func TestService_Update(t *testing.T) {
 					CreatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 					UpdatedAt: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -446,7 +474,7 @@ func TestService_Update(t *testing.T) {
 					Name:  "test ",
 					Email: "test",
 				}).Return(user.User{}, errors.New("failed to update"))
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -480,7 +508,7 @@ func TestService_Disable(t *testing.T) {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
 				repo.EXPECT().SetState(mock.Anything, validID, user.Disabled).Return(nil)
 				sessionService.EXPECT().DeleteByUserID(mock.Anything, validID).Return(nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -489,7 +517,7 @@ func TestService_Disable(t *testing.T) {
 			wantErr: user.ErrInvalidID,
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -498,7 +526,7 @@ func TestService_Disable(t *testing.T) {
 			wantErr: user.ErrInvalidID,
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -508,7 +536,7 @@ func TestService_Disable(t *testing.T) {
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
 				repo.EXPECT().SetState(mock.Anything, validID, user.Disabled).Return(user.ErrNotExist)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -541,7 +569,7 @@ func TestService_Enable(t *testing.T) {
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
 				repo.EXPECT().SetState(mock.Anything, validID, user.Enabled).Return(nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -550,7 +578,7 @@ func TestService_Enable(t *testing.T) {
 			wantErr: user.ErrInvalidID,
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -559,7 +587,7 @@ func TestService_Enable(t *testing.T) {
 			wantErr: user.ErrInvalidID,
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -569,7 +597,7 @@ func TestService_Enable(t *testing.T) {
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
 				repo.EXPECT().SetState(mock.Anything, validID, user.Enabled).Return(user.ErrNotExist)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -606,7 +634,7 @@ func TestService_Delete(t *testing.T) {
 					Namespace: schema.UserPrincipal,
 				}}).Return(nil)
 				repo.EXPECT().Delete(mock.Anything, "test-id").Return(nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -619,7 +647,7 @@ func TestService_Delete(t *testing.T) {
 					ID:        "test-id",
 					Namespace: schema.UserPrincipal,
 				}}).Return(errors.New("failed to delete relation"))
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -702,7 +730,7 @@ func TestService_Sudo(t *testing.T) {
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
 					return r.Event == pkgAuditRecord.PlatformAdminAddedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -747,7 +775,7 @@ func TestService_Sudo(t *testing.T) {
 						Status: true,
 					},
 				}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -816,7 +844,7 @@ func TestService_Sudo(t *testing.T) {
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
 					return r.Event == pkgAuditRecord.PlatformMemberAddedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
@@ -902,7 +930,7 @@ func TestService_UnSudo(t *testing.T) {
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
 					return r.Event == pkgAuditRecord.PlatformAdminRemovedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -922,7 +950,7 @@ func TestService_UnSudo(t *testing.T) {
 				relationService.EXPECT().BatchCheckPermission(mock.Anything, adminCheckRelations).
 					Return([]relation.CheckPair{{Relation: adminCheckRelations[0], Status: false}}, nil)
 				// no Delete, no audit
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -957,7 +985,7 @@ func TestService_UnSudo(t *testing.T) {
 				auditRecordRepository.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r models.AuditRecord) bool {
 					return r.Event == pkgAuditRecord.PlatformMemberRemovedEvent && r.Target != nil && r.Target.ID == "test-id"
 				})).Return(models.AuditRecord{}, nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -977,7 +1005,7 @@ func TestService_UnSudo(t *testing.T) {
 				relationService.EXPECT().BatchCheckPermission(mock.Anything, memberCheckRelations).
 					Return([]relation.CheckPair{{Relation: memberCheckRelations[0], Status: false}}, nil)
 				// no Delete, no audit
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 		{
@@ -989,7 +1017,7 @@ func TestService_UnSudo(t *testing.T) {
 			},
 			setup: func() *user.Service {
 				repo, relationService, sessionService, auditRecordRepository := mockService(t)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository, avatar.Config{})
 			},
 		},
 	}
