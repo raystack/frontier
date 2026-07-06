@@ -12,7 +12,10 @@ import (
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
+	"github.com/raystack/frontier/core/auditrecord"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -336,11 +339,22 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCheckoutSvc := mocks.NewCheckoutService(t)
 			mockCustomerSvc := mocks.NewCustomerService(t)
+			mockAuditSvc := mocks.NewAuditRecordService(t)
+			mockOrgSvc := mocks.NewOrganizationService(t)
+			// Customer portal checkouts emit an audit record (and resolve the org
+			// name); allow these leniently here and assert precisely in the
+			// dedicated audit test below.
+			mockAuditSvc.EXPECT().Create(mock.Anything, mock.Anything).
+				Return(auditrecord.AuditRecord{}, false, nil).Maybe()
+			mockOrgSvc.EXPECT().GetRaw(mock.Anything, mock.Anything).
+				Return(organization.Organization{}, nil).Maybe()
 			tt.setup(mockCheckoutSvc, mockCustomerSvc)
 
 			h := &ConnectHandler{
-				checkoutService: mockCheckoutSvc,
-				customerService: mockCustomerSvc,
+				checkoutService:    mockCheckoutSvc,
+				customerService:    mockCustomerSvc,
+				auditRecordService: mockAuditSvc,
+				orgService:         mockOrgSvc,
 			}
 
 			got, err := h.CreateCheckout(context.Background(), tt.req)
@@ -365,6 +379,50 @@ func TestConnectHandler_CreateCheckout(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConnectHandler_CreateCheckout_CustomerPortalAuditRecord(t *testing.T) {
+	mockCheckoutSvc := mocks.NewCheckoutService(t)
+	mockCustomerSvc := mocks.NewCustomerService(t)
+	mockAuditSvc := mocks.NewAuditRecordService(t)
+	mockOrgSvc := mocks.NewOrganizationService(t)
+
+	mockCustomerSvc.EXPECT().GetByOrgID(mock.Anything, "org-123").
+		Return(customer.Customer{ID: "customer-123", OrgID: "org-123"}, nil)
+	mockCheckoutSvc.EXPECT().CreateSessionForCustomerPortal(mock.Anything, mock.Anything).
+		Return(testCheckout, nil)
+	mockOrgSvc.EXPECT().GetRaw(mock.Anything, "org-123").
+		Return(organization.Organization{ID: "org-123", Title: "Acme Corp"}, nil)
+	mockAuditSvc.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r auditrecord.AuditRecord) bool {
+		return r.Event == pkgAuditRecord.BillingCustomerPortalSessionCreatedEvent &&
+			r.OrgID == "org-123" &&
+			r.OrgName == "Acme Corp" &&
+			r.Resource.ID == "org-123" &&
+			r.Resource.Type == pkgAuditRecord.OrganizationType &&
+			r.Resource.Name == "Acme Corp" &&
+			r.Target != nil &&
+			r.Target.ID == "customer-123" &&
+			r.Target.Type == pkgAuditRecord.BillingCustomerType
+	})).Return(auditrecord.AuditRecord{}, false, nil)
+
+	h := &ConnectHandler{
+		checkoutService:    mockCheckoutSvc,
+		customerService:    mockCustomerSvc,
+		auditRecordService: mockAuditSvc,
+		orgService:         mockOrgSvc,
+	}
+
+	got, err := h.CreateCheckout(context.Background(), connect.NewRequest(&frontierv1beta1.CreateCheckoutRequest{
+		OrgId:      "org-123",
+		SuccessUrl: "https://example.com/success",
+		CancelUrl:  "https://example.com/cancel",
+		SetupBody: &frontierv1beta1.CheckoutSetupBody{
+			CustomerPortal: true,
+		},
+	}))
+
+	assert.NoError(t, err)
+	assert.Equal(t, testCheckoutID, got.Msg.GetCheckoutSession().GetId())
 }
 
 func TestConnectHandler_DelegatedCheckout(t *testing.T) {

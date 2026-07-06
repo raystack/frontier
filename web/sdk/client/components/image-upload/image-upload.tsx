@@ -8,7 +8,7 @@ import ReactCrop, {
   centerCrop,
   makeAspectCrop
 } from 'react-image-crop';
-import { UploadIcon } from '@radix-ui/react-icons';
+import { UploadIcon, Cross2Icon } from '@radix-ui/react-icons';
 import {
   Avatar,
   Button,
@@ -193,21 +193,45 @@ export function ImageUpload({
     onChange?.(data);
   }
 
+  function onClearClick() {
+    // Logo is optional; clear it entirely.
+    onChange?.('');
+  }
+
   return (
     <Flex direction="column" gap={5} align="start" data-test-id={rest['data-test-id']}>
-      <IconButton
-        size={4}
-        aria-label="Upload image"
-        className={styles.iconButton}
-        onClick={disabled ? undefined : onUploadIconClick}
-        disabled={disabled}
-        data-test-id="frontier-sdk-image-upload-icon"
-      >
-        {(value || initials) && (
-          <Avatar src={value} fallback={initials} size={10} radius="small" className={styles.avatar} />
+      <div className={styles.avatarWrapper}>
+        <IconButton
+          size={4}
+          aria-label="Upload image"
+          className={styles.iconButton}
+          onClick={disabled ? undefined : onUploadIconClick}
+          disabled={disabled}
+          data-test-id="frontier-sdk-image-upload-icon"
+        >
+          {(value || initials) && (
+            <Avatar
+              src={value}
+              fallback={initials}
+              size={10}
+              radius="small"
+              className={styles.avatar}
+            />
+          )}
+          <UploadIcon className={styles.uploadIcon} />
+        </IconButton>
+        {!disabled && value && (
+          <IconButton
+            size={1}
+            aria-label="Clear image"
+            className={styles.cornerButton}
+            onClick={onClearClick}
+            data-test-id="frontier-sdk-image-upload-clear"
+          >
+            <Cross2Icon />
+          </IconButton>
         )}
-        <UploadIcon className={styles.uploadIcon} />
-      </IconButton>
+      </div>
 
       {description ? (
         <Text size="regular" variant="secondary">

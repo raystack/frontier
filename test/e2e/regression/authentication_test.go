@@ -18,14 +18,19 @@ import (
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/raystack/frontier/pkg/server"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	smtpmock "github.com/mocktools/go-smtp-mock/v2"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/authenticate/token"
+	"github.com/raystack/frontier/core/userpat"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AuthenticationRegressionTestSuite struct {
@@ -105,6 +110,7 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 					Body:    "{{.Otp}}",
 				},
 			},
+			PAT: userpat.Config{Enabled: true, Prefix: "fpt", MaxPerUserPerOrg: 50, MaxLifetime: "8760h"},
 			Mailer: mailer.Config{
 				SMTPHost:      smtpHostAddress,
 				SMTPPort:      smtpPortNumber,
@@ -301,6 +307,64 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		getCurrentUserResp, err = s.testBench.Client.GetCurrentUser(ctxWithJWT, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
+	})
+	s.Run("5. exchange a PAT for a JWT at AuthToken, and reject re-exchange of the minted token", func() {
+		// org owned by the mailotp user, so a PAT can be scoped within it
+		orgResp, err := s.testBench.Client.CreateOrganization(mailOTPCtx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{Name: "org-pat-authtoken"},
+		}))
+		s.Require().NoError(err)
+		orgID := orgResp.Msg.GetOrganization().GetId()
+
+		rolesResp, err := s.testBench.Client.ListRoles(mailOTPCtx, connect.NewRequest(&frontierv1beta1.ListRolesRequest{}))
+		s.Require().NoError(err)
+		var viewerRoleID string
+		for _, r := range rolesResp.Msg.GetRoles() {
+			if r.GetName() == schema.RoleOrganizationViewer {
+				viewerRoleID = r.GetId()
+				break
+			}
+		}
+		s.Require().NotEmpty(viewerRoleID)
+
+		patResp, err := s.testBench.Client.CreateCurrentUserPAT(mailOTPCtx, connect.NewRequest(&frontierv1beta1.CreateCurrentUserPATRequest{
+			Title: "authtoken-pat",
+			OrgId: orgID,
+			Scopes: []*frontierv1beta1.PATScope{
+				{RoleId: viewerRoleID, ResourceType: schema.OrganizationNamespace},
+			},
+			ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+		}))
+		s.Require().NoError(err)
+		patToken := patResp.Msg.GetPat().GetToken()
+		s.Require().NotEmpty(patToken)
+
+		// the gateways present the PAT as a bearer token; AuthToken exchanges it for a jwt
+		ctxWithPAT := testbench.ContextWithHeaders(context.Background(), map[string]string{
+			"Authorization": "Bearer " + patToken,
+		})
+		patTokenResp, err := s.testBench.Client.AuthToken(ctxWithPAT, connect.NewRequest(&frontierv1beta1.AuthTokenRequest{}))
+		s.Require().NoError(err)
+		mintedToken := patTokenResp.Msg.GetAccessToken()
+		s.Require().NotEmpty(mintedToken)
+
+		// the minted jwt identifies a PAT principal
+		parsed, err := jwt.ParseInsecure([]byte(mintedToken))
+		s.Require().NoError(err)
+		subType, ok := parsed.Get(token.SubTypeClaimsKey)
+		s.Assert().True(ok)
+		s.Assert().Equal(schema.PATPrincipal, subType)
+
+		// and the minted jwt authenticates
+		ctxWithMinted := testbench.ContextWithHeaders(context.Background(), map[string]string{
+			"Authorization": "Bearer " + mintedToken,
+		})
+		_, err = s.testBench.Client.GetCurrentUser(ctxWithMinted, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Assert().NoError(err)
+
+		// the minted access token itself cannot be re-exchanged at AuthToken
+		_, err = s.testBench.Client.AuthToken(ctxWithMinted, connect.NewRequest(&frontierv1beta1.AuthTokenRequest{}))
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
 	})
 }
 

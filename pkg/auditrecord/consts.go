@@ -16,6 +16,9 @@ const (
 	// Billing Checkout Events
 	BillingCheckoutCreatedEvent Event = "billing_checkout.created"
 
+	// Billing Customer Portal Events
+	BillingCustomerPortalSessionCreatedEvent Event = "billing_customer.portal_session_created"
+
 	// Billing Subscription Events
 	BillingSubscriptionCreatedEvent Event = "billing_subscription.created"
 	BillingSubscriptionChangedEvent Event = "billing_subscription.changed"
@@ -64,6 +67,12 @@ const (
 	// Session Events
 	SessionRevokedEvent Event = "session.revoked"
 
+	// Platform Events
+	PlatformAdminAddedEvent    Event = "platform.admin_added"
+	PlatformAdminRemovedEvent  Event = "platform.admin_removed"
+	PlatformMemberAddedEvent   Event = "platform.member_added"
+	PlatformMemberRemovedEvent Event = "platform.member_removed"
+
 	// Resource Events
 	ResourceCreatedEvent Event = "resource.created"
 
@@ -93,6 +102,7 @@ const (
 	BillingTransactionType  EntityType = "billing_transaction"
 	SessionType             EntityType = "session"
 	PATType                 EntityType = "pat"
+	PlatformType            EntityType = "platform"
 )
 
 // String returns the string representation of the event

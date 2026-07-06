@@ -8,6 +8,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/authenticate/token"
+	"github.com/raystack/frontier/core/serviceuser"
 	patErrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
@@ -26,7 +27,6 @@ var authenticators = map[ClientAssertion]AuthenticatorFunc{
 	AccessTokenClientAssertion:       authenticateWithAccessToken,
 	JWTGrantClientAssertion:          authenticateWithJWTGrant,
 	ClientCredentialsClientAssertion: authenticateWithClientCredentials,
-	OpaqueTokenClientAssertion:       authenticateWithClientCredentials,
 	PassthroughHeaderClientAssertion: authenticateWithPassthroughHeader,
 }
 
@@ -189,8 +189,17 @@ func authenticateWithJWTGrant(ctx context.Context, s *Service) (Principal, error
 			ServiceUser: &serviceUser,
 		}, nil
 	}
-	s.log.DebugContext(ctx, "failed to parse as user token ", "err", err)
-	return Principal{}, errors.ErrUnauthenticated
+	switch {
+	case errors.Is(err, serviceuser.ErrTokenNotJWT),
+		errors.Is(err, serviceuser.ErrInvalidKeyID),
+		errors.Is(err, serviceuser.ErrCredNotExist):
+		return Principal{}, errSkip
+	case errors.Is(err, serviceuser.ErrInvalidCred):
+		s.log.DebugContext(ctx, "service user grant failed verification", "err", err)
+		return Principal{}, errors.ErrUnauthenticated
+	default:
+		return Principal{}, err
+	}
 }
 
 // authenticateWithClientCredentials validates client_id:client_secret credentials.

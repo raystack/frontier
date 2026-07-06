@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -168,10 +169,27 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 	}), nil
 }
 
+// errBootstrapSAImmutable returns PermissionDenied when id is the bootstrap SA. That
+// account is managed only via app.admin.bootstrap at boot; the API must never delete
+// it or mint credentials/keys/tokens for it (that would be an un-rotatable backdoor),
+// not even for superusers. The error is generic so it can't reveal the protected id;
+// the real reason is only logged.
+func errBootstrapSAImmutable(ctx context.Context, id string) error {
+	if id == schema.BootstrapServiceUserID {
+		slog.WarnContext(ctx, "refused API mutation of the bootstrap superuser service account", "service_user_id", id)
+		return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+	}
+	return nil
+}
+
 func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteServiceUserRequest]) (*connect.Response[frontierv1beta1.DeleteServiceUserResponse], error) {
 	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 	orgID := request.Msg.GetOrgId()
+
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
+		return nil, err
+	}
 
 	err := h.serviceUserService.Delete(ctx, serviceUserID)
 	if err != nil {
@@ -197,6 +215,10 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 	errorLogger := NewErrorLogger()
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
+
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
+		return nil, err
+	}
 
 	svCred, err := h.serviceUserService.CreateKey(ctx, serviceuser.Credential{
 		ServiceUserID: serviceUserID,
@@ -300,6 +322,8 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 		switch {
 		case err == serviceuser.ErrCredNotExist:
 			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
+		case errors.Is(err, serviceuser.ErrProtected):
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserJWK: key_id=%s: %w", keyID, err))
 		}
@@ -311,6 +335,10 @@ func (h *ConnectHandler) DeleteServiceUserJWK(ctx context.Context, request *conn
 func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserCredentialRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserCredentialResponse], error) {
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
+
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
+		return nil, err
+	}
 
 	secret, err := h.serviceUserService.CreateSecret(ctx, serviceuser.Credential{
 		ServiceUserID: serviceUserID,
@@ -355,6 +383,9 @@ func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, reques
 
 	err := h.serviceUserService.DeleteSecret(ctx, secretID)
 	if err != nil {
+		if errors.Is(err, serviceuser.ErrProtected) {
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserCredential: secret_id=%s: %w", secretID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}), nil
@@ -363,6 +394,10 @@ func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, reques
 func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *connect.Request[frontierv1beta1.CreateServiceUserTokenRequest]) (*connect.Response[frontierv1beta1.CreateServiceUserTokenResponse], error) {
 	serviceUserID := request.Msg.GetId()
 	title := request.Msg.GetTitle()
+
+	if err := errBootstrapSAImmutable(ctx, serviceUserID); err != nil {
+		return nil, err
+	}
 
 	secret, err := h.serviceUserService.CreateToken(ctx, serviceuser.Credential{
 		ServiceUserID: serviceUserID,
@@ -406,6 +441,9 @@ func (h *ConnectHandler) DeleteServiceUserToken(ctx context.Context, request *co
 
 	err := h.serviceUserService.DeleteToken(ctx, tokenID)
 	if err != nil {
+		if errors.Is(err, serviceuser.ErrProtected) {
+			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserToken: token_id=%s: %w", tokenID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserTokenResponse{}), nil

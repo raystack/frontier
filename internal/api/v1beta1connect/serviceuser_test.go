@@ -1012,6 +1012,93 @@ func TestHandler_ListServiceUserCredentials(t *testing.T) {
 	}
 }
 
+func TestHandler_BootstrapSAImmutable(t *testing.T) {
+	// The bootstrap SA (well-known id) must be immutable via the API: no delete and
+	// no minting of credentials/keys/tokens (which would be a rotation-proof
+	// superuser backdoor). Each guard must reject before touching the service.
+	t.Run("DeleteServiceUser is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.DeleteServiceUser(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
+		su.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+	})
+
+	t.Run("CreateServiceUserCredential is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.CreateServiceUserCredential(context.Background(), connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
+		su.AssertNotCalled(t, "CreateSecret", mock.Anything, mock.Anything)
+	})
+
+	t.Run("CreateServiceUserToken is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.CreateServiceUserToken(context.Background(), connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
+		su.AssertNotCalled(t, "CreateToken", mock.Anything, mock.Anything)
+	})
+
+	t.Run("CreateServiceUserJWK is refused", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.CreateServiceUserJWK(context.Background(), connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+			Id: schema.BootstrapServiceUserID,
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap") // must not reveal the protected SA
+		su.AssertNotCalled(t, "CreateKey", mock.Anything, mock.Anything)
+	})
+
+	// The credential/token/JWK deletes are keyed by secret id, so the service returns
+	// ErrProtected when the owner is the bootstrap SA; the handler must map it to a
+	// generic permission_denied without leaking that the SA is protected.
+	t.Run("DeleteServiceUserCredential is refused (generic) when service reports protected", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		su.On("DeleteSecret", mock.Anything, "cred-x").Return(serviceuser.ErrProtected)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.DeleteServiceUserCredential(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteServiceUserCredentialRequest{SecretId: "cred-x"}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap")
+		assert.NotContains(t, err.Error(), "protected")
+	})
+
+	t.Run("DeleteServiceUserToken is refused (generic) when service reports protected", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		su.On("DeleteToken", mock.Anything, "tok-x").Return(serviceuser.ErrProtected)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.DeleteServiceUserToken(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteServiceUserTokenRequest{TokenId: "tok-x"}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap")
+	})
+
+	t.Run("DeleteServiceUserJWK is refused (generic) when service reports protected", func(t *testing.T) {
+		su := new(mocks.ServiceUserService)
+		su.On("DeleteKey", mock.Anything, "key-x").Return(serviceuser.ErrProtected)
+		h := &ConnectHandler{serviceUserService: su}
+		resp, err := h.DeleteServiceUserJWK(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteServiceUserJWKRequest{KeyId: "key-x"}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.CodePermissionDenied, connect.CodeOf(err))
+		assert.NotContains(t, err.Error(), "bootstrap")
+	})
+}
+
 func TestHandler_DeleteServiceUserCredential(t *testing.T) {
 	tests := []struct {
 		name    string

@@ -161,13 +161,14 @@ func (h *ConnectHandler) AuthToken(ctx context.Context, request *connect.Request
 	}
 	ctx = metadata.NewIncomingContext(ctx, existingMD)
 
-	// only get principal from service user assertions
+	// restrict to credential types allowed to exchange for a token
 	principal, err := h.GetLoggedInPrincipal(ctx,
 		authenticate.SessionClientAssertion,
 		authenticate.ClientCredentialsClientAssertion,
-		authenticate.JWTGrantClientAssertion)
+		authenticate.JWTGrantClientAssertion,
+		authenticate.PATClientAssertion)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AuthToken: grant_type=%s: %w", request.Msg.GetGrantType(), err))
+		return nil, err
 	}
 
 	if principal.Type == schema.ServiceUserPrincipal {
