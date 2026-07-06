@@ -208,6 +208,13 @@ there, and the generator mirrors it onto the real project as
 effect, `user/project` is the config-legal way to hang project-level capabilities off
 `app/project`.
 
+The name `user/project` is not special, and there is no naming convention to follow. You can
+pick any `service/resource` namespace, as long as it is not under `app/*`. The generator mirrors
+every custom permission onto `app/project` (and `app/organization`) no matter which namespace you
+chose, so the name does not change where the check runs. `user/project` is simply the name
+Frontier uses here, because the slug it produces — `user_project_createcomputemachine` — reads as
+"a thing a user does in a project".
+
 > A role can still *reference* an `app/project` permission — for example a Project Viewer role
 > that lists `app/project:get`. That works because `get` already exists on `app/project` in the
 > base schema. The filter only blocks *adding* a new permission under `app/*` from config. So you
@@ -265,7 +272,8 @@ This does three things:
 - Project-level capabilities (`create`, project-wide `list`) → `user/project`. Checked against
   `app/project:<project_id>`.
 - Treat `user/project` as a stand-in for `app/project` that you are allowed to write to from
-  config.
+  config. The name is your choice — any non-`app/*` namespace works; `user/project` is just the
+  example used here.
 
 This keeps create and list anchored on the project and avoids the dead resource-level `create`
 rule the generator would otherwise leave unused.
@@ -287,11 +295,15 @@ You do not have to set up any roles for these. They work as soon as the resource
 - **Platform admin** — can do everything.
 - The **user who created a resource** — can act on that one resource.
 
-This works because the [generated rules](#what-rules-get-generated) already include the owner and
-admin permissions. So an owner or an admin is covered without the action being listed in any role.
+This works because the [generated rules](#what-rules-get-generated) already point at
+`app_organization_administer` (held by the **Owner** role, `app_organization_owner`),
+`app_project_administer` (held by the **Project Owner** role, `app_project_owner`), and
+`platform->superuser` (the **platform admin**). So these principals are covered without the action
+being listed in any role. This is *not* the org **Admin** role (`app_organization_manager`) — that
+one gets nothing by default (see [below](#does-not-work-by-default)).
 
-You never need to list a custom action on these roles. `app_project_administer` (Project Owner)
-and `app_organization_administer` (Owner) already grant every custom action through the
+You never need to list a custom action on these roles. `app_project_administer` (**Project Owner**)
+and `app_organization_administer` (**Owner**) already grant every custom action through the
 schema, so listing them again would just be repeating what the schema already does.
 
 ### Does not work by default
@@ -325,8 +337,10 @@ roles:
 
 One thing to watch: when you list a role that already exists, Frontier **replaces** its whole
 permission set with the one you write. It does not add to the old set. So you must include the
-permissions the role already had, or it will lose them. In the example, `app/project:get` is
-kept so the role can still open the project.
+permissions the role already had, or it will lose them. For a built-in role, "already had" means
+the default permissions Frontier ships it with — its entry in the predefined role list
+(`PredefinedRoles` in `internal/bootstrap/schema/schema.go`), not the base schema. In the example,
+`app/project:get` is kept so the role can still open the project.
 
 ### Choice 2: make your own role
 
@@ -351,7 +365,9 @@ role to a user or group on a project, the same way you assign any other role.
 
 ### In short
 
-- Owners and admins get every custom action for free.
+- The **Owner** (`app_organization_owner`), **Project Owner** (`app_project_owner`), and the
+  **platform admin** get every custom action for free. The org **Admin** role
+  (`app_organization_manager`) does not.
 - Every other role gets an action only when you grant it.
 - Re-using a built-in role name replaces its permissions, so list everything you want it to keep.
 - A new role name creates a fresh role with exactly the permissions you list.
