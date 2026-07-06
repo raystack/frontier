@@ -29,11 +29,21 @@ import { useTerminology } from '../../../../hooks/useTerminology';
 import { handleConnectError } from '~/utils/error';
 
 const inviteSchema = z.object({
-  role: z.string(),
+  role: z.string().min(1, { message: 'Role is required' }),
   emails: z
     .string()
-    .transform(value => value.split(',').map(str => str.trim()))
-    .pipe(z.array(z.string().email()))
+    .min(1, { message: 'Email is required' })
+    .transform(value =>
+      value
+        .split(',')
+        .map(str => str.trim())
+        .filter(str => str.length > 0)
+    )
+    .pipe(
+      z
+        .array(z.string().email({ message: 'Enter valid email address(es)' }))
+        .min(1, { message: 'Email is required' })
+    )
 });
 
 type InviteSchemaType = z.infer<typeof inviteSchema>;
@@ -109,25 +119,6 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const isSubmitting = methods?.formState?.isSubmitting;
   const errors = methods?.formState?.errors;
 
-  const values = methods.watch(['emails', 'role']);
-
-  const isDisabled = useMemo(() => {
-    const [emails, role] = values;
-    const emailValue = Array.isArray(emails)
-      ? emails.join(',')
-      : ((emails as string) ?? '');
-    const emailList = emailValue
-      .split(',')
-      .map(e => e.trim())
-      .filter(str => str.length > 0);
-    return (
-      emailList.length <= 0 ||
-      !role ||
-      isSubmitting ||
-      Boolean(errors?.emails)
-    );
-  }, [isSubmitting, values, errors?.emails]);
-
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <Dialog.Content width={600}>
@@ -194,7 +185,6 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
               <Button
                 data-test-id="invite-users-invite-button"
                 type="submit"
-                disabled={isDisabled}
                 loading={isSubmitting}
                 loaderText="Inviting..."
               >

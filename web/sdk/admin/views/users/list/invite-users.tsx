@@ -28,12 +28,22 @@ import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../hooks/useTerminology";
 
 const inviteSchema = z.object({
-  role: z.string(),
-  organizationId: z.string(),
+  role: z.string().min(1, { message: "Role is required" }),
+  organizationId: z.string().min(1, { message: "Organization is required" }),
   emails: z
     .string()
-    .transform(value => value.split(",").map(str => str.trim()))
-    .pipe(z.array(z.string().email())),
+    .min(1, { message: "Email is required" })
+    .transform(value =>
+      value
+        .split(",")
+        .map(str => str.trim())
+        .filter(str => str.length > 0)
+    )
+    .pipe(
+      z
+        .array(z.string().email({ message: "Enter valid email address(es)" }))
+        .min(1, { message: "Email is required" })
+    ),
 });
 
 type InviteSchemaType = z.infer<typeof inviteSchema>;
@@ -90,33 +100,12 @@ export const InviteUser = () => {
     handleSubmit,
     control,
     reset,
-    watch,
   } = useForm<InviteSchemaType>({
     resolver: zodResolver(inviteSchema),
     defaultValues: {
       role: defaultRoleId,
     },
   });
-
-  const values = watch(["emails", "role", "organizationId"]);
-
-  const isDisabled = useMemo(() => {
-    const [emails, role, organizationId] = values;
-    const emailValue = Array.isArray(emails)
-      ? emails.join(",")
-      : ((emails as string) ?? "");
-    const emailList = emailValue
-      .split(",")
-      .map(e => e.trim())
-      .filter(str => str.length > 0);
-    return (
-      emailList.length <= 0 ||
-      !role ||
-      !organizationId ||
-      isSubmitting ||
-      Boolean(errors?.emails)
-    );
-  }, [isSubmitting, values, errors?.emails]);
 
   const { mutateAsync: inviteUser } = useMutation(
     FrontierServiceQueries.createOrganizationInvitation,
@@ -171,12 +160,12 @@ export const InviteUser = () => {
           </Dialog.Header>
           <Dialog.Body className={styles["invite-users-dialog-body"]}>
             <Flex direction="column" gap={7}>
-              {isLoading ? (
-                <Skeleton height="80px" />
-              ) : (
-                <Field
-                  label="Emails"
-                  error={errors?.emails?.message || errors?.emails?.[0]?.message}>
+              <Field
+                label="Emails"
+                error={errors?.emails?.message || errors?.emails?.[0]?.message}>
+                {isLoading ? (
+                  <Skeleton height="80px" />
+                ) : (
                   <Controller
                     name="emails"
                     control={control}
@@ -192,8 +181,8 @@ export const InviteUser = () => {
                       );
                     }}
                   />
-                </Field>
-              )}
+                )}
+              </Field>
 
               <Field label="Invite as" error={errors?.role?.message}>
                 {isLoading ? (
@@ -267,7 +256,7 @@ export const InviteUser = () => {
             <Button
               data-test-id="users-list-invite-user-submit-btn"
               type="submit"
-              disabled={isLoading || isDisabled}
+              disabled={isLoading}
               loading={isSubmitting}
               loaderText="Sending...">
               Send invite
