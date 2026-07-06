@@ -112,7 +112,7 @@ export const CreateOrganizationView = ({
             <Input
               size="large"
               {...register('name')}
-              placeholder="raystack.org/"
+              placeholder={`Provide ${t.organization({ case: 'lower' })} URL`}
             />
           </Field>
           <Button

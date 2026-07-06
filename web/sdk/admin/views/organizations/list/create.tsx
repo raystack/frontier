@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./list.module.css";
 import { useTerminology } from "../../../hooks/useTerminology";
+import { generateSlug, randomSuffix } from "~/admin/utils/helper";
 import {
   Button,
   Field,
@@ -14,6 +15,7 @@ import {
 } from "@raystack/apsara";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { ImageUpload } from "~/client/components/image-upload";
+import { debounce } from "lodash";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,41 +23,26 @@ import { useMutation } from "@connectrpc/connect-query";
 import { Code } from "@connectrpc/connect";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 
-const orgCreateSchema = z
-  .object({
-    avatar: z.string().optional(),
-    title: z.string().min(1, "Title is required"),
-    name: z
-      .string()
-      .min(1, "URL is required")
-      .regex(
-        /^[a-z0-9-]+$/,
-        "Use only lowercase letters, numbers, and hyphens",
-      ),
-    orgOwnerEmail: z
-      .string()
-      .min(1, "Owner email is required")
-      .email("Enter a valid email address"),
-    size: z
-      .string()
-      .min(1, "Size is required")
-      .refine(
-        (value) => Number.isInteger(Number(value)) && Number(value) > 0,
-        "Enter a valid size greater than 0",
-      )
-      .transform((value) => parseInt(value)),
-    type: z.string().min(1, "Industry is required"),
-    otherType: z.string().optional(),
-    country: z.string().min(1, "Country is required"),
-  })
-  .refine((data) => data.type !== "other" || Boolean(data.otherType?.trim()), {
-    message: "Please specify the industry",
-    path: ["otherType"],
-  });
+const orgCreateSchema = z.object({
+  avatar: z.string().optional(),
+  title: z.string().min(1, "Title is required"),
+  name: z
+    .string()
+    .min(1, "URL is required")
+    .min(3, "URL not valid, Min 3 characters allowed")
+    .max(50, "URL not valid, Max 50 characters allowed")
+    .regex(
+      /^[a-zA-Z0-9_-]{3,50}$/,
+      "Only numbers, letters, '-', and '_' are allowed. Spaces are not allowed.",
+    ),
+  orgOwnerEmail: z
+    .string()
+    .min(1, "Owner email is required")
+    .email("Enter a valid email address"),
+  country: z.string().min(1, "Country is required"),
+});
 
 type OrgCreateSchema = z.infer<typeof orgCreateSchema>;
-
-const otherTypePrefix = "Other - ";
 
 export type CreateOrganizationPanelProps = {
   open?: boolean;
@@ -69,14 +56,12 @@ export type CreateOrganizationPanelProps = {
 export function CreateOrganizationPanel({
   open = false,
   onClose,
-  organizationTypes = [],
   appUrl = "",
   countries: countriesProp = [],
   onSuccess,
 }: CreateOrganizationPanelProps) {
   const t = useTerminology();
   const [countries, setCountries] = useState<string[]>(countriesProp);
-  const industries = organizationTypes;
 
   useEffect(() => {
     if (countriesProp.length > 0) {
@@ -88,8 +73,8 @@ export function CreateOrganizationPanel({
     handleSubmit,
     control,
     setError,
-    formState: { isSubmitting, errors },
-    watch,
+    setValue,
+    formState: { isSubmitting, errors, dirtyFields },
     register,
   } = useForm<OrgCreateSchema>({
     defaultValues: {
@@ -97,12 +82,31 @@ export function CreateOrganizationPanel({
       title: "",
       name: "",
       orgOwnerEmail: "",
-      type: "",
-      otherType: "",
       country: "",
     },
     resolver: zodResolver(orgCreateSchema),
   });
+
+  const uniqueSuffix = useMemo(() => randomSuffix(), []);
+
+  const debouncedGenerateSlug = useMemo(
+    () =>
+      debounce((title: string) => {
+        const baseSlug = generateSlug(title);
+        setValue("name", baseSlug ? `${baseSlug}-${uniqueSuffix}` : "");
+      }, 300),
+    [setValue, uniqueSuffix],
+  );
+
+  useEffect(() => () => debouncedGenerateSlug.cancel(), [debouncedGenerateSlug]);
+
+  const handleTitleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      if (dirtyFields.name) return;
+      debouncedGenerateSlug(e.target.value);
+    },
+    [debouncedGenerateSlug, dirtyFields.name],
+  );
 
   const { mutateAsync: createOrganization, isPending } = useMutation(
     AdminServiceQueries.adminCreateOrganization,
@@ -127,10 +131,6 @@ export function CreateOrganizationPanel({
         title: data.title,
         orgOwnerEmail: data.orgOwnerEmail,
         metadata: {
-          size: data.size.toString(),
-          type: data.otherType
-            ? `${otherTypePrefix}${data.otherType}`
-            : data.type,
           country: data.country,
         },
       };
@@ -144,8 +144,6 @@ export function CreateOrganizationPanel({
       console.error("Unable to create new org:", err);
     }
   }
-
-  const showOtherTypeField = watch("type") === "other";
 
   return (
     <Drawer open={open} onOpenChange={(open) => !open && onClose()}>
@@ -169,6 +167,7 @@ export function CreateOrganizationPanel({
           <form
             className={styles["side-panel-form"]}
             onSubmit={handleSubmit(onSubmit)}
+            noValidate
           >
             <Flex
               direction="column"
@@ -192,14 +191,16 @@ export function CreateOrganizationPanel({
                 error={errors.title?.message}
                 required
               >
-                <Input {...register("title")} />
+                <Input
+                  {...register("title", { onChange: handleTitleChange })}
+                />
               </Field>
               <Field
-                label={`${t.organization({ case: "capital" })} owner`}
+                label={`${t.organization({ case: "capital" })} owner email`}
                 error={errors.orgOwnerEmail?.message}
                 required
               >
-                <Input {...register("orgOwnerEmail")} type="email" />
+                <Input {...register("orgOwnerEmail")} type="email"/>
               </Field>
               <Field
                 label={`${t.organization({ case: "capital" })} URL`}
@@ -209,57 +210,6 @@ export function CreateOrganizationPanel({
               >
                 <Input {...register("name")} prefix={appUrl} />
               </Field>
-              <Field
-                label={`${t.organization({ case: "capital" })} size`}
-                error={errors.size?.message}
-                required
-              >
-                <Input {...register("size")} type="number" min={1} />
-              </Field>
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <Field
-                      label={`${t.organization({ case: "capital" })} industry`}
-                      error={errors.type?.message}
-                      required
-                    >
-                      <Select
-                        {...field}
-                        value={field?.value?.toString()}
-                        onValueChange={(value) => {
-                          field?.onChange({ target: { value } });
-                        }}
-                      >
-                        <Select.Trigger>
-                          <Select.Value
-                            placeholder="Select an industry"
-                            id="org-type-select"
-                          />
-                        </Select.Trigger>
-                        <Select.Content className={styles["select-content"]}>
-                          {industries.map((industry) => (
-                            <Select.Item key={industry} value={industry}>
-                              {industry}
-                            </Select.Item>
-                          ))}
-                          <Select.Item value="other">Other</Select.Item>
-                        </Select.Content>
-                      </Select>
-                    </Field>
-                  );
-                }}
-              />
-              {showOtherTypeField ? (
-                <Field
-                  label={`${t.organization({ case: "capital" })} industry (other)`}
-                  error={errors.otherType?.message}
-                >
-                  <Input {...register("otherType")} />
-                </Field>
-              ) : null}
               <Controller
                 name="country"
                 control={control}
