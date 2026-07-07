@@ -23,7 +23,7 @@ const UpdateWebhookSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(3, { message: "Must be 10 or more characters long" }),
+    .min(3, { message: "Must be 3 or more characters long" }),
   state: z.boolean().default(false),
   subscribed_events: z.array(z.string()).default([]),
 });
