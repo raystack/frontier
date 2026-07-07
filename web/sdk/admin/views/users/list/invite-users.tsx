@@ -162,7 +162,12 @@ export const InviteUser = () => {
             <Flex direction="column" gap={7}>
               <Field
                 label="Emails"
-                error={errors?.emails?.message || errors?.emails?.[0]?.message}>
+                error={
+                  errors?.emails?.message ||
+                  (Array.isArray(errors?.emails)
+                    ? errors.emails.find(e => e?.message)?.message
+                    : undefined)
+                }>
                 {isLoading ? (
                   <Skeleton height="80px" />
                 ) : (

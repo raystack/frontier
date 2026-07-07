@@ -131,7 +131,12 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
               <Flex direction="column" gap={7}>
                 <Field
                   label="Emails"
-                  error={errors?.emails?.message || errors?.emails?.[0]?.message}>
+                  error={
+                    errors?.emails?.message ||
+                    (Array.isArray(errors?.emails)
+                      ? errors.emails.find(e => e?.message)?.message
+                      : undefined)
+                  }>
                   <Controller
                     name="emails"
                     control={methods.control}
