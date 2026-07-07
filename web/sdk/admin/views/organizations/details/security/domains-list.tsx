@@ -3,12 +3,12 @@ import {
   Button,
   Flex,
   IconButton,
+  Skeleton,
   Text,
   toastManager,
 } from "@raystack/apsara";
 import styles from "./security.module.css";
 import { CheckCircledIcon, TrashIcon } from "@radix-ui/react-icons";
-import Skeleton from "react-loading-skeleton";
 import { useContext, useState } from "react";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,7 +23,7 @@ interface DeleteDomainDialogProps {
 const DeleteDomainDialog = ({
   domain,
 }: DeleteDomainDialogProps) => {
-  const {organization} = useContext(OrganizationContext);
+  const { organization } = useContext(OrganizationContext);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -133,21 +133,49 @@ const DomainItem = ({ domain }: DomainItemProps) => {
 interface DomainsListProps {
   isLoading: boolean;
   domains: Domain[];
+  error?: Error | null;
+  onRetry: () => void;
 }
 
 export const DomainsList = ({
   isLoading,
   domains = [],
+  error,
+  onRetry,
 }: DomainsListProps) => {
+  if (!isLoading && error) {
+    return (
+      <Flex
+        justify="between"
+        align="center"
+        className={styles["domains-list"]}
+        style={{ padding: "var(--rs-space-5) var(--rs-space-7)" }}
+      >
+        <Text size="small" variant="secondary">
+          Couldn&apos;t load email domains
+        </Text>
+        <Button
+          variant="outline"
+          color="neutral"
+          size="small"
+          onClick={() => onRetry()}
+          data-test-id="retry-domains-button"
+        >
+          Retry
+        </Button>
+      </Flex>
+    );
+  }
+
   return isLoading ? (
-    <Flex direction="column" className={styles["domains-list"]}>
-      {[...Array(3)].map((_, index) => (
-        <Skeleton
-          key={index}
-          height={20}
-          style={{ margin: "var(--rs-space-5) 0" }}
-        />
-      ))}
+    <Flex
+      justify="between"
+      align="center"
+      className={styles["domains-list"]}
+      style={{ padding: "var(--rs-space-5) var(--rs-space-7)" }}
+    >
+      <Skeleton height={16} width={180} />
+      <Skeleton height={20} width={20} borderRadius="var(--rs-radius-2)" />
     </Flex>
   ) : domains.length ? (
     <Flex direction="column" className={styles["domains-list"]}>
@@ -158,5 +186,15 @@ export const DomainsList = ({
         />
       ))}
     </Flex>
-  ) : null;
+  ) : (
+    <Flex className={styles["domains-list"]}>
+      <Text
+        size="small"
+        variant="secondary"
+        style={{ padding: "var(--rs-space-5) 0" }}
+      >
+        No allowed email domains added yet
+      </Text>
+    </Flex>
+  );
 };

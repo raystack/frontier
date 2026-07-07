@@ -55,7 +55,7 @@ const AddDomainSection = () => {
 export const OrganizationSecurity = () => {
   const { organization } = useContext(OrganizationContext);
 
-  const { data: domains, isLoading, error } = useQuery(
+  const { data: domains, isLoading, error, refetch } = useQuery(
     FrontierServiceQueries.listOrganizationDomains,
     create(ListOrganizationDomainsRequestSchema, {
       orgId: organization?.id
@@ -87,6 +87,8 @@ export const OrganizationSecurity = () => {
         <DomainsList
           isLoading={isLoading}
           domains={domains ?? []}
+          error={error}
+          onRetry={() => refetch()}
         />
         <Separator />
         <BlockOrganizationSection />
