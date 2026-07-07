@@ -5,14 +5,6 @@
   gap: var(--rs-space-7);
 }
 
-.invite-users-dialog-label {
-  font-weight: var(--rs-font-weight-medium);
-}
-
-.form-error-message {
-  color: var(--rs-color-foreground-danger-primary);
-}
-
 .invite-users-emails-textarea {
   resize: vertical;
   width: 100%;
