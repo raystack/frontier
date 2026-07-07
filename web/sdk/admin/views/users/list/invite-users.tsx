@@ -27,26 +27,29 @@ import { create } from "@bufbuild/protobuf";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../hooks/useTerminology";
 
-const inviteSchema = z.object({
-  role: z.string().min(1, { message: "Role is required" }),
-  organizationId: z.string().min(1, { message: "Organization is required" }),
-  emails: z
-    .string()
-    .min(1, { message: "Email is required" })
-    .transform(value =>
-      value
-        .split(",")
-        .map(str => str.trim())
-        .filter(str => str.length > 0)
-    )
-    .pipe(
-      z
-        .array(z.string().email({ message: "Enter valid email address(es)" }))
-        .min(1, { message: "Email is required" })
-    ),
-});
+const createInviteSchema = (t: ReturnType<typeof useTerminology>) =>
+  z.object({
+    role: z.string().min(1, { message: "Role is required" }),
+    organizationId: z.string().min(1, {
+      message: `${t.organization({ case: "capital" })} is required`,
+    }),
+    emails: z
+      .string()
+      .min(1, { message: "Email is required" })
+      .transform(value =>
+        value
+          .split(",")
+          .map(str => str.trim())
+          .filter(str => str.length > 0)
+      )
+      .pipe(
+        z
+          .array(z.string().email({ message: "Enter valid email address(es)" }))
+          .min(1, { message: "Email is required" })
+      ),
+  });
 
-type InviteSchemaType = z.infer<typeof inviteSchema>;
+type InviteSchemaType = z.infer<ReturnType<typeof createInviteSchema>>;
 
 export const InviteUser = () => {
   const t = useTerminology();
@@ -94,6 +97,8 @@ export const InviteUser = () => {
     () => roles?.find(role => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
     [roles],
   );
+
+  const inviteSchema = useMemo(() => createInviteSchema(t), [t]);
 
   const {
     formState: { errors, isSubmitting },
