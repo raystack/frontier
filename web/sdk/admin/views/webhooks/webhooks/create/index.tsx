@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { Button, Flex, Drawer, toastManager } from "@raystack/apsara";
 import { SheetHeader } from "../../../../components/SheetHeader";
 import { SheetFooter } from "../../../../components/SheetFooter";
@@ -56,19 +56,6 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
     },
   });
 
-  // The drawer stays mounted and only toggles `open`, so the form keeps its
-  // previous values. Reset to a clean state each time it opens.
-  useEffect(() => {
-    if (open) {
-      methods.reset({
-        url: "",
-        description: "",
-        state: false,
-        subscribed_events: [],
-      });
-    }
-  }, [open, methods.reset]);
-
   const onSubmit = async (data: NewWebhook) => {
     try {
       const body: WebhookRequestBody = create(WebhookRequestBodySchema, {
@@ -84,6 +71,7 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
       if (resp?.webhook) {
         toastManager.add({ title: "Webhook created", type: "success" });
         await invalidateWebhooksList();
+        methods.reset();
         onOpenChange();
       } else {
         toastManager.add({
