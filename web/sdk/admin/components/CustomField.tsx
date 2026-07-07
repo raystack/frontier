@@ -16,7 +16,6 @@ import {
 } from "react-hook-form";
 import { capitalizeFirstLetter } from "../utils/helper";
 import Skeleton from "react-loading-skeleton";
-import styles from "./custom-field.module.css";
 
 type CustomFieldNameProps = {
   name: string;
@@ -183,7 +182,7 @@ export const CustomFieldName = ({
           )}
         </FormControl>
         {errorMessage ? (
-          <Text size="small" className={styles.errorMessage}>
+          <Text size="small" variant="danger">
             {errorMessage}
           </Text>
         ) : null}
