@@ -6,10 +6,7 @@ definition app/serviceuser {
     permission manage = org->serviceusermanage
 }
 
-definition app/pat {
-	relation user: app/user
-	relation org: app/organization
-}
+definition app/pat {}
 
 definition app/platform {
 	relation admin: app/user | app/serviceuser
