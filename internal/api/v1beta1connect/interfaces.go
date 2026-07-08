@@ -302,7 +302,7 @@ type InvitationService interface {
 type GroupService interface {
 	Create(ctx context.Context, grp group.Group) (group.Group, error)
 	Get(ctx context.Context, id string) (group.Group, error)
-	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
+	GetByIDs(ctx context.Context, ids []string, flt ...group.Filter) ([]group.Group, error)
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
 	Enable(ctx context.Context, id string) error
