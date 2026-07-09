@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-
-	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/salt/server/spa"
@@ -208,6 +208,9 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		Handler: handler,
 	}
 
+	// counts shutdown goroutines still draining their servers
+	var shutdownWG sync.WaitGroup
+
 	// start dedicated metrics server if configured
 	if cfg.MetricsPort > 0 {
 		metricsMux := http.NewServeMux()
@@ -227,15 +230,27 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 				logger.Error("metrics server failed", "err", err)
 			}
 		}()
+		shutdownWG.Add(1)
 		go func() {
+			defer shutdownWG.Done()
 			<-ctx.Done()
-			metricsServer.Shutdown(context.Background())
+
+			ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
+			defer cancel()
+
+			if err := metricsServer.Shutdown(ctxShutdown); err != nil {
+				logger.ErrorContext(ctxShutdown, "metrics server shutdown error", "error", err)
+				return
+			}
+			logger.Info("Graceful shutdown of metrics server complete")
 		}()
 	}
 
 	logger.Info("connect server starting", "port", cfg.Connect.Port)
 
+	shutdownWG.Add(1)
 	go func() {
+		defer shutdownWG.Done()
 		<-ctx.Done()
 
 		ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
@@ -243,6 +258,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 
 		if err := server.Shutdown(ctxShutdown); err != nil {
 			logger.ErrorContext(ctxShutdown, "HTTP shutdown error", "error", err)
+			return
 		}
 
 		logger.Info("Graceful shutdown of connect server complete")
@@ -253,6 +269,11 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		return fmt.Errorf("connect server failed: %w", err)
 	}
 
+	// Shutdown closes the listener first, which makes ListenAndServe return
+	// while in-flight requests are still draining. Wait for the drain to
+	// finish so callers don't tear down the database and other dependencies
+	// under requests that are still running.
+	shutdownWG.Wait()
 	return nil
 }
 
