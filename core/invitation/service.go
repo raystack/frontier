@@ -37,7 +37,7 @@ type Repository interface {
 	ListByUser(ctx context.Context, id string) ([]Invitation, error)
 	Get(ctx context.Context, id uuid.UUID) (Invitation, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	ListExpired(ctx context.Context) ([]Invitation, error)
+	ListExpired(ctx context.Context, expiredBefore time.Time) ([]Invitation, error)
 }
 
 type UserService interface {
@@ -86,6 +86,11 @@ type Service struct {
 }
 
 const refreshTime = "0 0 * * *" // Once a day at midnight (UTC)
+
+// invitationRetention is how long an invitation is kept after it expires before
+// the cleanup job deletes it. During this window a recently expired invite is
+// still returned by the list APIs; the cron removes it once it is this old.
+const invitationRetention = 7 * 24 * time.Hour
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
@@ -288,12 +293,15 @@ func (s Service) InitInvitationCleanup(ctx context.Context) error {
 	return nil
 }
 
-// DeleteExpiredInvitations removes every invitation past its expiry. It goes
-// through Delete (not a raw row purge) so each invite's SpiceDB tuples AND its
-// invitations row are removed together — a row-only delete would leak the
-// #user / #org tuples behind.
+// DeleteExpiredInvitations removes invitations that expired at least
+// invitationRetention ago. Recently expired invites are left alone so they
+// still show up in the list APIs; the next daily run deletes them once they
+// cross the retention window. It goes through Delete (not a raw row purge) so
+// each invite's SpiceDB tuples AND its invitations row are removed together —
+// a row-only delete would leak the #user / #org tuples behind.
 func (s Service) DeleteExpiredInvitations(ctx context.Context) error {
-	expired, err := s.repo.ListExpired(ctx)
+	expiredBefore := time.Now().UTC().Add(-invitationRetention)
+	expired, err := s.repo.ListExpired(ctx, expiredBefore)
 	if err != nil {
 		return fmt.Errorf("failed to list expired invitations: %w", err)
 	}

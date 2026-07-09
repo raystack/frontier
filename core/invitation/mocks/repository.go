@@ -8,6 +8,8 @@ import (
 	invitation "github.com/raystack/frontier/core/invitation"
 	mock "github.com/stretchr/testify/mock"
 
+	time "time"
+
 	uuid "github.com/google/uuid"
 )
 
@@ -187,9 +189,9 @@ func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, invitatio
 	return _c
 }
 
-// ListExpired provides a mock function with given fields: ctx
-func (_m *Repository) ListExpired(ctx context.Context) ([]invitation.Invitation, error) {
-	ret := _m.Called(ctx)
+// ListExpired provides a mock function with given fields: ctx, expiredBefore
+func (_m *Repository) ListExpired(ctx context.Context, expiredBefore time.Time) ([]invitation.Invitation, error) {
+	ret := _m.Called(ctx, expiredBefore)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListExpired")
@@ -197,19 +199,19 @@ func (_m *Repository) ListExpired(ctx context.Context) ([]invitation.Invitation,
 
 	var r0 []invitation.Invitation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]invitation.Invitation, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time) ([]invitation.Invitation, error)); ok {
+		return rf(ctx, expiredBefore)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []invitation.Invitation); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time) []invitation.Invitation); ok {
+		r0 = rf(ctx, expiredBefore)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]invitation.Invitation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, time.Time) error); ok {
+		r1 = rf(ctx, expiredBefore)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -224,13 +226,14 @@ type Repository_ListExpired_Call struct {
 
 // ListExpired is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *Repository_Expecter) ListExpired(ctx interface{}) *Repository_ListExpired_Call {
-	return &Repository_ListExpired_Call{Call: _e.mock.On("ListExpired", ctx)}
+//   - expiredBefore time.Time
+func (_e *Repository_Expecter) ListExpired(ctx interface{}, expiredBefore interface{}) *Repository_ListExpired_Call {
+	return &Repository_ListExpired_Call{Call: _e.mock.On("ListExpired", ctx, expiredBefore)}
 }
 
-func (_c *Repository_ListExpired_Call) Run(run func(ctx context.Context)) *Repository_ListExpired_Call {
+func (_c *Repository_ListExpired_Call) Run(run func(ctx context.Context, expiredBefore time.Time)) *Repository_ListExpired_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		run(args[0].(context.Context), args[1].(time.Time))
 	})
 	return _c
 }
@@ -240,7 +243,7 @@ func (_c *Repository_ListExpired_Call) Return(_a0 []invitation.Invitation, _a1 e
 	return _c
 }
 
-func (_c *Repository_ListExpired_Call) RunAndReturn(run func(context.Context) ([]invitation.Invitation, error)) *Repository_ListExpired_Call {
+func (_c *Repository_ListExpired_Call) RunAndReturn(run func(context.Context, time.Time) ([]invitation.Invitation, error)) *Repository_ListExpired_Call {
 	_c.Call.Return(run)
 	return _c
 }

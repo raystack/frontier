@@ -243,16 +243,18 @@ func (s *InvitationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-// ListExpired returns every invitation whose expires_at is in the past. The
-// caller deletes them through the invitation service so both the SpiceDB tuples
-// and the invitations row are removed together — a raw row delete here would
-// leak the invitation's #user / #org tuples behind.
-func (s *InvitationRepository) ListExpired(ctx context.Context) ([]invitation.Invitation, error) {
+// ListExpired returns every invitation whose expires_at is at or before
+// expiredBefore. The caller passes a cutoff in the past (now minus the
+// retention window) so recently expired invites are skipped, and deletes the
+// results through the invitation service so both the SpiceDB tuples and the
+// invitations row are removed together — a raw row delete here would leak the
+// invitation's #user / #org tuples behind.
+func (s *InvitationRepository) ListExpired(ctx context.Context, expiredBefore time.Time) ([]invitation.Invitation, error) {
 	var fetchedInvitations []Invitation
 	query, params, err := dialect.From(TABLE_INVITATIONS).
 		Where(
 			goqu.Ex{
-				"expires_at": goqu.Op{"lte": s.Now()},
+				"expires_at": goqu.Op{"lte": expiredBefore},
 			},
 		).ToSQL()
 	if err != nil {

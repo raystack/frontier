@@ -159,7 +159,12 @@ func TestService_DeleteExpiredInvitations(t *testing.T) {
 			{ID: uuid.New(), OrgID: "org-1", UserEmailID: "a@example.com"},
 			{ID: uuid.New(), OrgID: "org-2", UserEmailID: "b@example.com"},
 		}
-		repo.EXPECT().ListExpired(ctx).Return(expired, nil)
+		// the sweep asks for invites that expired at least the retention window
+		// (7 days) ago — not just anything past its expiry.
+		repo.EXPECT().ListExpired(ctx, mock.MatchedBy(func(cutoff time.Time) bool {
+			want := time.Now().UTC().Add(-7 * 24 * time.Hour)
+			return cutoff.Sub(want) > -time.Minute && cutoff.Sub(want) < time.Minute
+		})).Return(expired, nil)
 		for _, inv := range expired {
 			// Delete removes every relation on the invitation object (object-only,
 			// no RelationName) so both the #user and #org tuples go, then the row.
@@ -177,7 +182,7 @@ func TestService_DeleteExpiredInvitations(t *testing.T) {
 		dialer, repo, orgService, groupService, userService, relationService, prefService, auditRecordRepo := mockService(t)
 		membershipSvc := mocks.NewMembershipService(t)
 
-		repo.EXPECT().ListExpired(ctx).Return(nil, nil)
+		repo.EXPECT().ListExpired(ctx, mock.AnythingOfType("time.Time")).Return(nil, nil)
 
 		svc := invitation.NewService(dialer, repo, orgService, groupService,
 			userService, relationService, prefService, auditRecordRepo, membershipSvc)
@@ -191,7 +196,7 @@ func TestService_DeleteExpiredInvitations(t *testing.T) {
 
 		first := invitation.Invitation{ID: uuid.New(), OrgID: "org-1", UserEmailID: "a@example.com"}
 		second := invitation.Invitation{ID: uuid.New(), OrgID: "org-2", UserEmailID: "b@example.com"}
-		repo.EXPECT().ListExpired(ctx).Return([]invitation.Invitation{first, second}, nil)
+		repo.EXPECT().ListExpired(ctx, mock.AnythingOfType("time.Time")).Return([]invitation.Invitation{first, second}, nil)
 
 		// first invite: tuple delete fails -> Delete returns an error, row not touched
 		relationService.EXPECT().Delete(ctx, mock.MatchedBy(func(rel relation.Relation) bool {
