@@ -85,9 +85,7 @@ type Service struct {
 	cron                  *cron.Cron
 }
 
-// invitationCleanupSchedule runs the expired-invitation cleanup once a day at
-// midnight (UTC).
-const invitationCleanupSchedule = "0 0 * * *"
+const refreshTime = "0 0 * * *" // Once a day at midnight (UTC)
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
@@ -278,7 +276,7 @@ func (s Service) Delete(ctx context.Context, id uuid.UUID) error {
 // only rejects it, Create just writes a new one over it), so without this the
 // expired invites keep their row and both SpiceDB tuples forever.
 func (s Service) InitInvitationCleanup(ctx context.Context) error {
-	_, err := s.cron.AddFunc(invitationCleanupSchedule, func() {
+	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.DeleteExpiredInvitations(ctx); err != nil {
 			slog.WarnContext(ctx, "failed to clean up expired invitations", "err", err)
 		}
