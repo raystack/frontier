@@ -239,7 +239,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 			defer cancel()
 
 			if err := metricsServer.Shutdown(ctxShutdown); err != nil {
-				logger.ErrorContext(ctxShutdown, "metrics server shutdown error", "error", err)
+				logger.ErrorContext(ctxShutdown, "metrics server shutdown error", "err", err)
 				return
 			}
 			logger.Info("Graceful shutdown of metrics server complete")
@@ -257,7 +257,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		defer cancel()
 
 		if err := server.Shutdown(ctxShutdown); err != nil {
-			logger.ErrorContext(ctxShutdown, "HTTP shutdown error", "error", err)
+			logger.ErrorContext(ctxShutdown, "HTTP shutdown error", "err", err)
 			return
 		}
 
