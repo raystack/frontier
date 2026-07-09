@@ -689,7 +689,6 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		// add user to group
 		_, err = s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
 			GroupId:       createGroupResp.Msg.GetGroup().GetId(),
-			OrgId:         existingOrg.Msg.GetOrganization().GetId(),
 			PrincipalId:   createUser2Resp.Msg.GetUser().GetId(),
 			PrincipalType: schema.UserPrincipal,
 			RoleId:        s.groupMemberRole,
@@ -883,15 +882,13 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 	})
 	s.Run("6. group admin update a new team with empty group id should return invalid arg", func() {
 		_, err := s.testBench.Client.UpdateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
-			Id:    "",
-			OrgId: myOrg.GetId(),
-			Body:  &frontierv1beta1.GroupRequestBody{},
+			Id:   "",
+			Body: &frontierv1beta1.GroupRequestBody{},
 		}))
 		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
 	})
 	s.Run("7. group admin update a new team without group id should fail", func() {
 		_, err := s.testBench.Client.UpdateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
-			OrgId: myOrg.GetId(),
 			Body: &frontierv1beta1.GroupRequestBody{
 				Name: "org1-group1",
 				Metadata: &structpb.Struct{
@@ -915,8 +912,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NotNil(createGroupResp.Msg.GetGroup())
 
 		listGroupUsers, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		// only admin as member
@@ -944,7 +940,6 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 
 		addMemberResp, err := s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
 			GroupId:       createGroupResp.Msg.GetGroup().GetId(),
-			OrgId:         createGroupResp.Msg.GetGroup().GetOrgId(),
 			PrincipalId:   createUserResp.Msg.GetUser().GetId(),
 			PrincipalType: schema.UserPrincipal,
 			RoleId:        s.groupMemberRole,
@@ -953,8 +948,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NotNil(addMemberResp)
 
 		listGroupUsersAfterUser, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersAfterUser.Msg.GetUsers(), 2)
@@ -1043,8 +1037,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NotNil(createGroupResp.Msg.GetGroup())
 
 		listGroupUsers, err := s.testBench.Client.ListGroupUsers(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		// only basic user as member
@@ -1061,8 +1054,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NotNil(createGroupResp.Msg.GetGroup())
 
 		listGroupUsers, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		// only admin as member
@@ -1090,7 +1082,6 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 
 		addMemberResp, err := s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
 			GroupId:       createGroupResp.Msg.GetGroup().GetId(),
-			OrgId:         createGroupResp.Msg.GetGroup().GetOrgId(),
 			PrincipalId:   createUserResp.Msg.GetUser().GetId(),
 			PrincipalType: schema.UserPrincipal,
 			RoleId:        s.groupMemberRole,
@@ -1099,8 +1090,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NotNil(addMemberResp)
 
 		listGroupUsersAfterUser, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersAfterUser.Msg.GetUsers(), 2)
@@ -1108,7 +1098,6 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		// remove user from group
 		removeMemberResp, err := s.testBench.Client.RemoveGroupUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
 			Id:     createGroupResp.Msg.GetGroup().GetId(),
-			OrgId:  createGroupResp.Msg.GetGroup().GetOrgId(),
 			UserId: createUserResp.Msg.GetUser().GetId(),
 		}))
 		s.Assert().NoError(err)
@@ -1116,8 +1105,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 
 		// check if the user is still part of group
 		listGroupUsersAfterRemove, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersAfterRemove.Msg.GetUsers(), 1)
@@ -1154,7 +1142,6 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 
 		addMemberResp, err := s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
 			GroupId:       createGroupResp.Msg.GetGroup().GetId(),
-			OrgId:         createGroupResp.Msg.GetGroup().GetOrgId(),
 			PrincipalId:   createUserResp.Msg.GetUser().GetId(),
 			PrincipalType: schema.UserPrincipal,
 			RoleId:        s.groupMemberRole,
@@ -1173,8 +1160,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 
 		// delete group
 		_, err = s.testBench.Client.DeleteGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 
@@ -1186,6 +1172,38 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().False(checkUserStatus.Msg.GetStatus())
+	})
+	s.Run("12. a disabled group is hidden from reads but can still be enabled", func() {
+		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+			OrgId: myOrg.GetId(),
+			Body: &frontierv1beta1.GroupRequestBody{
+				Name: "group-12",
+			},
+		}))
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createGroupResp.Msg.GetGroup())
+		groupID := createGroupResp.Msg.GetGroup().GetId()
+
+		_, err = s.testBench.Client.DisableGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableGroupRequest{
+			Id: groupID,
+		}))
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.Client.GetGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+			Id: groupID,
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.EnableGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.EnableGroupRequest{
+			Id: groupID,
+		}))
+		s.Assert().NoError(err)
+
+		getResp, err := s.testBench.Client.GetGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetGroupRequest{
+			Id: groupID,
+		}))
+		s.Assert().NoError(err)
+		s.Assert().Equal(groupID, getResp.Msg.GetGroup().GetId())
 	})
 }
 
@@ -1359,7 +1377,6 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
 		_, err = s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
 			GroupId:       existingGroup.GetId(),
-			OrgId:         existingGroup.GetOrgId(),
 			PrincipalId:   createUserResp.Msg.GetUser().GetId(),
 			PrincipalType: schema.UserPrincipal,
 			RoleId:        s.groupMemberRole,
@@ -1373,8 +1390,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersRespAfterRelation.Msg.GetUsers())) // one self one admin
 		groupUsersResp, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    existingGroup.GetId(),
-			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+			Id: existingGroup.GetId(),
 		}))
 		s.Assert().NoError(err)
 		var userPartOfGroup bool
@@ -1415,8 +1431,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 
 		// check its relations with group
 		groupUsersRespAfterDeletion, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    existingGroup.GetId(),
-			OrgId: existingOrg.Msg.GetOrganization().GetId(),
+			Id: existingGroup.GetId(),
 		}))
 		s.Assert().NoError(err)
 		for _, rel := range groupUsersRespAfterDeletion.Msg.GetUsers() {
@@ -2319,8 +2334,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(0, len(userOrgsBeforeAcceptResp.Msg.GetOrganizations()))
 		listGroupUsersBeforeAccept, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersBeforeAccept.Msg.GetUsers(), 1)
@@ -2359,8 +2373,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 
 		// should be part of group
 		listGroupUsersAfterAccept, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupUsersRequest{
-			Id:    createGroupResp.Msg.GetGroup().GetId(),
-			OrgId: createGroupResp.Msg.GetGroup().GetOrgId(),
+			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersAfterAccept.Msg.GetUsers(), 2)

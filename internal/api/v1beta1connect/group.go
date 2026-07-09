@@ -100,6 +100,38 @@ func (h *ConnectHandler) ListOrganizationGroups(ctx context.Context, request *co
 	return connect.NewResponse(&frontierv1beta1.ListOrganizationGroupsResponse{Groups: groups}), nil
 }
 
+// ensureOrgEnabled fails with FailedPrecondition when the org is disabled.
+func (h *ConnectHandler) ensureOrgEnabled(ctx context.Context, orgID string) error {
+	if _, err := h.orgService.Get(ctx, orgID); err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		default:
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("ensureOrgEnabled: org_id=%s: %w", orgID, err))
+		}
+	}
+	return nil
+}
+
+// getGroupInEnabledOrg loads the group and makes sure its own org is enabled.
+func (h *ConnectHandler) getGroupInEnabledOrg(ctx context.Context, groupID string) (group.Group, error) {
+	grp, err := h.groupService.Get(ctx, groupID)
+	if err != nil {
+		switch {
+		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
+			return group.Group{}, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+		default:
+			return group.Group{}, connect.NewError(connect.CodeInternal, fmt.Errorf("getGroupInEnabledOrg: group_id=%s: %w", groupID, err))
+		}
+	}
+	if err := h.ensureOrgEnabled(ctx, grp.OrganizationID); err != nil {
+		return group.Group{}, err
+	}
+	return grp, nil
+}
+
 // listGroupUsers returns the users that are members of the given group.
 // When roleID is non-empty, only users with that role are returned.
 func (h *ConnectHandler) listGroupUsers(ctx context.Context, groupID, roleID string) ([]user.User, error) {
@@ -174,26 +206,9 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 }
 
 func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[frontierv1beta1.GetGroupRequest]) (*connect.Response[frontierv1beta1.GetGroupResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	fetchedGroup, err := h.getGroupInEnabledOrg(ctx, request.Msg.GetId())
 	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
-
-	fetchedGroup, err := h.groupService.Get(ctx, request.Msg.GetId())
-	if err != nil {
-		switch {
-		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
-			return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetGroup.Get: group_id=%s: %w", request.Msg.GetId(), err))
-		}
+		return nil, err
 	}
 
 	groupPB, err := transformGroupToPB(fetchedGroup)
@@ -230,30 +245,21 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
-
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
 	}
 
+	if _, err := h.getGroupInEnabledOrg(ctx, request.Msg.GetId()); err != nil {
+		return nil, err
+	}
+
 	updatedGroup, err := h.groupService.Update(ctx, group.Group{
-		ID:             request.Msg.GetId(),
-		Name:           request.Msg.GetBody().GetName(),
-		Title:          request.Msg.GetBody().GetTitle(),
-		OrganizationID: orgResp.ID,
-		Metadata:       metaDataMap,
+		ID:       request.Msg.GetId(),
+		Name:     request.Msg.GetBody().GetName(),
+		Title:    request.Msg.GetBody().GetTitle(),
+		Metadata: metaDataMap,
 	})
 	if err != nil {
 		switch {
@@ -273,21 +279,13 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateGroup: entity_id=%s: %w", updatedGroup.ID, err))
 	}
 
-	audit.GetAuditor(ctx, orgResp.ID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
+	audit.GetAuditor(ctx, updatedGroup.OrganizationID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
 	return connect.NewResponse(&frontierv1beta1.UpdateGroupResponse{Group: &groupPB}), nil
 }
 
 func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListGroupUsersRequest]) (*connect.Response[frontierv1beta1.ListGroupUsersResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListGroupUsers.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
+	if _, err := h.getGroupInEnabledOrg(ctx, request.Msg.GetId()); err != nil {
+		return nil, err
 	}
 
 	members, err := h.membershipService.ListPrincipalsByResource(ctx, request.Msg.GetId(), schema.GroupNamespace, membership.MemberFilter{
@@ -336,16 +334,8 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveGroupUserRequest]) (*connect.Response[frontierv1beta1.RemoveGroupUserResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RemoveGroupUser.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
+	if _, err := h.getGroupInEnabledOrg(ctx, request.Msg.GetId()); err != nil {
+		return nil, err
 	}
 
 	if err := h.membershipService.RemoveGroupMember(ctx, request.Msg.GetId(), request.Msg.GetUserId(), schema.UserPrincipal); err != nil {
@@ -370,21 +360,13 @@ func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.R
 }
 
 func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connect.Request[frontierv1beta1.SetGroupMemberRoleRequest]) (*connect.Response[frontierv1beta1.SetGroupMemberRoleResponse], error) {
-	orgID := request.Msg.GetOrgId()
 	groupID := request.Msg.GetGroupId()
 	principalID := request.Msg.GetPrincipalId()
 	principalType := request.Msg.GetPrincipalType()
 	roleID := request.Msg.GetRoleId()
 
-	if _, err := h.orgService.Get(ctx, orgID); err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SetGroupMemberRole.GetOrg: org_id=%s: %w", orgID, err))
-		}
+	if _, err := h.getGroupInEnabledOrg(ctx, groupID); err != nil {
+		return nil, err
 	}
 
 	if err := h.membershipService.SetGroupMemberRole(ctx, groupID, principalID, principalType, roleID); err != nil {
@@ -414,16 +396,15 @@ func (h *ConnectHandler) SetGroupMemberRole(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Request[frontierv1beta1.EnableGroupRequest]) (*connect.Response[frontierv1beta1.EnableGroupResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	grps, err := h.groupService.GetByIDs(ctx, []string{request.Msg.GetId()}, group.Filter{IncludeDisabled: true})
 	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("EnableGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("EnableGroup.GetByIDs: group_id=%s: %w", request.Msg.GetId(), err))
+	}
+	if len(grps) == 0 {
+		return nil, connect.NewError(connect.CodeNotFound, ErrGroupNotFound)
+	}
+	if err := h.ensureOrgEnabled(ctx, grps[0].OrganizationID); err != nil {
+		return nil, err
 	}
 	if err := h.groupService.Enable(ctx, request.Msg.GetId()); err != nil {
 		switch {
@@ -437,16 +418,8 @@ func (h *ConnectHandler) EnableGroup(ctx context.Context, request *connect.Reque
 }
 
 func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Request[frontierv1beta1.DisableGroupRequest]) (*connect.Response[frontierv1beta1.DisableGroupResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DisableGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
+	if _, err := h.getGroupInEnabledOrg(ctx, request.Msg.GetId()); err != nil {
+		return nil, err
 	}
 	if err := h.groupService.Disable(ctx, request.Msg.GetId()); err != nil {
 		switch {
@@ -460,17 +433,6 @@ func (h *ConnectHandler) DisableGroup(ctx context.Context, request *connect.Requ
 }
 
 func (h *ConnectHandler) DeleteGroup(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteGroupRequest]) (*connect.Response[frontierv1beta1.DeleteGroupResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteGroup.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
 	if err := h.deleterService.DeleteGroup(ctx, request.Msg.GetId()); err != nil {
 		switch {
 		case errors.Is(err, group.ErrNotExist):
