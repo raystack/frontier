@@ -323,29 +323,32 @@ func (s *InvitationRespositoryTestSuite) TestDelete() {
 	}
 }
 
-func (s *InvitationRespositoryTestSuite) TestGarbageCollect() {
-	type testCase struct {
-		Name          string
-		ExpectedError error
-	}
+func (s *InvitationRespositoryTestSuite) TestListExpired() {
+	// the two seeded invites use the default expiry (now + 7 days), so they are
+	// not expired.
+	s.Run("returns nothing when no invite is past its expiry", func() {
+		expired, err := s.repository.ListExpired(s.ctx)
+		require.NoError(s.T(), err)
+		require.Empty(s.T(), expired)
+	})
 
-	var testCases = []testCase{
-		{
-			Name:          "garbage collect",
-			ExpectedError: nil,
-		},
-	}
-
-	for _, tc := range testCases {
-		s.T().Run(tc.Name, func(t *testing.T) {
-			err := s.repository.GarbageCollect(s.ctx)
-			if tc.ExpectedError != nil {
-				require.EqualError(t, err, tc.ExpectedError.Error())
-			} else {
-				require.NoError(t, err)
-			}
+	s.Run("returns only invites past their expiry", func() {
+		expiredID := uuid.New()
+		_, err := s.repository.Set(s.ctx, invitation.Invitation{
+			ID:          expiredID,
+			UserEmailID: s.users[0].Email,
+			OrgID:       s.orgs[0].ID,
+			GroupIDs:    []string{s.groups[0].ID},
+			CreatedAt:   time.Now().UTC().Add(-48 * time.Hour),
+			ExpiresAt:   time.Now().UTC().Add(-24 * time.Hour),
 		})
-	}
+		require.NoError(s.T(), err)
+
+		expired, err := s.repository.ListExpired(s.ctx)
+		require.NoError(s.T(), err)
+		require.Len(s.T(), expired, 1)
+		require.Equal(s.T(), expiredID, expired[0].ID)
+	})
 }
 
 func TestInvitationRespository(t *testing.T) {

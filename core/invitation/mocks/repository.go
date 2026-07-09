@@ -187,6 +187,64 @@ func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, invitatio
 	return _c
 }
 
+// ListExpired provides a mock function with given fields: ctx
+func (_m *Repository) ListExpired(ctx context.Context) ([]invitation.Invitation, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListExpired")
+	}
+
+	var r0 []invitation.Invitation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]invitation.Invitation, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []invitation.Invitation); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]invitation.Invitation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_ListExpired_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListExpired'
+type Repository_ListExpired_Call struct {
+	*mock.Call
+}
+
+// ListExpired is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *Repository_Expecter) ListExpired(ctx interface{}) *Repository_ListExpired_Call {
+	return &Repository_ListExpired_Call{Call: _e.mock.On("ListExpired", ctx)}
+}
+
+func (_c *Repository_ListExpired_Call) Run(run func(ctx context.Context)) *Repository_ListExpired_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *Repository_ListExpired_Call) Return(_a0 []invitation.Invitation, _a1 error) *Repository_ListExpired_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_ListExpired_Call) RunAndReturn(run func(context.Context) ([]invitation.Invitation, error)) *Repository_ListExpired_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListByUser provides a mock function with given fields: ctx, id
 func (_m *Repository) ListByUser(ctx context.Context, id string) ([]invitation.Invitation, error) {
 	ret := _m.Called(ctx, id)

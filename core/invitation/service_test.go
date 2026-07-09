@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/invitation/mocks"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/errors"
 	mocks2 "github.com/raystack/frontier/pkg/mailer/mocks"
@@ -145,4 +146,67 @@ func TestService_Accept_DedupesExistingGroupMembers(t *testing.T) {
 
 	err := svc.Accept(ctx, inviteID)
 	assert.NoError(t, err)
+}
+
+func TestService_DeleteExpiredInvitations(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("deletes each expired invitation through Delete (row + both tuples)", func(t *testing.T) {
+		dialer, repo, orgService, groupService, userService, relationService, prefService, auditRecordRepo := mockService(t)
+		membershipSvc := mocks.NewMembershipService(t)
+
+		expired := []invitation.Invitation{
+			{ID: uuid.New(), OrgID: "org-1", UserEmailID: "a@example.com"},
+			{ID: uuid.New(), OrgID: "org-2", UserEmailID: "b@example.com"},
+		}
+		repo.EXPECT().ListExpired(ctx).Return(expired, nil)
+		for _, inv := range expired {
+			// Delete removes every relation on the invitation object (object-only,
+			// no RelationName) so both the #user and #org tuples go, then the row.
+			relationService.EXPECT().Delete(ctx, mock.AnythingOfType("relation.Relation")).Return(nil).Once()
+			repo.EXPECT().Delete(ctx, inv.ID).Return(nil).Once()
+		}
+
+		svc := invitation.NewService(dialer, repo, orgService, groupService,
+			userService, relationService, prefService, auditRecordRepo, membershipSvc)
+
+		assert.NoError(t, svc.DeleteExpiredInvitations(ctx))
+	})
+
+	t.Run("nothing expired is a no-op", func(t *testing.T) {
+		dialer, repo, orgService, groupService, userService, relationService, prefService, auditRecordRepo := mockService(t)
+		membershipSvc := mocks.NewMembershipService(t)
+
+		repo.EXPECT().ListExpired(ctx).Return(nil, nil)
+
+		svc := invitation.NewService(dialer, repo, orgService, groupService,
+			userService, relationService, prefService, auditRecordRepo, membershipSvc)
+
+		assert.NoError(t, svc.DeleteExpiredInvitations(ctx))
+	})
+
+	t.Run("one Delete failing does not stop the rest", func(t *testing.T) {
+		dialer, repo, orgService, groupService, userService, relationService, prefService, auditRecordRepo := mockService(t)
+		membershipSvc := mocks.NewMembershipService(t)
+
+		first := invitation.Invitation{ID: uuid.New(), OrgID: "org-1", UserEmailID: "a@example.com"}
+		second := invitation.Invitation{ID: uuid.New(), OrgID: "org-2", UserEmailID: "b@example.com"}
+		repo.EXPECT().ListExpired(ctx).Return([]invitation.Invitation{first, second}, nil)
+
+		// first invite: tuple delete fails -> Delete returns an error, row not touched
+		relationService.EXPECT().Delete(ctx, mock.MatchedBy(func(rel relation.Relation) bool {
+			return rel.Object.ID == first.ID.String()
+		})).Return(assert.AnError).Once()
+		// second invite still processed
+		relationService.EXPECT().Delete(ctx, mock.MatchedBy(func(rel relation.Relation) bool {
+			return rel.Object.ID == second.ID.String()
+		})).Return(nil).Once()
+		repo.EXPECT().Delete(ctx, second.ID).Return(nil).Once()
+
+		svc := invitation.NewService(dialer, repo, orgService, groupService,
+			userService, relationService, prefService, auditRecordRepo, membershipSvc)
+
+		// the sweep itself does not error; per-item failures are logged and skipped
+		assert.NoError(t, svc.DeleteExpiredInvitations(ctx))
+	})
 }
