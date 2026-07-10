@@ -108,9 +108,13 @@ func NewService(dialer mailer.Dialer, repo Repository,
 		prefService:           prefService,
 		auditRecordRepository: auditRecordRepository,
 		membershipSvc:         membershipSvc,
-		// Recover so a panic inside the cleanup job can't take down the scheduler
-		// (or the server) — the job just logs and the next tick runs as usual.
-		cron: cron.New(cron.WithChain(cron.Recover(cron.DefaultLogger))),
+		// Pin to UTC so the schedule runs at midnight UTC regardless of the host's
+		// local time zone. Recover so a panic inside the cleanup job can't take down
+		// the scheduler (or the server) — the job just logs and the next tick runs.
+		cron: cron.New(
+			cron.WithLocation(time.UTC),
+			cron.WithChain(cron.Recover(cron.DefaultLogger)),
+		),
 	}
 }
 
