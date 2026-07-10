@@ -88,7 +88,7 @@ export const OrganizationSecurity = () => {
           isLoading={isLoading}
           domains={domains ?? []}
           error={error}
-          onRetry={() => refetch()}
+          onRetry={refetch}
         />
         <Separator />
         <BlockOrganizationSection />

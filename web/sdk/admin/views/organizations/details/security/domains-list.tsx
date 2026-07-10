@@ -148,8 +148,7 @@ export const DomainsList = ({
       <Flex
         justify="between"
         align="center"
-        className={styles["domains-list"]}
-        style={{ padding: "var(--rs-space-5) var(--rs-space-7)" }}
+        className={`${styles["domains-list"]} ${styles["domains-list-status"]}`}
       >
         <Text size="small" variant="secondary">
           Couldn&apos;t load email domains
@@ -158,7 +157,7 @@ export const DomainsList = ({
           variant="outline"
           color="neutral"
           size="small"
-          onClick={() => onRetry()}
+          onClick={onRetry}
           data-test-id="retry-domains-button"
         >
           Retry
@@ -171,8 +170,7 @@ export const DomainsList = ({
     <Flex
       justify="between"
       align="center"
-      className={styles["domains-list"]}
-      style={{ padding: "var(--rs-space-5) var(--rs-space-7)" }}
+      className={`${styles["domains-list"]} ${styles["domains-list-status"]}`}
     >
       <Skeleton height={16} width={180} />
       <Skeleton height={20} width={20} borderRadius="var(--rs-radius-2)" />
@@ -187,12 +185,8 @@ export const DomainsList = ({
       ))}
     </Flex>
   ) : (
-    <Flex className={styles["domains-list"]}>
-      <Text
-        size="small"
-        variant="secondary"
-        style={{ padding: "var(--rs-space-5) 0" }}
-      >
+    <Flex className={`${styles["domains-list"]} ${styles["domains-list-empty"]}`}>
+      <Text size="small" variant="secondary">
         No allowed email domains added yet
       </Text>
     </Flex>
