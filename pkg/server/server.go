@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -12,8 +13,6 @@ import (
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-
-	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/salt/server/spa"
@@ -66,48 +65,72 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 	if err != nil {
 		logger.Warn("failed to load ui", "err", err)
 		return
-	} else {
-		connectRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Connect.Port)
-		connectRemote, err := url.Parse(connectRemoteHost)
-		if err != nil {
-			logger.Error("ui server failed: unable to parse connect server host")
-			return
+	}
+
+	connectRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Connect.Port)
+	connectRemote, err := url.Parse(connectRemoteHost)
+	if err != nil {
+		logger.Error("ui server failed: unable to parse connect server host")
+		return
+	}
+
+	connectProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+		return func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = strings.Replace(r.URL.Path, "/frontier-connect", "", -1)
+			r.Host = connectRemoteHost
+			p.ServeHTTP(w, r)
 		}
+	}
 
-		connectProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
-			return func(w http.ResponseWriter, r *http.Request) {
-				r.URL.Path = strings.Replace(r.URL.Path, "/frontier-connect", "", -1)
-				r.Host = connectRemoteHost
-				p.ServeHTTP(w, r)
-			}
+	connectProxy := httputil.NewSingleHostReverseProxy(connectRemote)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		confResp := UIConfigApiResponse{
+			Title:             uiConfig.Title,
+			Logo:              uiConfig.Logo,
+			AppUrl:            uiConfig.AppURL,
+			TokenProductId:    uiConfig.TokenProductId,
+			OrganizationTypes: uiConfig.OrganizationTypes,
+			Webhooks: WebhooksConfigApiResponse{
+				EnableDelete: uiConfig.Webhooks.EnableDelete,
+			},
+			Terminology: uiConfig.Terminology,
 		}
+		json.NewEncoder(w).Encode(confResp)
+	})
 
-		connectProxy := httputil.NewSingleHostReverseProxy(connectRemote)
+	mux.HandleFunc("/frontier-connect/", connectProxyHandler(connectProxy))
+	mux.Handle("/", http.StripPrefix("/", spaHandler))
 
-		http.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			confResp := UIConfigApiResponse{
-				Title:             uiConfig.Title,
-				Logo:              uiConfig.Logo,
-				AppUrl:            uiConfig.AppURL,
-				TokenProductId:    uiConfig.TokenProductId,
-				OrganizationTypes: uiConfig.OrganizationTypes,
-				Webhooks: WebhooksConfigApiResponse{
-					EnableDelete: uiConfig.Webhooks.EnableDelete,
-				},
-				Terminology: uiConfig.Terminology,
-			}
-			json.NewEncoder(w).Encode(confResp)
-		})
-
-		http.HandleFunc("/frontier-connect/", connectProxyHandler(connectProxy))
-		http.Handle("/", http.StripPrefix("/", spaHandler))
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", uiConfig.Port),
+		Handler: mux,
 	}
 
 	logger.Info("ui server starting", "http-port", uiConfig.Port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), nil); err != nil {
+	serveErr := make(chan error, 1)
+	go func() {
+		serveErr <- server.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serveErr:
 		logger.Error("ui server failed", "err", err)
+		return
+	case <-ctx.Done():
 	}
+
+	ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
+	defer cancel()
+
+	if err := server.Shutdown(ctxShutdown); err != nil {
+		logger.ErrorContext(ctxShutdown, "ui server shutdown error", "err", err)
+		return
+	}
+
+	logger.Info("Graceful shutdown of ui server complete")
 }
 
 func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
