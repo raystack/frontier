@@ -277,9 +277,7 @@ func (s Service) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // InitInvitationCleanup starts a background job that deletes expired invitations
-// on a daily schedule. Nothing else removes an invite once it expires (Accept
-// only rejects it, Create just writes a new one over it), so without this the
-// expired invites keep their row and both SpiceDB tuples forever.
+// on a daily schedule.
 func (s Service) InitInvitationCleanup(ctx context.Context) error {
 	_, err := s.cron.AddFunc(refreshTime, func() {
 		if err := s.DeleteExpiredInvitations(ctx); err != nil {
@@ -294,11 +292,7 @@ func (s Service) InitInvitationCleanup(ctx context.Context) error {
 }
 
 // DeleteExpiredInvitations removes invitations that expired at least
-// invitationRetention ago. Recently expired invites are left alone so they
-// still show up in the list APIs; the next daily run deletes them once they
-// cross the retention window. It goes through Delete (not a raw row purge) so
-// each invite's SpiceDB tuples AND its invitations row are removed together —
-// a row-only delete would leak the #user / #org tuples behind.
+// invitationRetention ago.
 func (s Service) DeleteExpiredInvitations(ctx context.Context) error {
 	expiredBefore := time.Now().UTC().Add(-invitationRetention)
 	expired, err := s.repo.ListExpired(ctx, expiredBefore)
