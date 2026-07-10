@@ -18,6 +18,7 @@ import (
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/preference"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/robfig/cron/v3"
 	"gopkg.in/mail.v2"
 
 	"github.com/raystack/frontier/pkg/mailer"
@@ -36,6 +37,7 @@ type Repository interface {
 	ListByUser(ctx context.Context, id string) ([]Invitation, error)
 	Get(ctx context.Context, id uuid.UUID) (Invitation, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	ListExpired(ctx context.Context, expiredBefore time.Time) ([]Invitation, error)
 }
 
 type UserService interface {
@@ -80,7 +82,15 @@ type Service struct {
 	prefService           PreferencesService
 	auditRecordRepository AuditRecordRepository
 	membershipSvc         MembershipService
+	cron                  *cron.Cron
 }
+
+const refreshTime = "0 0 * * *" // Once a day at midnight (UTC)
+
+// invitationRetention is how long an invitation is kept after it expires before
+// the cleanup job deletes it. During this window a recently expired invite is
+// still returned by the list APIs; the cron removes it once it is this old.
+const invitationRetention = 7 * 24 * time.Hour
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
@@ -98,6 +108,13 @@ func NewService(dialer mailer.Dialer, repo Repository,
 		prefService:           prefService,
 		auditRecordRepository: auditRecordRepository,
 		membershipSvc:         membershipSvc,
+		// Pin to UTC so the schedule runs at midnight UTC regardless of the host's
+		// local time zone. Recover so a panic inside the cleanup job can't take down
+		// the scheduler (or the server) — the job just logs and the next tick runs.
+		cron: cron.New(
+			cron.WithLocation(time.UTC),
+			cron.WithChain(cron.Recover(cron.DefaultLogger)),
+		),
 	}
 }
 
@@ -261,6 +278,48 @@ func (s Service) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("failed to delete relation for invitation: %w", err)
 	}
 	return s.repo.Delete(ctx, id)
+}
+
+// InitInvitationCleanup starts a background job that deletes expired invitations
+// on a daily schedule.
+func (s Service) InitInvitationCleanup(ctx context.Context) error {
+	_, err := s.cron.AddFunc(refreshTime, func() {
+		if err := s.DeleteExpiredInvitations(ctx); err != nil {
+			slog.WarnContext(ctx, "failed to clean up expired invitations", "err", err)
+		}
+	})
+	if err != nil {
+		return err
+	}
+	s.cron.Start()
+	return nil
+}
+
+// DeleteExpiredInvitations removes invitations that expired at least
+// invitationRetention ago.
+func (s Service) DeleteExpiredInvitations(ctx context.Context) error {
+	expiredBefore := time.Now().UTC().Add(-invitationRetention)
+	expired, err := s.repo.ListExpired(ctx, expiredBefore)
+	if err != nil {
+		return fmt.Errorf("failed to list expired invitations: %w", err)
+	}
+	deleted := 0
+	for _, inv := range expired {
+		if err := s.Delete(ctx, inv.ID); err != nil {
+			slog.WarnContext(ctx, "failed to delete expired invitation", "invitation_id", inv.ID.String(), "err", err)
+			continue
+		}
+		deleted++
+	}
+	if deleted > 0 {
+		slog.DebugContext(ctx, "deleted expired invitations", "count", deleted)
+	}
+	return nil
+}
+
+// Close stops the background cleanup job.
+func (s Service) Close() error {
+	return s.cron.Stop().Err()
 }
 
 // check if user is already part of the organization that the invitation is created for

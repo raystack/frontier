@@ -268,6 +268,17 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		}
 	}()
 
+	// periodic cleanup of expired invitations (removes the row + both SpiceDB tuples)
+	if err := deps.InvitationService.InitInvitationCleanup(ctx); err != nil {
+		logger.Warn("invitation cleanup initialization failed", "err", err)
+	}
+	defer func() {
+		logger.Debug("cleaning up expired invitations job")
+		if err := deps.InvitationService.Close(); err != nil {
+			logger.Warn("invitation cleanup shutdown failed", "err", err)
+		}
+	}()
+
 	if cfg.Billing.StripeKey != "" {
 		// billing services initialization and cleanup
 		if err := deps.CustomerService.Init(ctx); err != nil {

@@ -243,27 +243,37 @@ func (s *InvitationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	})
 }
 
-// TODO(kushsharma): schedue a cron for it
-func (s *InvitationRepository) GarbageCollect(ctx context.Context) error {
-	query, params, err := dialect.Delete(TABLE_INVITATIONS).
+// ListExpired returns every invitation whose expires_at is at or before
+// expiredBefore.
+func (s *InvitationRepository) ListExpired(ctx context.Context, expiredBefore time.Time) ([]invitation.Invitation, error) {
+	var fetchedInvitations []Invitation
+	query, params, err := dialect.From(TABLE_INVITATIONS).
 		Where(
 			goqu.Ex{
-				"expires_at": goqu.Op{"lte": s.Now()},
+				"expires_at": goqu.Op{"lte": expiredBefore},
 			},
 		).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "GarbageCollect", func(ctx context.Context) error {
-		result, err := s.dbc.ExecContext(ctx, query, params...)
-		if err != nil {
-			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
+	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "ListExpired", func(ctx context.Context) error {
+		return s.dbc.SelectContext(ctx, &fetchedInvitations, query, params...)
+	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
 		}
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
 
-		count, _ := result.RowsAffected()
-		s.log.DebugContext(ctx, "deleted expired invitation", "expired_invitations_count", count)
-		return nil
-	})
+	var transformedInvitations []invitation.Invitation
+	for _, o := range fetchedInvitations {
+		transPerm, err := o.transformToInvitation()
+		if err != nil {
+			return nil, fmt.Errorf("failed to transform invitation model: %w", err)
+		}
+		transformedInvitations = append(transformedInvitations, transPerm)
+	}
+
+	return transformedInvitations, nil
 }
