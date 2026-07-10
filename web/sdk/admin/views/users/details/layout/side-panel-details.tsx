@@ -3,7 +3,7 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import styles from "./side-panel.module.css";
 import { UserState, USER_STATES } from "../../util";
 import { useUser } from "../user-context";
-import { timestampToDayjs } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "../../../../utils/connect-timestamp";
 
 export const SidePanelDetails = () => {
   const { user } = useUser();
@@ -37,7 +37,7 @@ export const SidePanelDetails = () => {
           <Flex gap={3}>
             <CalendarIcon />
             <Text>
-              {timestampToDayjs(user?.createdAt)?.format("DD MMM YYYY")}
+              {formatTimestamp(user?.createdAt)}
             </Text>
           </Flex>
         </List.Value>

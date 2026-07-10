@@ -12,6 +12,7 @@ import type {
   SearchOrganizationPATsResponse_OrganizationPAT,
 } from "@raystack/proton/frontier";
 import {
+  formatTimestamp,
   isNullTimestamp,
   timestampToDayjs,
 } from "~/admin/utils/connect-timestamp";
@@ -24,8 +25,6 @@ dayjs.extend(relativeTime);
 interface GetColumnsOptions {
   projectsMap: Record<string, Project>;
 }
-
-const DATE_FORMAT = "DD MMM YYYY";
 
 export function getColumns({
   projectsMap,
@@ -90,10 +89,9 @@ export function getColumns({
       accessorKey: "createdAt",
       header: "Created On",
       styles: { header: { width: "152px" } },
-      cell: ({ row }) => {
-        const date = timestampToDayjs(row.original.createdAt);
-        return date ? <Text>{date.format(DATE_FORMAT)}</Text> : <Text>-</Text>;
-      },
+      cell: ({ row }) => (
+        <Text>{formatTimestamp(row.original.createdAt)}</Text>
+      ),
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",
@@ -103,12 +101,9 @@ export function getColumns({
       accessorKey: "expiresAt",
       header: "Expiry Date",
       styles: { header: { width: "152px" } },
-      cell: ({ row }) => {
-        const expiresAt = row.original.expiresAt;
-        if (!expiresAt || isNullTimestamp(expiresAt)) return <Text>-</Text>;
-        const date = timestampToDayjs(expiresAt);
-        return date ? <Text>{date.format(DATE_FORMAT)}</Text> : <Text>-</Text>;
-      },
+      cell: ({ row }) => (
+        <Text>{formatTimestamp(row.original.expiresAt)}</Text>
+      ),
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",

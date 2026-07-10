@@ -1,11 +1,10 @@
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara";
 import styles from "./side-panel.module.css";
-import dayjs from "dayjs";
 import { useContext } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import type { Organization } from "@raystack/proton/frontier";
-import { timestampToDate } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "../../../../utils/connect-timestamp";
 
 interface OrganizationDetailsSectionProps {
   organization: Organization;
@@ -61,11 +60,7 @@ export const OrganizationDetailsSection = ({
         <List.Value>
           <Flex gap={3}>
             <CalendarIcon />
-            <Text>
-              {dayjs(timestampToDate(organization.createdAt)).format(
-                "DD MMM YYYY",
-              )}
-            </Text>
+            <Text>{formatTimestamp(organization.createdAt)}</Text>
           </Flex>
         </List.Value>
       </List.Item>

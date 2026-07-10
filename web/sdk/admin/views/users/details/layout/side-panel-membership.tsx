@@ -1,11 +1,10 @@
 import { Flex, List, Text, Avatar } from "@raystack/apsara";
-import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";
 import { type SearchUserOrganizationsResponse_UserOrganization } from "@raystack/proton/frontier";
 import styles from "./side-panel.module.css";
 import { MembershipDropdown } from "./membership-dropdown";
-import { timestampToDate, isNullTimestamp } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "../../../../utils/connect-timestamp";
 
 interface SidePanelMembershipProps {
   data?: SearchUserOrganizationsResponse_UserOrganization;
@@ -69,9 +68,7 @@ export const SidePanelMembership = ({
           <Flex gap={3}>
             <CalendarIcon />
             <Text>
-              {data?.orgJoinedOn && !isNullTimestamp(data.orgJoinedOn)
-                ? dayjs(timestampToDate(data.orgJoinedOn)).format("DD MMM YYYY")
-                : "-"}
+              {formatTimestamp(data?.orgJoinedOn)}
             </Text>
           </Flex>
         </List.Value>
