@@ -9,9 +9,17 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/raystack/frontier/web/apps/admin"
 )
 
 func TestServeUIReturnsAfterShutdownOnContextCancel(t *testing.T) {
+	if f, err := admin.Assets.Open("dist/admin/index.html"); err != nil {
+		t.Skip("admin SPA assets are not built; ServeUI exits before starting the server")
+	} else {
+		f.Close()
+	}
+
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	l, err := net.Listen("tcp", "127.0.0.1:0")
