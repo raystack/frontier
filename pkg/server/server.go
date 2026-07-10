@@ -70,7 +70,7 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 	connectRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Connect.Port)
 	connectRemote, err := url.Parse(connectRemoteHost)
 	if err != nil {
-		logger.Error("ui server failed: unable to parse connect server host")
+		logger.Error("ui server failed: unable to parse connect server host", "err", err)
 		return
 	}
 
