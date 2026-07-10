@@ -170,7 +170,7 @@ export default function PreferenceDetails({
       key: "Last updated",
       value:
         preference?.updatedAt &&
-        dayjs(timestampDate(preference.updatedAt)).format("MMM DD, YYYY hh:mm:ss A"),
+        dayjs(timestampDate(preference.updatedAt)).format("DD MMM YYYY hh:mm:ss A"),
     },
   ];
 

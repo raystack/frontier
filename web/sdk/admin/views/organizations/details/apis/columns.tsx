@@ -52,7 +52,7 @@ SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
       header: "Created on",
       cell: ({ getValue }) => {
         const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+        return value !== NULL_DATE ? dayjs(value).format("DD MMM YYYY") : "-";
       },
       enableSorting: true,
       enableColumnFilter: true,

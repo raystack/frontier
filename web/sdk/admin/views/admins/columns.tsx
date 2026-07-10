@@ -20,13 +20,13 @@ export const getColumns: (options?: {
         cell: styles["first-column"],
         header: styles["first-column"],
       },
-      filterVariant: "text",
+      filterType: "string",
       cell: (info) => info.getValue() || "-",
     },
     {
       header: "Email",
       accessorKey: "email",
-      filterVariant: "text",
+      filterType: "string",
       cell: (info) => info.getValue() || "-",
     },
     {

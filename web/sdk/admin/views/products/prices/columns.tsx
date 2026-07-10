@@ -1,7 +1,7 @@
 import type { Price as PriceType } from "@raystack/proton/frontier";
 import { Amount } from "@raystack/apsara";
 import type { DataTableColumnDef } from "@raystack/apsara";
-import { timestampToDate, TimeStamp } from "../../../utils/connect-timestamp";
+import { timestampToDayjs, TimeStamp } from "../../../utils/connect-timestamp";
 import styles from "./prices.module.css";
 
 export const getColumns = (
@@ -16,31 +16,31 @@ export const getColumns = (
         header: styles["first-column"],
       },
       cell: (info) => info.getValue(),
-      filterVariant: "text",
+      filterType: "string",
     },
     {
       header: "name",
       accessorKey: "name",
       cell: (info) => info.getValue(),
-      filterVariant: "text",
+      filterType: "string",
     },
     {
       header: "interval",
       accessorKey: "interval",
       cell: (info) => info.getValue(),
-      filterVariant: "text",
+      filterType: "string",
     },
     {
       header: "Usage Type",
       accessorKey: "usageType",
       cell: (info) => info.getValue(),
-      filterVariant: "text",
+      filterType: "string",
     },
     {
       header: "billing_scheme",
       accessorKey: "billingScheme",
       cell: (info) => info.getValue(),
-      filterVariant: "text",
+      filterType: "string",
     },
     {
       header: "Amount",
@@ -51,20 +51,15 @@ export const getColumns = (
           currency={row.original.currency}
         />
       ),
-      filterVariant: "text",
+      filterType: "string",
     },
     {
       header: "creation date",
       accessorKey: "createdAt",
       cell: ({ getValue }) => {
         const timestamp = getValue() as TimeStamp | undefined;
-        const date = timestampToDate(timestamp);
-        if (!date) return "-";
-        return date.toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        });
+        const date = timestampToDayjs(timestamp);
+        return date ? date.format("DD MMM YYYY") : "-";
       },
     },
     {
@@ -73,13 +68,8 @@ export const getColumns = (
       enableColumnFilter: false,
       cell: ({ getValue }) => {
         const timestamp = getValue() as TimeStamp | undefined;
-        const date = timestampToDate(timestamp);
-        if (!date) return "-";
-        return date.toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        });
+        const date = timestampToDayjs(timestamp);
+        return date ? date.format("DD MMM YYYY") : "-";
       },
     },
   ];

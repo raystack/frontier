@@ -10,19 +10,19 @@ export const getColumns: () => DataTableColumnDef<Role, unknown>[] = () => {
         cell: styles["first-column"],
         header: styles["first-column"],
       },
-      filterVariant: "text",
+      filterType: "string",
       cell: ({ getValue }) => getValue(),
     },
     {
       header: "Title",
       accessorKey: "title",
-      filterVariant: "text",
+      filterType: "string",
       cell: info => info.getValue(),
     },
     {
       header: "Name",
       accessorKey: "name",
-      filterVariant: "text",
+      filterType: "string",
       cell: info => info.getValue(),
     },
     {

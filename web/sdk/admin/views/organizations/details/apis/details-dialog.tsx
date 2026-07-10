@@ -129,7 +129,7 @@ export const ServiceUserDetailsDialog = ({
                     >
                       <Text weight="medium">{token.title}</Text>
                       <Text size="micro">
-                        {timestampToDayjs(token.createdAt)?.format("YYYY-MM-DD")}
+                        {timestampToDayjs(token.createdAt)?.format("DD MMM YYYY")}
                       </Text>
                     </Flex>
                   ))}

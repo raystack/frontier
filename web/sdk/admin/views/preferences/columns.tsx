@@ -23,7 +23,7 @@ export const getColumns: (
         cell: styles["first-column"],
         header: styles["first-column"],
       },
-      filterVariant: "text",
+      filterType: "string",
       cell: (info) => info.getValue(),
       footer: (props) => props.column.id,
     },

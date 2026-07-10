@@ -72,7 +72,7 @@ export const getColumns = ({
         const value = getValue() as TimeStamp;
         const date = isNullTimestamp(value)
           ? "-"
-          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+          : dayjs(timestampToDate(value)).format("DD MMM YYYY");
         return <Text>{date}</Text>;
       },
       enableHiding: true,

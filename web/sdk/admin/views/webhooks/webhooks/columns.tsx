@@ -34,13 +34,13 @@ export const getColumns: (
         cell: styles["first-column"],
         header: styles["first-column"],
       },
-      filterVariant: "text",
+      filterType: "string",
       cell: (info) => info.getValue() || "-",
     },
     {
       header: "State",
       accessorKey: "state",
-      filterVariant: "text",
+      filterType: "string",
       classNames: { cell: styles.stateColumn, header: styles.stateColumn },
       cell: (info) => info.getValue() || "-",
     },
@@ -57,7 +57,7 @@ export const getColumns: (
         const value = getValue() as TimeStamp;
         const date = isNullTimestamp(value)
           ? "-"
-          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
+          : dayjs(timestampToDate(value)).format("DD MMM YYYY");
         return <Text>{date}</Text>;
       },
     },
