@@ -323,29 +323,51 @@ func (s *InvitationRespositoryTestSuite) TestDelete() {
 	}
 }
 
-func (s *InvitationRespositoryTestSuite) TestGarbageCollect() {
-	type testCase struct {
-		Name          string
-		ExpectedError error
-	}
+func (s *InvitationRespositoryTestSuite) TestListExpired() {
+	cutoff := time.Now().UTC().Add(-7 * 24 * time.Hour) // retention window: 7 days
 
-	var testCases = []testCase{
-		{
-			Name:          "garbage collect",
-			ExpectedError: nil,
-		},
-	}
+	// the two seeded invites use the default expiry (now + 7 days), so they are
+	// not expired.
+	s.Run("returns nothing when no invite is older than the cutoff", func() {
+		expired, err := s.repository.ListExpired(s.ctx, cutoff)
+		require.NoError(s.T(), err)
+		require.Empty(s.T(), expired)
+	})
 
-	for _, tc := range testCases {
-		s.T().Run(tc.Name, func(t *testing.T) {
-			err := s.repository.GarbageCollect(s.ctx)
-			if tc.ExpectedError != nil {
-				require.EqualError(t, err, tc.ExpectedError.Error())
-			} else {
-				require.NoError(t, err)
-			}
+	s.Run("skips a recently expired invite that is still within the retention window", func() {
+		recentID := uuid.New()
+		_, err := s.repository.Set(s.ctx, invitation.Invitation{
+			ID:          recentID,
+			UserEmailID: s.users[0].Email,
+			OrgID:       s.orgs[0].ID,
+			GroupIDs:    []string{s.groups[0].ID},
+			CreatedAt:   time.Now().UTC().Add(-8 * 24 * time.Hour),
+			ExpiresAt:   time.Now().UTC().Add(-24 * time.Hour), // expired 1 day ago
 		})
-	}
+		require.NoError(s.T(), err)
+
+		expired, err := s.repository.ListExpired(s.ctx, cutoff)
+		require.NoError(s.T(), err)
+		require.Empty(s.T(), expired)
+	})
+
+	s.Run("returns only invites that expired before the cutoff", func() {
+		oldID := uuid.New()
+		_, err := s.repository.Set(s.ctx, invitation.Invitation{
+			ID:          oldID,
+			UserEmailID: s.users[0].Email,
+			OrgID:       s.orgs[0].ID,
+			GroupIDs:    []string{s.groups[0].ID},
+			CreatedAt:   time.Now().UTC().Add(-15 * 24 * time.Hour),
+			ExpiresAt:   time.Now().UTC().Add(-8 * 24 * time.Hour), // expired 8 days ago
+		})
+		require.NoError(s.T(), err)
+
+		expired, err := s.repository.ListExpired(s.ctx, cutoff)
+		require.NoError(s.T(), err)
+		require.Len(s.T(), expired, 1)
+		require.Equal(s.T(), oldID, expired[0].ID)
+	})
 }
 
 func TestInvitationRespository(t *testing.T) {

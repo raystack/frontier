@@ -230,9 +230,16 @@ func (_c *GroupService_Get_Call) RunAndReturn(run func(context.Context, string) 
 	return _c
 }
 
-// GetByIDs provides a mock function with given fields: ctx, ids
-func (_m *GroupService) GetByIDs(ctx context.Context, ids []string) ([]group.Group, error) {
-	ret := _m.Called(ctx, ids)
+// GetByIDs provides a mock function with given fields: ctx, ids, flt
+func (_m *GroupService) GetByIDs(ctx context.Context, ids []string, flt ...group.Filter) ([]group.Group, error) {
+	_va := make([]interface{}, len(flt))
+	for _i := range flt {
+		_va[_i] = flt[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, ids)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetByIDs")
@@ -240,19 +247,19 @@ func (_m *GroupService) GetByIDs(ctx context.Context, ids []string) ([]group.Gro
 
 	var r0 []group.Group
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]group.Group, error)); ok {
-		return rf(ctx, ids)
+	if rf, ok := ret.Get(0).(func(context.Context, []string, ...group.Filter) ([]group.Group, error)); ok {
+		return rf(ctx, ids, flt...)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []group.Group); ok {
-		r0 = rf(ctx, ids)
+	if rf, ok := ret.Get(0).(func(context.Context, []string, ...group.Filter) []group.Group); ok {
+		r0 = rf(ctx, ids, flt...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]group.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
-		r1 = rf(ctx, ids)
+	if rf, ok := ret.Get(1).(func(context.Context, []string, ...group.Filter) error); ok {
+		r1 = rf(ctx, ids, flt...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -268,13 +275,21 @@ type GroupService_GetByIDs_Call struct {
 // GetByIDs is a helper method to define mock.On call
 //   - ctx context.Context
 //   - ids []string
-func (_e *GroupService_Expecter) GetByIDs(ctx interface{}, ids interface{}) *GroupService_GetByIDs_Call {
-	return &GroupService_GetByIDs_Call{Call: _e.mock.On("GetByIDs", ctx, ids)}
+//   - flt ...group.Filter
+func (_e *GroupService_Expecter) GetByIDs(ctx interface{}, ids interface{}, flt ...interface{}) *GroupService_GetByIDs_Call {
+	return &GroupService_GetByIDs_Call{Call: _e.mock.On("GetByIDs",
+		append([]interface{}{ctx, ids}, flt...)...)}
 }
 
-func (_c *GroupService_GetByIDs_Call) Run(run func(ctx context.Context, ids []string)) *GroupService_GetByIDs_Call {
+func (_c *GroupService_GetByIDs_Call) Run(run func(ctx context.Context, ids []string, flt ...group.Filter)) *GroupService_GetByIDs_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string))
+		variadicArgs := make([]group.Filter, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(group.Filter)
+			}
+		}
+		run(args[0].(context.Context), args[1].([]string), variadicArgs...)
 	})
 	return _c
 }
@@ -284,7 +299,7 @@ func (_c *GroupService_GetByIDs_Call) Return(_a0 []group.Group, _a1 error) *Grou
 	return _c
 }
 
-func (_c *GroupService_GetByIDs_Call) RunAndReturn(run func(context.Context, []string) ([]group.Group, error)) *GroupService_GetByIDs_Call {
+func (_c *GroupService_GetByIDs_Call) RunAndReturn(run func(context.Context, []string, ...group.Filter) ([]group.Group, error)) *GroupService_GetByIDs_Call {
 	_c.Call.Return(run)
 	return _c
 }

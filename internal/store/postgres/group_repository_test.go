@@ -494,24 +494,22 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 			ErrString: group.ErrInvalidUUID.Error(),
 		},
 		{
-			Description: "should return error if org id is not uuid",
+			Description: "should not change org id on update",
 			GroupToUpdate: group.Group{
 				ID:             s.groups[0].ID,
-				Name:           "not-exist",
-				OrganizationID: "not-uuid",
+				Name:           "group-org-stays",
+				Title:          "group-org-stays",
+				OrganizationID: s.orgs[1].ID,
 				Metadata:       metadata.Metadata{},
 			},
-			ErrString: organization.ErrInvalidUUID.Error(),
-		},
-		{
-			Description: "should return error if org id not exist",
-			GroupToUpdate: group.Group{
+			ExpectedGroup: group.Group{
 				ID:             s.groups[0].ID,
-				Name:           "not-exist",
-				OrganizationID: uuid.NewString(),
+				Name:           "group-org-stays",
+				Title:          "group-org-stays",
+				OrganizationID: s.orgs[0].ID,
+				State:          group.Enabled,
 				Metadata:       metadata.Metadata{},
 			},
-			ErrString: organization.ErrNotExist.Error(),
 		},
 		{
 			Description: "should return error if group id is empty",

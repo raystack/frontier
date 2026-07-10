@@ -154,9 +154,9 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 	cmd := &cli.Command{
 		Use:   "view",
 		Short: "View a group",
-		Args:  cli.ExactArgs(2),
+		Args:  cli.ExactArgs(1),
 		Example: heredoc.Doc(`
-			$ frontier group view <org-id> <group-id>
+			$ frontier group view <group-id>
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -170,11 +170,9 @@ func viewGroupCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			orgID := args[0]
-			groupID := args[1]
+			groupID := args[0]
 			req, err := newRequest(&frontierv1beta1.GetGroupRequest{
-				Id:    groupID,
-				OrgId: orgID,
+				Id: groupID,
 			}, header)
 			if err != nil {
 				return err
