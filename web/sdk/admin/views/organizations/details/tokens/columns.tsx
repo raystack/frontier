@@ -1,6 +1,4 @@
 import styles from "./tokens.module.css";
-import { NULL_DATE } from "../../../../utils/constants";
-import dayjs from "dayjs";
 import {
   Avatar,
   DataTableColumnDef,
@@ -12,11 +10,7 @@ import {
 import type {
   SearchOrganizationTokensResponse_OrganizationToken,
 } from "@raystack/proton/frontier";
-import {
-  isNullTimestamp,
-  TimeStamp,
-  timestampToDate,
-} from "../../../../utils/connect-timestamp";
+import { timestampCell } from "../../../../utils/connect-timestamp";
 import { TerminologyEntity } from "../../../../hooks/useTerminology";
 
 interface GetColumnsOptions {
@@ -38,13 +32,7 @@ export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
         header: styles["first-column"],
       },
       styles: { header: { width: "180px" } },
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("DD MMM YYYY");
-        return date;
-      },
+      cell: timestampCell,
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",

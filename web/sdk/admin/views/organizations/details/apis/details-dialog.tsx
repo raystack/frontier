@@ -1,7 +1,6 @@
 import { Dialog, Flex, Skeleton, Tabs, Text, toastManager } from "@raystack/apsara";
 import styles from "./apis.module.css";
 import { useCallback, useEffect, useMemo } from "react";
-import dayjs from "dayjs";
 import { useQuery } from "@connectrpc/connect-query";
 import {
   FrontierServiceQueries,
@@ -10,7 +9,7 @@ import {
   type SearchOrganizationServiceUsersResponse_OrganizationServiceUser
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { timestampToDayjs } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "../../../../utils/connect-timestamp";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface ServiceUserDetailsDialogProps {
@@ -129,7 +128,7 @@ export const ServiceUserDetailsDialog = ({
                     >
                       <Text weight="medium">{token.title}</Text>
                       <Text size="micro">
-                        {timestampToDayjs(token.createdAt)?.format("DD MMM YYYY")}
+                        {formatTimestamp(token.createdAt)}
                       </Text>
                     </Flex>
                   ))}

@@ -8,11 +8,9 @@ import {
 import styles from "./webhooks.module.css";
 import { type Webhook } from "@raystack/proton/frontier";
 import {
-  timestampToDate,
-  isNullTimestamp,
+  formatTimestamp,
   type TimeStamp,
 } from "../../../utils/connect-timestamp";
-import dayjs from "dayjs";
 import { useState } from "react";
 import type { useMutation } from "@connectrpc/connect-query";
 import { DeleteWebhookDialog } from "./delete";
@@ -53,13 +51,9 @@ export const getColumns: (
       header: "Created at",
       accessorKey: "createdAt",
       classNames: { cell: styles.dateColumn, header: styles.dateColumn },
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("DD MMM YYYY");
-        return <Text>{date}</Text>;
-      },
+      cell: ({ getValue }) => (
+        <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>
+      ),
     },
     {
       header: "Action",

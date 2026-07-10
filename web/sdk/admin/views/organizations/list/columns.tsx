@@ -10,12 +10,7 @@ import type {
   SearchOrganizationsResponse_OrganizationResult,
   Plan,
 } from "@raystack/proton/frontier";
-import {
-  isNullTimestamp,
-  TimeStamp,
-  timestampToDate,
-} from "../../../utils/connect-timestamp";
-import dayjs from "dayjs";
+import { formatTimestamp, TimeStamp } from "../../../utils/connect-timestamp";
 import styles from "./list.module.css";
 
 export const SUBSCRIPTION_STATES = {
@@ -118,13 +113,9 @@ export const getColumns = ({
       accessorKey: "subscriptionCycleEndAt",
       header: "Cycle ends on",
       filterType: "date",
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("DD MMM YYYY");
-        return <Text>{date}</Text>;
-      },
+      cell: ({ getValue }) => (
+        <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>
+      ),
       enableColumnFilter: true,
       // enableSorting: true,
       enableHiding: true,
@@ -171,13 +162,9 @@ export const getColumns = ({
       accessorKey: "createdAt",
       header: "Created On",
       filterType: "date",
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("DD MMM YYYY");
-        return <Text>{date}</Text>;
-      },
+      cell: ({ getValue }) => (
+        <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>
+      ),
       enableHiding: true,
       defaultHidden: true,
       enableSorting: true,

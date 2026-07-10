@@ -1,7 +1,7 @@
 import type { Price as PriceType } from "@raystack/proton/frontier";
 import { Amount } from "@raystack/apsara";
 import type { DataTableColumnDef } from "@raystack/apsara";
-import { timestampToDayjs, TimeStamp } from "../../../utils/connect-timestamp";
+import { timestampCell } from "../../../utils/connect-timestamp";
 import styles from "./prices.module.css";
 
 export const getColumns = (
@@ -56,21 +56,13 @@ export const getColumns = (
     {
       header: "creation date",
       accessorKey: "createdAt",
-      cell: ({ getValue }) => {
-        const timestamp = getValue() as TimeStamp | undefined;
-        const date = timestampToDayjs(timestamp);
-        return date ? date.format("DD MMM YYYY") : "-";
-      },
+      cell: timestampCell,
     },
     {
       header: "Updated date",
       accessorKey: "updatedAt",
       enableColumnFilter: false,
-      cell: ({ getValue }) => {
-        const timestamp = getValue() as TimeStamp | undefined;
-        const date = timestampToDayjs(timestamp);
-        return date ? date.format("DD MMM YYYY") : "-";
-      },
+      cell: timestampCell,
     },
   ];
 };

@@ -6,15 +6,10 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
-import dayjs from "dayjs";
 import styles from "./list.module.css";
 import { getUserName, USER_STATES, UserState } from "../util";
 import { User } from "@raystack/proton/frontier";
-import {
-  isNullTimestamp,
-  TimeStamp,
-  timestampToDate,
-} from "../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "../../../utils/connect-timestamp";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
@@ -69,11 +64,7 @@ export const getColumns = ({
       header: "Joined on",
       filterType: "date",
       cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("DD MMM YYYY");
-        return <Text>{date}</Text>;
+        return <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>;
       },
       enableHiding: true,
       enableSorting: true,

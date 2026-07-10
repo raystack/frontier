@@ -1,6 +1,6 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
-import { timestampToDayjs, type TimeStamp } from "../../utils/connect-timestamp";
+import { timestampCell } from "../../utils/connect-timestamp";
 import styles from "./plans.module.css";
 
 export const getColumns: (options?: {
@@ -46,11 +46,7 @@ export const getColumns: (options?: {
     {
       header: "Created At",
       accessorKey: "createdAt",
-      cell: ({ getValue }) => {
-        const timestamp = getValue() as TimeStamp | undefined;
-        const date = timestampToDayjs(timestamp);
-        return date ? date.format("DD MMM YYYY") : "-";
-      },
+      cell: timestampCell,
     },
   ];
 };
