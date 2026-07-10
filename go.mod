@@ -50,9 +50,9 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
 	go.uber.org/zap v1.26.0
 	gocloud.dev v0.28.0
-	golang.org/x/net v0.44.0
+	golang.org/x/net v0.54.0
 	golang.org/x/oauth2 v0.30.0
-	golang.org/x/sync v0.17.0
+	golang.org/x/sync v0.20.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250922171735-9219d122eba9
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.11
@@ -128,9 +128,9 @@ require (
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.37.0 // indirect
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
-	golang.org/x/mod v0.28.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.37.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250922171735-9219d122eba9 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
@@ -241,11 +241,11 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.59.0
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.42.0
-	golang.org/x/exp v0.0.0-20250911091902-df9299821621
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/term v0.35.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/crypto v0.52.0
+	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
+	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/term v0.43.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.176.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
