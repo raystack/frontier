@@ -266,6 +266,8 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 
 	// Start server
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		// No shutdownWG.Wait here: ctx is never cancelled on this path, so the
+		// shutdown goroutines only unblock when the process exits right after.
 		return fmt.Errorf("connect server failed: %w", err)
 	}
 
