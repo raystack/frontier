@@ -9,7 +9,7 @@ import {
   formatTimestamp,
   isNullTimestamp,
   TimeStamp,
-} from "../../utils/connect-timestamp";
+} from "~/admin/utils/connect-timestamp";
 import { ACTOR_TYPES, getActionBadgeColor } from "./util";
 import { ComponentPropsWithoutRef } from "react";
 import ActorCell from "./actor-cell";

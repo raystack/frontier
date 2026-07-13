@@ -4,7 +4,7 @@ import styles from "./side-panel.module.css";
 import { useContext } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import type { Organization } from "@raystack/proton/frontier";
-import { formatTimestamp } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 
 interface OrganizationDetailsSectionProps {
   organization: Organization;

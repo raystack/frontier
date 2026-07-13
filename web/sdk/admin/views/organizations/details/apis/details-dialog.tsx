@@ -9,7 +9,7 @@ import {
   type SearchOrganizationServiceUsersResponse_OrganizationServiceUser
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { formatTimestamp } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface ServiceUserDetailsDialogProps {

@@ -10,7 +10,7 @@ import { type Webhook } from "@raystack/proton/frontier";
 import {
   formatTimestamp,
   type TimeStamp,
-} from "../../../utils/connect-timestamp";
+} from "~/admin/utils/connect-timestamp";
 import { useState } from "react";
 import type { useMutation } from "@connectrpc/connect-query";
 import { DeleteWebhookDialog } from "./delete";

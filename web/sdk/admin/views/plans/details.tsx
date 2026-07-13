@@ -1,6 +1,6 @@
 import { Flex, Text, Grid } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
-import { formatTimestamp } from "../../utils/connect-timestamp";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 
 export default function PlanDetails({ plan }: { plan: Plan | null }) {
 

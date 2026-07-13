@@ -10,7 +10,7 @@ import {
 import type {
   SearchOrganizationTokensResponse_OrganizationToken,
 } from "@raystack/proton/frontier";
-import { timestampCell } from "../../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import { TerminologyEntity } from "../../../../hooks/useTerminology";
 
 interface GetColumnsOptions {
@@ -32,7 +32,7 @@ export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
         header: styles["first-column"],
       },
       styles: { header: { width: "180px" } },
-      cell: timestampCell,
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",

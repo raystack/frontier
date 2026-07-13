@@ -1,6 +1,6 @@
 import { Amount, type DataTableColumnDef, Link, Text } from "@raystack/apsara";
 import type { SearchInvoicesResponse_Invoice } from "@raystack/proton/frontier";
-import { formatTimestamp, TimeStamp } from "../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import { TerminologyEntity } from "../../hooks/useTerminology";
 import styles from "./invoices.module.css";
 

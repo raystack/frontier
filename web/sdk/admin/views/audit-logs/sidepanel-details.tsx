@@ -9,7 +9,7 @@ import { List } from "@raystack/apsara";
 import styles from "./audit-logs.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
 import { ACTOR_TYPES } from "./util";
-import { formatTimestamp } from "../../utils/connect-timestamp";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 import { MapIcon } from "../../assets/icons/MapIcon";
 import SidePanelLogDialog from "./sidepanel-log-dialog";
 import ActorCell from "./actor-cell";

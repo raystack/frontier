@@ -13,7 +13,7 @@ import type {
 } from "@raystack/proton/frontier";
 import styles from "./projects.module.css";
 
-import { timestampCell } from "../../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { RenameProjectDialog } from "./rename-project";
 import { useState } from "react";
@@ -271,7 +271,7 @@ export const getColumns = ({
     {
       accessorKey: "createdAt",
       header: "Created On",
-      cell: timestampCell,
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       enableSorting: true,
       enableHiding: true,
       enableColumnFilter: true,

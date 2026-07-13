@@ -1,7 +1,7 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import dayjs from "dayjs";
 import { NULL_DATE } from "../../../../utils/constants";
-import { DATE_FORMAT } from "../../../../utils/connect-timestamp";
+import { DATE_FORMAT } from "~/admin/utils/connect-timestamp";
 import styles from "./apis.module.css";
 import type {
   SearchOrganizationServiceUsersResponse_OrganizationServiceUser,

@@ -10,7 +10,7 @@ import type {
   SearchOrganizationsResponse_OrganizationResult,
   Plan,
 } from "@raystack/proton/frontier";
-import { formatTimestamp, TimeStamp } from "../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import styles from "./list.module.css";
 
 export const SUBSCRIPTION_STATES = {

@@ -1,6 +1,6 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
-import { timestampCell } from "../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import styles from "./plans.module.css";
 
 export const getColumns: (options?: {
@@ -46,7 +46,7 @@ export const getColumns: (options?: {
     {
       header: "Created At",
       accessorKey: "createdAt",
-      cell: timestampCell,
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
     },
   ];
 };

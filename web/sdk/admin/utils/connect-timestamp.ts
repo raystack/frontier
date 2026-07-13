@@ -19,22 +19,14 @@ export function isNullTimestamp(timestamp?: Timestamp): boolean {
   return Number(timestamp.seconds) <= 0;
 }
 
-/** Canonical date format used across the admin UI (matches Apsara). */
+/** Canonical admin date format (matches Apsara). */
 export const DATE_FORMAT = "DD MMM YYYY";
 
-/**
- * Formats a Timestamp for display, returning "-" for missing or null-time
- * values (e.g. { seconds: 0 }, which would otherwise render as 01 Jan 1970).
- */
+/** Formats a Timestamp, returning "-" for missing/null-time values (which would otherwise render as 01 Jan 1970). */
 export function formatTimestamp(timestamp?: Timestamp, format: string = DATE_FORMAT): string {
   if (isNullTimestamp(timestamp)) return "-";
   const date = timestampToDayjs(timestamp);
   return date ? date.format(format) : "-";
-}
-
-/** Table cell renderer that formats a Timestamp column value via formatTimestamp. */
-export function timestampCell({ getValue, }: { getValue: () => unknown; }): string {
-  return formatTimestamp(getValue() as Timestamp | undefined);
 }
 
 export type TimeStamp = Timestamp;

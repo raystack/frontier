@@ -1,6 +1,6 @@
 import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara";
 import type { Product } from "@raystack/proton/frontier";
-import { timestampCell } from "../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import styles from "./products.module.css";
 
 export const getColumns = (
@@ -85,13 +85,13 @@ export const getColumns = (
     {
       header: "Created on",
       accessorKey: "createdAt",
-      cell: timestampCell,
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       filterType: "date",
     },
     {
       header: "Updated on",
       accessorKey: "updatedAt",
-      cell: timestampCell,
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       filterType: "date",
     },
   ];

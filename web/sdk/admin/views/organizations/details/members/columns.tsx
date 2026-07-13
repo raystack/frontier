@@ -16,7 +16,7 @@ import type { UpdateRolePayload } from "./update-role";
 import styles from "./members.module.css";
 import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { DeleteIcon } from "~/admin/assets/icons/DeleteIcon";
-import { formatTimestamp, TimeStamp } from "../../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 
 const MemberStates = {
   enabled: "Active",

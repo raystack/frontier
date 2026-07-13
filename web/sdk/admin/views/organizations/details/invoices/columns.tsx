@@ -3,7 +3,7 @@ import { DataTableColumnDef, Link, Amount } from "@raystack/apsara";
 import type {
   SearchOrganizationInvoicesResponse_OrganizationInvoice,
 } from "@raystack/proton/frontier";
-import { timestampCell } from "../../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 
 // https://docs.stripe.com/invoicing/overview#invoice-statuses
 const InvoiceStatusesMap = {
@@ -33,7 +33,7 @@ export const getColumns = ({
         cell: styles["first-column"],
         header: styles["first-column"],
       },
-      cell: timestampCell,
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",

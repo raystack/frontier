@@ -9,7 +9,7 @@ import {
 import styles from "./list.module.css";
 import { getUserName, USER_STATES, UserState } from "../util";
 import { User } from "@raystack/proton/frontier";
-import { formatTimestamp, TimeStamp } from "../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;

@@ -3,7 +3,7 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import styles from "./side-panel.module.css";
 import { UserState, USER_STATES } from "../../util";
 import { useUser } from "../user-context";
-import { formatTimestamp } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 
 export const SidePanelDetails = () => {
   const { user } = useUser();

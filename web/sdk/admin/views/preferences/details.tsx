@@ -15,7 +15,7 @@ import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/co
 import { handleConnectError } from "~/utils/error";
 import { AdminServiceQueries, CreatePreferencesRequestSchema, ListPreferencesResponse } from "@raystack/proton/frontier";
 import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
-import { DATE_FORMAT, formatTimestamp } from "../../utils/connect-timestamp";
+import { DATE_FORMAT, formatTimestamp } from "~/admin/utils/connect-timestamp";
 import { useQueryClient } from "@tanstack/react-query";
 import { create } from "@bufbuild/protobuf";
 

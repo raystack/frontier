@@ -4,7 +4,7 @@ import Skeleton from "react-loading-skeleton";
 import { type SearchUserOrganizationsResponse_UserOrganization } from "@raystack/proton/frontier";
 import styles from "./side-panel.module.css";
 import { MembershipDropdown } from "./membership-dropdown";
-import { formatTimestamp } from "../../../../utils/connect-timestamp";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 
 interface SidePanelMembershipProps {
   data?: SearchUserOrganizationsResponse_UserOrganization;

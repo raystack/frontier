@@ -11,7 +11,7 @@ import { create } from "@bufbuild/protobuf";
 import {
   formatTimestamp,
   isNullTimestamp,
-} from "../../../../utils/connect-timestamp";
+} from "~/admin/utils/connect-timestamp";
 
 export const BillingDetailsSection = () => {
   const { billingAccount, organization } = useContext(OrganizationContext);
