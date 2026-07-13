@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
+  AlertDialog,
   Button,
-  Dialog,
   Flex,
   List,
   Text
@@ -38,20 +38,19 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
 
   return (
     <>
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Content
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Content
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
-        <Dialog.Header className={styles.revokeSessionConfirmHeader}>
+        <AlertDialog.Header className={styles.revokeSessionConfirmHeader}>
           <Flex justify="between" align="center" width="full">
             <Text size="regular">
             {sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown browser and OS"}
             </Text>
-            <Dialog.CloseButton data-test-id="frontier-sdk-close-revoke-session-dialog" />
           </Flex>
-        </Dialog.Header>
+        </AlertDialog.Header>
 
-        <Dialog.Body className={styles.revokeSessionConfirmBody}>
+        <AlertDialog.Body className={styles.revokeSessionConfirmBody}>
             <List className={styles.listRoot}>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Device</List.Label>
@@ -70,9 +69,9 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
                 <List.Value>{sessionInfo?.lastActive || "Unknown"}</List.Value>
               </List.Item>
             </List>
-        </Dialog.Body>
+        </AlertDialog.Body>
 
-        <Dialog.Footer>
+        <AlertDialog.Footer>
           <Flex justify="end" gap={5}>
             <Button
               variant="outline"
@@ -94,9 +93,9 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
               Revoke
             </Button>
           </Flex>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
 
     <RevokeSessionFinalConfirm
       isOpen={isFinalConfirmOpen}

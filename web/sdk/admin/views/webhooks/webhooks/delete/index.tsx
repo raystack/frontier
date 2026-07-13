@@ -1,4 +1,4 @@
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara";
 import type { useMutation } from "@connectrpc/connect-query";
 import { handleConnectError } from "~/utils/error";
 
@@ -41,8 +41,8 @@ export function DeleteWebhookDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Content
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Content
         style={{ padding: 0, maxWidth: '600px', width: '100%' }}
       >
         <Flex direction="column" gap={9} style={{ padding: "24px" }}>
@@ -79,7 +79,7 @@ export function DeleteWebhookDialog({
             </Button>
           </Flex>
         </Flex>
-      </Dialog.Content>
-    </Dialog>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 }

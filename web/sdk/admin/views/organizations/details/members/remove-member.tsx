@@ -5,7 +5,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
+import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
@@ -60,13 +60,12 @@ export const RemoveMember = ({
   }
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
-          <Dialog.CloseButton data-test-id="remove-member-close-button" />
-        </Dialog.Header>
-        <Dialog.Body>
+    <AlertDialog open onOpenChange={onClose}>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Remove {t.member({ case: "capital" })}</AlertDialog.Title>
+        </AlertDialog.Header>
+        <AlertDialog.Body>
           <Flex direction="column" gap={7}>
             <Text variant="secondary">
               Removing this {t.member({ case: "lower" })} will revoke all their access to the{" "}
@@ -77,20 +76,18 @@ export const RemoveMember = ({
               Are you sure you want to remove this {t.member({ case: "lower" })}?
             </Text>
           </Flex>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close
-            render={
-              <Button
-                type="button"
-                variant="outline"
-                color="neutral"
-                data-test-id="remove-member-cancel-button"
-              >
-                Cancel
-              </Button>
-            }
-          />
+        </AlertDialog.Body>
+        <AlertDialog.Footer>
+          <Button
+            type="button"
+            variant="outline"
+            color="neutral"
+            onClick={onClose}
+            disabled={isPending}
+            data-test-id="remove-member-cancel-button"
+          >
+            Cancel
+          </Button>
           <Button
             type="submit"
             data-test-id="remove-member-submit-button"
@@ -101,8 +98,8 @@ export const RemoveMember = ({
           >
             Remove
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

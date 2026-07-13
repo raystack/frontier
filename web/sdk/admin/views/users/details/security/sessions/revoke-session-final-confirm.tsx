@@ -1,7 +1,7 @@
 import {
+  AlertDialog,
   Button,
   toastManager,
-  Dialog,
   Flex,
   Text
 } from '@raystack/apsara';
@@ -43,24 +43,23 @@ export const RevokeSessionFinalConfirm = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Content
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialog.Content
         style={{ padding: 0, maxWidth: '400px', width: '100%' }}
       >
-        <Dialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Dialog.Title>Revoke</Dialog.Title>
-          <Dialog.CloseButton data-test-id="frontier-ui-close-final-revoke-dialog" />
-        </Dialog.Header>
+        <AlertDialog.Header className={styles.revokeSessionConfirmHeader}>
+          <AlertDialog.Title>Revoke</AlertDialog.Title>
+        </AlertDialog.Header>
 
-        <Dialog.Body className={styles.revokeSessionFinalConfirmBody}>
+        <AlertDialog.Body className={styles.revokeSessionFinalConfirmBody}>
           <Flex direction="column" gap={4}>
             <Text size="small" variant="secondary">
               Are you sure you want to revoke this session? This action cannot be undone.
             </Text>
           </Flex>
-        </Dialog.Body>
+        </AlertDialog.Body>
 
-        <Dialog.Footer>
+        <AlertDialog.Footer>
           <Flex justify="end" gap={5}>
             <Button
               variant="outline"
@@ -83,8 +82,8 @@ export const RevokeSessionFinalConfirm = ({
               Revoke
             </Button>
           </Flex>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };
