@@ -4,7 +4,8 @@
   "token_product_id": "token",
   "organization_types": [],
   "webhooks": {
-    "enable_delete": false
+    "enable_delete": false,
+    "enable_actions": false
   },
   "terminology": {
     "organization": {

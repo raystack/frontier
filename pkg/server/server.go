@@ -42,7 +42,8 @@ const (
 )
 
 type WebhooksConfigApiResponse struct {
-	EnableDelete bool `json:"enable_delete"`
+	EnableDelete  bool `json:"enable_delete"`
+	EnableActions bool `json:"enable_actions"`
 }
 
 type UIConfigApiResponse struct {
@@ -93,7 +94,8 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 				TokenProductId:    uiConfig.TokenProductId,
 				OrganizationTypes: uiConfig.OrganizationTypes,
 				Webhooks: WebhooksConfigApiResponse{
-					EnableDelete: uiConfig.Webhooks.EnableDelete,
+					EnableDelete:  uiConfig.Webhooks.EnableDelete,
+					EnableActions: uiConfig.Webhooks.EnableActions,
 				},
 				Terminology: uiConfig.Terminology,
 			}

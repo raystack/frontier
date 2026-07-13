@@ -19,8 +19,8 @@ export type WebhooksViewProps = {
   onSelectWebhook?: (id: string) => void;
   /** Called when the "Create" button is clicked. Use to update the URL or open the create panel. */
   onOpenCreate?: () => void;
-  /** When true, shows the delete option for webhooks. Defaults to `false`. */
-  enableDelete?: boolean;
+  /** Shows write actions (New Webhook, Update, Delete). Defaults to `false` (view-only). */
+  enableActions?: boolean;
   /** Icon rendered in the page header next to the title. */
   icon?: ReactNode;
 };
@@ -31,7 +31,7 @@ export default function WebhooksView({
   onCloseDetail,
   onSelectWebhook,
   onOpenCreate,
-  enableDelete = false,
+  enableActions = false,
   icon,
 }: WebhooksViewProps = {}) {
   const {
@@ -70,7 +70,7 @@ export default function WebhooksView({
       openEditPage(id);
     },
     deleteWebhookMutation,
-    enableDelete,
+    enableActions,
   });
 
   return (
@@ -90,28 +90,34 @@ export default function WebhooksView({
             className={styles.header}
           >
             <DataTable.Search placeholder="Search webhooks..." size="small" />
-            <Button
-              size="small"
-              variant="text"
-              color="neutral"
-              leadingIcon={<PlusIcon />}
-              data-test-id="admin-create-webhook-btn"
-              onClick={() => onOpenCreate?.()}
-            >
-              New Webhook
-            </Button>
+            {enableActions && (
+              <Button
+                size="small"
+                variant="text"
+                color="neutral"
+                leadingIcon={<PlusIcon />}
+                data-test-id="admin-create-webhook-btn"
+                onClick={() => onOpenCreate?.()}
+              >
+                New Webhook
+              </Button>
+            )}
           </PageHeader>
           <DataTable.Content
             classNames={{ root: styles.tableRoot, table: styles.table }}
           />
         </Flex>
       </DataTable>
-      <CreateWebhooks open={createOpen} onClose={onCloseDetail} />
-      <UpdateWebhooks
-        open={!!selectedWebhookId}
-        webhookId={selectedWebhookId}
-        onClose={onCloseDetail}
-      />
+      {enableActions && (
+        <>
+          <CreateWebhooks open={createOpen} onClose={onCloseDetail} />
+          <UpdateWebhooks
+            open={!!selectedWebhookId}
+            webhookId={selectedWebhookId}
+            onClose={onCloseDetail}
+          />
+        </>
+      )}
     </>
   );
 }

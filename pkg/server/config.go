@@ -15,6 +15,8 @@ import (
 
 type WebhooksConfig struct {
 	EnableDelete bool `yaml:"enable_delete" mapstructure:"enable_delete" default:"false"`
+	// EnableActions gates webhook write actions (create, update, delete) in the admin UI.
+	EnableActions bool `yaml:"enable_actions" mapstructure:"enable_actions" default:"false"`
 }
 
 type EntityTerminology struct {

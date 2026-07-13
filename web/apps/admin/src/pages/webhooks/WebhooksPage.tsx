@@ -10,7 +10,8 @@ export default function WebhooksPage() {
   const navigate = useNavigate();
   const isCreate = useMatch("/webhooks/create");
 
-  const enableDelete = config?.webhooks?.enable_delete ?? false;
+  // View-only unless `webhooks.enable_actions` is enabled in the deployment config.
+  const enableActions = config?.webhooks?.enable_actions ?? false;
 
   return (
     <WebhooksView
@@ -19,7 +20,7 @@ export default function WebhooksPage() {
       onCloseDetail={() => navigate("/webhooks")}
       onSelectWebhook={(id: string) => navigate(`/webhooks/${encodeURIComponent(id)}`)}
       onOpenCreate={() => navigate("/webhooks/create")}
-      enableDelete={enableDelete}
+      enableActions={enableActions}
       icon={<WebhooksIcon />}
     />
   );

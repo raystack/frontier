@@ -15,6 +15,8 @@ export const SUBSCRIPTION_STATUSES = [
 
 export interface WebhooksConfig {
   enable_delete: boolean;
+  /** Enables webhook write actions (create, update, delete). Defaults to `false`. */
+  enable_actions: boolean;
 }
 
 export interface EntityTerminologies {
@@ -57,6 +59,7 @@ export const defaultConfig: Config = {
   organization_types: [],
   webhooks: {
     enable_delete: false,
+    enable_actions: false,
   },
   terminology: defaultTerminology,
 };
