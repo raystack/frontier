@@ -43,7 +43,7 @@ export const UserDetailsNavbar = ({
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
           <Breadcrumb.Item
-            href={`/${paths.users}/${user?.id}`}
+            href={`/${paths.users}/${user?.id}/security`}
             leadingIcon={
               <Avatar
                 color={getAvatarColor(user?.id || "")}
