@@ -29,7 +29,8 @@ export const UserDetailsNavbar = ({
   const t = useTerminology();
   const paths = useAdminPaths();
 
-  const links = [{ name: "Security", path: `/${paths.users}/${user?.id}/security` }];
+  const basePath = `/${paths.users}/${user?.id}`;
+  const links = [{ name: "Security", path: `${basePath}/security` }];
 
   return (
     <nav className={styles.navbar}>
