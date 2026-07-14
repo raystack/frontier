@@ -17,19 +17,12 @@ import type {
 import {
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
-import { useInfiniteQuery } from '@connectrpc/connect-query';
-import {
-  FrontierServiceQueries,
-  type SearchOrganizationInvoicesResponse_OrganizationInvoice
-} from '@raystack/proton/frontier';
-import { useDebounceValue } from 'usehooks-ts';
+import { type SearchOrganizationInvoicesResponse_OrganizationInvoice } from '@raystack/proton/frontier';
+import { useDebouncedValue } from '~hooks';
 import { useFrontier } from '../../../contexts/FrontierContext';
+import { useOrganizationInvoices } from '../../../hooks/useOrganizationInvoices';
 import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '../../../utils/constants';
-import {
-  DEFAULT_PAGE_SIZE,
-  getConnectNextPageParam,
-  getGroupCountMapFromFirstPage
-} from '../../../utils/connect-pagination';
+import { DEFAULT_PAGE_SIZE } from '../../../utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '../../../utils/transform-query';
 import { timestampToDayjs, type TimeStamp } from '../../../../utils/timestamp';
 import { capitalize } from '../../../../utils';
@@ -154,7 +147,6 @@ const ErrorState = () => (
 
 export function Invoices() {
   const { activeOrganization, config } = useFrontier();
-  const organizationId = activeOrganization?.id || '';
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
@@ -163,35 +155,18 @@ export function Invoices() {
     [tableQuery]
   );
 
-  const [query] = useDebounceValue(computedQuery, 200);
+  const query = useDebouncedValue(computedQuery, 200);
 
   const {
-    data: infiniteData,
+    invoices,
+    groupCountMap,
     isLoading,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
     isError
-  } = useInfiniteQuery(
-    FrontierServiceQueries.searchOrganizationInvoices,
-    { id: organizationId, query },
-    {
-      enabled: !!organizationId,
-      pageParamKey: 'query',
-      getNextPageParam: lastPage =>
-        getConnectNextPageParam(lastPage, { query }, 'organizationInvoices'),
-      staleTime: 0,
-      refetchOnWindowFocus: false,
-      retry: 1,
-      retryDelay: 1000
-    }
-  );
+  } = useOrganizationInvoices({ query });
 
-  const invoices = useMemo(
-    () =>
-      infiniteData?.pages?.flatMap(page => page.organizationInvoices) ?? [],
-    [infiniteData]
-  );
   const loading = (!activeOrganization?.id || isLoading || isFetchingNextPage) && !isError;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
@@ -203,11 +178,6 @@ export function Invoices() {
       await fetchNextPage();
     }
   };
-
-  const groupCountMap = useMemo(
-    () => (infiniteData ? getGroupCountMapFromFirstPage(infiniteData) : {}),
-    [infiniteData]
-  );
 
   const columns = getColumns({
     dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT,

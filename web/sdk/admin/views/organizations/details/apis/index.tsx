@@ -18,7 +18,7 @@ import {
   DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
-import { useDebounceValue } from "usehooks-ts";
+import { useDebouncedValue } from "~hooks";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 const NoCredentials = () => {
@@ -81,7 +81,7 @@ export function OrganizationApisView() {
     };
   }, [tableQuery, searchQuery]);
 
-  const [query] = useDebounceValue(computedQuery, 200);
+  const query = useDebouncedValue(computedQuery, 200);
 
   const [selectedServiceUser, setSelectedServiceUser] =
     useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(

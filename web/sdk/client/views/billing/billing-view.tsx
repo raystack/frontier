@@ -1,17 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback } from 'react';
 import qs from 'query-string';
 import { Flex, Dialog, EmptyState, toastManager } from '@raystack/apsara';
 import {
   CreateCheckoutRequestSchema,
-  ListInvoicesRequestSchema,
   FrontierServiceQueries
 } from '@raystack/proton/frontier';
-import {
-  useMutation,
-  useQuery as useConnectQuery
-} from '@connectrpc/connect-query';
+import { useMutation } from '@connectrpc/connect-query';
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useBillingPermission } from '../../hooks/useBillingPermission';
@@ -55,37 +51,9 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
   const isPermissionsLoading = !activeOrganization?.id || isFetching;
   const hasNoAccess = !canSeeBilling && !isPermissionsLoading;
 
-  const {
-    data: invoicesData,
-    isLoading: isInvoicesLoading,
-    error: invoicesError
-  } = useConnectQuery(
-    FrontierServiceQueries.listInvoices,
-    create(ListInvoicesRequestSchema, {
-      orgId: activeOrganization?.id || '',
-      nonzeroAmountOnly: true
-    }),
-    {
-      enabled: !!activeOrganization?.id && canSeeBilling
-    }
-  );
-
-  const invoices = useMemo(() => invoicesData?.invoices || [], [invoicesData]);
-
-  useEffect(() => {
-    if (invoicesError) {
-      toastManager.add({
-        title: 'Failed to load invoices',
-        description: invoicesError?.message,
-        type: 'error'
-      });
-    }
-  }, [invoicesError]);
-
   const isLoading = !activeOrganization?.id ||
     isBillingAccountLoading ||
     isActiveSubscriptionLoading ||
-    isInvoicesLoading ||
     isFetching ||
     isOrganizationKycLoading;
 
@@ -175,7 +143,7 @@ export function BillingView({ onNavigateToPlans }: BillingViewProps) {
             <PaymentIssue
               isLoading={isLoading}
               subscription={activeSubscription}
-              invoices={invoices}
+              hasAccess={canSeeBilling}
             />
 
             <UpcomingPlanChangeBanner
