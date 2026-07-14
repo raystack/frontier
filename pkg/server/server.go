@@ -41,19 +41,13 @@ const (
 	connectServerGracePeriod = 10 * time.Second
 )
 
-type WebhooksConfigApiResponse struct {
-	EnableDelete  bool `json:"enable_delete"`
-	EnableActions bool `json:"enable_actions"`
-}
-
 type UIConfigApiResponse struct {
-	Title             string                    `json:"title"`
-	Logo              string                    `json:"logo"`
-	AppUrl            string                    `json:"app_url"`
-	TokenProductId    string                    `json:"token_product_id"`
-	OrganizationTypes []string                  `json:"organization_types"`
-	Webhooks          WebhooksConfigApiResponse `json:"webhooks"`
-	Terminology       TerminologyConfig         `json:"terminology"`
+	Title             string            `json:"title"`
+	Logo              string            `json:"logo"`
+	AppUrl            string            `json:"app_url"`
+	TokenProductId    string            `json:"token_product_id"`
+	OrganizationTypes []string          `json:"organization_types"`
+	Terminology       TerminologyConfig `json:"terminology"`
 }
 
 func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiServerConfig Config) {
@@ -93,11 +87,7 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 				AppUrl:            uiConfig.AppURL,
 				TokenProductId:    uiConfig.TokenProductId,
 				OrganizationTypes: uiConfig.OrganizationTypes,
-				Webhooks: WebhooksConfigApiResponse{
-					EnableDelete:  uiConfig.Webhooks.EnableDelete,
-					EnableActions: uiConfig.Webhooks.EnableActions,
-				},
-				Terminology: uiConfig.Terminology,
+				Terminology:       uiConfig.Terminology,
 			}
 			json.NewEncoder(w).Encode(confResp)
 		})

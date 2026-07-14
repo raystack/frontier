@@ -14,10 +14,6 @@
     padding-left: var(--rs-space-7);
 }
 
-.actionColumn {
-    width: 80px;
-}
-
 .stateColumn {
     width: 100px;
 }
@@ -31,9 +27,4 @@
     border-bottom: 1px solid var(--rs-color-border-base-primary);
     display: flex;
     align-items: center;
-}
-
-.deleteMenuItem {
-    padding: var(--rs-space-4);
-    color: var(--rs-color-foreground-danger-primary);
 }

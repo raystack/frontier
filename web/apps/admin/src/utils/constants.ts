@@ -13,12 +13,6 @@ export const SUBSCRIPTION_STATUSES = [
   { label: "Ended", value: "ended" },
 ];
 
-export interface WebhooksConfig {
-  enable_delete: boolean;
-  /** Enables webhook write actions (create, update, delete). Defaults to `false`. */
-  enable_actions: boolean;
-}
-
 export interface EntityTerminologies {
   singular: string;
   plural: string;
@@ -39,7 +33,6 @@ export interface Config {
   app_url?: string;
   token_product_id?: string;
   organization_types?: string[];
-  webhooks?: WebhooksConfig;
   terminology?: AdminTerminologyConfig;
 }
 
@@ -57,10 +50,6 @@ export const defaultConfig: Config = {
   app_url: "example.com",
   token_product_id: DEFAULT_TOKEN_PRODUCT_NAME,
   organization_types: [],
-  webhooks: {
-    enable_delete: false,
-    enable_actions: false,
-  },
   terminology: defaultTerminology,
 };
 

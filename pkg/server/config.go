@@ -13,12 +13,6 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 )
 
-type WebhooksConfig struct {
-	EnableDelete bool `yaml:"enable_delete" mapstructure:"enable_delete" default:"false"`
-	// EnableActions gates webhook write actions (create, update, delete) in the admin UI.
-	EnableActions bool `yaml:"enable_actions" mapstructure:"enable_actions" default:"false"`
-}
-
 type EntityTerminology struct {
 	Singular string `yaml:"singular" mapstructure:"singular" json:"singular"`
 	Plural   string `yaml:"plural" mapstructure:"plural" json:"plural"`
@@ -40,7 +34,6 @@ type UIConfig struct {
 	AppURL            string            `yaml:"app_url" mapstructure:"app_url"`
 	TokenProductId    string            `yaml:"token_product_id" mapstructure:"token_product_id"`
 	OrganizationTypes []string          `yaml:"organization_types" mapstructure:"organization_types"`
-	Webhooks          WebhooksConfig    `yaml:"webhooks" mapstructure:"webhooks"`
 	Terminology       TerminologyConfig `yaml:"terminology" mapstructure:"terminology"`
 }
 
