@@ -15,15 +15,13 @@ import (
 )
 
 // Reconciler makes a single resource kind match its desired-state spec.
+// Export is the reverse direction and is part of the contract: it reads the
+// current server state and returns it as a spec value, ready to be marshalled
+// into a desired-state document. Reconciling an exported document must plan
+// no changes.
 type Reconciler interface {
 	Kind() string
 	Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error)
-}
-
-// Exporter is the optional reverse of Reconciler: it reads the current server
-// state and returns it as a spec value, ready to be marshalled into a
-// desired-state document. Reconciling the exported document must plan no changes.
-type Exporter interface {
 	Export(ctx context.Context) (spec any, err error)
 }
 
@@ -89,11 +87,7 @@ func Export(ctx context.Context, registry map[string]Reconciler, kind string) ([
 	if !ok {
 		return nil, fmt.Errorf("no reconciler registered for kind %q", kind)
 	}
-	exp, ok := rec.(Exporter)
-	if !ok {
-		return nil, fmt.Errorf("kind %q does not support export", kind)
-	}
-	spec, err := exp.Export(ctx)
+	spec, err := rec.Export(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("export %s: %w", kind, err)
 	}

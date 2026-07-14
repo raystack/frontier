@@ -15,6 +15,7 @@ func (f *fakeReconciler) Reconcile(_ context.Context, _ []byte, _ bool) (Report,
 	f.called++
 	return Report{Kind: KindPlatformUser}, nil
 }
+func (f *fakeReconciler) Export(_ context.Context) (any, error) { return []string{}, nil }
 
 // partialReconciler fails after applying some operations, like a real apply that
 // dies part-way through.
@@ -25,6 +26,7 @@ func (partialReconciler) Reconcile(_ context.Context, _ []byte, _ bool) (Report,
 	return Report{Kind: KindPlatformUser, Applied: 2, Planned: []string{"add a", "add b", "add c"}},
 		errors.New("apply failed on the third op")
 }
+func (partialReconciler) Export(_ context.Context) (any, error) { return []string{}, nil }
 
 func TestRun_SpecHandling(t *testing.T) {
 	t.Run("rejects a document missing its spec (not an empty list)", func(t *testing.T) {
@@ -50,12 +52,6 @@ func TestExport_Errors(t *testing.T) {
 	t.Run("unknown kind", func(t *testing.T) {
 		_, err := Export(context.Background(), map[string]Reconciler{}, "Nope")
 		assert.ErrorContains(t, err, `no reconciler registered for kind "Nope"`)
-	})
-
-	t.Run("kind without export support", func(t *testing.T) {
-		reg := map[string]Reconciler{KindPlatformUser: &fakeReconciler{}}
-		_, err := Export(context.Background(), reg, KindPlatformUser)
-		assert.ErrorContains(t, err, `does not support export`)
 	})
 }
 
