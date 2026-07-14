@@ -7,12 +7,75 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/frontier/internal/api"
 )
+
+func TestGracefulShutdownDrainsInflightRequests(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	entered := make(chan struct{})
+	requestDone := make(chan struct{})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/slow", func(w http.ResponseWriter, r *http.Request) {
+		close(entered)
+		time.Sleep(300 * time.Millisecond)
+		close(requestDone)
+		w.WriteHeader(http.StatusOK)
+	})
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	srv := &http.Server{Handler: mux}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go gracefulShutdown(ctx, logger, &wg, srv, "test server", make(chan struct{}))
+
+	serveReturned := make(chan struct{})
+	go func() {
+		defer close(serveReturned)
+		if err := srv.Serve(l); err != nil && err != http.ErrServerClosed {
+			t.Errorf("serve failed: %v", err)
+		}
+	}()
+
+	requestErr := make(chan error, 1)
+	go func() {
+		resp, err := http.Get(fmt.Sprintf("http://%s/slow", l.Addr()))
+		if err == nil {
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				err = fmt.Errorf("unexpected status %d", resp.StatusCode)
+			}
+		}
+		requestErr <- err
+	}()
+
+	<-entered
+	cancel()
+
+	<-serveReturned
+	wg.Wait()
+
+	select {
+	case <-requestDone:
+	default:
+		t.Fatal("shutdown wait released before the in-flight request finished")
+	}
+	if err := <-requestErr; err != nil {
+		t.Fatalf("in-flight request failed: %v", err)
+	}
+}
 
 func freePort(t *testing.T) int {
 	t.Helper()
