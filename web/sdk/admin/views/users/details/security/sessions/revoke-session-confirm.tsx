@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import {
-  AlertDialog,
+  Dialog,
   Button,
-  Flex,
-  List,
-  Text
+  List
 } from '@raystack/apsara';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import { formatDeviceDisplay } from './index';
@@ -38,19 +36,15 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
 
   return (
     <>
-    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialog.Content
-        style={{ padding: 0, maxWidth: '400px', width: '100%' }}
-      >
-        <AlertDialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Flex justify="between" align="center" width="full">
-            <Text size="regular">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog.Content showCloseButton={false}>
+        <Dialog.Header className={styles.revokeSessionConfirmHeader}>
+          <Dialog.Title>
             {sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown browser and OS"}
-            </Text>
-          </Flex>
-        </AlertDialog.Header>
+          </Dialog.Title>
+        </Dialog.Header>
 
-        <AlertDialog.Body className={styles.revokeSessionConfirmBody}>
+        <Dialog.Body className={styles.revokeSessionConfirmBody}>
             <List className={styles.listRoot}>
               <List.Item className={styles.listItem}>
                 <List.Label minWidth="120px">Device</List.Label>
@@ -69,33 +63,34 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
                 <List.Value>{sessionInfo?.lastActive || "Unknown"}</List.Value>
               </List.Item>
             </List>
-        </AlertDialog.Body>
+        </Dialog.Body>
 
-        <AlertDialog.Footer>
-          <Flex justify="end" gap={5}>
-            <Button
-              variant="outline"
-              color="neutral"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-              data-test-id="frontier-ui-cancel-revoke-session-dialog"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="solid"
-              color="danger"
-              onClick={handleRevoke}
-              loading={isLoading}
-              loaderText="Revoking..."
-              data-test-id="frontier-ui-confirm-revoke-session-dialog"
-            >
-              Revoke
-            </Button>
-          </Flex>
-        </AlertDialog.Footer>
-      </AlertDialog.Content>
-    </AlertDialog>
+        <Dialog.Footer>
+          <Dialog.Close
+            render={
+              <Button
+                variant="outline"
+                color="neutral"
+                disabled={isLoading}
+                data-test-id="frontier-ui-cancel-revoke-session-dialog"
+              >
+                Cancel
+              </Button>
+            }
+          />
+          <Button
+            variant="solid"
+            color="danger"
+            onClick={handleRevoke}
+            loading={isLoading}
+            loaderText="Revoking..."
+            data-test-id="frontier-ui-confirm-revoke-session-dialog"
+          >
+            Revoke
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
 
     <RevokeSessionFinalConfirm
       isOpen={isFinalConfirmOpen}

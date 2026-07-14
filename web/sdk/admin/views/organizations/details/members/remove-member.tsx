@@ -5,7 +5,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
-import { AlertDialog, Button, Flex, Text, toastManager } from "@raystack/apsara";
+import { AlertDialog, Button, toastManager } from "@raystack/apsara";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
@@ -64,30 +64,26 @@ export const RemoveMember = ({
       <AlertDialog.Content>
         <AlertDialog.Header>
           <AlertDialog.Title>Remove {t.member({ case: "capital" })}</AlertDialog.Title>
+          <AlertDialog.Description>
+            Removing this {t.member({ case: "lower" })} will revoke all their access to the{" "}
+            {t.organization({ case: "lower" })}. This action cannot be undone. The {t.member({ case: "lower" })} will lose
+            all assigned roles and permissions immediately. Are you sure you want to remove this {t.member({ case: "lower" })}?
+          </AlertDialog.Description>
         </AlertDialog.Header>
-        <AlertDialog.Body>
-          <Flex direction="column" gap={7}>
-            <Text variant="secondary">
-              Removing this {t.member({ case: "lower" })} will revoke all their access to the{" "}
-              {t.organization({ case: "lower" })}. This action cannot be undone. The {t.member({ case: "lower" })} will lose
-              all assigned roles and permissions immediately.
-            </Text>
-            <Text variant="secondary">
-              Are you sure you want to remove this {t.member({ case: "lower" })}?
-            </Text>
-          </Flex>
-        </AlertDialog.Body>
         <AlertDialog.Footer>
-          <Button
-            type="button"
-            variant="outline"
-            color="neutral"
-            onClick={onClose}
-            disabled={isPending}
-            data-test-id="remove-member-cancel-button"
-          >
-            Cancel
-          </Button>
+          <AlertDialog.Close
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                color="neutral"
+                disabled={isPending}
+                data-test-id="remove-member-cancel-button"
+              >
+                Cancel
+              </Button>
+            }
+          />
           <Button
             type="submit"
             data-test-id="remove-member-submit-button"

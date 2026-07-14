@@ -1,12 +1,9 @@
 import {
   AlertDialog,
   Button,
-  toastManager,
-  Flex,
-  Text
+  toastManager
 } from '@raystack/apsara';
 import { handleConnectError } from '~/utils/error';
-import styles from './sessions.module.css';
 
 interface RevokeSessionFinalConfirmProps {
   isOpen: boolean;
@@ -44,44 +41,38 @@ export const RevokeSessionFinalConfirm = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialog.Content
-        style={{ padding: 0, maxWidth: '400px', width: '100%' }}
-      >
-        <AlertDialog.Header className={styles.revokeSessionConfirmHeader}>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
           <AlertDialog.Title>Revoke</AlertDialog.Title>
+          <AlertDialog.Description>
+            Are you sure you want to revoke this session? This action cannot be undone.
+          </AlertDialog.Description>
         </AlertDialog.Header>
 
-        <AlertDialog.Body className={styles.revokeSessionFinalConfirmBody}>
-          <Flex direction="column" gap={4}>
-            <Text size="small" variant="secondary">
-              Are you sure you want to revoke this session? This action cannot be undone.
-            </Text>
-          </Flex>
-        </AlertDialog.Body>
-
         <AlertDialog.Footer>
-          <Flex justify="end" gap={5}>
-            <Button
-              variant="outline"
-              color="neutral"
-              onClick={() => onOpenChange(false)}
-              data-test-id="frontier-ui-cancel-final-revoke-dialog"
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="solid"
-              color="danger"
-              onClick={handleConfirm}
-              data-test-id="frontier-ui-confirm-final-revoke-dialog"
-              disabled={isLoading}
-              loading={isLoading}
-              loaderText="Revoking..."
-            >
-              Revoke
-            </Button>
-          </Flex>
+          <AlertDialog.Close
+            render={
+              <Button
+                variant="outline"
+                color="neutral"
+                data-test-id="frontier-ui-cancel-final-revoke-dialog"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+            }
+          />
+          <Button
+            variant="solid"
+            color="danger"
+            onClick={handleConfirm}
+            data-test-id="frontier-ui-confirm-final-revoke-dialog"
+            disabled={isLoading}
+            loading={isLoading}
+            loaderText="Revoking..."
+          >
+            Revoke
+          </Button>
         </AlertDialog.Footer>
       </AlertDialog.Content>
     </AlertDialog>
