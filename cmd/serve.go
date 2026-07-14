@@ -333,6 +333,14 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return server.ServeConnect(gctx, logger, cfg.App, deps, promRegistry)
 	})
 
+	// Once shutdown starts, unregister the signal handler so a second
+	// SIGINT/SIGTERM gets default handling and can kill a stuck drain
+	// instead of being swallowed.
+	go func() {
+		<-gctx.Done()
+		cancelFunc()
+	}()
+
 	// Wait for every server to finish draining before the deferred cleanup
 	// above closes the database and other dependencies under them.
 	return g.Wait()
