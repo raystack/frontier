@@ -3,14 +3,18 @@ package cmd
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
@@ -28,8 +32,6 @@ import (
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/core/userpat"
-
-	"slices"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v4"
@@ -311,16 +313,29 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		}()
 	}
 
-	go func() {
-		if err := deps.LogListener.Listen(ctx); err != nil {
+	// gctx is cancelled when ctx is cancelled or when any member returns an
+	// error, so a connect server failure also winds down the UI and listener.
+	g, gctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		if err := deps.LogListener.Listen(gctx); err != nil && !errors.Is(err, context.Canceled) {
 			logger.Warn("log listener failed", "err", err)
 		}
-	}()
+		return nil
+	})
 
-	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
+	g.Go(func() error {
+		server.ServeUI(gctx, logger, cfg.UI, cfg.App)
+		return nil
+	})
 
-	// start connect server (blocking)
-	return server.ServeConnect(ctx, logger, cfg.App, deps, promRegistry)
+	g.Go(func() error {
+		return server.ServeConnect(gctx, logger, cfg.App, deps, promRegistry)
+	})
+
+	// Wait for every server to finish draining before the deferred cleanup
+	// above closes the database and other dependencies under them.
+	return g.Wait()
 }
 
 func buildAPIDependencies(
