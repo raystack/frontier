@@ -33,7 +33,8 @@ List of supported environment variables
 
 Export the current state of a kind as a desired-state YAML file, printed to
 stdout. The output is the format `frontier reconcile` reads: reconciling it
-changes nothing. Supported kind: `PlatformUser`.
+changes nothing. Supported kind: `PlatformUser`. See the
+[Reconcile guide](../reconcile.md) for the file format and the flow.
 
 ```
 $ frontier export platformuser -H "Authorization:Basic <base64>" > platform-users.yaml
@@ -247,7 +248,8 @@ View a project
 Make platform resources match a desired-state YAML file, through the admin
 API. The file decides who has access: anyone listed is added, anyone not
 listed is removed. Supported kind: `PlatformUser`. Use `frontier export` to
-print the current state in this file format.
+print the current state in this file format, and see the
+[Reconcile guide](../reconcile.md) for the full flow.
 
 ```
 $ frontier reconcile -f platform-users.yaml --dry-run -H "Authorization:Basic <base64>"

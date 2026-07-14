@@ -1,0 +1,122 @@
+---
+title: Reconcile
+order: 15
+---
+
+# Reconcile
+
+Frontier can manage parts of its platform configuration from a YAML file instead of
+one-off API calls. You write down what should exist, and the `frontier reconcile` command
+makes the server match it. The `frontier export` command does the reverse: it prints what
+the server has, in the same file format.
+
+This gives you three things the API alone does not:
+
+- A reviewable file that says what should exist. Keep it in git and change it via pull
+  requests.
+- A plan before every change. A dry run prints every add, update, and delete the file
+  would cause, without applying anything.
+- Removal that works. Anything the file no longer wants shows up in the plan and is
+  removed on apply.
+
+## The desired-state file
+
+A file holds one or more YAML documents. Each document names the format version, a kind
+of resource, and a spec:
+
+```yaml
+apiVersion: v1
+kind: PlatformUser
+spec:
+  - type: user
+    ref: alice@example.org
+    relation: admin
+  - type: user
+    ref: bob@example.org
+    relation: member
+  - type: serviceuser
+    ref: 9d776a1c-2f2e-4e56-a6f9-71a25a2eab5f
+    relation: admin
+```
+
+Rules that apply to every document:
+
+- A document without `apiVersion` is read as `v1`. An unknown version is rejected.
+- A document with a missing spec is rejected, because that is usually a typo. To mean an
+  empty list on purpose, write `spec: []`.
+- The whole file is parsed and checked before anything applies. A malformed later
+  document stops the run before any change is made.
+- Documents apply in the order they appear in the file.
+
+## The PlatformUser kind
+
+`PlatformUser` manages who holds platform-wide access: `admin` (superuser) or `member`.
+An entry is:
+
+| Field | Value |
+|---|---|
+| `type` | `user` or `serviceuser` |
+| `ref` | email or id for a user; id for a service user |
+| `relation` | `admin` or `member` |
+
+The file is the full access list. Anyone listed gets that access. Anyone on the server
+but not in the file loses it. To add access, add an entry; to remove it, delete the
+entry. Someone who holds both relations has two entries.
+
+Two safety properties:
+
+- Adds run before removes, so changing someone from `admin` to `member` never leaves
+  them with no access if a step fails in between.
+- The bootstrap service user (the automation account from `app.admin.bootstrap`) is
+  never touched: the reconciler skips it on the server side and rejects file entries
+  that name it.
+
+Adding a user by an email that does not exist creates that user.
+
+## Running it
+
+Log in as a superuser. The bootstrap service user exists for exactly this; its client id
+and secret make a Basic token:
+
+```bash
+BASIC=$(printf '%s:%s' "$CLIENT_ID" "$CLIENT_SECRET" | base64 | tr -d '\n')
+```
+
+Always dry-run first and read the plan:
+
+```bash
+$ frontier reconcile -f platform-users.yaml --dry-run \
+    --host <host> -H "Authorization:Basic ${BASIC}"
+PlatformUser (planned 2):
+  - add user alice@example.org as admin
+  - remove user 5f7b...9c1d (member)
+```
+
+Then apply by running the same command without `--dry-run`. The report shows what was
+applied; a run with nothing to do prints `PlatformUser: no changes`.
+
+The `-H` flag is an interim way to pass the token: command arguments are visible in
+process listings, so automation should mask the token in its logs.
+
+## Exporting the current state
+
+`frontier export <kind>` prints the live state as a desired-state document on stdout:
+
+```bash
+frontier export platformuser --host <host> -H "Authorization:Basic ${BASIC}" > platform-users.yaml
+```
+
+Use it to write the first version of a file from a running server. The output is sorted,
+so exporting twice gives identical files, and it round-trips: reconciling an export's
+output always plans no changes. A clean dry run is proof that a file matches its server.
+
+The kind argument is case-insensitive and accepts a plural, so `platformuser` and
+`PlatformUsers` both work.
+
+## More kinds
+
+The design and the rules every kind follows live in
+[RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md).
+Custom permissions and platform-level roles are proposed there as the next kinds; this
+page grows with them. The flag reference for both commands is in the
+[CLI reference](./reference/cli.md).
