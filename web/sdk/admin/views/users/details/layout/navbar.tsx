@@ -29,8 +29,7 @@ export const UserDetailsNavbar = ({
   const t = useTerminology();
   const paths = useAdminPaths();
 
-  const basePath = `/${paths.users}/${user?.id}`;
-  const links = [{ name: "Security", path: `${basePath}/security` }];
+  const links = [{ name: "Security", path: `/${paths.users}/${user?.id}/security` }];
 
   return (
     <nav className={styles.navbar}>
@@ -44,7 +43,7 @@ export const UserDetailsNavbar = ({
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
           <Breadcrumb.Item
-            href={`/${paths.users}/${user?.id}/security`}
+            href={`/${paths.users}/${user?.id}`}
             leadingIcon={
               <Avatar
                 color={getAvatarColor(user?.id || "")}
