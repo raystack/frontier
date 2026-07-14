@@ -33,17 +33,29 @@ type Report struct {
 	Applied int      // number actually applied (0 when dryRun)
 }
 
+// apiVersion of the document format. A document with no apiVersion is read as
+// v1, so files written before the field existed keep working.
+const apiVersion = "v1"
+
 type document struct {
-	Kind string    `yaml:"kind"`
-	Spec yaml.Node `yaml:"spec"`
+	APIVersion string    `yaml:"apiVersion"`
+	Kind       string    `yaml:"kind"`
+	Spec       yaml.Node `yaml:"spec"`
 }
 
-// Run dispatches each document in a (possibly multi-document) desired-state file
-// to the reconciler for its kind, in file order. The first error stops the run
-// and returns the reports gathered so far.
-func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRun bool) ([]Report, error) {
+type parsedDocument struct {
+	kind string
+	spec []byte
+}
+
+// parseDocuments reads and checks every document in the file before anything
+// runs: the version must be known, the kind registered, and the spec present.
+// A missing spec marshals to "null"/"" (usually a typo); it is rejected rather
+// than treated as an empty list, which for some kinds means "remove everyone".
+// Write `spec: []` to mean that on purpose.
+func parseDocuments(registry map[string]Reconciler, data []byte) ([]parsedDocument, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(data))
-	var reports []Report
+	var docs []parsedDocument
 	for {
 		var doc document
 		err := dec.Decode(&doc)
@@ -51,29 +63,45 @@ func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRu
 			break
 		}
 		if err != nil {
-			return reports, fmt.Errorf("parse desired-state: %w", err)
+			return nil, fmt.Errorf("parse desired-state: %w", err)
 		}
 		if doc.Kind == "" {
 			continue
 		}
-		rec, ok := registry[doc.Kind]
-		if !ok {
-			return reports, fmt.Errorf("no reconciler registered for kind %q", doc.Kind)
+		if doc.APIVersion != "" && doc.APIVersion != apiVersion {
+			return nil, fmt.Errorf("document kind %q has unsupported apiVersion %q (want %q)", doc.Kind, doc.APIVersion, apiVersion)
+		}
+		if _, ok := registry[doc.Kind]; !ok {
+			return nil, fmt.Errorf("no reconciler registered for kind %q", doc.Kind)
 		}
 		specBytes, err := yaml.Marshal(&doc.Spec)
 		if err != nil {
-			return reports, fmt.Errorf("marshal spec for kind %q: %w", doc.Kind, err)
+			return nil, fmt.Errorf("marshal spec for kind %q: %w", doc.Kind, err)
 		}
-		// A missing spec marshals to "null"/"" (usually a typo). Reject it rather
-		// than treat it as an empty list that removes everyone; write `spec: []` to
-		// mean that on purpose.
 		if s := strings.TrimSpace(string(specBytes)); s == "" || s == "null" {
-			return reports, fmt.Errorf("document kind %q is missing its spec", doc.Kind)
+			return nil, fmt.Errorf("document kind %q is missing its spec", doc.Kind)
 		}
-		rep, err := rec.Reconcile(ctx, specBytes, dryRun)
+		docs = append(docs, parsedDocument{kind: doc.Kind, spec: specBytes})
+	}
+	return docs, nil
+}
+
+// Run applies a (possibly multi-document) desired-state file. The whole file is
+// parsed and checked first, so a malformed later document stops the run before
+// anything applies. Documents then dispatch in file order — dependency order is
+// the file author's job — and the first error stops the run and returns the
+// reports gathered so far.
+func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRun bool) ([]Report, error) {
+	docs, err := parseDocuments(registry, data)
+	if err != nil {
+		return nil, err
+	}
+	var reports []Report
+	for _, doc := range docs {
+		rep, err := registry[doc.kind].Reconcile(ctx, doc.spec, dryRun)
 		if err != nil {
 			// Return rep too: on a partial apply it shows what was applied.
-			return append(reports, rep), fmt.Errorf("reconcile %s: %w", doc.Kind, err)
+			return append(reports, rep), fmt.Errorf("reconcile %s: %w", doc.kind, err)
 		}
 		reports = append(reports, rep)
 	}
@@ -92,9 +120,10 @@ func Export(ctx context.Context, registry map[string]Reconciler, kind string) ([
 		return nil, fmt.Errorf("export %s: %w", kind, err)
 	}
 	out, err := yaml.Marshal(struct {
-		Kind string `yaml:"kind"`
-		Spec any    `yaml:"spec"`
-	}{Kind: kind, Spec: spec})
+		APIVersion string `yaml:"apiVersion"`
+		Kind       string `yaml:"kind"`
+		Spec       any    `yaml:"spec"`
+	}{APIVersion: apiVersion, Kind: kind, Spec: spec})
 	if err != nil {
 		return nil, fmt.Errorf("marshal %s export: %w", kind, err)
 	}

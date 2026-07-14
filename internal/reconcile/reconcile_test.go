@@ -46,6 +46,28 @@ func TestRun_SpecHandling(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, rec.called)
 	})
+
+	t.Run("accepts apiVersion v1 and rejects unknown versions", func(t *testing.T) {
+		rec := &fakeReconciler{}
+		reg := map[string]Reconciler{KindPlatformUser: rec}
+
+		_, err := Run(context.Background(), reg, []byte("apiVersion: v1\nkind: PlatformUser\nspec: []\n"), false)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, rec.called)
+
+		_, err = Run(context.Background(), reg, []byte("apiVersion: v2\nkind: PlatformUser\nspec: []\n"), false)
+		assert.ErrorContains(t, err, `unsupported apiVersion "v2"`)
+	})
+
+	t.Run("a bad later document stops the run before anything applies", func(t *testing.T) {
+		rec := &fakeReconciler{}
+		reg := map[string]Reconciler{KindPlatformUser: rec}
+		data := []byte("kind: PlatformUser\nspec: []\n---\nkind: Unknown\nspec: []\n")
+
+		_, err := Run(context.Background(), reg, data, false)
+		assert.ErrorContains(t, err, `no reconciler registered for kind "Unknown"`)
+		assert.Zero(t, rec.called) // the whole file is checked before any dispatch
+	})
 }
 
 func TestExport_Errors(t *testing.T) {
