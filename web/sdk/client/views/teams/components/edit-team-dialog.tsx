@@ -98,7 +98,6 @@ function EditTeamForm({ payload, handle, refetch }: EditTeamFormProps) {
       await updateTeam(
         create(UpdateGroupRequestSchema, {
           id: payload.teamId,
-          orgId: organization.id,
           body: {
             title: data.title,
             name: payload.name

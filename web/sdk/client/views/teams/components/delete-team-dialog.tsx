@@ -39,8 +39,7 @@ export function DeleteTeamDialog({ handle, refetch }: DeleteTeamDialogProps) {
     try {
       await deleteTeam(
         create(DeleteGroupRequestSchema, {
-          id: teamId,
-          orgId: organization.id
+          id: teamId
         })
       );
       toastManager.add({ title: 'Team deleted', type: 'success' });
