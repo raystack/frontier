@@ -37,10 +37,6 @@ import (
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 )
 
-const (
-	connectServerGracePeriod = 10 * time.Second
-)
-
 type WebhooksConfigApiResponse struct {
 	EnableDelete bool `json:"enable_delete"`
 }
@@ -123,7 +119,7 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 	case <-ctx.Done():
 	}
 
-	ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
+	ctxShutdown, cancel := context.WithTimeout(context.Background(), apiServerConfig.ShutdownGracePeriod)
 	defer cancel()
 
 	if err := server.Shutdown(ctxShutdown); err != nil {
@@ -266,14 +262,14 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 			}
 		}()
 		shutdownWG.Add(1)
-		go gracefulShutdown(ctx, logger, &shutdownWG, metricsServer, "metrics server", metricsFailed)
+		go gracefulShutdown(ctx, logger, &shutdownWG, metricsServer, "metrics server", cfg.ShutdownGracePeriod, metricsFailed)
 	}
 
 	logger.Info("connect server starting", "port", cfg.Connect.Port)
 
 	serveFailed := make(chan struct{})
 	shutdownWG.Add(1)
-	go gracefulShutdown(ctx, logger, &shutdownWG, server, "connect server", serveFailed)
+	go gracefulShutdown(ctx, logger, &shutdownWG, server, "connect server", cfg.ShutdownGracePeriod, serveFailed)
 
 	// Start server
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -295,7 +291,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 // gracefulShutdown drains srv within the grace period once ctx is cancelled.
 // It returns without logging when the server already failed, so a server
 // that never started is not reported as gracefully shut down.
-func gracefulShutdown(ctx context.Context, logger *slog.Logger, wg *sync.WaitGroup, srv *http.Server, name string, failed <-chan struct{}) {
+func gracefulShutdown(ctx context.Context, logger *slog.Logger, wg *sync.WaitGroup, srv *http.Server, name string, gracePeriod time.Duration, failed <-chan struct{}) {
 	defer wg.Done()
 
 	select {
@@ -304,7 +300,7 @@ func gracefulShutdown(ctx context.Context, logger *slog.Logger, wg *sync.WaitGro
 		return
 	}
 
-	ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
+	ctxShutdown, cancel := context.WithTimeout(context.Background(), gracePeriod)
 	defer cancel()
 
 	if err := srv.Shutdown(ctxShutdown); err != nil {

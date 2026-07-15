@@ -35,7 +35,7 @@ func TestServeUIReturnsAfterShutdownOnContextCancel(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		ServeUI(ctx, logger, UIConfig{Port: port}, Config{})
+		ServeUI(ctx, logger, UIConfig{Port: port}, Config{ShutdownGracePeriod: 5 * time.Second})
 	}()
 
 	url := fmt.Sprintf("http://127.0.0.1:%d/configs", port)

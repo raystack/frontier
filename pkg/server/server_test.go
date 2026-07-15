@@ -39,7 +39,7 @@ func TestGracefulShutdownDrainsInflightRequests(t *testing.T) {
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go gracefulShutdown(ctx, logger, &wg, srv, "test server", make(chan struct{}))
+	go gracefulShutdown(ctx, logger, &wg, srv, "test server", 5*time.Second, make(chan struct{}))
 
 	serveReturned := make(chan struct{})
 	go func() {
@@ -74,6 +74,59 @@ func TestGracefulShutdownDrainsInflightRequests(t *testing.T) {
 	}
 	if err := <-requestErr; err != nil {
 		t.Fatalf("in-flight request failed: %v", err)
+	}
+}
+
+func TestGracefulShutdownCutsOffRequestsAfterGracePeriod(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	entered := make(chan struct{})
+	handlerDone := make(chan struct{})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/stuck", func(w http.ResponseWriter, r *http.Request) {
+		close(entered)
+		time.Sleep(2 * time.Second)
+		close(handlerDone)
+	})
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	srv := &http.Server{Handler: mux}
+	t.Cleanup(func() { srv.Close() })
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go gracefulShutdown(ctx, logger, &wg, srv, "test server", 200*time.Millisecond, make(chan struct{}))
+
+	go func() {
+		_ = srv.Serve(l)
+	}()
+
+	go func() {
+		resp, err := http.Get(fmt.Sprintf("http://%s/stuck", l.Addr()))
+		if err == nil {
+			resp.Body.Close()
+		}
+	}()
+
+	<-entered
+	cancel()
+
+	waitStart := time.Now()
+	wg.Wait()
+
+	if elapsed := time.Since(waitStart); elapsed >= 2*time.Second {
+		t.Fatalf("grace period did not cut off the drain, wait took %v", elapsed)
+	}
+	select {
+	case <-handlerDone:
+		t.Fatal("handler finished before the wait released, cutoff never happened")
+	default:
 	}
 }
 
@@ -118,6 +171,7 @@ func TestServeConnectReturnsAfterShutdownOnContextCancel(t *testing.T) {
 
 			var cfg Config
 			cfg.Connect.Port = freePort(t)
+			cfg.ShutdownGracePeriod = 5 * time.Second
 			if tc.withMetrics {
 				cfg.MetricsPort = freePort(t)
 			}
