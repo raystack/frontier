@@ -24,6 +24,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate/token"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	patModels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	mailerMock "github.com/raystack/frontier/pkg/mailer/mocks"
 	pkgMetadata "github.com/raystack/frontier/pkg/metadata"
@@ -88,8 +89,9 @@ func TestService_GetPrincipal(t *testing.T) {
 				assertions: []authenticate.ClientAssertion{authenticate.SessionClientAssertion},
 			},
 			want: authenticate.Principal{
-				ID:   userID.String(),
-				Type: schema.UserPrincipal,
+				ID:      userID.String(),
+				Type:    schema.UserPrincipal,
+				AuthVia: authenticate.SessionClientAssertion,
 				User: &user.User{
 					ID: userID.String(),
 				},
@@ -149,8 +151,9 @@ func TestService_GetPrincipal(t *testing.T) {
 				assertions: []authenticate.ClientAssertion{authenticate.AccessTokenClientAssertion},
 			},
 			want: authenticate.Principal{
-				ID:   userID.String(),
-				Type: schema.UserPrincipal,
+				ID:      userID.String(),
+				Type:    schema.UserPrincipal,
+				AuthVia: authenticate.AccessTokenClientAssertion,
 				User: &user.User{
 					ID: userID.String(),
 				},
@@ -195,8 +198,9 @@ func TestService_GetPrincipal(t *testing.T) {
 				assertions: []authenticate.ClientAssertion{authenticate.JWTGrantClientAssertion},
 			},
 			want: authenticate.Principal{
-				ID:   userID.String(),
-				Type: schema.ServiceUserPrincipal,
+				ID:      userID.String(),
+				Type:    schema.ServiceUserPrincipal,
+				AuthVia: authenticate.JWTGrantClientAssertion,
 				ServiceUser: &serviceuser.ServiceUser{
 					ID: userID.String(),
 				},
@@ -240,35 +244,9 @@ func TestService_GetPrincipal(t *testing.T) {
 				assertions: []authenticate.ClientAssertion{authenticate.ClientCredentialsClientAssertion},
 			},
 			want: authenticate.Principal{
-				ID:   userID.String(),
-				Type: schema.ServiceUserPrincipal,
-				ServiceUser: &serviceuser.ServiceUser{
-					ID: userID.String(),
-				},
-			},
-			wantErr: false,
-			setup: func() *authenticate.Service {
-				mockFlow, mockUserService, mockTokenService, mockSessionService, mockServiceUserService := createMocks(t)
-
-				mockServiceUserService.EXPECT().GetBySecret(mock.Anything, "user", "password").Return(serviceuser.ServiceUser{
-					ID: userID.String(),
-				}, nil)
-
-				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)
-			},
-		},
-		{
-			name: "fetch principal from opaque token",
-			args: args{
-				ctx: metadata.NewIncomingContext(context.Background(), map[string][]string{
-					consts.UserSecretGatewayKey: {userToken},
-				}),
-				assertions: []authenticate.ClientAssertion{authenticate.OpaqueTokenClientAssertion},
-			},
-			want: authenticate.Principal{
-				ID:   userID.String(),
-				Type: schema.ServiceUserPrincipal,
+				ID:      userID.String(),
+				Type:    schema.ServiceUserPrincipal,
+				AuthVia: authenticate.ClientCredentialsClientAssertion,
 				ServiceUser: &serviceuser.ServiceUser{
 					ID: userID.String(),
 				},
@@ -454,6 +432,81 @@ func TestService_StartFlow(t *testing.T) {
 				require.NoError(t, err)
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestService_GetPrincipal_JWTGrantSkipsNonGrantToken(t *testing.T) {
+	userID := uuid.New()
+	patValue := "fpt_opaque-not-a-jwt"
+
+	mockFlow, mockUserService, mockTokenService, mockSessionService, mockServiceUserService := createMocks(t)
+	mockPATService := mocks.NewUserPATService(t)
+
+	mockServiceUserService.EXPECT().GetByJWT(mock.Anything, patValue).
+		Return(serviceuser.ServiceUser{}, serviceuser.ErrTokenNotJWT)
+	pat := patModels.PAT{ID: "pat-1", UserID: userID.String(), ExpiresAt: time.Now().Add(time.Hour)}
+	mockPATService.EXPECT().Validate(mock.Anything, patValue).Return(pat, nil)
+	mockUserService.EXPECT().GetByID(mock.Anything, userID.String()).
+		Return(user.User{ID: userID.String()}, nil)
+
+	svc := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+		mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, mockPATService)
+
+	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{
+		consts.UserTokenGatewayKey: {patValue},
+	})
+
+	got, err := svc.GetPrincipal(ctx,
+		authenticate.JWTGrantClientAssertion, authenticate.PATClientAssertion)
+	require.NoError(t, err)
+	assert.Equal(t, schema.PATPrincipal, got.Type)
+	require.NotNil(t, got.PAT)
+	assert.Equal(t, "pat-1", got.ID)
+}
+
+func TestService_GetPrincipal_RestrictsByAuthVia(t *testing.T) {
+	// lists mirror what the handlers pass: session.go uses {Session}; AuthToken uses the token-exchange set.
+	sessionOnly := []authenticate.ClientAssertion{authenticate.SessionClientAssertion}
+	authTokenSet := []authenticate.ClientAssertion{
+		authenticate.SessionClientAssertion,
+		authenticate.ClientCredentialsClientAssertion,
+		authenticate.JWTGrantClientAssertion,
+		authenticate.PATClientAssertion,
+	}
+
+	tests := []struct {
+		name    string
+		authVia authenticate.ClientAssertion
+		allowed []authenticate.ClientAssertion
+		wantErr bool
+	}{
+		{"session endpoints accept a session", authenticate.SessionClientAssertion, sessionOnly, false},
+		{"session endpoints reject a PAT", authenticate.PATClientAssertion, sessionOnly, true},
+		{"session endpoints reject an access token", authenticate.AccessTokenClientAssertion, sessionOnly, true},
+		{"session endpoints reject client credentials", authenticate.ClientCredentialsClientAssertion, sessionOnly, true},
+		{"session endpoints reject a jwt grant", authenticate.JWTGrantClientAssertion, sessionOnly, true},
+
+		{"authtoken accepts a session", authenticate.SessionClientAssertion, authTokenSet, false},
+		{"authtoken accepts client credentials", authenticate.ClientCredentialsClientAssertion, authTokenSet, false},
+		{"authtoken accepts a jwt grant", authenticate.JWTGrantClientAssertion, authTokenSet, false},
+		{"authtoken accepts a PAT", authenticate.PATClientAssertion, authTokenSet, false},
+		{"authtoken rejects an access token", authenticate.AccessTokenClientAssertion, authTokenSet, true},
+		{"authtoken rejects passthrough", authenticate.PassthroughHeaderClientAssertion, authTokenSet, true},
+	}
+
+	svc := authenticate.NewService(nil, authenticate.Config{}, nil, nil, nil, nil, nil, nil, nil, nil)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := authenticate.SetContextWithPrincipal(context.Background(), &authenticate.Principal{
+				ID:      "principal-1",
+				Type:    schema.UserPrincipal,
+				AuthVia: tt.authVia,
+			})
+			if _, err := svc.GetPrincipal(ctx, tt.allowed...); (err != nil) != tt.wantErr {
+				t.Errorf("GetPrincipal() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
 }

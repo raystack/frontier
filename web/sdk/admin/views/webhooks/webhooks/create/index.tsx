@@ -23,7 +23,7 @@ const NewWebookSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(3, { message: "Must be 10 or more characters long" }),
+    .min(3, { message: "Must be 3 or more characters long" }),
   state: z.boolean().default(false),
   subscribed_events: z.array(z.string()).default([]),
 });
@@ -48,7 +48,12 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
 
   const methods = useForm<NewWebhook>({
     resolver: zodResolver(NewWebookSchema),
-    defaultValues: {},
+    defaultValues: {
+      url: "",
+      description: "",
+      state: false,
+      subscribed_events: [],
+    },
   });
 
   const onSubmit = async (data: NewWebhook) => {
@@ -66,7 +71,14 @@ export default function CreateWebhooks({ open = false, onClose: onCloseProp }: C
       if (resp?.webhook) {
         toastManager.add({ title: "Webhook created", type: "success" });
         await invalidateWebhooksList();
+        methods.reset();
         onOpenChange();
+      } else {
+        toastManager.add({
+          title: "Something went wrong",
+          description: "Webhook was not created. Please try again.",
+          type: "error",
+        });
       }
     } catch (err) {
       console.error("Failed to create webhook:", err);

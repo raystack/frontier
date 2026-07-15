@@ -17,7 +17,6 @@ import {
   Button,
   Skeleton,
   Text,
-  Label,
   Select,
   Flex,
   Dialog,
@@ -30,9 +29,21 @@ import { PERMISSIONS } from '../../../../utils';
 import { handleConnectError } from '~/utils/error';
 
 const inviteSchema = yup.object({
-  type: yup.string().required(),
+  type: yup.string().required('Role is required'),
   team: yup.string(),
-  emails: yup.string().required()
+  emails: yup
+    .string()
+    .required('Email is required')
+    .test('emails', 'Enter valid email address(es)', value => {
+      const emailList = (value ?? '')
+        .split(',')
+        .map(e => e.trim())
+        .filter(str => str.length > 0);
+      return (
+        emailList.length > 0 &&
+        emailList.every(email => yup.string().email().isValidSync(email))
+      );
+    })
 });
 
 type InviteSchemaType = yup.InferType<typeof inviteSchema>;
@@ -45,7 +56,6 @@ export interface InviteMemberDialogProps {
 
 export function InviteMemberDialog({ handle, showTeamField = true, refetch }: InviteMemberDialogProps) {
   const {
-    watch,
     register,
     control,
     handleSubmit,
@@ -115,8 +125,6 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
     }
   );
 
-  const values = watch(['emails', 'type']);
-
   const onSubmit = useCallback(
     async ({ emails, type, team }: InviteSchemaType) => {
       const emailList = emails
@@ -148,16 +156,6 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
     [createInvitation, organization?.id, showTeamField]
   );
 
-  const isDisabled = useMemo(() => {
-    const [emails, type] = values;
-    const emailList =
-      emails
-        ?.split(',')
-        .map((e: string) => e.trim())
-        .filter((str: string) => str.length > 0) || [];
-    return emailList.length <= 0 || !type || isSubmitting;
-  }, [isSubmitting, values]);
-
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
       <Dialog.Content width={600}>
@@ -167,18 +165,17 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex direction="column" gap={7}>
-              {isLoading ? (
-                <Skeleton height="80px" />
-              ) : (
-                <Field label="Email">
+              <Field label="Email" error={errors?.emails?.message}>
+                {isLoading ? (
+                  <Skeleton height="80px" />
+                ) : (
                   <TextArea
                     {...register('emails')}
                     placeholder="abc@example.com, xyz@example.com"
                   />
-                </Field>
-              )}
-              <Flex direction="column" gap={2}>
-                <Label>Invite as</Label>
+                )}
+              </Field>
+              <Field label="Invite as" error={errors?.type?.message}>
                 {isLoading ? (
                   <Skeleton height="36px" />
                 ) : (
@@ -215,10 +212,9 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
                     name="type"
                   />
                 )}
-              </Flex>
+              </Field>
               {showTeamField && (
-                <Flex direction="column" gap={2}>
-                  <Label>Add to team (optional)</Label>
+                <Field label="Add to team (optional)">
                   {isLoading ? (
                     <Skeleton height="36px" />
                   ) : (
@@ -252,7 +248,7 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
                       name="team"
                     />
                   )}
-                </Flex>
+                </Field>
               )}
             </Flex>
           </Dialog.Body>
@@ -262,7 +258,7 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
                 type="submit"
                 variant="solid"
                 color="accent"
-                disabled={isDisabled}
+                disabled={isLoading}
                 data-test-id="frontier-sdk-send-member-invite-btn"
                 loading={isSubmitting}
                 loaderText="Sending..."

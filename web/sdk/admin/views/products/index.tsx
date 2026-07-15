@@ -1,5 +1,5 @@
 import { EmptyState, Flex, DataTable } from "@raystack/apsara";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import type { Product } from "@raystack/proton/frontier";
@@ -46,6 +46,14 @@ export default function ProductsView({
   const products = productsResponse?.products || [];
   const productMapById = reduceByKey(products ?? [], "id");
   const product = selectedProductId ? productMapById[selectedProductId] ?? null : null;
+
+  // Unknown product id (e.g. /products/create): drop it from the URL.
+  // Skip on error, when the list load — not the id — is what failed.
+  useEffect(() => {
+    if (selectedProductId && !isProductsLoading && !isError && !product) {
+      onCloseDetail?.();
+    }
+  }, [selectedProductId, isProductsLoading, isError, product, onCloseDetail]);
 
   const columns = getColumns(onNavigateToPrices);
 

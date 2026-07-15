@@ -5,7 +5,7 @@ import { UserDetailsLayout } from "./layout";
 import { UserProvider } from "./user-context";
 import { useQuery } from "@connectrpc/connect-query";
 import type { User } from "@raystack/proton/frontier";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { UserDetailsSecurityContent } from "./security/security";
 import { useTerminology } from "../../../hooks/useTerminology";
 
@@ -35,8 +35,8 @@ interface UserDetailsByUserIdProps {
 export const UserDetailsByUserId = ({ userId, currentPath, onNavigate }: UserDetailsByUserIdProps) => {
   const t = useTerminology();
   const { data, isLoading, refetch } = useQuery(
-    AdminServiceQueries.searchUsers,
-    { query: { search: userId } },
+    FrontierServiceQueries.getUser,
+    { id: userId },
     {
       enabled: !!userId,
       staleTime: 0,
@@ -45,7 +45,7 @@ export const UserDetailsByUserId = ({ userId, currentPath, onNavigate }: UserDet
       retryDelay: 1000,
     },
   );
-  const user = data?.users?.[0];
+  const user = data?.user;
 
   if (isLoading) {
     return (

@@ -167,7 +167,7 @@ var DefaultTraits = []Trait{
 		ResourceType: schema.PlatformNamespace,
 		Name:         PlatformDisableUsersListing,
 		Title:        "Disable Users Listing",
-		Description:  "If selected will will disallow non-admin APIs to list all users on the platform. Default is false.",
+		Description:  "If selected will disallow non-admin APIs to list all users on the platform. Default is false.",
 		Heading:      "Platform Settings",
 		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
 		Input:        TraitInputCheckbox,

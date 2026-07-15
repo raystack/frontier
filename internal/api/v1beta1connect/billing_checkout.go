@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/product"
+	"github.com/raystack/frontier/core/auditrecord"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -47,6 +51,35 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrPortalChangesKycCompleted)
 			}
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateCheckout.CreateSessionForCustomerPortal: billing_id=%s: %w", billingID, err))
+		}
+
+		// Audit the customer portal session creation so we can trace who (a super
+		// user or any other principal) opened the portal to update billing details.
+		// Actor and the super-user flag are auto-enriched from request context.
+		orgName := ""
+		if org, orgErr := h.orgService.GetRaw(ctx, request.Msg.GetOrgId()); orgErr == nil {
+			orgName = org.Title
+		}
+		if _, _, auditErr := h.auditRecordService.Create(ctx, auditrecord.AuditRecord{
+			Event: pkgAuditRecord.BillingCustomerPortalSessionCreatedEvent,
+			Resource: auditrecord.Resource{
+				ID:   request.Msg.GetOrgId(),
+				Type: pkgAuditRecord.OrganizationType,
+				Name: orgName,
+			},
+			Target: &auditrecord.Target{
+				ID:   billingID,
+				Type: pkgAuditRecord.BillingCustomerType,
+			},
+			OrgID:      request.Msg.GetOrgId(),
+			OrgName:    orgName,
+			OccurredAt: time.Now().UTC(),
+			Metadata: metadata.Metadata{
+				"checkout_id": newCheckout.ID,
+			},
+		}); auditErr != nil {
+			NewErrorLogger().LogServiceError(ctx, request, "CreateCheckout.AuditCustomerPortal", auditErr,
+				"org_id", request.Msg.GetOrgId(), "billing_id", billingID)
 		}
 
 		return connect.NewResponse(&frontierv1beta1.CreateCheckoutResponse{

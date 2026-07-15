@@ -9,7 +9,7 @@ import {
   type Project,
   type SearchOrganizationPATsResponse_OrganizationPAT,
 } from "@raystack/proton/frontier";
-import { useDebounceValue } from "usehooks-ts";
+import { useDebouncedValue } from "~hooks";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
 import {
@@ -106,7 +106,7 @@ export function OrganizationPatView() {
     };
   }, [tableQuery, searchQuery]);
 
-  const [query] = useDebounceValue(computedQuery, 200);
+  const query = useDebouncedValue(computedQuery, 200);
 
   const {
     data: infiniteData,

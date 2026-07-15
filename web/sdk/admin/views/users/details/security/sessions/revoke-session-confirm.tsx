@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import {
-  Button,
   Dialog,
-  Flex,
-  List,
-  Text
+  Button,
+  List
 } from '@raystack/apsara';
 import { RevokeSessionFinalConfirm } from './revoke-session-final-confirm';
 import { formatDeviceDisplay } from './index';
@@ -39,16 +37,11 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
   return (
     <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '400px', width: '100%' }}
-      >
+      <Dialog.Content showCloseButton={false}>
         <Dialog.Header className={styles.revokeSessionConfirmHeader}>
-          <Flex justify="between" align="center" width="full">
-            <Text size="regular">
+          <Dialog.Title>
             {sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown browser and OS"}
-            </Text>
-            <Dialog.CloseButton data-test-id="frontier-sdk-close-revoke-session-dialog" />
-          </Flex>
+          </Dialog.Title>
         </Dialog.Header>
 
         <Dialog.Body className={styles.revokeSessionConfirmBody}>
@@ -73,27 +66,28 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify="end" gap={5}>
-            <Button
-              variant="outline"
-              color="neutral"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-              data-test-id="frontier-ui-cancel-revoke-session-dialog"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="solid"
-              color="danger"
-              onClick={handleRevoke}
-              loading={isLoading}
-              loaderText="Revoking..."
-              data-test-id="frontier-ui-confirm-revoke-session-dialog"
-            >
-              Revoke
-            </Button>
-          </Flex>
+          <Dialog.Close
+            render={
+              <Button
+                variant="outline"
+                color="neutral"
+                disabled={isLoading}
+                data-test-id="frontier-ui-cancel-revoke-session-dialog"
+              >
+                Cancel
+              </Button>
+            }
+          />
+          <Button
+            variant="solid"
+            color="danger"
+            onClick={handleRevoke}
+            loading={isLoading}
+            loaderText="Revoking..."
+            data-test-id="frontier-ui-confirm-revoke-session-dialog"
+          >
+            Revoke
+          </Button>
         </Dialog.Footer>
       </Dialog.Content>
     </Dialog>

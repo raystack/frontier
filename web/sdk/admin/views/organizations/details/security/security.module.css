@@ -15,6 +15,16 @@
   background: var(--rs-color-background-base-primary);
 }
 
+.domains-list-status {
+  padding: var(--rs-space-5) var(--rs-space-7);
+}
+
+.domains-list-empty {
+  padding: var(--rs-space-5) 0;
+  justify-content: center;
+  text-align: center;
+}
+
 .domains-list-item {
   padding: var(--rs-space-5) 0;
   border-bottom: 1px solid var(--rs-color-border-base-primary);

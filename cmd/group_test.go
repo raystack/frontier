@@ -61,13 +61,13 @@ func TestClientGroup(t *testing.T) {
 			{
 				name:        "`group` view without host should throw error host not found",
 				want:        "",
-				subCommands: []string{"view", orgID, "123"},
+				subCommands: []string{"view", "123"},
 				err:         cmd.ErrClientConfigHostNotFound,
 			},
 			{
 				name:        "`group` view with host flag should return error",
 				want:        "",
-				subCommands: []string{"view", orgID, "123", "-h", "test"},
+				subCommands: []string{"view", "123", "-h", "test"},
 				wantErr:     true,
 			},
 		}

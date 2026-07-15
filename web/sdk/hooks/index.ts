@@ -19,3 +19,5 @@ export { useQueryClient } from '@tanstack/react-query';
 
 // Re-export protobuf utilities
 export { create } from '@bufbuild/protobuf';
+
+export { useDebouncedValue } from './useDebouncedValue';

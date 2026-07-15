@@ -212,8 +212,9 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 	if err = deps.BootstrapService.MigrateRoles(ctx); err != nil {
 		return err
 	}
-	// promote normal users to superusers
-	if err = deps.BootstrapService.MakeSuperUsers(ctx); err != nil {
+	// ensure the config-seeded bootstrap superuser service account (for automation/GitOps).
+	// all other platform-user management is handled out-of-band via the GitOps reconcile flow.
+	if err = deps.BootstrapService.EnsureBootstrapSuperUser(ctx); err != nil {
 		return err
 	}
 
@@ -264,6 +265,17 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		logger.Debug("cleaning up PAT expiry alert service")
 		if err := deps.PATAlertService.Close(); err != nil {
 			logger.Warn("PAT alert service cleanup failed", "err", err)
+		}
+	}()
+
+	// periodic cleanup of expired invitations (removes the row + both SpiceDB tuples)
+	if err := deps.InvitationService.InitInvitationCleanup(ctx); err != nil {
+		logger.Warn("invitation cleanup initialization failed", "err", err)
+	}
+	defer func() {
+		logger.Debug("cleaning up expired invitations job")
+		if err := deps.InvitationService.Close(); err != nil {
+			logger.Warn("invitation cleanup shutdown failed", "err", err)
 		}
 	}()
 
@@ -395,7 +407,7 @@ func buildAPIDependencies(
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
-	serviceUserService := serviceuser.NewService(logger, svUserRepo, scUserCredRepo, relationService)
+	serviceUserService := serviceuser.NewService(logger, svUserRepo, scUserCredRepo, relationService, auditRecordRepository)
 
 	var mailDialer mailer.Dialer = mailer.NewMockDialer()
 	if cfg.App.Mailer.SMTPHost != "" && cfg.App.Mailer.SMTPHost != "smtp.example.com" {
@@ -432,7 +444,7 @@ func buildAPIDependencies(
 	// back here because role.Service depends on permission.Service
 	permissionService.SetRoleService(roleService)
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
-	userService := user.NewService(userRepository, relationService, sessionService)
+	userService := user.NewService(userRepository, relationService, sessionService, auditRecordRepository)
 	patValidator := userpat.NewValidator(logger, userPATRepo, cfg.App.PAT)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator)
@@ -569,7 +581,6 @@ func buildAPIDependencies(
 		namespaceService,
 		roleService,
 		permissionService,
-		userService,
 		authzSchemaRepository,
 		relationService,
 		policyService,
@@ -577,6 +588,9 @@ func buildAPIDependencies(
 		cfg.App.PAT.DeniedPermissionsSet(),
 		planService,
 		planBlobRepository,
+		svUserRepo,
+		scUserCredRepo,
+		serviceUserService,
 	)
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,

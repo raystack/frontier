@@ -69,10 +69,7 @@ definition app/organization {
 	permission update = platform->superuser + granted->app_organization_administer + granted->app_organization_update + owner
 }
 
-definition app/pat {
-	relation org: app/organization
-	relation user: app/user
-}
+definition app/pat {}
 
 definition app/platform {
 	relation admin: app/user | app/serviceuser

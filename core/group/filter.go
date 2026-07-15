@@ -15,5 +15,7 @@ type Filter struct {
 	State           State
 	WithMemberCount bool
 
+	IncludeDisabled bool
+
 	GroupIDs []string
 }

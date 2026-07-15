@@ -757,6 +757,9 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 	}
 
 	if val, ok := GetPrincipalFromContext(ctx); ok {
+		if len(assertions) > 0 && !slices.Contains(assertions, val.AuthVia) {
+			return Principal{}, errors.ErrUnauthenticated
+		}
 		return *val, nil
 	}
 
@@ -772,6 +775,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		}
 		principal, err := authenticator(ctx, &s)
 		if err == nil {
+			principal.AuthVia = assertion
 			return principal, nil
 		}
 		if !errors.Is(err, errSkip) {

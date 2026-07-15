@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Chip } from '@raystack/apsara';
+import { useTerminology } from '../../../hooks/useTerminology';
 import styles from './pat-project-chips.module.css';
 
 interface ProjectChipItem {
@@ -18,6 +19,7 @@ const COUNT_CHIP_WIDTH_RESERVE = 56;
 const CHIP_GAP = 4;
 
 export function PATProjectChips({ projects }: PATProjectChipsProps) {
+  const t = useTerminology();
   const [expanded, setExpanded] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,7 +71,7 @@ export function PATProjectChips({ projects }: PATProjectChipsProps) {
         <Chip
           className={styles.countChip}
           onClick={() => setExpanded(true)}
-          aria-label={`Show ${hidden} more projects`}
+          aria-label={`Show ${hidden} more ${t.project({ case: 'lower', plural: true })}`}
           data-test-id="frontier-sdk-pat-project-chips-expand-btn"
         >
           +{hidden}

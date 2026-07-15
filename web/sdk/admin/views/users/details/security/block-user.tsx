@@ -7,21 +7,18 @@ import {
   useMutation,
   useTransport,
 } from "@connectrpc/connect-query";
-import {
-  AdminServiceQueries,
-  FrontierServiceQueries,
-} from "@raystack/proton/frontier";
+import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useQueryClient } from "@tanstack/react-query";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 type ButtonColorType = ComponentProps<typeof Button>["color"];
 
-type SearchUsersQueryData = {
-  users: Array<{
+type GetUserQueryData = {
+  user?: {
     id: string;
     state?: string;
-  }>;
+  };
 };
 
 export const BlockUserDialog = () => {
@@ -36,20 +33,18 @@ export const BlockUserDialog = () => {
 
   const optimisticUpdateState = useCallback(
     (state: string) => {
-      queryClient.setQueryData<SearchUsersQueryData>(
+      queryClient.setQueryData<GetUserQueryData>(
         createConnectQueryKey({
-          schema: AdminServiceQueries.searchUsers,
+          schema: FrontierServiceQueries.getUser,
           transport,
-          input: { query: { search: user?.id || "" } },
+          input: { id: user?.id || "" },
           cardinality: "finite",
         }),
         oldData => {
-          if (!oldData) return oldData;
+          if (!oldData?.user) return oldData;
           return {
             ...oldData,
-            users: oldData.users.map(u =>
-              u.id === user?.id ? { ...u, state } : u,
-            ),
+            user: { ...oldData.user, state },
           };
         },
       );

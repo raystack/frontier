@@ -86,10 +86,13 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string, flt gr
 		}
 	}
 
-	query, params, err := sqlStatement.Where(
-		goqu.Ex{
-			"id": goqu.Op{"in": groupIDs},
-		}).Where(notDisabledGroupExp).ToSQL()
+	sqlStatement = sqlStatement.Where(goqu.Ex{
+		"id": goqu.Op{"in": groupIDs},
+	})
+	if !flt.IncludeDisabled {
+		sqlStatement = sqlStatement.Where(notDisabledGroupExp)
+	}
+	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
 		return []group.Group{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
@@ -234,7 +237,6 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		goqu.Record{
 			"title":      grp.Title,
 			"name":       grp.Name,
-			"org_id":     grp.OrganizationID,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.ExOr{
@@ -256,8 +258,6 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 			return group.Group{}, group.ErrInvalidUUID
 		case errors.Is(err, ErrDuplicateKey):
 			return group.Group{}, group.ErrConflict
-		case errors.Is(err, ErrForeignKeyViolation):
-			return group.Group{}, organization.ErrNotExist
 		default:
 			return group.Group{}, fmt.Errorf("%w: %w", dbErr, err)
 		}
