@@ -43,3 +43,6 @@
 .dropdown-menu-trigger:focus-visible {
   background-color: var(--rs-color-background-base-primary-hover);
 }
+.listLabel{
+  min-width: 120px;
+}

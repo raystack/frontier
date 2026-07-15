@@ -43,7 +43,7 @@ export const SidePanelMembership = ({
     <List>
       {showTitle && <List.Header>Membership</List.Header>}
       <List.Item>
-        <List.Label minWidth="120px">Name</List.Label>
+        <List.Label className={styles.listLabel}>Name</List.Label>
         <List.Value>
           <Flex gap={3} align="center">
             <Avatar
@@ -57,13 +57,13 @@ export const SidePanelMembership = ({
         </List.Value>
       </List.Item>
       <List.Item className={styles["dropdown-item"]}>
-        <List.Label minWidth="112px">Role</List.Label>
+        <List.Label style={{minWidth: "112px" }}>Role</List.Label>
         <List.Value>
           <MembershipDropdown data={data} onReset={onReset} />
         </List.Value>
       </List.Item>
       <List.Item>
-        <List.Label minWidth="120px">Joined on</List.Label>
+        <List.Label className={styles.listLabel}>Joined on</List.Label>
         <List.Value>
           <Flex gap={3}>
             <CalendarIcon />
@@ -74,7 +74,7 @@ export const SidePanelMembership = ({
         </List.Value>
       </List.Item>
       <List.Item>
-        <List.Label minWidth="120px">Projects</List.Label>
+        <List.Label className={styles.listLabel}>Projects</List.Label>
         <List.Value>
           {data?.projectCount ? Number(data.projectCount) : "-"}
         </List.Value>

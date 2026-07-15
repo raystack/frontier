@@ -81,9 +81,13 @@ export default memo(function AppRoutes() {
           <Route path="apis" element={<OrganizationApisView />} />
           <Route path="pat" element={<OrganizationPatView />} />
         </Route>
-        <Route path={paths.users} element={<UsersPage />}>
-          <Route path=":userId" element={<UsersPage />} />
-          <Route path=":userId/security" element={<UsersPage />} />
+        <Route path={paths.users}>
+          <Route index element={<UsersPage />} />
+          <Route path=":userId">
+            {/* Security is the default tab */}
+            <Route index element={<Navigate to="security" replace />} />
+            <Route path="security" element={<UsersPage />} />
+          </Route>
         </Route>
 
         <Route path="audit-logs" element={<AuditLogsPage />} />

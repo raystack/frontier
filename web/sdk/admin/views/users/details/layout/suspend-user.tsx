@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
+import { AlertDialog, Button, toastManager } from "@raystack/apsara";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 interface SuspendDropdownProps {
@@ -29,25 +29,24 @@ export const SuspendUser = ({
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <Dialog.Content>
-        <Dialog.Body>
-          <Flex direction="column" gap={3}>
-            <Dialog.Title>Suspend {t.user({ case: "capital" })}</Dialog.Title>
-            <Text variant="secondary">
-              Suspending this {t.user({ case: "lower" })} will permanently restrict access to its
-              content, disable communication, and prevent any future
-              interactions. Are you sure you want to proceed?
-            </Text>
-          </Flex>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close
+    <AlertDialog open onOpenChange={onClose}>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Suspend {t.user({ case: "capital" })}</AlertDialog.Title>
+          <AlertDialog.Description>
+            Suspending this {t.user({ case: "lower" })} will permanently restrict access to its
+            content, disable communication, and prevent any future
+            interactions. Are you sure you want to proceed?
+          </AlertDialog.Description>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
             render={
               <Button
                 type="button"
                 variant="outline"
                 color="neutral"
+                disabled={isSubmitting}
                 data-test-id="admin-user-details-suspend-cancel"
               >
                 Cancel
@@ -65,8 +64,8 @@ export const SuspendUser = ({
           >
             Suspend
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

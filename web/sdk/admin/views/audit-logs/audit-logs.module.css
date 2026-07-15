@@ -90,3 +90,7 @@
 .sidepanel-list-link a {
   text-decoration: none;
 }
+
+.sidepanel-list{
+  min-width: 120px;
+}

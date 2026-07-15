@@ -56,6 +56,8 @@ app:
     port: 8002
   # port for application metrics
   metrics_port: 9000
+  # how long each server waits for in-flight requests to finish during shutdown
+  shutdown_grace_period: 10s
   # enable pprof endpoints for cpu/mem/mutex profiling
   profiler: false
   host: "127.0.0.1"
