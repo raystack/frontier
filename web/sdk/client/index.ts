@@ -1,6 +1,3 @@
-import '@raystack/apsara/style.css';
-import '@raystack/apsara/normalize.css';
-
 export { ImageUpload } from './components/image-upload';
 export { ViewContainer } from './components/view-container';
 export { ViewHeader } from './components/view-header';

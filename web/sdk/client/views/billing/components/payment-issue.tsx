@@ -1,39 +1,81 @@
 'use client';
 
-import { useCallback } from 'react';
-import { Button, Text, Flex } from '@raystack/apsara';
+import { useCallback, useEffect } from 'react';
+import { Button, Text, Flex, toastManager } from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import {
+  Subscription,
+  RQLRequestSchema,
+  RQLFilterSchema,
+  RQLSortSchema
+} from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '../../../utils/constants';
-import { Subscription, Invoice } from '@raystack/proton/frontier';
-import { timestampToDayjs } from '../../../../utils/timestamp';
+import { DEFAULT_PAGE_SIZE } from '../../../utils/connect-pagination';
+import { useOrganizationInvoices } from '../../../hooks/useOrganizationInvoices';
 import styles from '../billing-view.module.css';
+
+// Open invoices with a non-zero amount, newest first — the invoice that needs
+// payment when a subscription is past due.
+const OPEN_INVOICES_QUERY = create(RQLRequestSchema, {
+  filters: [
+    create(RQLFilterSchema, {
+      name: 'state',
+      operator: 'eq',
+      value: { case: 'stringValue', value: INVOICE_STATES.OPEN }
+    }),
+    create(RQLFilterSchema, {
+      name: 'amount',
+      operator: 'gt',
+      value: { case: 'numberValue', value: 0 }
+    })
+  ],
+  sort: [create(RQLSortSchema, { name: 'created_at', order: 'desc' })],
+  offset: 0,
+  limit: DEFAULT_PAGE_SIZE
+});
 
 interface PaymentIssueProps {
   isLoading?: boolean;
   subscription?: Subscription;
-  invoices: Invoice[];
+  hasAccess?: boolean;
 }
 
 export function PaymentIssue({
   isLoading,
   subscription,
-  invoices
+  hasAccess
 }: PaymentIssueProps) {
   const isPastDue = subscription?.state === SUBSCRIPTION_STATES.PAST_DUE;
-  const openInvoices = invoices
-    .filter(inv => inv.state === INVOICE_STATES.OPEN)
-    .sort((a, b) => {
-      const dateA = timestampToDayjs(a.dueDate);
-      const dateB = timestampToDayjs(b.dueDate);
-      if (!dateA || !dateB) return 0;
-      return dateA.isAfter(dateB) ? -1 : 1;
-    });
+
+  const {
+    invoices,
+    isLoading: isInvoicesLoading,
+    error: invoicesError
+  } = useOrganizationInvoices({
+    query: OPEN_INVOICES_QUERY,
+    enabled: hasAccess
+  });
+
+  useEffect(() => {
+    if (invoicesError) {
+      toastManager.add({
+        title: 'Failed to load invoices',
+        description: invoicesError?.message,
+        type: 'error'
+      });
+    }
+  }, [invoicesError]);
+
+  const openInvoices = invoices.filter(
+    inv => inv.state === INVOICE_STATES.OPEN
+  );
 
   const onRetryPayment = useCallback(() => {
-    window.location.href = openInvoices[0]?.hostedUrl || '';
+    window.location.href = openInvoices[0]?.invoiceLink || '';
   }, [openInvoices]);
 
-  if (isLoading || !isPastDue) return null;
+  if (isLoading || isInvoicesLoading || !isPastDue) return null;
 
   return (
     <Flex className={styles.paymentIssueBox} justify="between" align="center">

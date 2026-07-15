@@ -74,7 +74,7 @@ export default function ProductPricesView({
           isLoading={isProductLoading}
           defaultSort={{ name: "createdAt", order: "desc" }}
         >
-          <Flex direction="column" width="full">
+          <Flex direction="column" style={{ width: "100%" }}>
             <PageHeader
               title={pageHeader.title}
               breadcrumb={pageHeader.breadcrumb}

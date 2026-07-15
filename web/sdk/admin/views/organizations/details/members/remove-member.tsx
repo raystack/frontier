@@ -5,7 +5,7 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useMutation } from "@connectrpc/connect-query";
-import { Button, Dialog, Flex, Text, toastManager } from "@raystack/apsara";
+import { AlertDialog, Button, toastManager } from "@raystack/apsara";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
 
@@ -60,31 +60,24 @@ export const RemoveMember = ({
   }
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>Remove {t.member({ case: "capital" })}</Dialog.Title>
-          <Dialog.CloseButton data-test-id="remove-member-close-button" />
-        </Dialog.Header>
-        <Dialog.Body>
-          <Flex direction="column" gap={7}>
-            <Text variant="secondary">
-              Removing this {t.member({ case: "lower" })} will revoke all their access to the{" "}
-              {t.organization({ case: "lower" })}. This action cannot be undone. The {t.member({ case: "lower" })} will lose
-              all assigned roles and permissions immediately.
-            </Text>
-            <Text variant="secondary">
-              Are you sure you want to remove this {t.member({ case: "lower" })}?
-            </Text>
-          </Flex>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.Close
+    <AlertDialog open onOpenChange={onClose}>
+      <AlertDialog.Content>
+        <AlertDialog.Header>
+          <AlertDialog.Title>Remove {t.member({ case: "capital" })}</AlertDialog.Title>
+          <AlertDialog.Description>
+            Removing this {t.member({ case: "lower" })} will revoke all their access to the{" "}
+            {t.organization({ case: "lower" })}. This action cannot be undone. The {t.member({ case: "lower" })} will lose
+            all assigned roles and permissions immediately. Are you sure you want to remove this {t.member({ case: "lower" })}?
+          </AlertDialog.Description>
+        </AlertDialog.Header>
+        <AlertDialog.Footer>
+          <AlertDialog.Close
             render={
               <Button
                 type="button"
                 variant="outline"
                 color="neutral"
+                disabled={isPending}
                 data-test-id="remove-member-cancel-button"
               >
                 Cancel
@@ -101,8 +94,8 @@ export const RemoveMember = ({
           >
             Remove
           </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+        </AlertDialog.Footer>
+      </AlertDialog.Content>
+    </AlertDialog>
   );
 };

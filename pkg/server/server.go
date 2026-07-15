@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
-
-	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/salt/server/spa"
@@ -61,45 +61,69 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 	if err != nil {
 		logger.Warn("failed to load ui", "err", err)
 		return
-	} else {
-		connectRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Connect.Port)
-		connectRemote, err := url.Parse(connectRemoteHost)
-		if err != nil {
-			logger.Error("ui server failed: unable to parse connect server host")
-			return
+	}
+
+	connectRemoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Connect.Port)
+	connectRemote, err := url.Parse(connectRemoteHost)
+	if err != nil {
+		logger.Error("ui server failed: unable to parse connect server host", "err", err)
+		return
+	}
+
+	connectProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+		return func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = strings.Replace(r.URL.Path, "/frontier-connect", "", -1)
+			r.Host = connectRemoteHost
+			p.ServeHTTP(w, r)
 		}
+	}
 
-		connectProxyHandler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
-			return func(w http.ResponseWriter, r *http.Request) {
-				r.URL.Path = strings.Replace(r.URL.Path, "/frontier-connect", "", -1)
-				r.Host = connectRemoteHost
-				p.ServeHTTP(w, r)
-			}
+	connectProxy := httputil.NewSingleHostReverseProxy(connectRemote)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		confResp := UIConfigApiResponse{
+			Title:             uiConfig.Title,
+			Logo:              uiConfig.Logo,
+			AppUrl:            uiConfig.AppURL,
+			TokenProductId:    uiConfig.TokenProductId,
+			OrganizationTypes: uiConfig.OrganizationTypes,
+			Terminology:       uiConfig.Terminology,
 		}
+		json.NewEncoder(w).Encode(confResp)
+	})
 
-		connectProxy := httputil.NewSingleHostReverseProxy(connectRemote)
+	mux.HandleFunc("/frontier-connect/", connectProxyHandler(connectProxy))
+	mux.Handle("/", http.StripPrefix("/", spaHandler))
 
-		http.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			confResp := UIConfigApiResponse{
-				Title:             uiConfig.Title,
-				Logo:              uiConfig.Logo,
-				AppUrl:            uiConfig.AppURL,
-				TokenProductId:    uiConfig.TokenProductId,
-				OrganizationTypes: uiConfig.OrganizationTypes,
-				Terminology:       uiConfig.Terminology,
-			}
-			json.NewEncoder(w).Encode(confResp)
-		})
-
-		http.HandleFunc("/frontier-connect/", connectProxyHandler(connectProxy))
-		http.Handle("/", http.StripPrefix("/", spaHandler))
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", uiConfig.Port),
+		Handler: mux,
 	}
 
 	logger.Info("ui server starting", "http-port", uiConfig.Port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), nil); err != nil {
+	serveErr := make(chan error, 1)
+	go func() {
+		serveErr <- server.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serveErr:
 		logger.Error("ui server failed", "err", err)
+		return
+	case <-ctx.Done():
 	}
+
+	ctxShutdown, cancel := context.WithTimeout(context.Background(), apiServerConfig.ShutdownGracePeriod)
+	defer cancel()
+
+	if err := server.Shutdown(ctxShutdown); err != nil {
+		logger.ErrorContext(ctxShutdown, "ui server shutdown error", "err", err)
+		return
+	}
+
+	logger.Info("Graceful shutdown of ui server complete")
 }
 
 func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api.Deps, promRegistry *prometheus.Registry) error {
@@ -192,13 +216,25 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 	})
 
 	// Configure and create the server
-	handler := h2c.NewHandler(mux, &http2.Server{})
+	h2s := &http2.Server{}
+	handler := h2c.NewHandler(mux, h2s)
 	handler = connectinterceptors.WithConnectCORS(handler, cfg.ConnectCors)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Connect.Port),
 		Handler: handler,
 	}
+
+	// Shutdown cannot reach h2c connections on its own: h2c hijacks them out
+	// of the server's connection tracking. This hook makes Shutdown send
+	// GOAWAY on them so clients finish up and reconnect elsewhere
+	// (golang/go#26682).
+	if err := http2.ConfigureServer(server, h2s); err != nil {
+		return fmt.Errorf("configure http2 server: %w", err)
+	}
+
+	// counts shutdown goroutines still draining their servers
+	var shutdownWG sync.WaitGroup
 
 	// start dedicated metrics server if configured
 	if cfg.MetricsPort > 0 {
@@ -213,39 +249,62 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 			Addr:    fmt.Sprintf(":%d", cfg.MetricsPort),
 			Handler: metricsMux,
 		}
+		metricsFailed := make(chan struct{})
 		go func() {
 			logger.Info("metrics server starting", "port", cfg.MetricsPort)
 			if err := metricsServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				logger.Error("metrics server failed", "err", err)
+				close(metricsFailed)
 			}
 		}()
-		go func() {
-			<-ctx.Done()
-			metricsServer.Shutdown(context.Background())
-		}()
+		shutdownWG.Add(1)
+		go gracefulShutdown(ctx, logger, &shutdownWG, metricsServer, "metrics server", cfg.ShutdownGracePeriod, metricsFailed)
 	}
 
 	logger.Info("connect server starting", "port", cfg.Connect.Port)
 
-	go func() {
-		<-ctx.Done()
-
-		ctxShutdown, cancel := context.WithTimeout(context.Background(), connectServerGracePeriod)
-		defer cancel()
-
-		if err := server.Shutdown(ctxShutdown); err != nil {
-			logger.ErrorContext(ctxShutdown, "HTTP shutdown error", "error", err)
-		}
-
-		logger.Info("Graceful shutdown of connect server complete")
-	}()
+	serveFailed := make(chan struct{})
+	shutdownWG.Add(1)
+	go gracefulShutdown(ctx, logger, &shutdownWG, server, "connect server", cfg.ShutdownGracePeriod, serveFailed)
 
 	// Start server
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		close(serveFailed)
+		// No shutdownWG.Wait here: the metrics watcher only unblocks when ctx
+		// is cancelled, which never happens on this path; it dies with the
+		// process right after.
 		return fmt.Errorf("connect server failed: %w", err)
 	}
 
+	// Wait for Shutdown to finish draining HTTP/1.1 requests before returning,
+	// so callers don't tear down the database under them. Hijacked h2c
+	// connections are not tracked by Shutdown and are not waited on; they get
+	// GOAWAY through the http2.ConfigureServer hook instead.
+	shutdownWG.Wait()
 	return nil
+}
+
+// gracefulShutdown drains srv within the grace period once ctx is cancelled.
+// It returns without logging when the server already failed, so a server
+// that never started is not reported as gracefully shut down.
+func gracefulShutdown(ctx context.Context, logger *slog.Logger, wg *sync.WaitGroup, srv *http.Server, name string, gracePeriod time.Duration, failed <-chan struct{}) {
+	defer wg.Done()
+
+	select {
+	case <-ctx.Done():
+	case <-failed:
+		return
+	}
+
+	ctxShutdown, cancel := context.WithTimeout(context.Background(), gracePeriod)
+	defer cancel()
+
+	if err := srv.Shutdown(ctxShutdown); err != nil {
+		logger.ErrorContext(ctxShutdown, name+" shutdown error", "err", err)
+		return
+	}
+
+	logger.Info("Graceful shutdown of " + name + " complete")
 }
 
 func getSessionCookieCutter(blockSecretKey string, hashSecretKey string, logger *slog.Logger) securecookie.Codec {

@@ -87,37 +87,37 @@ export default function SidePanelDetails({
             {orgName || "-"}
           </SidepanelListItemLink>
           <List.Item>
-            <List.Label minWidth="120px">Action</List.Label>
+            <List.Label className={styles["sidepanel-list"]}>Action</List.Label>
             <List.Value>{event}</List.Value>
           </List.Item>
           <List.Item>
-            <List.Label minWidth="120px">Resource</List.Label>
+            <List.Label className={styles["sidepanel-list"]}>Resource</List.Label>
             <List.Value>{resource?.name || "-"}</List.Value>
           </List.Item>
           <List.Item>
-            <List.Label minWidth="120px">Type</List.Label>
+            <List.Label className={styles["sidepanel-list"]}>Type</List.Label>
             <List.Value>{resource?.type || "-"}</List.Value>
           </List.Item>
           <List.Item>
-            <List.Label minWidth="120px">Date</List.Label>
+            <List.Label className={styles["sidepanel-list"]}>Date</List.Label>
             <List.Value>{date.format("DD MMM YYYY")}</List.Value>
           </List.Item>
           <List.Item>
-            <List.Label minWidth="120px">Time</List.Label>
+            <List.Label className={styles["sidepanel-list"]}>Time</List.Label>
             <List.Value>{date.format("hh:mm A")}</List.Value>
           </List.Item>
           <List.Item>
-            <List.Label minWidth="120px">ID</List.Label>
+            <List.Label className={styles["sidepanel-list"]}>ID</List.Label>
             <SidepanelListId id={id} />
           </List.Item>
           {target && (
             <>
               <List.Item>
-                <List.Label minWidth="120px">Target ID</List.Label>
+                <List.Label className={styles["sidepanel-list"]}>Target ID</List.Label>
                 <SidepanelListId id={target?.id} />
               </List.Item>
               <List.Item>
-                <List.Label minWidth="120px">Target Type</List.Label>
+                <List.Label className={styles["sidepanel-list"]}>Target Type</List.Label>
                 <List.Value>{target?.type || "-"}</List.Value>
               </List.Item>
             </>
@@ -129,7 +129,7 @@ export default function SidePanelDetails({
           <List>
             <List.Header>Session</List.Header>
             <List.Item>
-              <List.Label minWidth="120px">IP Address</List.Label>
+              <List.Label className={styles["sidepanel-list"]}>IP Address</List.Label>
               <List.Value>
                 <Flex gap={3} align="center">
                   <GlobeIcon width={16} height={16} />
@@ -138,7 +138,7 @@ export default function SidePanelDetails({
               </List.Value>
             </List.Item>
             <List.Item>
-              <List.Label minWidth="120px">Location</List.Label>
+              <List.Label className={styles["sidepanel-list"]}>Location</List.Label>
               <List.Value>
                 <Flex gap={3} align="center">
                   <MapIcon width={16} height={16} />
@@ -147,7 +147,7 @@ export default function SidePanelDetails({
               </List.Value>
             </List.Item>
             <List.Item>
-              <List.Label minWidth="120px">Browser</List.Label>
+              <List.Label className={styles["sidepanel-list"]}>Browser</List.Label>
               <List.Value>
                 <Flex gap={3} align="center">
                   <DesktopIcon width={16} height={16} />
@@ -156,7 +156,7 @@ export default function SidePanelDetails({
               </List.Value>
             </List.Item>
             <List.Item>
-              <List.Label minWidth="120px">Operating System</List.Label>
+              <List.Label className={styles["sidepanel-list"]}>Operating System</List.Label>
               <List.Value>
                 <Flex gap={3} align="center">
                   <TransformIcon width={16} height={16} />

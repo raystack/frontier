@@ -1,6 +1,8 @@
 package server
 
 import (
+	"time"
+
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 
@@ -48,6 +50,10 @@ type Config struct {
 
 	// metrics port
 	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
+
+	// ShutdownGracePeriod is how long each server waits for in-flight
+	// requests to finish during shutdown before cutting them off
+	ShutdownGracePeriod time.Duration `yaml:"shutdown_grace_period" mapstructure:"shutdown_grace_period" default:"10s"`
 
 	// Profiler enables /debug/pprof under metrics port
 	Profiler bool `yaml:"profiler" mapstructure:"profiler" default:"false"`

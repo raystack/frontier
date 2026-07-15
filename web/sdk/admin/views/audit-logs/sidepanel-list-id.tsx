@@ -4,7 +4,7 @@ import styles from "./audit-logs.module.css";
 export default function SidepanelListId({ id = "-" }: { id?: string }) {
   return (
     <List.Value>
-      <Flex gap={3} width="full">
+      <Flex gap={3} style={{ width: "100%" }}>
         <CopyButton text={id || ""} data-test-id="copy-button" />
         <Tooltip>
           <Tooltip.Trigger

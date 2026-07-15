@@ -20,7 +20,7 @@ import {
   DEFAULT_PAGE_SIZE
 } from '~/utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
-import { useDebounceValue } from 'usehooks-ts';
+import { useDebouncedValue } from '~hooks';
 import { useTerminology } from "../../../../hooks/useTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
@@ -95,7 +95,7 @@ export function OrganizationProjectsView() {
     };
   }, [tableQuery, searchQuery]);
 
-  const [query] = useDebounceValue(computedQuery, 200);
+  const query = useDebouncedValue(computedQuery, 200);
 
   const {
     data: infiniteData,

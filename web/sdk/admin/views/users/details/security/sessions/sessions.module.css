@@ -25,6 +25,9 @@
   padding-top: var(--rs-space-5);
   padding-bottom: var(--rs-space-5);
 }
+.listLabel{
+  min-width: 120px;
+}
 
 .listItem:last-child {
   border-bottom: none;
@@ -37,11 +40,6 @@
 
 .revokeSessionConfirmBody {
   padding: 0 var(--rs-space-7);
-  border-bottom: 1px solid var(--rs-color-border-base-primary);
-}
-
-.revokeSessionFinalConfirmBody {
-  padding: 0 var(--rs-space-7) var(--rs-space-6) var(--rs-space-7);
   border-bottom: 1px solid var(--rs-color-border-base-primary);
 }
 

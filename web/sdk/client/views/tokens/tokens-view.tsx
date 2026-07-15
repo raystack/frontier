@@ -23,7 +23,7 @@ import {
 } from '@radix-ui/react-icons';
 import { useInfiniteQuery } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
-import { useDebounceValue } from 'usehooks-ts';
+import { useDebouncedValue } from '~hooks';
 import { useFrontier } from '~/client/contexts/FrontierContext';
 import { useBillingPermission } from '~/client/hooks/useBillingPermission';
 import { useTokens } from '~/client/hooks/useTokens';
@@ -94,7 +94,7 @@ export function TokensView() {
     [tableQuery]
   );
 
-  const [query] = useDebounceValue(computedQuery, 200);
+  const query = useDebouncedValue(computedQuery, 200);
 
   const {
     data: infiniteData,
