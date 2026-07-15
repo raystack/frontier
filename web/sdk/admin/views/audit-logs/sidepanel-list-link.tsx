@@ -22,7 +22,7 @@ export default function SidepanelListItemLink({
   if (isLink && onNavigate) {
     return (
       <List.Item className={styles["sidepanel-list-link"]}>
-        <List.Label minWidth="112px">{label}</List.Label>
+        <List.Label style={{ minWidth: "112px" }}>{label}</List.Label>
         <List.Value className={styles["text-overflow"]}>
           <Button
             variant="text"
@@ -38,7 +38,7 @@ export default function SidepanelListItemLink({
   }
   return (
     <List.Item>
-      <List.Label minWidth="120px">{label}</List.Label>
+      <List.Label className={styles["sidepanel-list"]}>{label}</List.Label>
       <List.Value>{children}</List.Value>
     </List.Item>
   );

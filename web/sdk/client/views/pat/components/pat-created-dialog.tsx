@@ -58,9 +58,9 @@ export function PATCreatedDialog({ handle, onClose }: PATCreatedDialogProps) {
                 />
                 <Callout
                   type="attention"
-                  outline
+                  variant="outline"
                   icon={<ExclamationTriangleIcon />}
-                  width="100%"
+                  style={{ width: "100%" }}
                 >
                   Warning: Make sure you copy the above token now. This token
                   will only be shown once. Store it securely.

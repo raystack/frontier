@@ -51,6 +51,7 @@
 
 .addMemberToggleBtn {
   justify-content: flex-start;
+  width: 100%;
 }
 
 .addMemberContent:has(input[value]:not([value=''])):not(:has([role='option']))

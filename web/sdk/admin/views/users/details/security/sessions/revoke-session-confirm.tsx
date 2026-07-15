@@ -47,19 +47,19 @@ export const RevokeSessionConfirm = ({ isOpen, onOpenChange, sessionInfo, onRevo
         <Dialog.Body className={styles.revokeSessionConfirmBody}>
             <List className={styles.listRoot}>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="120px">Device</List.Label>
+                <List.Label className={styles.listLabel}>Device</List.Label>
                 <List.Value>{sessionInfo ? formatDeviceDisplay(sessionInfo.browser, sessionInfo.operatingSystem) : "Unknown"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="120px">IP Address</List.Label>
+                <List.Label className={styles.listLabel}>IP Address</List.Label>
                 <List.Value>{sessionInfo?.ipAddress || "Unknown"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="120px">Last Location</List.Label>
+                <List.Label className={styles.listLabel}>Last Location</List.Label>
                 <List.Value>{sessionInfo?.location || "Unknown"}</List.Value>
               </List.Item>
               <List.Item className={styles.listItem}>
-                <List.Label minWidth="120px">Last Active</List.Label>
+                <List.Label className={styles.listLabel}>Last Active</List.Label>
                 <List.Value>{sessionInfo?.lastActive || "Unknown"}</List.Value>
               </List.Item>
             </List>
