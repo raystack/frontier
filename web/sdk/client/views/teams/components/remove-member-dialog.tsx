@@ -79,7 +79,6 @@ function RemoveMemberForm({
       await removeGroupUser(
         create(RemoveGroupUserRequestSchema, {
           id: payload.teamId,
-          orgId: organization.id,
           userId: payload.memberId
         })
       );
