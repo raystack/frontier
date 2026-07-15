@@ -64,7 +64,7 @@ export const SignInView = ({
   return (
     <AuthContainer {...props}>
       <AuthHeader logo={logo} title={title} />
-      <Flex direction="column" width="full" gap={5}>
+      <Flex direction="column" gap={5} style={{ width: "100%" }}>
         {filteredOIDC.map((s, index) => {
           return (
             <AuthOIDCButton

@@ -12,7 +12,7 @@ export const SidePanelDetails = () => {
     <List>
       <List.Header>User Details</List.Header>
       <List.Item>
-        <List.Label minWidth="120px">ID</List.Label>
+        <List.Label className={styles.listLabel}>ID</List.Label>
         <List.Value>
           <Flex gap={3} style={{ width: "100%" }}>
             <CopyButton text={user?.id || ""} data-test-id="copy-button" />
@@ -26,13 +26,13 @@ export const SidePanelDetails = () => {
         </List.Value>
       </List.Item>
       <List.Item>
-        <List.Label minWidth="120px">Email</List.Label>
+        <List.Label className={styles.listLabel}>Email</List.Label>
         <List.Value>
           <Text>{user?.email}</Text>
         </List.Value>
       </List.Item>
       <List.Item>
-        <List.Label minWidth="120px">Created on</List.Label>
+        <List.Label className={styles.listLabel}>Created on</List.Label>
         <List.Value>
           <Flex gap={3}>
             <CalendarIcon />
@@ -43,7 +43,7 @@ export const SidePanelDetails = () => {
         </List.Value>
       </List.Item>
       <List.Item>
-        <List.Label minWidth="120px">Status</List.Label>
+        <List.Label className={styles.listLabel}>Status</List.Label>
         <List.Value>
           {user?.state ? USER_STATES?.[user.state as UserState] : "-"}
         </List.Value>

@@ -25,6 +25,9 @@
   padding-top: var(--rs-space-5);
   padding-bottom: var(--rs-space-5);
 }
+.listLabel{
+  min-width: 120px;
+}
 
 .listItem:last-child {
   border-bottom: none;

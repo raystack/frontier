@@ -230,7 +230,6 @@ export function AddMemberMenuContent({
       <Flex direction="column" align="center" className={styles.addMemberFooter}>
         <Separator className={styles.addMemberSeparator} />
         <Button
-          width="100%"
           variant="text"
           color="neutral"
           className={styles.addMemberToggleBtn}
