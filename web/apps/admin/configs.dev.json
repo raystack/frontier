@@ -3,9 +3,6 @@
   "app_url": "localhost:5173",
   "token_product_id": "token",
   "organization_types": [],
-  "webhooks": {
-    "enable_delete": false
-  },
   "terminology": {
     "organization": {
       "singular": "Organization",
