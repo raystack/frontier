@@ -37,17 +37,18 @@ import (
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 )
 
-const (
-	connectServerGracePeriod = 10 * time.Second
-)
+type WebhooksConfigApiResponse struct {
+	EnableDelete bool `json:"enable_delete"`
+}
 
 type UIConfigApiResponse struct {
-	Title             string            `json:"title"`
-	Logo              string            `json:"logo"`
-	AppUrl            string            `json:"app_url"`
-	TokenProductId    string            `json:"token_product_id"`
-	OrganizationTypes []string          `json:"organization_types"`
-	Terminology       TerminologyConfig `json:"terminology"`
+	Title             string                    `json:"title"`
+	Logo              string                    `json:"logo"`
+	AppUrl            string                    `json:"app_url"`
+	TokenProductId    string                    `json:"token_product_id"`
+	OrganizationTypes []string                  `json:"organization_types"`
+	Webhooks          WebhooksConfigApiResponse `json:"webhooks"`
+	Terminology       TerminologyConfig         `json:"terminology"`
 }
 
 func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiServerConfig Config) {
@@ -89,7 +90,10 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 			AppUrl:            uiConfig.AppURL,
 			TokenProductId:    uiConfig.TokenProductId,
 			OrganizationTypes: uiConfig.OrganizationTypes,
-			Terminology:       uiConfig.Terminology,
+			Webhooks: WebhooksConfigApiResponse{
+				EnableDelete: uiConfig.Webhooks.EnableDelete,
+			},
+			Terminology: uiConfig.Terminology,
 		}
 		json.NewEncoder(w).Encode(confResp)
 	})
