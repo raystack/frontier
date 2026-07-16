@@ -48,6 +48,13 @@ type parsedDocument struct {
 	spec []byte
 }
 
+// kindDependencies maps a kind to kinds whose objects it references. In one
+// file, a dependency must not come after its dependent: that order would fail
+// mid-apply instead of up front.
+var kindDependencies = map[string][]string{
+	KindRole: {KindPermission},
+}
+
 // parseDocuments reads and checks every document in the file before anything
 // runs: the version must be known, the kind registered, and the spec present.
 // A missing spec marshals to "null"/"" (usually a typo); it is rejected rather
@@ -82,6 +89,15 @@ func parseDocuments(registry map[string]Reconciler, data []byte) ([]parsedDocume
 			return nil, fmt.Errorf("document kind %q is missing its spec", doc.Kind)
 		}
 		docs = append(docs, parsedDocument{kind: doc.Kind, spec: specBytes})
+	}
+	for i, doc := range docs {
+		for _, dep := range kindDependencies[doc.kind] {
+			for _, later := range docs[i+1:] {
+				if later.kind == dep {
+					return nil, fmt.Errorf("kind %q must come before kind %q in the file", dep, doc.kind)
+				}
+			}
+		}
 	}
 	return docs, nil
 }

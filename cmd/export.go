@@ -31,11 +31,10 @@ func ExportCommand(cliConfig *Config) *cli.Command {
 		},
 		Args: cli.ExactArgs(1),
 		RunE: func(cmd *cli.Command, args []string) error {
-			adminClient, err := createAdminClient(cliConfig.Host)
+			registry, err := buildReconcileRegistry(cliConfig.Host, header)
 			if err != nil {
 				return err
 			}
-			registry := reconcileRegistry(adminClient, header)
 			kind, err := resolveKind(args[0], registry)
 			if err != nil {
 				return err
