@@ -138,6 +138,11 @@ role you do not list at all resets fully. The plan marks these resets, so a hand
 change to a predefined role shows up as an update back to the default. You cannot delete a
 predefined role; the server recreates it at boot.
 
+Two edge cases to know. A field that is empty on the server — say the scopes on a role
+created before that field existed — is changed only when you list it, so exports keep
+round-tripping cleanly. And an empty permission or scope list is rejected: you cannot blank
+those out through the file.
+
 Because a predefined role resets to its default, removing its entry from the file is a
 real change. If an entry adds permissions to `app_project_viewer`, deleting that entry
 takes those permissions away on the next apply.

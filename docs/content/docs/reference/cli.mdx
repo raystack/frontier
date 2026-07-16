@@ -248,8 +248,9 @@ View a project
 Make platform resources match a desired-state YAML file, through the admin
 API. Supported kinds: `PlatformUser` (anyone listed is added, anyone not
 listed is removed), `Permission` (custom permissions), and `Role`
-(platform-level roles). Deleting a permission or a role needs an explicit
-`delete: true` on its entry; nothing is deleted by omission. Use
+(platform-level roles). Deleting a permission or a custom role needs an
+explicit `delete: true` on its entry; nothing is deleted by omission, and a
+predefined role cannot be deleted. Use
 `frontier export` to print the current state in this file format, and see the
 [Reconcile guide](../reconcile.md) for the full flow.
 

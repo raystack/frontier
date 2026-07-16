@@ -24,9 +24,9 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 
 			Kinds: PlatformUser (platform admins and members), Permission (custom
 			permissions), and Role (platform-level roles). Deleting a permission or a
-			role needs an explicit 'delete: true' on its entry; nothing is deleted by
-			omission. Log in as a superuser (for example the bootstrap service account)
-			with --header.
+			custom role needs an explicit 'delete: true' on its entry; nothing is deleted
+			by omission, and a predefined role cannot be deleted. Log in as a superuser
+			(for example the bootstrap service account) with --header.
 
 			Use "frontier export <kind>" to print the current state in this file format.
 		`),
