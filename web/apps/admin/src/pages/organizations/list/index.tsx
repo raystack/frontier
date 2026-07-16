@@ -26,7 +26,9 @@ export default function OrganizationListPage() {
   }, []);
 
   const onNavigateToOrg = useCallback(
-    (id: string) => navigate(`/${paths.organizations}/${id}`),
+    // Slug in the URL, id in router state (a disabled org's slug won't resolve).
+    (slug: string, orgId: string) =>
+      navigate(`/${paths.organizations}/${slug}`, { state: { orgId } }),
     [navigate, paths.organizations],
   );
 

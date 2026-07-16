@@ -50,7 +50,7 @@ export type CreateOrganizationPanelProps = {
   organizationTypes?: string[];
   appUrl?: string;
   countries?: string[];
-  onSuccess?: (orgId: string) => void;
+  onSuccess?: (slug: string, orgId: string) => void;
 };
 
 export function CreateOrganizationPanel({
@@ -138,7 +138,8 @@ export function CreateOrganizationPanel({
       const orgResp = await createOrganization({ body: payload });
       const organization = orgResp.organization;
       if (organization?.id) {
-        onSuccess?.(organization.id);
+        // Slug for the URL, id for the lookup.
+        onSuccess?.(organization.name || organization.id, organization.id);
       }
     } catch (err: unknown) {
       console.error("Unable to create new org:", err);

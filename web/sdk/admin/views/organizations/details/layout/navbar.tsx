@@ -231,7 +231,13 @@ const NavLinks = ({
 }) => {
   const t = useTerminology();
   const paths = useAdminPaths();
-  const basePath = `/${paths.organizations}/${organizationId}`;
+  // Reuse the org segment from the current URL so tab links keep the same slug
+  // and active-tab matching against `currentPath` works. Fall back to the prop.
+  const orgPrefix = `/${paths.organizations}/`;
+  const orgSegment = currentPath.startsWith(orgPrefix)
+    ? currentPath.slice(orgPrefix.length).split("/")[0]
+    : organizationId;
+  const basePath = `/${paths.organizations}/${orgSegment}`;
   const links = [
     { name: t.member({ plural: true, case: "capital" }), path: `${basePath}/${paths.members}` },
     { name: t.project({ plural: true, case: "capital" }), path: `${basePath}/${paths.projects}` },
@@ -307,13 +313,24 @@ export const OrganizationsDetailsNavabar = ({
         <Breadcrumb size="small">
           <Breadcrumb.Item
             href={`/${adminPaths.organizations}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(`/${adminPaths.organizations}`);
+            }}
             leadingIcon={<OrganizationIcon />}
           >
             {t.organization({ plural: true, case: "capital" })}
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
+          {/* Navigate client-side so we don't full-reload and lose the held org id. */}
           <Breadcrumb.Item
-            href={`/${adminPaths.organizations}/${organization?.id}`}
+            href={`/${adminPaths.organizations}/${organization?.name || organization?.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(
+                `/${adminPaths.organizations}/${organization?.name || organization?.id}`,
+              );
+            }}
             leadingIcon={
               <Avatar
                 color={getAvatarColor(organization?.id || "")}

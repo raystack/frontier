@@ -1,10 +1,32 @@
 import { Button, type DataTableColumnDef } from "@raystack/apsara";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
 import { TerminologyEntity } from "../../hooks/useTerminology";
+import { useOrganizationLookup } from "../../hooks/useOrganizationLookup";
 import styles from "./admins.module.css";
 
+// Looks the org up by id to show its title and link by slug, not the raw UUID.
+const OrgCell = ({
+  orgId,
+  onNavigateToOrg,
+}: {
+  orgId: string;
+  onNavigateToOrg?: (slug: string, orgId: string) => void;
+}) => {
+  const { data: org } = useOrganizationLookup(orgId);
+
+  return (
+    <Button
+      variant="text"
+      onClick={() => onNavigateToOrg?.(org?.name || orgId, orgId)}
+      data-test-id="frontier-admin-navigate-to-org-btn"
+    >
+      {org?.title || org?.name || orgId}
+    </Button>
+  );
+};
+
 export const getColumns: (options?: {
-  onNavigateToOrg?: (orgId: string) => void;
+  onNavigateToOrg?: (slug: string, orgId: string) => void;
   t?: {
     organization: TerminologyEntity;
   };
@@ -50,13 +72,7 @@ export const getColumns: (options?: {
       cell: (info) => {
         const org_id = info.getValue() as string;
         return org_id ? (
-          <Button
-            variant="text"
-            onClick={() => onNavigateToOrg?.(org_id)}
-            data-test-id="frontier-admin-navigate-to-org-btn"
-          >
-            {org_id}
-          </Button>
+          <OrgCell orgId={org_id} onNavigateToOrg={onNavigateToOrg} />
         ) : (
           "-"
         );

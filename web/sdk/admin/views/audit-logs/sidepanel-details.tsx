@@ -19,10 +19,11 @@ import { isZeroUUID } from "../../utils/helper";
 import SidepanelListId from "./sidepanel-list-id";
 import { useTerminology } from "../../hooks/useTerminology";
 import { useAdminPaths } from "../../hooks/useAdminPaths";
+import { useOrganizationLookup } from "../../hooks/useOrganizationLookup";
 
 type SidePanelDetailsProps = Partial<AuditRecord> & {
   onClose: () => void;
-  onNavigate?: (path: string) => void;
+  onNavigate?: (path: string, state?: { orgId?: string }) => void;
 };
 
 type AuditSessionContext = {
@@ -49,6 +50,11 @@ export default function SidePanelDetails({
   const session = actor?.metadata?.context as AuditSessionContext;
   const location =
     (session && `${session.Location.City}, ${session.Location.Country}`) || "-";
+
+  // The record only has the org title, not the slug — look the org up (by id)
+  // to get its `name` for the link; fall back to the id while loading.
+  const isOrgLink = !!orgId && !isZeroUUID(orgId);
+  const { data: org } = useOrganizationLookup(isOrgLink ? orgId : undefined);
 
   return (
     <SidePanel
@@ -79,8 +85,9 @@ export default function SidePanelDetails({
             <ActorCell value={actor!} size="small" maxLength={12} />
           </SidepanelListItemLink>
           <SidepanelListItemLink
-            isLink={!!orgId && !isZeroUUID(orgId)}
-            href={`/${paths.organizations}/${orgId}`}
+            isLink={isOrgLink}
+            href={`/${paths.organizations}/${org?.name || orgId}`}
+            state={orgId ? { orgId } : undefined}
             label={t.organization({ case: "capital" })}
             onNavigate={onNavigate}
             data-test-id="actor-link">

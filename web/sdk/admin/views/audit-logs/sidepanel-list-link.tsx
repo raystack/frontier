@@ -7,7 +7,9 @@ type SidepanelListItemLinkProps = {
   children: ReactNode;
   href: string;
   label: string;
-  onNavigate?: (path: string) => void;
+  onNavigate?: (path: string, state?: { orgId?: string }) => void;
+  /** Router state to carry along (e.g. the org id). */
+  state?: { orgId?: string };
   "data-test-id"?: string;
 };
 
@@ -17,6 +19,7 @@ export default function SidepanelListItemLink({
   href,
   label,
   onNavigate,
+  state,
   "data-test-id": dataTestId,
 }: SidepanelListItemLinkProps) {
   if (isLink && onNavigate) {
@@ -29,7 +32,7 @@ export default function SidepanelListItemLink({
             color="neutral"
             data-test-id={dataTestId}
             className={styles["sidepanel-link-trigger"]}
-            onClick={() => onNavigate(href)}>
+            onClick={() => onNavigate(href, state)}>
             {children}
           </Button>
         </List.Value>
