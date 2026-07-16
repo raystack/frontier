@@ -3,6 +3,7 @@ package reconcile
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -62,6 +63,39 @@ func (r *PlatformUserReconciler) Reconcile(ctx context.Context, spec []byte, dry
 		rep.Applied++
 	}
 	return rep, nil
+}
+
+// Export returns the current platform users as a desired-state spec: one entry
+// per (principal, relation), users referenced by email when they have one.
+// Entries are sorted so repeated exports produce identical files.
+func (r *PlatformUserReconciler) Export(ctx context.Context) (any, error) {
+	current, err := r.fetchCurrent(ctx)
+	if err != nil {
+		return nil, err
+	}
+	specs := make([]PlatformUserSpec, 0, len(current))
+	for _, p := range current {
+		ref := p.ID
+		if p.Type == principalTypeUser && p.Email != "" {
+			ref = p.Email
+		}
+		for _, rel := range platformRelationOrder {
+			if _, ok := p.Relations[rel]; ok {
+				specs = append(specs, PlatformUserSpec{Type: p.Type, Ref: ref, Relation: rel})
+			}
+		}
+	}
+	sort.Slice(specs, func(i, j int) bool {
+		a, b := specs[i], specs[j]
+		if a.Type != b.Type {
+			return a.Type < b.Type
+		}
+		if a.Ref != b.Ref {
+			return a.Ref < b.Ref
+		}
+		return a.Relation < b.Relation
+	})
+	return specs, nil
 }
 
 func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPrincipal, error) {

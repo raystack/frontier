@@ -50,6 +50,7 @@ func New(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(PolicyCommand(cliConfig))
 	cmd.AddCommand(SeedCommand(cliConfig))
 	cmd.AddCommand(ReconcileCommand(cliConfig))
+	cmd.AddCommand(ExportCommand(cliConfig))
 	cmd.AddCommand(configCommand())
 	cmd.AddCommand(versionCommand())
 	cmd.AddCommand(PreferencesCommand(cliConfig))
