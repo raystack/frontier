@@ -94,6 +94,17 @@ func TestPreferenceReconciler(t *testing.T) {
 		assert.Empty(t, api.created)
 	})
 
+	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {
+		api := &fakePreferenceAPI{traits: platformTraits()}
+		// `valu` instead of `value`: must fail, not silently ignore the value
+		spec := []byte("- {name: disable_orgs_on_create, valu: \"true\"}\n")
+
+		_, err := NewPreferenceReconciler(api, "").Reconcile(context.Background(), spec, true)
+
+		assert.ErrorContains(t, err, "parse Preference spec")
+		assert.Empty(t, api.created)
+	})
+
 	t.Run("export returns only overrides, sorted, and round-trips", func(t *testing.T) {
 		api := &fakePreferenceAPI{
 			traits: platformTraits(),

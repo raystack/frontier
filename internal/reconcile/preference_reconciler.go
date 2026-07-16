@@ -8,7 +8,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"gopkg.in/yaml.v3"
 )
 
 // PreferenceAPI is the API subset the preference reconciler needs. The reads
@@ -36,7 +35,7 @@ func (r *PreferenceReconciler) Kind() string { return KindPreference }
 
 func (r *PreferenceReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []PreferenceSpec
-	if err := yaml.Unmarshal(spec, &specs); err != nil {
+	if err := decodeSpec(spec, &specs); err != nil {
 		return Report{}, fmt.Errorf("parse %s spec: %w", KindPreference, err)
 	}
 
