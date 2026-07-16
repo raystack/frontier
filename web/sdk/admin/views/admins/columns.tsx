@@ -4,7 +4,7 @@ import { TerminologyEntity } from "../../hooks/useTerminology";
 import { useOrganizationLookup } from "../../hooks/useOrganizationLookup";
 import styles from "./admins.module.css";
 
-// Looks the org up by id to show its title and link by slug, not the raw UUID.
+// The cell only has the org id — fetch the org to show its title and slug link.
 const OrgCell = ({
   orgId,
   onNavigateToOrg,
