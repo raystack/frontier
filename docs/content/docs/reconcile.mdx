@@ -150,6 +150,30 @@ takes those permissions away on the next apply.
 Permission references accept any form the server knows: the slug (`compute_order_get`),
 `service/resource:verb`, or `service.resource.verb`.
 
+## The Preference kind
+
+`Preference` manages platform settings, like whether new organizations can be created or
+what an invite email says. An entry is a trait name and a value.
+
+```yaml
+apiVersion: v1
+kind: Preference
+spec:
+  - name: disable_orgs_on_create
+    value: "true"
+  - name: invite_with_roles
+    value: "false"
+```
+
+- Values are strings. A yes/no setting is `"true"` or `"false"`.
+- The name must be a platform trait the server knows. An unknown name fails the plan.
+- This kind resets instead of deleting. The file is the full desired state: a preference
+  you list is set to your value, and a preference you leave out goes back to its default.
+  There is no `delete` flag, because setting a preference back to its default is what
+  removal means here.
+- Export writes only the preferences whose value differs from the default, so settings at
+  their default stay out of the file.
+
 ## Running it
 
 Log in as a superuser. The bootstrap service user exists for exactly this; its client id
@@ -192,8 +216,8 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 
 ## More kinds
 
-This page covers `PlatformUser`, `Permission`, and `Role`. The design and the rules every
-kind follows live in
+This page covers `PlatformUser`, `Permission`, `Role`, and `Preference`. The design and
+the rules every kind follows live in
 [RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
 which also lists the kinds proposed next. The flag reference for both commands is in the
 [CLI reference](./reference/cli.md).
