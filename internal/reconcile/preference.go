@@ -58,9 +58,11 @@ func diffPreferences(desired []PreferenceSpec, current, defaults map[string]stri
 	}
 
 	// serverValue is the value in effect on the server: the stored value, or
-	// the trait default when nothing is stored.
+	// the trait default when nothing is stored. An empty stored value counts as
+	// unset, matching how the server resolves platform preferences, so a file
+	// entry equal to the default plans no change against it.
 	serverValue := func(name string) string {
-		if v, ok := current[name]; ok {
+		if v, ok := current[name]; ok && v != "" {
 			return v
 		}
 		return defaults[name]

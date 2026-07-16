@@ -83,6 +83,17 @@ func TestDiffPreferences(t *testing.T) {
 		}
 	})
 
+	t.Run("an empty stored value counts as the default", func(t *testing.T) {
+		// The server treats an empty stored value as unset and falls back to the
+		// default, so a file entry equal to the default must plan no change.
+		current := map[string]string{"disable_orgs_on_create": ""}
+		ops, err := diffPreferences([]PreferenceSpec{
+			{Name: "disable_orgs_on_create", Value: "false"}, // the default
+		}, current, defaults)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
 	t.Run("an unknown preference name fails the plan", func(t *testing.T) {
 		_, err := diffPreferences([]PreferenceSpec{
 			{Name: "not_a_trait", Value: "x"},
