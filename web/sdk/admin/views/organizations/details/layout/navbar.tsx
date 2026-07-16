@@ -231,8 +231,12 @@ const NavLinks = ({
 }) => {
   const t = useTerminology();
   const paths = useAdminPaths();
-  // Reuse the org segment from the current URL so tab links keep the same slug
-  // and active-tab matching against `currentPath` works. Fall back to the prop.
+  /*
+   * Reuse the org segment from the current URL so that:
+   * - tab links keep the same slug
+   * - active-tab matching against `currentPath` works
+   * Fall back to the prop before the path is available.
+   */
   const orgPrefix = `/${paths.organizations}/`;
   const orgSegment = currentPath.startsWith(orgPrefix)
     ? currentPath.slice(orgPrefix.length).split("/")[0]
