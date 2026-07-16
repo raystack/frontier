@@ -136,6 +136,10 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 	}()
 
 	// load resource config
+	if cfg.App.ResourcesConfigPath != "" {
+		logger.Warn("app.resources_config_path is deprecated and will be removed after a deprecation window; " +
+			"manage permissions and roles with 'frontier reconcile' instead")
+	}
 	resourceBlobFS, err := blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
 	if err != nil {
 		return err

@@ -131,6 +131,70 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		assert.Empty(t, api.removed)
 	})
 
+	t.Run("export lists every principal-relation pair, sorted, without the bootstrap SA", func(t *testing.T) {
+		// unsorted input, a user without an email (falls back to id), a user and a
+		// service user that each hold both relations (one entry per relation), and
+		// the bootstrap SA (must be skipped).
+		api := &fakePlatformUserAPI{
+			users: []*frontierv1beta1.User{
+				platformUserPBRelations(t, "zoe-id", "zoe@x.com", schema.MemberRelationName),
+				platformUserPBRelations(t, "noemail-id", "", schema.AdminRelationName),
+				platformUserPBRelations(t, "alice-id", "alice@x.com", schema.MemberRelationName, schema.AdminRelationName),
+			},
+			sus: []*frontierv1beta1.ServiceUser{
+				serviceUserPBRelations(t, schema.BootstrapServiceUserID, schema.AdminRelationName),
+				serviceUserPBRelations(t, "sa-id", schema.MemberRelationName, schema.AdminRelationName),
+			},
+		}
+		spec, err := NewPlatformUserReconciler(api, "").Export(context.Background())
+
+		assert.NoError(t, err)
+		assert.Equal(t, []PlatformUserSpec{
+			{Type: "serviceuser", Ref: "sa-id", Relation: schema.AdminRelationName},
+			{Type: "serviceuser", Ref: "sa-id", Relation: schema.MemberRelationName},
+			{Type: "user", Ref: "alice@x.com", Relation: schema.AdminRelationName},
+			{Type: "user", Ref: "alice@x.com", Relation: schema.MemberRelationName},
+			{Type: "user", Ref: "noemail-id", Relation: schema.AdminRelationName},
+			{Type: "user", Ref: "zoe@x.com", Relation: schema.MemberRelationName},
+		}, spec)
+	})
+
+	t.Run("reconciling an exported document plans no changes", func(t *testing.T) {
+		api := &fakePlatformUserAPI{
+			users: []*frontierv1beta1.User{
+				platformUserPBRelations(t, "alice-id", "alice@x.com", schema.AdminRelationName, schema.MemberRelationName),
+				platformUserPBRelations(t, "noemail-id", "", schema.MemberRelationName),
+			},
+			sus: []*frontierv1beta1.ServiceUser{
+				serviceUserPBRelations(t, "sa-id", schema.MemberRelationName, schema.AdminRelationName),
+			},
+		}
+		registry := map[string]Reconciler{KindPlatformUser: NewPlatformUserReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindPlatformUser)
+		assert.NoError(t, err)
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+
+	t.Run("export of an empty platform yields a document Run accepts", func(t *testing.T) {
+		registry := map[string]Reconciler{KindPlatformUser: NewPlatformUserReconciler(&fakePlatformUserAPI{}, "")}
+
+		out, err := Export(context.Background(), registry, KindPlatformUser)
+		assert.NoError(t, err)
+		assert.Contains(t, string(out), "spec: []")
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+
 	t.Run("strips the extra relation when the principal holds both (relations list)", func(t *testing.T) {
 		// alice is desired as admin only but currently holds admin + member;
 		// the reconciler must read both relations and revoke member exactly.
