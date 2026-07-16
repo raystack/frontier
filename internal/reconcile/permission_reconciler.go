@@ -8,7 +8,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"gopkg.in/yaml.v3"
 )
 
 // PermissionAPI is the API subset the permission reconciler needs. Reads live
@@ -35,7 +34,7 @@ func (r *PermissionReconciler) Kind() string { return KindPermission }
 
 func (r *PermissionReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []PermissionSpec
-	if err := yaml.Unmarshal(spec, &specs); err != nil {
+	if err := decodeSpec(spec, &specs); err != nil {
 		return Report{}, fmt.Errorf("parse %s spec: %w", KindPermission, err)
 	}
 

@@ -66,6 +66,17 @@ func TestPermissionReconciler(t *testing.T) {
 		assert.Empty(t, api.created)
 	})
 
+	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {
+		api := &fakePermissionAPI{}
+		// `delet` instead of `delete`: must fail, not silently ignore the delete
+		spec := []byte("- {namespace: compute/order, name: get, delet: true}\n")
+
+		_, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
+
+		assert.ErrorContains(t, err, "parse Permission spec")
+		assert.Empty(t, api.created)
+	})
+
 	t.Run("reconciling an exported document plans no changes", func(t *testing.T) {
 		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
 			permissionPB("b1", "app/project", "get"),

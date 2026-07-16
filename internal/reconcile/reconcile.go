@@ -102,6 +102,18 @@ func parseDocuments(registry map[string]Reconciler, data []byte) ([]parsedDocume
 	return docs, nil
 }
 
+// decodeSpec unmarshals a kind's spec with unknown fields rejected, so a typo
+// in a field name (like `delet: true` for `delete`) fails the plan instead of
+// being silently ignored, which would make a run quietly do the wrong thing.
+func decodeSpec(spec []byte, out any) error {
+	dec := yaml.NewDecoder(bytes.NewReader(spec))
+	dec.KnownFields(true)
+	if err := dec.Decode(out); err != nil && err != io.EOF {
+		return err
+	}
+	return nil
+}
+
 // Run applies a (possibly multi-document) desired-state file. The whole file is
 // parsed and checked first, so a malformed later document stops the run before
 // anything applies. Documents then dispatch in file order — dependency order is

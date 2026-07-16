@@ -8,7 +8,6 @@ import (
 	"connectrpc.com/connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/structpb"
-	"gopkg.in/yaml.v3"
 )
 
 // Roles the reconciler creates or updates are stamped with this metadata, so
@@ -44,7 +43,7 @@ func (r *RoleReconciler) Kind() string { return KindRole }
 
 func (r *RoleReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []RoleSpec
-	if err := yaml.Unmarshal(spec, &specs); err != nil {
+	if err := decodeSpec(spec, &specs); err != nil {
 		return Report{}, fmt.Errorf("parse %s spec: %w", KindRole, err)
 	}
 
@@ -133,6 +132,10 @@ func (r *RoleReconciler) fetchCurrent(ctx context.Context) ([]currentRole, error
 	}
 	var current []currentRole
 	for _, ro := range resp.Msg.GetRoles() {
+		var metadata map[string]any
+		if md := ro.GetMetadata(); md != nil {
+			metadata = md.AsMap()
+		}
 		current = append(current, currentRole{
 			ID:          ro.GetId(),
 			Name:        ro.GetName(),
@@ -140,6 +143,7 @@ func (r *RoleReconciler) fetchCurrent(ctx context.Context) ([]currentRole, error
 			Description: metadataString(ro.GetMetadata(), descriptionKey),
 			Permissions: ro.GetPermissions(),
 			Scopes:      ro.GetScopes(),
+			Metadata:    metadata,
 		})
 	}
 	return current, nil
@@ -159,14 +163,14 @@ func metadataString(md *structpb.Struct, key string) string {
 func (r *RoleReconciler) apply(ctx context.Context, op roleOp) error {
 	switch op.action {
 	case opAdd:
-		body, err := roleBody(op.spec)
+		body, err := roleBody(op.spec, op.baseMetadata)
 		if err != nil {
 			return err
 		}
 		_, err = r.client.CreateRole(ctx, authReq(&frontierv1beta1.CreateRoleRequest{Body: body}, r.header))
 		return err
 	case opUpdate:
-		body, err := roleBody(op.spec)
+		body, err := roleBody(op.spec, op.baseMetadata)
 		if err != nil {
 			return err
 		}
@@ -180,10 +184,20 @@ func (r *RoleReconciler) apply(ctx context.Context, op roleOp) error {
 	}
 }
 
-func roleBody(spec RoleSpec) (*frontierv1beta1.RoleRequestBody, error) {
-	fields := map[string]any{managedByKey: managedByValue}
+// roleBody builds the request body for an add or update. base is the role's
+// current metadata (nil for a new role); the reconciler-managed keys are merged
+// over a copy of it, so other metadata keys an operator set are kept, not
+// dropped. An empty managed description clears the key, matching a reset.
+func roleBody(spec RoleSpec, base map[string]any) (*frontierv1beta1.RoleRequestBody, error) {
+	fields := map[string]any{}
+	for k, v := range base {
+		fields[k] = v
+	}
+	fields[managedByKey] = managedByValue
 	if spec.Description != "" {
 		fields[descriptionKey] = spec.Description
+	} else {
+		delete(fields, descriptionKey)
 	}
 	md, err := structpb.NewStruct(fields)
 	if err != nil {

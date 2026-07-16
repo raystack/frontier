@@ -33,6 +33,8 @@ type RoleSpec struct {
 
 // currentRole is one platform role as returned by ListRoles. Description is a
 // role metadata value, not a top-level field, so it is read from there.
+// Metadata holds the role's full current metadata, so an update can merge the
+// reconciler-managed keys over it instead of dropping everything else.
 type currentRole struct {
 	ID          string
 	Name        string
@@ -40,15 +42,18 @@ type currentRole struct {
 	Description string
 	Permissions []string // slugs
 	Scopes      []string
+	Metadata    map[string]any
 }
 
 // roleOp is a single planned change. For adds and updates, spec carries the
-// final values to send (desired fields merged over current ones).
+// final values to send (desired fields merged over current ones). baseMetadata
+// is the role's current metadata for an update, so managed keys merge over it.
 type roleOp struct {
-	action opAction
-	spec   RoleSpec
-	id     string // server role id, set for updates and deletes
-	detail string // which fields change, for the plan output
+	action       opAction
+	spec         RoleSpec
+	id           string         // server role id, set for updates and deletes
+	detail       string         // which fields change, for the plan output
+	baseMetadata map[string]any // current metadata to merge onto, set for updates
 }
 
 func (o roleOp) String() string {
@@ -231,7 +236,7 @@ func diffRoles(desired []RoleSpec, current []currentRole) ([]roleOp, error) {
 			changes = append(changes, "scopes")
 		}
 		if len(changes) > 0 {
-			updates = append(updates, roleOp{action: opUpdate, spec: merged, id: cur.ID, detail: strings.Join(changes, ", ")})
+			updates = append(updates, roleOp{action: opUpdate, spec: merged, id: cur.ID, detail: strings.Join(changes, ", "), baseMetadata: cur.Metadata})
 		}
 	}
 
@@ -311,5 +316,5 @@ func diffPredefinedRole(def schema.RoleDefinition, s *RoleSpec, cur currentRole)
 	if s == nil {
 		detail += "; not in file, reset to default"
 	}
-	return roleOp{action: opUpdate, spec: merged, id: cur.ID, detail: detail}, true
+	return roleOp{action: opUpdate, spec: merged, id: cur.ID, detail: detail, baseMetadata: cur.Metadata}, true
 }

@@ -97,6 +97,36 @@ func TestRoleReconciler(t *testing.T) {
 		assert.Equal(t, []string{"r2"}, api.deleted)
 	})
 
+	t.Run("an update keeps metadata keys the reconciler does not manage", func(t *testing.T) {
+		md, _ := structpb.NewStruct(map[string]any{"team": "compute", descriptionKey: "old", managedByKey: managedByValue})
+		role := rolePB("r1", "compute_manager", "Compute Manager", []string{"compute_order_get"})
+		role.Metadata = md
+		api := &fakeRoleAPI{roles: []*frontierv1beta1.Role{ownerDefaultPB(), role}}
+		// only permissions change; team must survive the update
+		spec := []byte("- {name: compute_manager, permissions: [compute_order_get, compute_order_update]}\n")
+
+		rep, err := NewRoleReconciler(api, "").Reconcile(context.Background(), spec, false)
+
+		assert.NoError(t, err)
+		assert.Equal(t, 1, rep.Applied)
+		if body := api.updated["r1"]; assert.NotNil(t, body) {
+			f := body.GetMetadata().GetFields()
+			assert.Equal(t, "compute", f["team"].GetStringValue())            // preserved, not dropped
+			assert.Equal(t, managedByValue, f[managedByKey].GetStringValue()) // still stamped
+			assert.Equal(t, "old", f[descriptionKey].GetStringValue())        // kept
+		}
+	})
+
+	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {
+		api := &fakeRoleAPI{}
+		spec := []byte("- {name: new_role, permissions: [compute_order_get], delet: true}\n")
+
+		_, err := NewRoleReconciler(api, "").Reconcile(context.Background(), spec, true)
+
+		assert.ErrorContains(t, err, "parse Role spec")
+		assert.Empty(t, api.created)
+	})
+
 	t.Run("updates a predefined role's title and permissions by id", func(t *testing.T) {
 		api := &fakeRoleAPI{roles: []*frontierv1beta1.Role{ownerDefaultPB()}}
 		spec := []byte(`
