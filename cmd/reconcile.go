@@ -22,9 +22,11 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 		Long: heredoc.Doc(`
 			Make platform resources match a desired-state YAML file, through the admin API.
 
-			Supports the PlatformUser kind (platform admins and members) for now. The file
-			decides who has access: anyone listed is added, anyone not listed is removed.
-			Log in as a superuser (for example the bootstrap service account) with --header.
+			Kinds: PlatformUser (platform admins and members), Permission (custom
+			permissions), and Role (platform-level roles). Deleting a permission or a
+			custom role needs an explicit 'delete: true' on its entry; nothing is deleted
+			by omission, and a predefined role cannot be deleted. Log in as a superuser
+			(for example the bootstrap service account) with --header.
 
 			Use "frontier export <kind>" to print the current state in this file format.
 		`),
@@ -41,11 +43,11 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("read desired-state file: %w", err)
 			}
-			adminClient, err := createAdminClient(cliConfig.Host)
+			registry, err := buildReconcileRegistry(cliConfig.Host, header)
 			if err != nil {
 				return err
 			}
-			reports, runErr := reconcile.Run(cmd.Context(), reconcileRegistry(adminClient, header), data, dryRun)
+			reports, runErr := reconcile.Run(cmd.Context(), registry, data, dryRun)
 			for _, rep := range reports {
 				printReconcileReport(cmd, rep)
 			}
@@ -60,11 +62,30 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 	return cmd
 }
 
-// reconcileRegistry holds every reconcilable kind. New kinds register here.
-func reconcileRegistry(adminClient frontierv1beta1connect.AdminServiceClient, header string) map[string]reconcile.Reconciler {
+// reconcileAPI joins the two generated clients: reads live on FrontierService,
+// writes on AdminService. The embedded method sets combine to satisfy the
+// per-kind API interfaces.
+type reconcileAPI struct {
+	frontierv1beta1connect.AdminServiceClient
+	frontierv1beta1connect.FrontierServiceClient
+}
+
+// buildReconcileRegistry holds every reconcilable kind. New kinds register here.
+func buildReconcileRegistry(host, header string) (map[string]reconcile.Reconciler, error) {
+	adminClient, err := createAdminClient(host)
+	if err != nil {
+		return nil, err
+	}
+	frontierClient, err := createClient(host)
+	if err != nil {
+		return nil, err
+	}
+	api := reconcileAPI{AdminServiceClient: adminClient, FrontierServiceClient: frontierClient}
 	return map[string]reconcile.Reconciler{
 		reconcile.KindPlatformUser: reconcile.NewPlatformUserReconciler(adminClient, header),
-	}
+		reconcile.KindPermission:   reconcile.NewPermissionReconciler(api, header),
+		reconcile.KindRole:         reconcile.NewRoleReconciler(api, header),
+	}, nil
 }
 
 // printReconcileReport writes the report to stdout. cobra's cmd.Printf falls

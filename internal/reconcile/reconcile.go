@@ -48,6 +48,13 @@ type parsedDocument struct {
 	spec []byte
 }
 
+// kindDependencies maps a kind to kinds whose objects it references. In one
+// file, a dependency must not come after its dependent: that order would fail
+// mid-apply instead of up front.
+var kindDependencies = map[string][]string{
+	KindRole: {KindPermission},
+}
+
 // parseDocuments reads and checks every document in the file before anything
 // runs: the version must be known, the kind registered, and the spec present.
 // A missing spec marshals to "null"/"" (usually a typo); it is rejected rather
@@ -83,7 +90,28 @@ func parseDocuments(registry map[string]Reconciler, data []byte) ([]parsedDocume
 		}
 		docs = append(docs, parsedDocument{kind: doc.Kind, spec: specBytes})
 	}
+	for i, doc := range docs {
+		for _, dep := range kindDependencies[doc.kind] {
+			for _, later := range docs[i+1:] {
+				if later.kind == dep {
+					return nil, fmt.Errorf("kind %q must come before kind %q in the file", dep, doc.kind)
+				}
+			}
+		}
+	}
 	return docs, nil
+}
+
+// decodeSpec unmarshals a kind's spec with unknown fields rejected, so a typo
+// in a field name (like `delet: true` for `delete`) fails the plan instead of
+// being silently ignored, which would make a run quietly do the wrong thing.
+func decodeSpec(spec []byte, out any) error {
+	dec := yaml.NewDecoder(bytes.NewReader(spec))
+	dec.KnownFields(true)
+	if err := dec.Decode(out); err != nil && err != io.EOF {
+		return err
+	}
+	return nil
 }
 
 // Run applies a (possibly multi-document) desired-state file. The whole file is

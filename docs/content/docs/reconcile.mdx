@@ -47,6 +47,9 @@ Rules that apply to every document:
 - The whole file is parsed and checked before anything applies. A malformed later
   document stops the run before any change is made.
 - Documents apply in the order they appear in the file.
+- Some kinds depend on others. A role can grant a permission, so a `Permission` document
+  must come before a `Role` document in the same file. The wrong order is rejected before
+  anything applies.
 
 ## The PlatformUser kind
 
@@ -72,6 +75,80 @@ Two safety properties:
   that name it.
 
 Adding a user by an email that does not exist creates that user.
+
+## The Permission kind
+
+A permission is an identity: a `service/resource` namespace plus a verb. There is nothing
+else to manage on it, so it is either created or deleted.
+
+```yaml
+apiVersion: v1
+kind: Permission
+spec:
+  - namespace: compute/order
+    name: get
+  - namespace: compute/order
+    name: legacy
+    delete: true
+```
+
+- The namespace has two parts, `service/resource`. The name is alphanumeric.
+- Frontier's own permissions (the `app` namespaces) belong to the base schema. The
+  reconciler ignores them and rejects a file entry that names one.
+- A custom permission on the server that the file does not list fails the plan. Nothing
+  is deleted just because it is missing; deleting needs `delete: true` on the entry.
+- Creating a permission also updates the authorization schema, so a new permission is
+  ready to use in roles right away.
+
+## The Role kind
+
+`Role` manages platform-level roles. The role name is the identity and never changes. The
+managed fields are the title, the description, the permissions, and the scopes (the
+resource types a role can attach to).
+
+```yaml
+apiVersion: v1
+kind: Role
+spec:
+  - name: compute_order_manager      # custom role: must list its permissions
+    title: Order Manager
+    description: Manages compute orders
+    permissions:
+      - compute_order_get
+      - compute_order_update
+  - name: app_project_viewer         # predefined role: override only the fields you list
+    permissions:
+      - app_project_get
+      - resource_aoi_get
+  - name: old_role
+    delete: true
+```
+
+There are two kinds of roles, and they behave differently.
+
+**Custom roles** are yours to manage in full. A custom role must list at least one
+permission. Every custom role on the server must appear in the file, kept or marked
+`delete: true`; one that is missing fails the plan. A role that still has policy bindings
+cannot be deleted, and the apply fails with a clear error.
+
+**Predefined roles** are the ones Frontier ships, like `app_organization_owner` or
+`app_project_viewer`. They converge to their shipped definitions. A file entry overrides
+only the fields it lists; a field you leave out goes back to the default. A predefined
+role you do not list at all resets fully. The plan marks these resets, so a hand-made
+change to a predefined role shows up as an update back to the default. You cannot delete a
+predefined role; the server recreates it at boot.
+
+Two edge cases to know. A field that is empty on the server — say the scopes on a role
+created before that field existed — is changed only when you list it, so exports keep
+round-tripping cleanly. And an empty permission or scope list is rejected: you cannot blank
+those out through the file.
+
+Because a predefined role resets to its default, removing its entry from the file is a
+real change. If an entry adds permissions to `app_project_viewer`, deleting that entry
+takes those permissions away on the next apply.
+
+Permission references accept any form the server knows: the slug (`compute_order_get`),
+`service/resource:verb`, or `service.resource.verb`.
 
 ## Running it
 
@@ -115,8 +192,8 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 
 ## More kinds
 
-The design and the rules every kind follows live in
-[RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md).
-Custom permissions and platform-level roles are proposed there as the next kinds; this
-page grows with them. The flag reference for both commands is in the
+This page covers `PlatformUser`, `Permission`, and `Role`. The design and the rules every
+kind follows live in
+[RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
+which also lists the kinds proposed next. The flag reference for both commands is in the
 [CLI reference](./reference/cli.md).

@@ -33,7 +33,7 @@ List of supported environment variables
 
 Export the current state of a kind as a desired-state YAML file, printed to
 stdout. The output is the format `frontier reconcile` reads: reconciling it
-changes nothing. Supported kind: `PlatformUser`. See the
+changes nothing. Supported kinds: `PlatformUser`, `Permission`, `Role`. See the
 [Reconcile guide](../reconcile.md) for the file format and the flow.
 
 ```
@@ -246,9 +246,12 @@ View a project
 ## `frontier reconcile [flags]`
 
 Make platform resources match a desired-state YAML file, through the admin
-API. The file decides who has access: anyone listed is added, anyone not
-listed is removed. Supported kind: `PlatformUser`. Use `frontier export` to
-print the current state in this file format, and see the
+API. Supported kinds: `PlatformUser` (anyone listed is added, anyone not
+listed is removed), `Permission` (custom permissions), and `Role`
+(platform-level roles). Deleting a permission or a custom role needs an
+explicit `delete: true` on its entry; nothing is deleted by omission, and a
+predefined role cannot be deleted. Use
+`frontier export` to print the current state in this file format, and see the
 [Reconcile guide](../reconcile.md) for the full flow.
 
 ```

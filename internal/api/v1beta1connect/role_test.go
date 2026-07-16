@@ -85,6 +85,17 @@ func TestHandler_CreateRole(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
 		},
 		{
+			name: "should return bad request error if permissions are empty",
+			request: connect.NewRequest(&frontierv1beta1.CreateRoleRequest{
+				Body: &frontierv1beta1.RoleRequestBody{
+					Name:        testRoleMap[instanceLevelRoleID].Name,
+					Permissions: nil,
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
 			name: "should create role on success",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				expectedResp := testRoleMap[instanceLevelRoleID]

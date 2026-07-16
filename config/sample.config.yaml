@@ -63,6 +63,8 @@ app:
   host: "127.0.0.1"
   # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
+  # DEPRECATED: will be removed after a deprecation window. Manage permissions
+  # and roles with 'frontier reconcile' instead (see docs/rfcs/0001-declarative-reconcile.md).
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
   # local storage file "file:///tmp/resources_config"
