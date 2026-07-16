@@ -112,10 +112,7 @@ export default memo(function AppRoutes() {
 
         <Route path="invoices" element={<InvoicesPage />} />
         <Route path="super-admins" element={<AdminsPage />} />
-        <Route path="webhooks" element={<WebhooksPage />}>
-          <Route path="create" element={<WebhooksPage />} />
-          <Route path=":webhookId" element={<WebhooksPage />} />
-        </Route>
+        <Route path="webhooks" element={<WebhooksPage />} />
         <Route path="*" element={<Navigate to={`/${paths.organizations}`} />} />
       </Route>
     </Routes>

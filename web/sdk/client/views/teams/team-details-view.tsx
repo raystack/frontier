@@ -86,8 +86,7 @@ export function TeamDetailsView({
   } = useQuery(
     FrontierServiceQueries.getGroup,
     create(GetGroupRequestSchema, {
-      id: teamId || '',
-      orgId: organization?.id || ''
+      id: teamId || ''
     }),
     {
       enabled: !!organization?.id && !!teamId,
@@ -114,8 +113,7 @@ export function TeamDetailsView({
   } = useQuery(
     FrontierServiceQueries.listGroupUsers,
     create(ListGroupUsersRequestSchema, {
-      id: teamId || '',
-      orgId: organization?.id || ''
+      id: teamId || ''
     }),
     { enabled: !!organization?.id && !!teamId }
   );
@@ -214,7 +212,6 @@ export function TeamDetailsView({
         await setGroupMemberRole(
           create(SetGroupMemberRoleRequestSchema, {
             groupId: teamId,
-            orgId: organization.id,
             principalId: memberId,
             principalType: PERMISSIONS.UserPrincipal,
             roleId: role.id as string

@@ -124,7 +124,6 @@ export function AddMemberMenu({
       setGroupMemberRole(
         create(SetGroupMemberRoleRequestSchema, {
           groupId: teamId,
-          orgId: organization.id,
           principalId: userId,
           principalType: PERMISSIONS.UserPrincipal,
           roleId: memberRoleId

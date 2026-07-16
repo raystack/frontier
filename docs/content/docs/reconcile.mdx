@@ -1,0 +1,223 @@
+---
+title: Reconcile
+order: 15
+---
+
+# Reconcile
+
+Frontier can manage parts of its platform configuration from a YAML file instead of
+one-off API calls. You write down what should exist, and the `frontier reconcile` command
+makes the server match it. The `frontier export` command does the reverse: it prints what
+the server has, in the same file format.
+
+This gives you three things the API alone does not:
+
+- A reviewable file that says what should exist. Keep it in git and change it via pull
+  requests.
+- A plan before every change. A dry run prints every add, update, and delete the file
+  would cause, without applying anything.
+- Removal that works. Anything the file no longer wants shows up in the plan and is
+  removed on apply.
+
+## The desired-state file
+
+A file holds one or more YAML documents. Each document names the format version, a kind
+of resource, and a spec:
+
+```yaml
+apiVersion: v1
+kind: PlatformUser
+spec:
+  - type: user
+    ref: alice@example.org
+    relation: admin
+  - type: user
+    ref: bob@example.org
+    relation: member
+  - type: serviceuser
+    ref: 9d776a1c-2f2e-4e56-a6f9-71a25a2eab5f
+    relation: admin
+```
+
+Rules that apply to every document:
+
+- A document without `apiVersion` is read as `v1`. An unknown version is rejected.
+- A document with a missing spec is rejected, because that is usually a typo. To mean an
+  empty list on purpose, write `spec: []`.
+- The whole file is parsed and checked before anything applies. A malformed later
+  document stops the run before any change is made.
+- Documents apply in the order they appear in the file.
+- Some kinds depend on others. A role can grant a permission, so a `Permission` document
+  must come before a `Role` document in the same file. The wrong order is rejected before
+  anything applies.
+
+## The PlatformUser kind
+
+`PlatformUser` manages who holds platform-wide access: `admin` (superuser) or `member`.
+An entry is:
+
+| Field | Value |
+|---|---|
+| `type` | `user` or `serviceuser` |
+| `ref` | email or id for a user; id for a service user |
+| `relation` | `admin` or `member` |
+
+The file is the full access list. Anyone listed gets that access. Anyone on the server
+but not in the file loses it. To add access, add an entry; to remove it, delete the
+entry. Someone who holds both relations has two entries.
+
+Two safety properties:
+
+- Adds run before removes, so changing someone from `admin` to `member` never leaves
+  them with no access if a step fails in between.
+- The bootstrap service user (the automation account from `app.admin.bootstrap`) is
+  never touched: the reconciler skips it on the server side and rejects file entries
+  that name it.
+
+Adding a user by an email that does not exist creates that user.
+
+## The Permission kind
+
+A permission is an identity: a `service/resource` namespace plus a verb. There is nothing
+else to manage on it, so it is either created or deleted.
+
+```yaml
+apiVersion: v1
+kind: Permission
+spec:
+  - namespace: compute/order
+    name: get
+  - namespace: compute/order
+    name: legacy
+    delete: true
+```
+
+- The namespace has two parts, `service/resource`. The name is alphanumeric.
+- Frontier's own permissions (the `app` namespaces) belong to the base schema. The
+  reconciler ignores them and rejects a file entry that names one.
+- A custom permission on the server that the file does not list fails the plan. Nothing
+  is deleted just because it is missing; deleting needs `delete: true` on the entry.
+- Creating a permission also updates the authorization schema, so a new permission is
+  ready to use in roles right away.
+
+## The Role kind
+
+`Role` manages platform-level roles. The role name is the identity and never changes. The
+managed fields are the title, the description, the permissions, and the scopes (the
+resource types a role can attach to).
+
+```yaml
+apiVersion: v1
+kind: Role
+spec:
+  - name: compute_order_manager      # custom role: must list its permissions
+    title: Order Manager
+    description: Manages compute orders
+    permissions:
+      - compute_order_get
+      - compute_order_update
+  - name: app_project_viewer         # predefined role: override only the fields you list
+    permissions:
+      - app_project_get
+      - resource_aoi_get
+  - name: old_role
+    delete: true
+```
+
+There are two kinds of roles, and they behave differently.
+
+**Custom roles** are yours to manage in full. A custom role must list at least one
+permission. Every custom role on the server must appear in the file, kept or marked
+`delete: true`; one that is missing fails the plan. A role that still has policy bindings
+cannot be deleted, and the apply fails with a clear error.
+
+**Predefined roles** are the ones Frontier ships, like `app_organization_owner` or
+`app_project_viewer`. They converge to their shipped definitions. A file entry overrides
+only the fields it lists; a field you leave out goes back to the default. A predefined
+role you do not list at all resets fully. The plan marks these resets, so a hand-made
+change to a predefined role shows up as an update back to the default. You cannot delete a
+predefined role; the server recreates it at boot.
+
+Two edge cases to know. A field that is empty on the server — say the scopes on a role
+created before that field existed — is changed only when you list it, so exports keep
+round-tripping cleanly. And an empty permission or scope list is rejected: you cannot blank
+those out through the file.
+
+Because a predefined role resets to its default, removing its entry from the file is a
+real change. If an entry adds permissions to `app_project_viewer`, deleting that entry
+takes those permissions away on the next apply.
+
+Permission references accept any form the server knows: the slug (`compute_order_get`),
+`service/resource:verb`, or `service.resource.verb`.
+
+## The Preference kind
+
+`Preference` manages platform settings, like whether new organizations can be created or
+what an invite email says. An entry is a trait name and a value.
+
+```yaml
+apiVersion: v1
+kind: Preference
+spec:
+  - name: disable_orgs_on_create
+    value: "true"
+  - name: invite_with_roles
+    value: "false"
+```
+
+- Values are strings. A yes/no setting is `"true"` or `"false"`.
+- The name must be a platform trait the server knows. An unknown name fails the plan.
+- This kind resets instead of deleting. The file is the full desired state: a preference
+  you list is set to your value, and a preference you leave out goes back to its default.
+  There is no `delete` flag, because setting a preference back to its default is what
+  removal means here.
+- Export writes only the preferences whose value differs from the default, so settings at
+  their default stay out of the file.
+
+## Running it
+
+Log in as a superuser. The bootstrap service user exists for exactly this; its client id
+and secret make a Basic token:
+
+```bash
+BASIC=$(printf '%s:%s' "$CLIENT_ID" "$CLIENT_SECRET" | base64 | tr -d '\n')
+```
+
+Always dry-run first and read the plan:
+
+```bash
+$ frontier reconcile -f platform-users.yaml --dry-run \
+    --host <host> -H "Authorization:Basic ${BASIC}"
+PlatformUser (planned 2):
+  - add user alice@example.org as admin
+  - remove user 5f7b...9c1d (member)
+```
+
+Then apply by running the same command without `--dry-run`. The report shows what was
+applied; a run with nothing to do prints `PlatformUser: no changes`.
+
+The `-H` flag is an interim way to pass the token: command arguments are visible in
+process listings, so automation should mask the token in its logs.
+
+## Exporting the current state
+
+`frontier export <kind>` prints the live state as a desired-state document on stdout:
+
+```bash
+frontier export platformuser --host <host> -H "Authorization:Basic ${BASIC}" > platform-users.yaml
+```
+
+Use it to write the first version of a file from a running server. The output is sorted,
+so exporting twice gives identical files, and it round-trips: reconciling an export's
+output always plans no changes. A clean dry run is proof that a file matches its server.
+
+The kind argument is case-insensitive and accepts a plural, so `platformuser` and
+`PlatformUsers` both work.
+
+## More kinds
+
+This page covers `PlatformUser`, `Permission`, `Role`, and `Preference`. The design and
+the rules every kind follows live in
+[RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
+which also lists the kinds proposed next. The flag reference for both commands is in the
+[CLI reference](./reference/cli.md).

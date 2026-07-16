@@ -6,6 +6,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/internal/reconcile"
+	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	cli "github.com/spf13/cobra"
 )
 
@@ -21,9 +22,15 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 		Long: heredoc.Doc(`
 			Make platform resources match a desired-state YAML file, through the admin API.
 
-			Supports the PlatformUser kind (platform admins and members) for now. The file
-			decides who has access: anyone listed is added, anyone not listed is removed.
-			Log in as a superuser (for example the bootstrap service account) with --header.
+			Kinds: PlatformUser (platform admins and members), Permission (custom
+			permissions), Role (platform-level roles), and Preference (platform
+			settings). Deleting a permission or a custom role needs an explicit
+			'delete: true' on its entry; nothing is deleted by omission, and a predefined
+			role cannot be deleted. A preference left out of the file resets to its
+			default. Log in as a superuser (for example the bootstrap service account)
+			with --header.
+
+			Use "frontier export <kind>" to print the current state in this file format.
 		`),
 		Example: heredoc.Doc(`
 			$ frontier reconcile -f platform-users.yaml --dry-run -H "Authorization:Basic <base64>"
@@ -38,12 +45,9 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("read desired-state file: %w", err)
 			}
-			adminClient, err := createAdminClient(cliConfig.Host)
+			registry, err := buildReconcileRegistry(cliConfig.Host, header)
 			if err != nil {
 				return err
-			}
-			registry := map[string]reconcile.Reconciler{
-				reconcile.KindPlatformUser: reconcile.NewPlatformUserReconciler(adminClient, header),
 			}
 			reports, runErr := reconcile.Run(cmd.Context(), registry, data, dryRun)
 			for _, rep := range reports {
@@ -60,17 +64,51 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 	return cmd
 }
 
+// reconcileAPI joins the two generated clients: reads live on FrontierService,
+// writes on AdminService. The embedded method sets combine to satisfy the
+// per-kind API interfaces.
+type reconcileAPI struct {
+	frontierv1beta1connect.AdminServiceClient
+	frontierv1beta1connect.FrontierServiceClient
+}
+
+// buildReconcileRegistry holds every reconcilable kind. New kinds register here.
+func buildReconcileRegistry(host, header string) (map[string]reconcile.Reconciler, error) {
+	adminClient, err := createAdminClient(host)
+	if err != nil {
+		return nil, err
+	}
+	frontierClient, err := createClient(host)
+	if err != nil {
+		return nil, err
+	}
+	api := reconcileAPI{AdminServiceClient: adminClient, FrontierServiceClient: frontierClient}
+	return map[string]reconcile.Reconciler{
+		reconcile.KindPlatformUser: reconcile.NewPlatformUserReconciler(adminClient, header),
+		reconcile.KindPermission:   reconcile.NewPermissionReconciler(api, header),
+		reconcile.KindRole:         reconcile.NewRoleReconciler(api, header),
+		reconcile.KindPreference:   reconcile.NewPreferenceReconciler(api, header),
+	}, nil
+}
+
+// printReconcileReport writes the report to stdout. cobra's cmd.Printf falls
+// back to stderr, which breaks piping and redirecting the plan.
 func printReconcileReport(cmd *cli.Command, rep reconcile.Report) {
+	// a failed document yields a zero-value report; there is nothing to print
+	if rep.Kind == "" {
+		return
+	}
+	out := cmd.OutOrStdout()
 	if len(rep.Planned) == 0 {
-		cmd.Printf("%s: no changes\n", rep.Kind)
+		fmt.Fprintf(out, "%s: no changes\n", rep.Kind)
 		return
 	}
 	verb, count := "applied", rep.Applied
 	if rep.DryRun {
 		verb, count = "planned", len(rep.Planned)
 	}
-	cmd.Printf("%s (%s %d):\n", rep.Kind, verb, count)
+	fmt.Fprintf(out, "%s (%s %d):\n", rep.Kind, verb, count)
 	for _, p := range rep.Planned {
-		cmd.Printf("  - %s\n", p)
+		fmt.Fprintf(out, "  - %s\n", p)
 	}
 }

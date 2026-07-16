@@ -27,6 +27,9 @@ func (h *ConnectHandler) CreateRole(ctx context.Context, request *connect.Reques
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
+	if len(request.Msg.GetBody().GetPermissions()) == 0 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	}
 
 	var metaDataMap metadata.Metadata
 	if request.Msg.GetBody().GetMetadata() != nil {

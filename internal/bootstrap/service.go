@@ -35,7 +35,6 @@ type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
 	List(ctx context.Context, f role.Filter) ([]role.Role, error)
 	Upsert(ctx context.Context, toCreate role.Role) (role.Role, error)
-	Update(ctx context.Context, toUpdate role.Role) (role.Role, error)
 }
 
 type RelationService interface {
@@ -288,20 +287,21 @@ func (s Service) MigrateRoles(ctx context.Context) error {
 	return nil
 }
 
-// migrateRole makes the stored role match its definition: create when missing,
-// reconcile when present. Roles are keyed by name, so renaming a definition
-// produces a new role rather than renaming the existing one.
+// migrateRole creates the role when it is missing and leaves it alone when it
+// exists. Operators manage existing roles (title, permissions) out of band via
+// the reconcile flow; updating them here would revert those changes on every
+// boot.
 func (s Service) migrateRole(ctx context.Context, orgID string, defRole schema.RoleDefinition) error {
-	existing, err := s.roleService.Get(ctx, defRole.Name)
+	_, err := s.roleService.Get(ctx, defRole.Name)
 	if errors.Is(err, role.ErrNotExist) {
 		return s.createRole(ctx, orgID, defRole)
 	}
 	if err != nil {
 		// A transient Get failure must not fall through to create: that would
-		// re-Upsert an existing role and skip the prune, the very drift this fixes.
+		// re-Upsert an existing role, reverting out-of-band changes.
 		return fmt.Errorf("get role %s: %w: %s", defRole.Name, schema.ErrMigration, err.Error())
 	}
-	return s.reconcileRole(ctx, existing, defRole)
+	return nil
 }
 
 func (s Service) createRole(ctx context.Context, orgID string, defRole schema.RoleDefinition) error {
@@ -320,50 +320,6 @@ func (s Service) createRole(ctx context.Context, orgID string, defRole schema.Ro
 		return fmt.Errorf("can't migrate role: %w: %s", schema.ErrMigration, err.Error())
 	}
 	return nil
-}
-
-// reconcileRole writes the definition onto an existing role only when its
-// permission set differs. The write goes through role.Update (not a raw row
-// update) because that is what prunes the SpiceDB permission tuples a narrowed
-// definition no longer grants; the equality short-circuit keeps every boot from
-// rewriting unchanged roles and emitting a spurious RoleUpdated audit record.
-func (s Service) reconcileRole(ctx context.Context, existing role.Role, defRole schema.RoleDefinition) error {
-	if permissionsEqual(existing.Permissions, defRole.Permissions) {
-		return nil
-	}
-	existing.Title = defRole.Title
-	existing.Permissions = defRole.Permissions
-	existing.Scopes = defRole.Scopes
-	if existing.Metadata == nil {
-		existing.Metadata = map[string]any{}
-	}
-	existing.Metadata["description"] = defRole.Description
-	if _, err := s.roleService.Update(ctx, existing); err != nil {
-		return fmt.Errorf("can't reconcile role: %w: %s", schema.ErrMigration, err.Error())
-	}
-	return nil
-}
-
-// permissionsEqual reports whether two permission slug sets are equal, ignoring
-// order and duplicates.
-func permissionsEqual(a, b []string) bool {
-	setA := make(map[string]struct{}, len(a))
-	for _, p := range a {
-		setA[p] = struct{}{}
-	}
-	setB := make(map[string]struct{}, len(b))
-	for _, p := range b {
-		setB[p] = struct{}{}
-	}
-	if len(setA) != len(setB) {
-		return false
-	}
-	for p := range setB {
-		if _, ok := setA[p]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 // MigrateServiceUserOrgPolicies backfills the org policy for service users that
