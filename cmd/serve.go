@@ -112,7 +112,6 @@ import (
 	"github.com/pkg/profile"
 )
 
-var ruleCacheRefreshDelay = time.Minute * 2
 var GetStripeClientFunc func(logger *slog.Logger, cfg *config.Frontier) *client.API
 
 func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
@@ -144,13 +143,9 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 	if err != nil {
 		return err
 	}
-	resourceBlobRepository := blob.NewResourcesRepository(logger, resourceBlobFS)
-	if err := resourceBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
-		return err
-	}
 	defer func() {
 		logger.Debug("cleaning up resource blob")
-		if err := resourceBlobRepository.Close(); err != nil {
+		if err := resourceBlobFS.Close(); err != nil {
 			logger.Warn("resource blob cleanup failed", "err", err)
 		}
 	}()
@@ -187,7 +182,7 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient, resourceBlobRepository, billingPlanRepository)
+	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient, resourceBlobFS, billingPlanRepository)
 	if err != nil {
 		return err
 	}
@@ -366,7 +361,7 @@ func buildAPIDependencies(
 	cfg *config.Frontier,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
-	resourceBlobRepository *blob.ResourcesRepository,
+	resourceBlobBucket blob.Bucket,
 	planBlobRepository *blob.PlanRepository,
 ) (api.Deps, error) {
 	// Load additional traits from config file if specified
@@ -541,7 +536,6 @@ func buildAPIDependencies(
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
 		resourcePGRepository,
-		resourceBlobRepository,
 		relationService,
 		authnService,
 		projectService,
@@ -600,7 +594,7 @@ func buildAPIDependencies(
 
 	usageService := usage.NewService(creditService)
 
-	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
+	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobBucket)
 	bootstrapService := bootstrap.NewBootstrapService(
 		logger,
 		cfg.App.Admin,

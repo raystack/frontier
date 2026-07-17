@@ -20,23 +20,22 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func newTestService(t *testing.T) (*mocks.Repository, *mocks.ConfigRepository, *mocks.RelationService, *mocks.AuthnService, *mocks.ProjectService, *mocks.OrgService, *mocks.PATService, *mocks.AuditRecordRepository, *resource.Service) {
+func newTestService(t *testing.T) (*mocks.Repository, *mocks.RelationService, *mocks.AuthnService, *mocks.ProjectService, *mocks.OrgService, *mocks.PATService, *mocks.AuditRecordRepository, *resource.Service) {
 	t.Helper()
 	repo := mocks.NewRepository(t)
-	configRepo := mocks.NewConfigRepository(t)
 	relationSvc := mocks.NewRelationService(t)
 	authnSvc := mocks.NewAuthnService(t)
 	projectSvc := mocks.NewProjectService(t)
 	orgSvc := mocks.NewOrgService(t)
 	patSvc := mocks.NewPATService(t)
 	auditRepo := mocks.NewAuditRecordRepository(t)
-	svc := resource.NewService(repo, configRepo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo)
-	return repo, configRepo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo, svc
+	svc := resource.NewService(repo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo)
+	return repo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo, svc
 }
 
 func TestCheckAuthz_NonPAT(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
 
 	userID := uuid.New().String()
 	orgID := uuid.New().String()
@@ -62,7 +61,7 @@ func TestCheckAuthz_NonPAT(t *testing.T) {
 
 func TestCheckAuthz_PATScopeAllowed(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -98,7 +97,7 @@ func TestCheckAuthz_PATScopeAllowed(t *testing.T) {
 
 func TestCheckAuthz_PATScopeDenied(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -128,7 +127,7 @@ func TestCheckAuthz_PATScopeDenied(t *testing.T) {
 
 func TestCheckAuthz_PATScopeAllowed_UserDenied(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -164,7 +163,7 @@ func TestCheckAuthz_PATScopeAllowed_UserDenied(t *testing.T) {
 
 func TestCheckAuthz_ExplicitPATSubject_ScopeAllowed(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, patSvc, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, patSvc, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -207,7 +206,7 @@ func TestCheckAuthz_ExplicitPATSubject_ScopeAllowed(t *testing.T) {
 
 func TestCheckAuthz_ExplicitPATSubject_ScopeDenied(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	orgID := uuid.New().String()
@@ -237,7 +236,7 @@ func TestCheckAuthz_ExplicitPATSubject_ScopeDenied(t *testing.T) {
 
 func TestBatchCheck_PATScopeAllowed(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -282,7 +281,7 @@ func TestBatchCheck_PATScopeAllowed(t *testing.T) {
 
 func TestBatchCheck_PATScopeDenied(t *testing.T) {
 	ctx := context.Background()
-	_, _, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -314,7 +313,7 @@ func TestBatchCheck_PATScopeDenied(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	t.Run("get by UUID calls GetByID", func(t *testing.T) {
-		repo, _, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, svc := newTestService(t)
 		id := uuid.New().String()
 		expected := resource.Resource{ID: id, Name: "test"}
 		repo.EXPECT().GetByID(mock.Anything, id).Return(expected, nil)
@@ -325,7 +324,7 @@ func TestGet(t *testing.T) {
 	})
 
 	t.Run("get by URN calls GetByURN", func(t *testing.T) {
-		repo, _, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, svc := newTestService(t)
 		urn := "frn:myproject:resource/item:myresource"
 		expected := resource.Resource{URN: urn, Name: "myresource"}
 		repo.EXPECT().GetByURN(mock.Anything, urn).Return(expected, nil)
@@ -348,7 +347,7 @@ func TestCreate(t *testing.T) {
 	}
 
 	t.Run("creates resource with user principal", func(t *testing.T) {
-		repo, _, relationSvc, authnSvc, projectSvc, _, _, auditRepo, svc := newTestService(t)
+		repo, relationSvc, authnSvc, projectSvc, _, _, auditRepo, svc := newTestService(t)
 
 		userID := uuid.New().String()
 		authnSvc.EXPECT().GetPrincipal(mock.Anything, mock.Anything).Return(authenticate.Principal{
@@ -381,7 +380,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("PAT principal resolves to user", func(t *testing.T) {
-		repo, _, relationSvc, authnSvc, projectSvc, _, patSvc, auditRepo, svc := newTestService(t)
+		repo, relationSvc, authnSvc, projectSvc, _, patSvc, auditRepo, svc := newTestService(t)
 
 		patID := uuid.New().String()
 		userID := uuid.New().String()
@@ -420,7 +419,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("explicit principal skips authn lookup", func(t *testing.T) {
-		repo, _, relationSvc, _, projectSvc, _, _, auditRepo, svc := newTestService(t)
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, svc := newTestService(t)
 		userID := uuid.New().String()
 
 		projectSvc.EXPECT().Get(mock.Anything, testProject.ID).Return(testProject, nil)
@@ -448,7 +447,7 @@ func TestCreate(t *testing.T) {
 
 func TestList(t *testing.T) {
 	t.Run("delegates to repository", func(t *testing.T) {
-		repo, _, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, svc := newTestService(t)
 		flt := resource.Filter{ProjectID: "proj-1"}
 		expected := []resource.Resource{{ID: "r1"}, {ID: "r2"}}
 		repo.EXPECT().List(mock.Anything, flt).Return(expected, nil)
@@ -459,7 +458,7 @@ func TestList(t *testing.T) {
 	})
 
 	t.Run("returns error from repository", func(t *testing.T) {
-		repo, _, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, svc := newTestService(t)
 		repo.EXPECT().List(mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 
 		_, err := svc.List(context.Background(), resource.Filter{})
@@ -469,7 +468,7 @@ func TestList(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("delegates to repository", func(t *testing.T) {
-		repo, _, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, svc := newTestService(t)
 		res := resource.Resource{ID: "r1", Title: "updated"}
 		repo.EXPECT().Update(mock.Anything, res).Return(res, nil)
 
@@ -481,7 +480,7 @@ func TestUpdate(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("deletes relations then resource", func(t *testing.T) {
-		repo, _, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		repo, relationSvc, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Delete(mock.Anything, relation.Relation{
 			Object: relation.Object{ID: "r1", Namespace: "resource/item"},
@@ -493,7 +492,7 @@ func TestDelete(t *testing.T) {
 	})
 
 	t.Run("ignores relation not exist error", func(t *testing.T) {
-		repo, _, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		repo, relationSvc, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(relation.ErrNotExist)
 		repo.EXPECT().Delete(mock.Anything, "r1").Return(nil)
@@ -503,7 +502,7 @@ func TestDelete(t *testing.T) {
 	})
 
 	t.Run("returns relation delete error", func(t *testing.T) {
-		_, _, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		_, relationSvc, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(errors.New("spicedb down"))
 
@@ -514,7 +513,7 @@ func TestDelete(t *testing.T) {
 
 func TestAddProjectToResource(t *testing.T) {
 	t.Run("creates project relation", func(t *testing.T) {
-		_, _, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		_, relationSvc, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Create(mock.Anything, relation.Relation{
 			Object:       relation.Object{ID: "r1", Namespace: "resource/item"},
@@ -531,7 +530,7 @@ func TestAddProjectToResource(t *testing.T) {
 
 func TestAddResourceOwner(t *testing.T) {
 	t.Run("creates owner relation with user principal", func(t *testing.T) {
-		_, _, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		_, relationSvc, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Create(mock.Anything, relation.Relation{
 			Object:       relation.Object{ID: "r1", Namespace: "resource/item"},
