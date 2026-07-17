@@ -84,7 +84,7 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 		ReadOnly:  true,
 	}
 
-	r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
 		err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "CountProjectMembers", func(ctx context.Context) error {
 			return tx.SelectContext(ctx, &orgProjects, dataQuery, params...)
 		})

@@ -73,7 +73,7 @@ func (r ProjectUsersRepository) Search(ctx context.Context, projectID string, rq
 		ReadOnly:  true,
 	}
 
-	r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
 		err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "GetProjectUsers", func(ctx context.Context) error {
 			return tx.SelectContext(ctx, &projectUsers, dataQuery, params...)
 		})

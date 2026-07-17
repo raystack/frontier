@@ -112,7 +112,7 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 		ReadOnly:  true,
 	}
 
-	r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
 		err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "GetOrgUsers", func(ctx context.Context) error {
 			return tx.SelectContext(ctx, &orgUsers, dataQuery, params...)
 		})
