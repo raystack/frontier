@@ -23,8 +23,9 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 			Make platform resources match a desired-state YAML file, through the admin API.
 
 			Kinds: PlatformUser (platform admins and members), Permission (custom
-			permissions), Role (platform-level roles), and Preference (platform
-			settings). Deleting a permission or a custom role needs an explicit
+			permissions), Role (platform-level roles), Preference (platform
+			settings), and Webhook (webhook endpoints). Deleting a permission, a
+				custom role, or a webhook needs an explicit
 			'delete: true' on its entry; nothing is deleted by omission, and a predefined
 			role cannot be deleted. A preference left out of the file resets to its
 			default. Log in as a superuser (for example the bootstrap service account)
@@ -88,6 +89,7 @@ func buildReconcileRegistry(host, header string) (map[string]reconcile.Reconcile
 		reconcile.KindPermission:   reconcile.NewPermissionReconciler(api, header),
 		reconcile.KindRole:         reconcile.NewRoleReconciler(api, header),
 		reconcile.KindPreference:   reconcile.NewPreferenceReconciler(api, header),
+		reconcile.KindWebhook:      reconcile.NewWebhookReconciler(adminClient, header),
 	}, nil
 }
 
