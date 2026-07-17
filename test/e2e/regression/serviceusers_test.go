@@ -7,8 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -39,10 +37,6 @@ type ServiceUsersRegressionTestSuite struct {
 }
 
 func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Require().Nil(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 	s.connectPort = connectPort
@@ -52,9 +46,8 @@ func (s *ServiceUsersRegressionTestSuite) SetupSuite() {
 			Level: "error",
 		},
 		App: server.Config{
-			Host:                "localhost",
-			Connect:             server.ConnectConfig{Port: connectPort},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
