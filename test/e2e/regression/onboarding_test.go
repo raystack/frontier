@@ -2,8 +2,6 @@ package e2e_test
 
 import (
 	"context"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -30,10 +28,6 @@ type OnboardingRegressionTestSuite struct {
 }
 
 func (s *OnboardingRegressionTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Require().Nil(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 
@@ -42,9 +36,8 @@ func (s *OnboardingRegressionTestSuite) SetupSuite() {
 			Level: "error",
 		},
 		App: server.Config{
-			Host:                "localhost",
-			Connect:             server.ConnectConfig{Port: connectPort},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
@@ -65,6 +58,11 @@ func (s *OnboardingRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	ctx := context.Background()
+
+	// Seed the custom "compute" permissions and roles the tests below rely on,
+	// via the admin API. This replaces the removed boot-time resources_config
+	// loader — tests now seed custom resources the same way operators do.
+	s.Require().NoError(testbench.SeedComputeResources(ctx, s.testBench.AdminClient))
 
 	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
 	s.Require().NoError(err)
