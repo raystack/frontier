@@ -165,6 +165,22 @@ func TestService_AddOrganizationMember(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name: "should succeed even when the audit record write fails",
+			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
+				roleSvc.EXPECT().Get(ctx, viewerRoleID).Return(role.Role{ID: viewerRoleID, Scopes: []string{schema.OrganizationNamespace}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{}, nil)
+				relSvc.EXPECT().Create(ctx, mock.Anything).Return(relation.Relation{}, nil)
+				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, errors.New("audit store unavailable"))
+			},
+			orgID:   orgID,
+			userID:  userID,
+			roleID:  viewerRoleID,
+			wantErr: nil,
+		},
+		{
 			name: "should succeed adding a new member with owner role and create owner relation",
 			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, orgSvc *mocks.OrgService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
 				orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
