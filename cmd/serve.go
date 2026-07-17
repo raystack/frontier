@@ -134,22 +134,6 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		}
 	}()
 
-	// load resource config
-	if cfg.App.ResourcesConfigPath != "" {
-		logger.Warn("app.resources_config_path is deprecated and will be removed after a deprecation window; " +
-			"manage permissions and roles with 'frontier reconcile' instead")
-	}
-	resourceBlobFS, err := blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		logger.Debug("cleaning up resource blob")
-		if err := resourceBlobFS.Close(); err != nil {
-			logger.Warn("resource blob cleanup failed", "err", err)
-		}
-	}()
-
 	// load billing plans
 	billingBlobFS, err := blob.NewStore(ctx, cfg.Billing.PlansPath, "")
 	if err != nil {
@@ -182,7 +166,7 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient, resourceBlobFS, billingPlanRepository)
+	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient, billingPlanRepository)
 	if err != nil {
 		return err
 	}
@@ -361,7 +345,6 @@ func buildAPIDependencies(
 	cfg *config.Frontier,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
-	resourceBlobBucket blob.Bucket,
 	planBlobRepository *blob.PlanRepository,
 ) (api.Deps, error) {
 	// Load additional traits from config file if specified
@@ -594,11 +577,9 @@ func buildAPIDependencies(
 
 	usageService := usage.NewService(creditService)
 
-	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobBucket)
 	bootstrapService := bootstrap.NewBootstrapService(
 		logger,
 		cfg.App.Admin,
-		resourceSchemaRepository,
 		namespaceService,
 		roleService,
 		permissionService,

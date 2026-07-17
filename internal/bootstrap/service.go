@@ -42,10 +42,6 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
-type FileService interface {
-	GetDefinition(ctx context.Context) (*schema.ServiceDefinition, error)
-}
-
 type AuthzEngine interface {
 	WriteSchema(ctx context.Context, schema string) error
 }
@@ -87,7 +83,6 @@ type AdminConfig struct {
 type Service struct {
 	logger            *slog.Logger
 	adminConfig       AdminConfig
-	schemaConfig      FileService
 	namespaceService  NamespaceService
 	roleService       RoleService
 	permissionService PermissionService
@@ -108,7 +103,6 @@ type Service struct {
 func NewBootstrapService(
 	logger *slog.Logger,
 	config AdminConfig,
-	schemaConfig FileService,
 	namespaceService NamespaceService,
 	roleService RoleService,
 	actionService PermissionService,
@@ -126,7 +120,6 @@ func NewBootstrapService(
 	return &Service{
 		logger:            logger,
 		adminConfig:       config,
-		schemaConfig:      schemaConfig,
 		namespaceService:  namespaceService,
 		roleService:       roleService,
 		permissionService: actionService,
@@ -144,25 +137,18 @@ func NewBootstrapService(
 }
 
 func (s Service) MigrateSchema(ctx context.Context) error {
-	customServiceDefinition, err := s.schemaConfig.GetDefinition(ctx)
-	if err != nil {
-		return err
-	}
-
-	return s.AppendSchema(ctx, *customServiceDefinition)
+	// Custom permissions are managed through the reconcile flow now. Boot only
+	// re-applies the base schema merged with the permissions already in the
+	// database (AppendSchema keeps existing ones), so no config file is read.
+	return s.AppendSchema(ctx, schema.ServiceDefinition{})
 }
 
-// BuiltinPermissions returns the permissions that come from the base schema and
-// the config files — the ones bootstrap recreates on every boot. It looks only
-// at the base schema and config, not at the permissions already in the database.
+// BuiltinPermissions returns the permissions that come from the base schema —
+// the ones bootstrap recreates on every boot and that cannot be deleted through
+// the API. It looks only at the base schema, not at the permissions already in
+// the database.
 func (s Service) BuiltinPermissions(ctx context.Context) (map[string]struct{}, error) {
-	custom, err := s.schemaConfig.GetDefinition(ctx)
-	if err != nil {
-		return nil, err
-	}
-	custom.Permissions = filterDefaultAppNamespacePermissions(custom.Permissions)
-
-	defs, err := ApplyServiceDefinitionOverAZSchema(custom, GetBaseAZSchema())
+	defs, err := ApplyServiceDefinitionOverAZSchema(&schema.ServiceDefinition{}, GetBaseAZSchema())
 	if err != nil {
 		return nil, err
 	}
@@ -269,16 +255,8 @@ func (s Service) MigrateRoles(ctx context.Context) error {
 		}
 	}
 
-	// migrate user defined roles to org
-	serviceDefinition, err := s.schemaConfig.GetDefinition(ctx)
-	if err != nil {
-		return err
-	}
-	for _, defRole := range serviceDefinition.Roles {
-		if err = s.migrateRole(ctx, defaultOrgID, defRole); err != nil {
-			return err
-		}
-	}
+	// Custom roles are managed through the reconcile flow now; boot no longer
+	// creates them from a config file.
 
 	// backfill PAT wildcard tuples for all existing roles
 	if err = s.migratePATRelations(ctx); err != nil {
