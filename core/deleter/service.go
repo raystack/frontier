@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/raystack/frontier/core/audit"
 
@@ -276,7 +277,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return err
 	}
 
-	audit.NewLogger(ctx, id).Log(audit.OrgDeletedEvent, audit.OrgTarget(id))
+	if err := audit.NewLogger(ctx, id).Log(audit.OrgDeletedEvent, audit.OrgTarget(id)); err != nil {
+		slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgDeletedEvent)
+	}
 	return nil
 }
 

@@ -442,10 +442,12 @@ func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principal
 	}
 
 	s.auditOrgMemberRemoved(ctx, org, principalID, targetAuditType)
-	audit.GetAuditor(ctx, org.ID).Log(audit.OrgMemberDeletedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, org.ID).Log(audit.OrgMemberDeletedEvent, audit.Target{
 		ID:   principalID,
 		Type: principalType,
-	})
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgMemberDeletedEvent)
+	}
 
 	return nil
 }
@@ -825,12 +827,14 @@ func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organizatio
 		OccurredAt: time.Now(),
 	})
 
-	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
 		ID:   p.ID,
 		Type: p.Type,
 	}, map[string]string{
 		"role_id": roleID,
-	})
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgMemberRoleChangedEvent)
+	}
 }
 
 func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
@@ -857,12 +861,14 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 		OccurredAt: time.Now(),
 	})
 
-	audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberCreatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberCreatedEvent, audit.Target{
 		ID:   p.ID,
 		Type: p.Type,
 	}, map[string]string{
 		"role_id": roleID,
-	})
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgMemberCreatedEvent)
+	}
 }
 
 func (s *Service) auditOrgMemberRemoved(ctx context.Context, org organization.Organization, targetID string, targetType pkgAuditRecord.EntityType) {
@@ -1725,13 +1731,15 @@ func (s *Service) auditGroupMemberAdded(ctx context.Context, grp group.Group, p 
 		OccurredAt: time.Now(),
 	})
 
-	audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberCreatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberCreatedEvent, audit.Target{
 		ID:   p.ID,
 		Type: p.Type,
 	}, map[string]string{
 		"role_id":  roleID,
 		"group_id": grp.ID,
-	})
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.GroupMemberCreatedEvent)
+	}
 }
 
 func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Group, p principalInfo, roleID string) {
@@ -1758,13 +1766,15 @@ func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Gro
 		OccurredAt: time.Now(),
 	})
 
-	audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRoleChangedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRoleChangedEvent, audit.Target{
 		ID:   p.ID,
 		Type: p.Type,
 	}, map[string]string{
 		"role_id":  roleID,
 		"group_id": grp.ID,
-	})
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.GroupMemberRoleChangedEvent)
+	}
 }
 
 func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, p principalInfo) {
@@ -1791,12 +1801,14 @@ func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, 
 		OccurredAt: time.Now(),
 	})
 
-	audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.Target{
 		ID:   p.ID,
 		Type: p.Type,
 	}, map[string]string{
 		"group_id": grp.ID,
-	})
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.GroupMemberRemovedEvent)
+	}
 }
 
 // ResourceFilter narrows the results of ListResourcesByPrincipal.
