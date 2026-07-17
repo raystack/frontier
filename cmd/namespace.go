@@ -89,7 +89,7 @@ func viewNamespaceCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -147,7 +147,7 @@ func listNamespaceCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }

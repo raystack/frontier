@@ -86,9 +86,9 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the permission body file")
-	cmd.MarkFlagRequired("file")
+	mustMarkRequired(cmd, "file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -140,9 +140,9 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the permission body file")
-	cmd.MarkFlagRequired("file")
+	mustMarkRequired(cmd, "file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -199,7 +199,7 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -261,7 +261,7 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }

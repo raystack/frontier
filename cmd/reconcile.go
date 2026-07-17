@@ -57,7 +57,7 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the desired-state YAML file")
-	cmd.MarkFlagRequired("file")
+	mustMarkRequired(cmd, "file")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Print the plan without applying changes")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value> for auth, e.g. 'Authorization:Basic <base64>'")
 	bindFlagsFromClientConfig(cmd)

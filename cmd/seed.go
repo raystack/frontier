@@ -89,7 +89,7 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 
 	bindFlagsFromClientConfig(cmd)
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "config file path")
 	return cmd
 }

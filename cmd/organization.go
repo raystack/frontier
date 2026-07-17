@@ -87,9 +87,9 @@ func createOrganizationCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the organization body file")
-	cmd.MarkFlagRequired("file")
+	mustMarkRequired(cmd, "file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -141,9 +141,9 @@ func editOrganizationCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the organization body file")
-	cmd.MarkFlagRequired("file")
+	mustMarkRequired(cmd, "file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -219,7 +219,7 @@ func viewOrganizationCommand(cliConfig *Config) *cli.Command {
 
 	cmd.Flags().BoolVarP(&metadata, "metadata", "m", false, "Set this flag to see metadata")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -280,7 +280,7 @@ func listOrganizationCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -340,7 +340,7 @@ func admlistOrganizationCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }

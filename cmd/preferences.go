@@ -83,7 +83,7 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -140,7 +140,7 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 	cmd.Flags().StringVarP(&name, "name", "n", "", "Name of the preference")
 	cmd.Flags().StringVarP(&value, "value", "v", "", "Value of the preference")
 
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 	return cmd
 }
 
@@ -182,7 +182,7 @@ func preferencesGetCommand(cliConfig *Config) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
