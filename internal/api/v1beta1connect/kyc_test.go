@@ -15,15 +15,32 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// failingAuditRepository makes every audit log write fail. Handlers must not
+// fail the request because of it.
+type failingAuditRepository struct{}
+
+func (failingAuditRepository) Create(context.Context, *audit.Log) error {
+	return errors.New("audit write failed")
+}
+
+func (failingAuditRepository) List(context.Context, audit.Filter) ([]audit.Log, error) {
+	return nil, nil
+}
+
+func (failingAuditRepository) GetByID(context.Context, string) (audit.Log, error) {
+	return audit.Log{}, nil
+}
+
 func TestSetOrganizationKyc(t *testing.T) {
 	tests := []struct {
-		mockService   *mocks.KycService
-		name          string
-		request       *connect.Request[frontierv1beta1.SetOrganizationKycRequest]
-		mockResponse  kyc.KYC
-		mockError     error
-		expectError   bool
-		expectedError error
+		mockService     *mocks.KycService
+		name            string
+		request         *connect.Request[frontierv1beta1.SetOrganizationKycRequest]
+		mockResponse    kyc.KYC
+		mockError       error
+		auditRepository audit.Repository
+		expectError     bool
+		expectedError   error
 	}{
 		{
 			mockService: mocks.NewKycService(t),
@@ -89,6 +106,23 @@ func TestSetOrganizationKyc(t *testing.T) {
 			expectError:   true,
 			expectedError: connect.NewError(connect.CodeInternal, fmt.Errorf("SetOrganizationKyc.SetKyc: org_id=%s status=%v: %w", "valid-org-id", true, errors.New("internal error"))),
 		},
+		{
+			mockService: mocks.NewKycService(t),
+			name:        "audit log failure does not fail the request",
+			request: connect.NewRequest(&frontierv1beta1.SetOrganizationKycRequest{
+				OrgId:  "valid-org-id",
+				Status: true,
+				Link:   "http://kyc-link.com",
+			}),
+			mockResponse: kyc.KYC{
+				OrgID:  "valid-org-id",
+				Status: true,
+				Link:   "http://kyc-link.com",
+			},
+			auditRepository: failingAuditRepository{},
+			mockError:       nil,
+			expectError:     false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -106,8 +140,12 @@ func TestSetOrganizationKyc(t *testing.T) {
 			}
 
 			// Create context with audit service
+			auditRepository := tt.auditRepository
+			if auditRepository == nil {
+				auditRepository = audit.NewNoopRepository()
+			}
 			ctx := context.Background()
-			ctx = audit.SetContextWithService(ctx, audit.NewService("test", audit.NewNoopRepository(), audit.NewNoopWebhookService()))
+			ctx = audit.SetContextWithService(ctx, audit.NewService("test", auditRepository, audit.NewNoopWebhookService()))
 
 			// Call the handler method
 			response, err := handler.SetOrganizationKyc(ctx, tt.request)
