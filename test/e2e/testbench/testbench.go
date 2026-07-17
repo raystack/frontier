@@ -152,7 +152,7 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 func (te *TestBench) Close() error {
 	proc, err := os.FindProcess(os.Getpid())
 	if err == nil {
-		proc.Signal(os.Interrupt)
+		_ = proc.Signal(os.Interrupt)
 	}
 	return errors.Join(err, te.close())
 }
