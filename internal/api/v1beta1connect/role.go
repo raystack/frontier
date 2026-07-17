@@ -73,11 +73,14 @@ func (h *ConnectHandler) CreateRole(ctx context.Context, request *connect.Reques
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateRole: entity_id=%s: %w", newRole.ID, err))
 	}
 
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleCreatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleCreatedEvent, audit.Target{
 		ID:   newRole.ID,
 		Type: schema.RoleNamespace,
 		Name: newRole.Name,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateRole.AuditLog", err,
+			"role_id", newRole.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.CreateRoleResponse{Role: &rolePB}), nil
 }
 
@@ -129,11 +132,14 @@ func (h *ConnectHandler) UpdateRole(ctx context.Context, request *connect.Reques
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateRole: entity_id=%s: %w", updatedRole.ID, err))
 	}
 
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleUpdatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleUpdatedEvent, audit.Target{
 		ID:   updatedRole.ID,
 		Type: schema.RoleNamespace,
 		Name: updatedRole.Name,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateRole.AuditLog", err,
+			"role_id", updatedRole.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateRoleResponse{Role: &rolePB}), nil
 }
 
@@ -257,11 +263,15 @@ func (h *ConnectHandler) CreateOrganizationRole(ctx context.Context, request *co
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationRole: entity_id=%s: %w", newRole.ID, err))
 	}
 
-	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleCreatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleCreatedEvent, audit.Target{
 		ID:   newRole.ID,
 		Type: schema.RoleNamespace,
 		Name: newRole.Name,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateOrganizationRole.AuditLog", err,
+			"role_id", newRole.ID,
+			"org_id", request.Msg.GetOrgId())
+	}
 	return connect.NewResponse(&frontierv1beta1.CreateOrganizationRoleResponse{Role: &rolePB}), nil
 }
 
@@ -349,11 +359,15 @@ func (h *ConnectHandler) UpdateOrganizationRole(ctx context.Context, request *co
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganizationRole: entity_id=%s: %w", updatedRole.ID, err))
 	}
 
-	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleUpdatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.RoleUpdatedEvent, audit.Target{
 		ID:   updatedRole.ID,
 		Type: schema.RoleNamespace,
 		Name: updatedRole.Name,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateOrganizationRole.AuditLog", err,
+			"role_id", updatedRole.ID,
+			"org_id", request.Msg.GetOrgId())
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateOrganizationRoleResponse{Role: &rolePB}), nil
 }
 
@@ -383,10 +397,14 @@ func (h *ConnectHandler) DeleteOrganizationRole(ctx context.Context, request *co
 		}
 	}
 
-	audit.GetAuditor(ctx, orgID).Log(audit.RoleDeletedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, orgID).Log(audit.RoleDeletedEvent, audit.Target{
 		ID:   roleID,
 		Type: schema.RoleNamespace,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteOrganizationRole.AuditLog", err,
+			"role_id", roleID,
+			"org_id", orgID)
+	}
 	return connect.NewResponse(&frontierv1beta1.DeleteOrganizationRoleResponse{}), nil
 }
 
