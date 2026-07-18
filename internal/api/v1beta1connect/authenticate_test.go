@@ -16,6 +16,7 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
@@ -176,9 +177,9 @@ func TestConnectHandler_GetJWKs(t *testing.T) {
 				// Create a test key set
 				testKeySet := jwk.NewSet()
 				testKey, _ := jwk.FromRaw([]byte("test-key-data"))
-				testKey.Set(jwk.KeyIDKey, "test-key-id")
-				testKey.Set(jwk.KeyTypeKey, "oct")
-				testKeySet.AddKey(testKey)
+				_ = testKey.Set(jwk.KeyIDKey, "test-key-id")
+				_ = testKey.Set(jwk.KeyTypeKey, "oct")
+				_ = testKeySet.AddKey(testKey)
 
 				authn.EXPECT().JWKs(mock.Anything).Return(testKeySet)
 			},
@@ -214,15 +215,15 @@ func TestConnectHandler_GetJWKs(t *testing.T) {
 
 				// First key
 				testKey1, _ := jwk.FromRaw([]byte("test-key-data-1"))
-				testKey1.Set(jwk.KeyIDKey, "test-key-id-1")
-				testKey1.Set(jwk.KeyTypeKey, "oct")
-				testKeySet.AddKey(testKey1)
+				_ = testKey1.Set(jwk.KeyIDKey, "test-key-id-1")
+				_ = testKey1.Set(jwk.KeyTypeKey, "oct")
+				_ = testKeySet.AddKey(testKey1)
 
 				// Second key
 				testKey2, _ := jwk.FromRaw([]byte("test-key-data-2"))
-				testKey2.Set(jwk.KeyIDKey, "test-key-id-2")
-				testKey2.Set(jwk.KeyTypeKey, "oct")
-				testKeySet.AddKey(testKey2)
+				_ = testKey2.Set(jwk.KeyIDKey, "test-key-id-2")
+				_ = testKey2.Set(jwk.KeyTypeKey, "oct")
+				_ = testKeySet.AddKey(testKey2)
 
 				authn.EXPECT().JWKs(mock.Anything).Return(testKeySet)
 			},
@@ -297,9 +298,9 @@ func TestToJSONWebKey(t *testing.T) {
 			keySet: func() jwk.Set {
 				keySet := jwk.NewSet()
 				testKey, _ := jwk.FromRaw([]byte("test-key-data"))
-				testKey.Set(jwk.KeyIDKey, "test-key-id")
-				testKey.Set(jwk.KeyTypeKey, "oct")
-				keySet.AddKey(testKey)
+				_ = testKey.Set(jwk.KeyIDKey, "test-key-id")
+				_ = testKey.Set(jwk.KeyTypeKey, "oct")
+				_ = keySet.AddKey(testKey)
 				return keySet
 			}(),
 			expectError: false,
@@ -326,7 +327,7 @@ func TestToJSONWebKey(t *testing.T) {
 				// Verify the structure is correct
 				keySetJson, _ := json.Marshal(tt.keySet)
 				var expectedJWKS JsonWebKeySet
-				json.Unmarshal(keySetJson, &expectedJWKS)
+				require.NoError(t, json.Unmarshal(keySetJson, &expectedJWKS))
 				assert.Equal(t, len(expectedJWKS.Keys), len(result.Keys))
 			}
 		})

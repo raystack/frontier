@@ -171,7 +171,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 			Handler: callbackMux,
 		}
 		// clean up callback server
-		defer srv.Shutdown(ctx)
+		defer srv.Shutdown(ctx) // nolint
 		go func() {
 			if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 				s.Assert().NoError(err)

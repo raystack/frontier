@@ -528,7 +528,7 @@ func (s *ProspectRepositoryTestSuite) TestDelete() {
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			// Reset the test data for each test case
-			s.cleanup()
+			s.Require().NoError(s.cleanup())
 			s.SetupTest()
 
 			if tc.SetupFn != nil {
