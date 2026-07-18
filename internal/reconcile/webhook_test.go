@@ -59,6 +59,32 @@ func TestDiffWebhooks(t *testing.T) {
 		assert.Empty(t, ops)
 	})
 
+	t.Run("an omitted event list keeps the server's events", func(t *testing.T) {
+		current := []currentWebhook{cw("w1", "https://a.example/hook", "old", webhookStateEnabled, "org.created")}
+		ops, err := diffWebhooks(
+			[]WebhookSpec{{URL: "https://a.example/hook", Description: "new"}}, // events omitted
+			current,
+		)
+		assert.NoError(t, err)
+		if assert.Len(t, ops, 1) {
+			assert.Equal(t, "update webhook https://a.example/hook (description)", ops[0].String())
+			assert.Equal(t, []string{"org.created"}, ops[0].spec.SubscribedEvents) // kept, not wiped
+		}
+	})
+
+	t.Run("an explicit empty event list subscribes an endpoint to all events", func(t *testing.T) {
+		current := []currentWebhook{cw("w1", "https://a.example/hook", "desc", webhookStateEnabled, "org.created")}
+		ops, err := diffWebhooks(
+			[]WebhookSpec{{URL: "https://a.example/hook", Description: "desc", SubscribedEvents: []string{}}},
+			current,
+		)
+		assert.NoError(t, err)
+		if assert.Len(t, ops, 1) {
+			assert.Equal(t, "update webhook https://a.example/hook (subscribed_events)", ops[0].String())
+			assert.Empty(t, ops[0].spec.SubscribedEvents)
+		}
+	})
+
 	t.Run("state change is planned when listed and different", func(t *testing.T) {
 		current := []currentWebhook{cw("w1", "https://a.example/hook", "desc", webhookStateEnabled, "org.created")}
 		ops, err := diffWebhooks(
@@ -146,9 +172,14 @@ func TestDiffWebhooks(t *testing.T) {
 		assert.ErrorContains(t, err, "absolute URL")
 	})
 
-	t.Run("validation rejects an entry with no events", func(t *testing.T) {
-		_, err := diffWebhooks([]WebhookSpec{{URL: "https://a.example/hook"}}, nil)
-		assert.ErrorContains(t, err, "at least one event")
+	t.Run("an entry with no events adds an endpoint subscribed to all events", func(t *testing.T) {
+		ops, err := diffWebhooks([]WebhookSpec{{URL: "https://a.example/hook"}}, nil)
+		assert.NoError(t, err)
+		if assert.Len(t, ops, 1) {
+			assert.Equal(t, opAdd, ops[0].action)
+			assert.Empty(t, ops[0].spec.SubscribedEvents)
+			assert.Equal(t, "add webhook https://a.example/hook [all events]", ops[0].String())
+		}
 	})
 
 	t.Run("validation rejects an unknown state", func(t *testing.T) {

@@ -93,6 +93,36 @@ func TestWebhookReconciler(t *testing.T) {
 		}
 	})
 
+	t.Run("creates a webhook subscribed to all events when events are omitted", func(t *testing.T) {
+		api := &fakeWebhookAPI{}
+		spec := []byte("- {url: \"https://a.example/hook\"}\n")
+
+		rep, err := NewWebhookReconciler(api, "").Reconcile(context.Background(), spec, false)
+
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"add webhook https://a.example/hook [all events]"}, rep.Planned)
+		if assert.Len(t, api.created, 1) {
+			assert.Empty(t, api.created[0].GetSubscribedEvents())
+		}
+	})
+
+	t.Run("an endpoint subscribed to all events round-trips", func(t *testing.T) {
+		api := &fakeWebhookAPI{webhooks: []*frontierv1beta1.Webhook{
+			webhookPB("w1", "https://a.example/hook", "", webhookStateEnabled), // no events = all events
+		}}
+		registry := map[string]Reconciler{KindWebhook: NewWebhookReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindWebhook)
+		assert.NoError(t, err)
+		assert.NotContains(t, string(out), "subscribed_events") // an empty event set is left out
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+
 	t.Run("a dry run plans without applying", func(t *testing.T) {
 		api := &fakeWebhookAPI{}
 		spec := []byte("- {url: \"https://a.example/hook\", subscribed_events: [org.created]}\n")

@@ -20,8 +20,9 @@ const (
 // WebhookSpec is one desired webhook endpoint. The URL is the identity and
 // never changes. Description, subscribed events, and state are managed: a field
 // that is present is set, and a field that is omitted keeps the server value.
-// Signing secrets are server-owned — the server generates one on create and
-// never returns it on read — so they are not part of the spec.
+// An empty event list means the endpoint receives every event, which is the
+// server's own default. Signing secrets are server-owned: the server generates
+// one on create and never returns it on read, so they are not part of the spec.
 type WebhookSpec struct {
 	URL              string   `yaml:"url"`
 	Description      string   `yaml:"description,omitempty"`
@@ -63,12 +64,17 @@ func (o webhookOp) String() string {
 	case opUpdate:
 		return fmt.Sprintf("update webhook %s (%s)", o.spec.URL, o.detail)
 	default:
-		return fmt.Sprintf("add webhook %s [%s]", o.spec.URL, strings.Join(o.spec.SubscribedEvents, ", "))
+		events := "all events"
+		if len(o.spec.SubscribedEvents) > 0 {
+			events = strings.Join(o.spec.SubscribedEvents, ", ")
+		}
+		return fmt.Sprintf("add webhook %s [%s]", o.spec.URL, events)
 	}
 }
 
-// validateWebhookSpec rejects entries the flow cannot manage. A delete entry
-// needs only a valid URL; everything else must name the events it subscribes to.
+// validateWebhookSpec rejects entries the flow cannot manage. A live entry needs
+// only a valid URL: an empty event list is allowed and means the endpoint
+// receives every event, which is the server's own default.
 func validateWebhookSpec(s WebhookSpec) error {
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("url is required")
@@ -78,9 +84,6 @@ func validateWebhookSpec(s WebhookSpec) error {
 	}
 	if s.Delete {
 		return nil
-	}
-	if len(s.SubscribedEvents) == 0 {
-		return fmt.Errorf("a webhook must subscribe to at least one event")
 	}
 	if s.State != "" && s.State != webhookStateEnabled && s.State != webhookStateDisabled {
 		return fmt.Errorf("state must be %q or %q", webhookStateEnabled, webhookStateDisabled)
@@ -155,7 +158,10 @@ func diffWebhooks(desired []WebhookSpec, current []currentWebhook) ([]webhookOp,
 			merged.Description = s.Description
 			changes = append(changes, "description")
 		}
-		if !stringSetsEqual(sortedCopy(s.SubscribedEvents), sortedCopy(cur.SubscribedEvents)) {
+		// Events are managed only when the entry lists them. An omitted list
+		// (nil) keeps the server's set; an explicit empty list ([]) sets the
+		// endpoint to receive every event.
+		if s.SubscribedEvents != nil && !stringSetsEqual(sortedCopy(s.SubscribedEvents), sortedCopy(cur.SubscribedEvents)) {
 			merged.SubscribedEvents = sortedCopy(s.SubscribedEvents)
 			changes = append(changes, "subscribed_events")
 		}
