@@ -25,11 +25,10 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 			Kinds: PlatformUser (platform admins and members), Permission (custom
 			permissions), Role (platform-level roles), Preference (platform
 			settings), and Webhook (webhook endpoints). Deleting a permission, a
-				custom role, or a webhook needs an explicit
-			'delete: true' on its entry; nothing is deleted by omission, and a predefined
-			role cannot be deleted. A preference left out of the file resets to its
-			default. Log in as a superuser (for example the bootstrap service account)
-			with --header.
+			custom role, or a webhook needs an explicit 'delete: true' on its entry;
+			nothing is deleted by omission, and a predefined role cannot be deleted. A
+			preference left out of the file resets to its default. Log in as a superuser
+			(for example the bootstrap service account) with --header.
 
 			Use "frontier export <kind>" to print the current state in this file format.
 		`),
