@@ -59,20 +59,22 @@ func TestDiffWebhooks(t *testing.T) {
 		assert.Empty(t, ops)
 	})
 
-	t.Run("an omitted event list keeps the server's events", func(t *testing.T) {
-		current := []currentWebhook{cw("w1", "https://a.example/hook", "old", webhookStateEnabled, "org.created")}
+	t.Run("dropping events from an entry widens the endpoint to all events", func(t *testing.T) {
+		// Events are the full desired set, so omitting them is not "keep": it
+		// sets the endpoint to every event.
+		current := []currentWebhook{cw("w1", "https://a.example/hook", "desc", webhookStateEnabled, "org.created")}
 		ops, err := diffWebhooks(
-			[]WebhookSpec{{URL: "https://a.example/hook", Description: "new"}}, // events omitted
+			[]WebhookSpec{{URL: "https://a.example/hook", Description: "desc"}}, // events omitted
 			current,
 		)
 		assert.NoError(t, err)
 		if assert.Len(t, ops, 1) {
-			assert.Equal(t, "update webhook https://a.example/hook (description)", ops[0].String())
-			assert.Equal(t, []string{"org.created"}, ops[0].spec.SubscribedEvents) // kept, not wiped
+			assert.Equal(t, "update webhook https://a.example/hook (subscribed_events)", ops[0].String())
+			assert.Empty(t, ops[0].spec.SubscribedEvents)
 		}
 	})
 
-	t.Run("an explicit empty event list subscribes an endpoint to all events", func(t *testing.T) {
+	t.Run("an explicit empty event list behaves the same as omitting it", func(t *testing.T) {
 		current := []currentWebhook{cw("w1", "https://a.example/hook", "desc", webhookStateEnabled, "org.created")}
 		ops, err := diffWebhooks(
 			[]WebhookSpec{{URL: "https://a.example/hook", Description: "desc", SubscribedEvents: []string{}}},
@@ -83,6 +85,16 @@ func TestDiffWebhooks(t *testing.T) {
 			assert.Equal(t, "update webhook https://a.example/hook (subscribed_events)", ops[0].String())
 			assert.Empty(t, ops[0].spec.SubscribedEvents)
 		}
+	})
+
+	t.Run("an all-events endpoint with no events in the entry plans no change", func(t *testing.T) {
+		current := []currentWebhook{cw("w1", "https://a.example/hook", "desc", webhookStateEnabled)} // no events = all
+		ops, err := diffWebhooks(
+			[]WebhookSpec{{URL: "https://a.example/hook", Description: "desc"}},
+			current,
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
 	})
 
 	t.Run("state change is planned when listed and different", func(t *testing.T) {

@@ -114,7 +114,7 @@ func TestWebhookReconciler(t *testing.T) {
 
 		out, err := Export(context.Background(), registry, KindWebhook)
 		assert.NoError(t, err)
-		assert.NotContains(t, string(out), "subscribed_events") // an empty event set is left out
+		assert.Contains(t, string(out), "subscribed_events: []") // an all-events endpoint is written explicitly
 
 		reports, err := Run(context.Background(), registry, out, true)
 		assert.NoError(t, err)

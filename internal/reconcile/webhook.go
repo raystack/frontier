@@ -18,15 +18,18 @@ const (
 )
 
 // WebhookSpec is one desired webhook endpoint. The URL is the identity and
-// never changes. Description, subscribed events, and state are managed: a field
-// that is present is set, and a field that is omitted keeps the server value.
-// An empty event list means the endpoint receives every event, which is the
-// server's own default. Signing secrets are server-owned: the server generates
-// one on create and never returns it on read, so they are not part of the spec.
+// never changes. Subscribed events are the full desired set for the endpoint,
+// not a per-field overlay: an empty list (or none) means the endpoint receives
+// every event, which is the server's own default, and export always writes the
+// field so an all-events endpoint reads as an explicit `subscribed_events: []`.
+// Description and state are managed the ordinary way: present is set, omitted
+// keeps the server value. Signing secrets are server-owned: the server
+// generates one on create and never returns it on read, so they are not part of
+// the spec.
 type WebhookSpec struct {
 	URL              string   `yaml:"url"`
 	Description      string   `yaml:"description,omitempty"`
-	SubscribedEvents []string `yaml:"subscribed_events,omitempty"`
+	SubscribedEvents []string `yaml:"subscribed_events"`
 	State            string   `yaml:"state,omitempty"`
 	Delete           bool     `yaml:"delete,omitempty"`
 }
@@ -158,10 +161,10 @@ func diffWebhooks(desired []WebhookSpec, current []currentWebhook) ([]webhookOp,
 			merged.Description = s.Description
 			changes = append(changes, "description")
 		}
-		// Events are managed only when the entry lists them. An omitted list
-		// (nil) keeps the server's set; an explicit empty list ([]) sets the
-		// endpoint to receive every event.
-		if s.SubscribedEvents != nil && !stringSetsEqual(sortedCopy(s.SubscribedEvents), sortedCopy(cur.SubscribedEvents)) {
+		// Events are the full desired set, always compared. An empty or omitted
+		// list means every event, so leaving it out sets the endpoint to all
+		// events rather than keeping the server's set.
+		if !stringSetsEqual(sortedCopy(s.SubscribedEvents), sortedCopy(cur.SubscribedEvents)) {
 			merged.SubscribedEvents = sortedCopy(s.SubscribedEvents)
 			changes = append(changes, "subscribed_events")
 		}
