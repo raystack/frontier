@@ -216,10 +216,12 @@ spec:
 - The URL must be a valid absolute URL, and it is the identity. If two endpoints on the
   server share a URL, the identity is ambiguous: the plan fails and names the ids so you can
   remove the extra one by hand.
-- `subscribed_events` is optional and compares as a set. Leave it out to keep the server's
-  current events; a new endpoint with none subscribes to every event, which is the server
-  default. `description` and `state` (`enabled` or `disabled`) are managed the same way: a
-  field you leave out keeps its server value.
+- `subscribed_events` is the full set of events the endpoint receives, compared as a set. An
+  empty list, or leaving the field out, means every event, which is the server default. It is
+  the complete desired set, not a keep-if-omitted field: dropping it sets the endpoint to all
+  events rather than keeping the current set, and export always writes it, showing `[]` for an
+  all-events endpoint. `description` and `state` (`enabled` or `disabled`) are ordinary managed
+  fields: leave one out to keep its server value.
 - Every endpoint on the server must appear in the file, kept or marked `delete: true`. One
   that is missing fails the plan; nothing is deleted just because it is missing.
 - The signing secret is server-owned. The server generates it when the endpoint is created
