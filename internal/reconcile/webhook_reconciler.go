@@ -83,7 +83,7 @@ func (r *WebhookReconciler) Export(ctx context.Context) (any, error) {
 		entry := WebhookSpec{
 			URL:              c.URL,
 			Description:      c.Description,
-			SubscribedEvents: sortedCopy(c.SubscribedEvents),
+			SubscribedEvents: uniqueSorted(c.SubscribedEvents),
 		}
 		if c.State != "" && c.State != webhookStateEnabled {
 			entry.State = c.State

@@ -194,6 +194,30 @@ func TestDiffWebhooks(t *testing.T) {
 		}
 	})
 
+	t.Run("duplicate events in an entry are deduped and plan no change", func(t *testing.T) {
+		// the file repeats org.created; the server stored the set once, so this
+		// must converge to no change, not a spurious update.
+		current := []currentWebhook{cw("w1", "https://a.example/hook", "desc", webhookStateEnabled, "org.created", "org.deleted")}
+		ops, err := diffWebhooks(
+			[]WebhookSpec{{URL: "https://a.example/hook", Description: "desc", SubscribedEvents: []string{"org.created", "org.deleted", "org.created"}}},
+			current,
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("duplicate events on add are deduped before sending", func(t *testing.T) {
+		ops, err := diffWebhooks(
+			[]WebhookSpec{{URL: "https://a.example/hook", SubscribedEvents: []string{"org.created", "org.created", "org.deleted"}}},
+			nil,
+		)
+		assert.NoError(t, err)
+		if assert.Len(t, ops, 1) {
+			assert.Equal(t, opAdd, ops[0].action)
+			assert.Equal(t, []string{"org.created", "org.deleted"}, ops[0].spec.SubscribedEvents)
+		}
+	})
+
 	t.Run("validation rejects an unknown state", func(t *testing.T) {
 		_, err := diffWebhooks([]WebhookSpec{{URL: "https://a.example/hook", SubscribedEvents: []string{"org.created"}, State: "paused"}}, nil)
 		assert.ErrorContains(t, err, "state must be")

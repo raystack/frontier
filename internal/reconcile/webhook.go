@@ -140,11 +140,12 @@ func diffWebhooks(desired []WebhookSpec, current []currentWebhook) ([]webhookOp,
 			}
 			continue
 		}
+		desiredEvents := uniqueSorted(s.SubscribedEvents)
 		if !exists {
 			adds = append(adds, webhookOp{action: opAdd, spec: WebhookSpec{
 				URL:              s.URL,
 				Description:      s.Description,
-				SubscribedEvents: sortedCopy(s.SubscribedEvents),
+				SubscribedEvents: desiredEvents,
 				State:            s.State,
 			}})
 			continue
@@ -153,7 +154,7 @@ func diffWebhooks(desired []WebhookSpec, current []currentWebhook) ([]webhookOp,
 		merged := WebhookSpec{
 			URL:              s.URL,
 			Description:      cur.Description,
-			SubscribedEvents: sortedCopy(cur.SubscribedEvents),
+			SubscribedEvents: uniqueSorted(cur.SubscribedEvents),
 			State:            cur.State,
 		}
 		var changes []string
@@ -163,9 +164,11 @@ func diffWebhooks(desired []WebhookSpec, current []currentWebhook) ([]webhookOp,
 		}
 		// Events are the full desired set, always compared. An empty or omitted
 		// list means every event, so leaving it out sets the endpoint to all
-		// events rather than keeping the server's set.
-		if !stringSetsEqual(sortedCopy(s.SubscribedEvents), sortedCopy(cur.SubscribedEvents)) {
-			merged.SubscribedEvents = sortedCopy(s.SubscribedEvents)
+		// events rather than keeping the server's set. The set is deduplicated so
+		// a hand-written list that repeats a value does not send duplicates or
+		// plan a spurious update.
+		if !stringSetsEqual(desiredEvents, uniqueSorted(cur.SubscribedEvents)) {
+			merged.SubscribedEvents = desiredEvents
 			changes = append(changes, "subscribed_events")
 		}
 		if s.State != "" && s.State != cur.State {
