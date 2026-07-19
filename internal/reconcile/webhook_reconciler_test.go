@@ -90,6 +90,9 @@ func TestWebhookReconciler(t *testing.T) {
 		if body := api.updated["w1"]; assert.NotNil(t, body) {
 			assert.Equal(t, map[string]string{"X-Token": "abc"}, body.GetHeaders())
 			assert.Equal(t, "platform", body.GetMetadata().GetFields()["team"].GetStringValue())
+			// state was not in the file; the update must carry the server value
+			// through, not drop it to empty (which would reset it on the server).
+			assert.Equal(t, webhookStateEnabled, body.GetState())
 		}
 	})
 
