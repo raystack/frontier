@@ -91,6 +91,15 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		}
 	})
 
+	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {
+		api := &fakePlatformUserAPI{}
+		// `relatio` instead of `relation`: must fail, not be silently ignored
+		spec := []byte("- {type: user, ref: a@x.com, relatio: admin}\n")
+		_, err := NewPlatformUserReconciler(api, "").Reconcile(context.Background(), spec, true)
+		assert.ErrorContains(t, err, "parse PlatformUser spec")
+		assert.Empty(t, api.added)
+	})
+
 	t.Run("dry-run plans without applying", func(t *testing.T) {
 		api := &fakePlatformUserAPI{users: []*frontierv1beta1.User{
 			platformUserPB(t, "drop-id", "drop@x.com", schema.AdminRelationName),
