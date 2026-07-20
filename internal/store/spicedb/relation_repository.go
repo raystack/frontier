@@ -296,9 +296,9 @@ func (r *RelationRepository) ListRelations(ctx context.Context, rel relation.Rel
 
 func (r *RelationRepository) BatchCheck(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error) {
 	result := make([]relation.CheckPair, len(relations))
-	items := make([]*authzedpb.BulkCheckPermissionRequestItem, 0, len(relations))
+	items := make([]*authzedpb.CheckBulkPermissionsRequestItem, 0, len(relations))
 	for _, rel := range relations {
-		items = append(items, &authzedpb.BulkCheckPermissionRequestItem{
+		items = append(items, &authzedpb.CheckBulkPermissionsRequestItem{
 			Resource: &authzedpb.ObjectReference{
 				ObjectId:   rel.Object.ID,
 				ObjectType: rel.Object.Namespace,
@@ -313,12 +313,12 @@ func (r *RelationRepository) BatchCheck(ctx context.Context, relations []relatio
 			Permission: rel.RelationName,
 		})
 	}
-	request := &authzedpb.BulkCheckPermissionRequest{
+	request := &authzedpb.CheckBulkPermissionsRequest{
 		Consistency: r.getConsistencyForCheck(),
 		Items:       items,
 	}
 
-	response, err := r.spiceDB.client.BulkCheckPermission(ctx, request)
+	response, err := r.spiceDB.client.CheckBulkPermissions(ctx, request)
 	if err != nil {
 		return result, err
 	}
