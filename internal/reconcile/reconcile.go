@@ -15,12 +15,14 @@ import (
 )
 
 // Reconciler makes a single resource kind match its desired-state spec.
-// Export is the reverse direction and is part of the contract: it reads the
-// current server state and returns it as a spec value, ready to be marshalled
-// into a desired-state document. Reconciling an exported document must plan
-// no changes.
+// Validate checks a spec without touching the server or applying anything, so
+// the whole file can be checked before the first change is made. Export is the
+// reverse direction and is part of the contract: it reads the current server
+// state and returns it as a spec value, ready to be marshalled into a
+// desired-state document. Reconciling an exported document must plan no changes.
 type Reconciler interface {
 	Kind() string
+	Validate(spec []byte) error
 	Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error)
 	Export(ctx context.Context) (spec any, err error)
 }
@@ -73,7 +75,12 @@ func parseDocuments(registry map[string]Reconciler, data []byte) ([]parsedDocume
 			return nil, fmt.Errorf("parse desired-state: %w", err)
 		}
 		if doc.Kind == "" {
-			continue
+			// A blank document (a stray "---") is fine to skip, but one that carries
+			// content without a kind is a mistake: fail instead of dropping it silently.
+			if isBlankDocument(doc) {
+				continue
+			}
+			return nil, fmt.Errorf("a document has content but no kind")
 		}
 		if doc.APIVersion != "" && doc.APIVersion != apiVersion {
 			return nil, fmt.Errorf("document kind %q has unsupported apiVersion %q (want %q)", doc.Kind, doc.APIVersion, apiVersion)
@@ -102,6 +109,20 @@ func parseDocuments(registry map[string]Reconciler, data []byte) ([]parsedDocume
 	return docs, nil
 }
 
+// isBlankDocument reports whether a document carries no content at all (a stray
+// "---" separator), as opposed to content that is missing its kind.
+func isBlankDocument(doc document) bool {
+	if doc.APIVersion != "" {
+		return false
+	}
+	specBytes, err := yaml.Marshal(&doc.Spec)
+	if err != nil {
+		return false
+	}
+	s := strings.TrimSpace(string(specBytes))
+	return s == "" || s == "null"
+}
+
 // decodeSpec unmarshals a kind's spec with unknown fields rejected, so a typo
 // in a field name (like `delet: true` for `delete`) fails the plan instead of
 // being silently ignored, which would make a run quietly do the wrong thing.
@@ -123,6 +144,13 @@ func Run(ctx context.Context, registry map[string]Reconciler, data []byte, dryRu
 	docs, err := parseDocuments(registry, data)
 	if err != nil {
 		return nil, err
+	}
+	// Validate every document before applying anything, so a bad entry in a later
+	// document stops the run before the first change is made.
+	for _, doc := range docs {
+		if err := registry[doc.kind].Validate(doc.spec); err != nil {
+			return nil, fmt.Errorf("validate %s: %w", doc.kind, err)
+		}
 	}
 	var reports []Report
 	for _, doc := range docs {
