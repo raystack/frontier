@@ -20,7 +20,7 @@ import (
 )
 
 type SpiceDB struct {
-	client *authzed.ClientWithExperimental
+	client *authzed.Client
 }
 
 func (s *SpiceDB) Check() error {
@@ -34,7 +34,7 @@ func (s *SpiceDB) Check() error {
 
 func New(config Config, logger *slog.Logger, clientMetrics *prometheus.ClientMetrics) (*SpiceDB, error) {
 	endpoint := net.JoinHostPort(config.Host, config.Port)
-	client, err := authzed.NewClientWithExperimentalAPIs(
+	client, err := authzed.NewClient(
 		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpcutil.WithInsecureBearerToken(config.PreSharedKey),
