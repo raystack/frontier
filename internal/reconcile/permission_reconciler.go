@@ -32,6 +32,32 @@ func NewPermissionReconciler(client PermissionAPI, header string) *PermissionRec
 
 func (r *PermissionReconciler) Kind() string { return KindPermission }
 
+// Validate checks every entry, and the in-file slug conflicts, without touching
+// the server, so a bad entry stops the whole file before anything applies.
+func (r *PermissionReconciler) Validate(spec []byte) error {
+	var specs []PermissionSpec
+	if err := decodeSpec(spec, &specs); err != nil {
+		return fmt.Errorf("parse %s spec: %w", KindPermission, err)
+	}
+	seen := map[string]PermissionSpec{}
+	for _, s := range specs {
+		if err := validatePermissionSpec(s); err != nil {
+			return fmt.Errorf("invalid permission spec %s: %w", s, err)
+		}
+		slug := s.slug()
+		if prev, dup := seen[slug]; dup {
+			if prev.Namespace != s.Namespace || prev.Name != s.Name {
+				return fmt.Errorf("permissions %s and %s collide on the same slug %q", prev, s, slug)
+			}
+			if prev.Delete != s.Delete {
+				return fmt.Errorf("permission %s is listed both with and without delete", s)
+			}
+		}
+		seen[slug] = s
+	}
+	return nil
+}
+
 func (r *PermissionReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []PermissionSpec
 	if err := decodeSpec(spec, &specs); err != nil {

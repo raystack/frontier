@@ -33,6 +33,21 @@ func NewPlatformUserReconciler(client PlatformUserAPI, header string) *PlatformU
 
 func (r *PlatformUserReconciler) Kind() string { return KindPlatformUser }
 
+// Validate checks every entry without touching the server, so a bad entry stops
+// the whole file before anything applies.
+func (r *PlatformUserReconciler) Validate(spec []byte) error {
+	var specs []PlatformUserSpec
+	if err := decodeSpec(spec, &specs); err != nil {
+		return fmt.Errorf("parse %s spec: %w", KindPlatformUser, err)
+	}
+	for _, s := range specs {
+		if err := validateSpec(s); err != nil {
+			return fmt.Errorf("invalid platform-user spec %+v: %w", s, err)
+		}
+	}
+	return nil
+}
+
 func (r *PlatformUserReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []PlatformUserSpec
 	if err := yaml.Unmarshal(spec, &specs); err != nil {
