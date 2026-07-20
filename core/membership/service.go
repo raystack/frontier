@@ -22,6 +22,7 @@ import (
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
 )
 
@@ -821,6 +822,16 @@ func (s *Service) createAuditRecord(ctx context.Context, record auditrecord.Audi
 				"target_name", record.Target.Name,
 				"target_metadata", record.Target.Metadata,
 			)
+		}
+		// The actor is enriched from the context by the repository, so the
+		// failed record carries none; read it from the same place.
+		if actorMap, ok := ctx.Value(consts.AuditRecordActorContextKey).(map[string]interface{}); ok {
+			if id, ok := actorMap["id"].(string); ok {
+				args = append(args, "actor_id", id)
+			}
+			if actorType, ok := actorMap["type"].(string); ok {
+				args = append(args, "actor_type", actorType)
+			}
 		}
 		s.log.WarnContext(ctx, "failed to create audit record", args...)
 	}
