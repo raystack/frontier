@@ -36,11 +36,11 @@ func TestDiffPlatformUsers(t *testing.T) {
 
 	t.Run("new service user is added", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
-			[]PlatformUserSpec{{Type: "serviceuser", Ref: "su-1", Relation: member}},
+			[]PlatformUserSpec{{Type: "serviceuser", Ref: "11111111-1111-1111-1111-111111111111", Relation: member}},
 			nil,
 		)
 		assert.NoError(t, err)
-		assert.Equal(t, []Op{{Action: opAdd, Type: "serviceuser", Ref: "su-1", Relation: member}}, ops)
+		assert.Equal(t, []Op{{Action: opAdd, Type: "serviceuser", Ref: "11111111-1111-1111-1111-111111111111", Relation: member}}, ops)
 	})
 
 	t.Run("already-correct principal makes no change (matched by email)", func(t *testing.T) {
@@ -134,6 +134,33 @@ func TestDiffPlatformUsers(t *testing.T) {
 			[]PlatformUserSpec{{Type: "serviceuser", Ref: schema.BootstrapServiceUserID, Relation: admin}}, nil)
 		assert.Error(t, err)
 	})
+
+	t.Run("a non-canonical uuid ref matches the stored principal, no spurious remove", func(t *testing.T) {
+		// The file lists the same id the server stored, but uppercased. Without
+		// canonicalization this fails to match and plans an add + a remove that
+		// silently strips the principal's access.
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "user", Ref: "AAAAAAAA-1111-1111-1111-111111111111", Relation: admin}},
+			[]platformPrincipal{principal("user", "aaaaaaaa-1111-1111-1111-111111111111", "alice@x.com", admin)},
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("rejects a user ref that is neither a uuid nor a plain email", func(t *testing.T) {
+		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "alice-slug", Relation: admin}}, nil)
+		assert.ErrorContains(t, err, "must be a user id (uuid) or a plain email address")
+	})
+
+	t.Run("rejects a display-name email ref", func(t *testing.T) {
+		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "Alice <alice@x.com>", Relation: admin}}, nil)
+		assert.ErrorContains(t, err, "must be a user id (uuid) or a plain email address")
+	})
+
+	t.Run("rejects a service user ref that is not a uuid", func(t *testing.T) {
+		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "serviceuser", Ref: "not-a-uuid", Relation: admin}}, nil)
+		assert.ErrorContains(t, err, "must be a service user id (uuid)")
+	})
 }
 
 // TestSpecRefMatching covers the accepted `ref` forms: a user may be referenced by
@@ -168,12 +195,12 @@ func TestSpecRefMatching(t *testing.T) {
 	t.Run("diff makes no change: user by id + serviceuser by id already correct", func(t *testing.T) {
 		ops, err := diffPlatformUsers(
 			[]PlatformUserSpec{
-				{Type: "user", Ref: "user-uuid-1", Relation: admin},
-				{Type: "serviceuser", Ref: "su-uuid-1", Relation: admin},
+				{Type: "user", Ref: "11111111-1111-1111-1111-111111111111", Relation: admin},
+				{Type: "serviceuser", Ref: "22222222-2222-2222-2222-222222222222", Relation: admin},
 			},
 			[]platformPrincipal{
-				principal("user", "user-uuid-1", "alice@x.com", admin),
-				principal("serviceuser", "su-uuid-1", "", admin),
+				principal("user", "11111111-1111-1111-1111-111111111111", "alice@x.com", admin),
+				principal("serviceuser", "22222222-2222-2222-2222-222222222222", "", admin),
 			},
 		)
 		assert.NoError(t, err)

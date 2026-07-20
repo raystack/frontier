@@ -2,8 +2,10 @@ package reconcile
 
 import (
 	"fmt"
+	"net/mail"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
@@ -76,14 +78,51 @@ func validateSpec(s PlatformUserSpec) error {
 	default:
 		return fmt.Errorf("invalid relation %q (want %q or %q)", s.Relation, schema.AdminRelationName, schema.MemberRelationName)
 	}
-	if strings.TrimSpace(s.Ref) == "" {
+	ref := strings.TrimSpace(s.Ref)
+	if ref == "" {
 		return fmt.Errorf("empty ref")
 	}
+	// The ref must be a form the server resolves to exactly one principal, so the
+	// diff can match it to a live principal. A user is an id or a plain email; a
+	// service user is an id. A slug or a display-name email would resolve on the
+	// server but not match here, silently planning a remove of access meant to stay.
+	if s.Type == principalTypeUser {
+		if !isUUID(ref) && !isBareEmail(ref) {
+			return fmt.Errorf("ref %q must be a user id (uuid) or a plain email address", s.Ref)
+		}
+	} else if !isUUID(ref) {
+		return fmt.Errorf("ref %q must be a service user id (uuid)", s.Ref)
+	}
 	// The bootstrap SA is server-managed; reject it here too, not just skip it on the current side.
-	if s.Type == principalTypeServiceUser && strings.TrimSpace(s.Ref) == schema.BootstrapServiceUserID {
+	if s.Type == principalTypeServiceUser && ref == schema.BootstrapServiceUserID {
 		return fmt.Errorf("ref %q is the bootstrap service account, which the server manages and cannot be reconciled", s.Ref)
 	}
 	return nil
+}
+
+// isUUID reports whether s parses as a UUID in any form uuid.Parse accepts
+// (canonical, uppercase, urn:uuid, braces, or no dashes).
+func isUUID(s string) bool {
+	_, err := uuid.Parse(s)
+	return err == nil
+}
+
+// isBareEmail reports whether s is a plain email address with no display name,
+// so it matches the address the server stores. "Alice <a@x.com>" is rejected.
+func isBareEmail(s string) bool {
+	addr, err := mail.ParseAddress(s)
+	return err == nil && addr.Name == "" && addr.Address == s
+}
+
+// canonicalRef normalizes a ref to the form the server stores. A UUID in any
+// accepted form becomes the canonical lowercase id; anything else (an email) is
+// only trimmed and still matches case-insensitively against the stored address.
+func canonicalRef(ref string) string {
+	ref = strings.TrimSpace(ref)
+	if u, err := uuid.Parse(ref); err == nil {
+		return u.String()
+	}
+	return ref
 }
 
 // specMatchesPrincipal reports whether a desired spec refers to a current
@@ -103,11 +142,18 @@ var platformRelationOrder = []string{schema.AdminRelationName, schema.MemberRela
 // diffPlatformUsers returns the ops that make the current platform principals
 // match the desired spec, per (principal, relation). Order is stable.
 func diffPlatformUsers(desired []PlatformUserSpec, current []platformPrincipal) ([]Op, error) {
-	for _, s := range desired {
+	// Validate every entry, then canonicalize its ref so a valid-but-non-canonical
+	// id (uppercase, urn:uuid, braces, no dashes) matches the principal's stored id
+	// instead of planning a spurious remove of the access it means to keep.
+	canonical := make([]PlatformUserSpec, len(desired))
+	for i, s := range desired {
 		if err := validateSpec(s); err != nil {
 			return nil, fmt.Errorf("invalid platform-user spec %+v: %w", s, err)
 		}
+		s.Ref = canonicalRef(s.Ref)
+		canonical[i] = s
 	}
+	desired = canonical
 
 	// Emit adds before removes so a relation change (admin -> member) never drops
 	// all access if a later op fails.
