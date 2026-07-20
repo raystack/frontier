@@ -99,6 +99,20 @@ var (
 	PlatformOrgID = uuid.Nil
 )
 
+// bootstrapServiceUserUUID is BootstrapServiceUserID parsed once, so the identity
+// check compares 128-bit values instead of strings.
+var bootstrapServiceUserUUID = uuid.MustParse(BootstrapServiceUserID)
+
+// IsBootstrapServiceUser reports whether id is the config bootstrap service
+// account's id. It compares parsed UUID values, so any accepted spelling of the
+// id (uppercase, urn:uuid, braces, no dashes) matches and a non-uuid never does.
+// The bootstrap id lives in the service-user id space, so callers should apply
+// this only to a service-user id, never a user id.
+func IsBootstrapServiceUser(id string) bool {
+	parsed, err := uuid.Parse(strings.TrimSpace(id))
+	return err == nil && parsed == bootstrapServiceUserUUID
+}
+
 //go:embed base_schema.zed
 var BaseSchemaZed string
 

@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/structpb"
-	"gopkg.in/yaml.v3"
 )
 
 // PlatformUserAPI is the subset of the admin API the platform-user reconciler needs.
@@ -50,7 +49,7 @@ func (r *PlatformUserReconciler) Validate(spec []byte) error {
 
 func (r *PlatformUserReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []PlatformUserSpec
-	if err := yaml.Unmarshal(spec, &specs); err != nil {
+	if err := decodeSpec(spec, &specs); err != nil {
 		return Report{}, fmt.Errorf("parse %s spec: %w", KindPlatformUser, err)
 	}
 
@@ -129,7 +128,7 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 	}
 	for _, su := range resp.Msg.GetServiceusers() {
 		// Never reconcile the bootstrap SA — it is server-managed and removal-blocked.
-		if su.GetId() == schema.BootstrapServiceUserID {
+		if schema.IsBootstrapServiceUser(su.GetId()) {
 			continue
 		}
 		current = append(current, platformPrincipal{

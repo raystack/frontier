@@ -49,3 +49,27 @@ func TestFQPermissionNameFromNamespace(t *testing.T) {
 		})
 	}
 }
+
+func TestIsBootstrapServiceUser(t *testing.T) {
+	tests := []struct {
+		name string
+		id   string
+		want bool
+	}{
+		{"canonical id", schema.BootstrapServiceUserID, true},
+		{"braces form", "{00000000-0000-0000-0000-000000000001}", true},
+		{"urn form", "urn:uuid:00000000-0000-0000-0000-000000000001", true},
+		{"no dashes", "00000000000000000000000000000001", true},
+		{"surrounding space", "  00000000-0000-0000-0000-000000000001  ", true},
+		{"different uuid", "00000000-0000-0000-0000-000000000002", false},
+		{"not a uuid", "alice@x.com", false},
+		{"empty", "", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := schema.IsBootstrapServiceUser(tt.id); got != tt.want {
+				t.Errorf("IsBootstrapServiceUser(%q) = %v, want %v", tt.id, got, tt.want)
+			}
+		})
+	}
+}
