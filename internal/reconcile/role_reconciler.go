@@ -50,7 +50,7 @@ func (r *RoleReconciler) Validate(spec []byte) error {
 	}
 	seen := map[string]struct{}{}
 	for _, s := range specs {
-		_, isPredefined := predefinedRole(s.Name)
+		_, isPredefined := roleDefault(s.Name)
 		if err := validateRoleSpec(s, isPredefined); err != nil {
 			return fmt.Errorf("invalid role spec %q: %w", s.Name, err)
 		}
@@ -94,13 +94,14 @@ func (r *RoleReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool
 	return rep, nil
 }
 
-// Export returns the current platform roles as a desired-state spec. Custom
-// roles are exported in full. Predefined roles are exported only when they
-// differ from their shipped definition (title, permissions, or scopes), and
-// only with the differing fields, so converged ones stay out of the file.
-// The comparisons mirror diffPredefinedRole exactly — including skipping
-// fields that are empty on the server, which a file cannot represent — so
-// reconciling an export's output always plans no changes.
+// Export returns the current platform roles as a desired-state spec. Each
+// server role is compared to its default (empty for a custom role, the shipped
+// definition for a predefined one) and only the fields that differ are emitted.
+// A custom role always emits an entry, because a custom role must appear in the
+// file to be kept; a predefined role emits an entry only when some field
+// differs, so converged ones stay out. An empty server value that differs from
+// the default is written as an explicit empty (`title: ""`, `scopes: []`), so
+// the value round-trips exactly and reconciling an export plans no changes.
 func (r *RoleReconciler) Export(ctx context.Context) (any, error) {
 	current, err := r.fetchCurrent(ctx)
 	if err != nil {
@@ -110,41 +111,33 @@ func (r *RoleReconciler) Export(ctx context.Context) (any, error) {
 
 	specs := make([]RoleSpec, 0, len(current))
 	for _, c := range current {
-		def, isPredefined := predefinedRole(c.Name)
-		if !isPredefined {
-			specs = append(specs, RoleSpec{
-				Name:        c.Name,
-				Title:       c.Title,
-				Description: c.Description,
-				Permissions: sortedCopy(c.Permissions),
-				Scopes:      sortedCopy(c.Scopes),
-			})
+		def, isPredefined := roleDefault(c.Name)
+		have := c.fields()
+		changes := diffFields(have, def)
+		if isPredefined && len(changes) == 0 {
 			continue
 		}
 		entry := RoleSpec{Name: c.Name}
-		changed := false
-		if c.Title != "" && c.Title != def.Title {
-			entry.Title = c.Title
-			changed = true
+		for _, field := range changes {
+			switch field {
+			case "title":
+				entry.Title = strPtr(have.Title)
+			case "description":
+				entry.Description = strPtr(have.Description)
+			case "permissions":
+				entry.Permissions = slicePtr(have.Permissions)
+			case "scopes":
+				entry.Scopes = slicePtr(have.Scopes)
+			}
 		}
-		if c.Description != "" && c.Description != def.Description {
-			entry.Description = c.Description
-			changed = true
-		}
-		if len(c.Permissions) > 0 && !stringSetsEqual(normalizePermissions(c.Permissions), normalizePermissions(def.Permissions)) {
-			entry.Permissions = sortedCopy(c.Permissions)
-			changed = true
-		}
-		if len(c.Scopes) > 0 && !stringSetsEqual(sortedCopy(c.Scopes), sortedCopy(def.Scopes)) {
-			entry.Scopes = sortedCopy(c.Scopes)
-			changed = true
-		}
-		if changed {
-			specs = append(specs, entry)
-		}
+		specs = append(specs, entry)
 	}
 	return specs, nil
 }
+
+func strPtr(s string) *string { return &s }
+
+func slicePtr(s []string) *[]string { return &s }
 
 func (r *RoleReconciler) fetchCurrent(ctx context.Context) ([]currentRole, error) {
 	resp, err := r.client.ListRoles(ctx, authReq(&frontierv1beta1.ListRolesRequest{}, r.header))
@@ -184,14 +177,14 @@ func metadataString(md *structpb.Struct, key string) string {
 func (r *RoleReconciler) apply(ctx context.Context, op roleOp) error {
 	switch op.action {
 	case opAdd:
-		body, err := roleBody(op.spec, op.baseMetadata)
+		body, err := roleBody(op.name, op.fields, op.baseMetadata)
 		if err != nil {
 			return err
 		}
 		_, err = r.client.CreateRole(ctx, authReq(&frontierv1beta1.CreateRoleRequest{Body: body}, r.header))
 		return err
 	case opUpdate:
-		body, err := roleBody(op.spec, op.baseMetadata)
+		body, err := roleBody(op.name, op.fields, op.baseMetadata)
 		if err != nil {
 			return err
 		}
@@ -209,14 +202,14 @@ func (r *RoleReconciler) apply(ctx context.Context, op roleOp) error {
 // current metadata (nil for a new role); the reconciler-managed keys are merged
 // over a copy of it, so other metadata keys an operator set are kept, not
 // dropped. An empty managed description clears the key, matching a reset.
-func roleBody(spec RoleSpec, base map[string]any) (*frontierv1beta1.RoleRequestBody, error) {
+func roleBody(name string, want roleFields, base map[string]any) (*frontierv1beta1.RoleRequestBody, error) {
 	fields := map[string]any{}
 	for k, v := range base {
 		fields[k] = v
 	}
 	fields[managedByKey] = managedByValue
-	if spec.Description != "" {
-		fields[descriptionKey] = spec.Description
+	if want.Description != "" {
+		fields[descriptionKey] = want.Description
 	} else {
 		delete(fields, descriptionKey)
 	}
@@ -225,10 +218,10 @@ func roleBody(spec RoleSpec, base map[string]any) (*frontierv1beta1.RoleRequestB
 		return nil, fmt.Errorf("build role metadata: %w", err)
 	}
 	return &frontierv1beta1.RoleRequestBody{
-		Name:        spec.Name,
-		Title:       spec.Title,
-		Permissions: spec.Permissions,
-		Scopes:      spec.Scopes,
+		Name:        name,
+		Title:       want.Title,
+		Permissions: want.Permissions,
+		Scopes:      want.Scopes,
 		Metadata:    md,
 	}, nil
 }

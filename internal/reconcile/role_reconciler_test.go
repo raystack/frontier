@@ -102,8 +102,9 @@ func TestRoleReconciler(t *testing.T) {
 		role := rolePB("r1", "compute_manager", "Compute Manager", []string{"compute_order_get"})
 		role.Metadata = md
 		api := &fakeRoleAPI{roles: []*frontierv1beta1.Role{ownerDefaultPB(), role}}
-		// only permissions change; team must survive the update
-		spec := []byte("- {name: compute_manager, permissions: [compute_order_get, compute_order_update]}\n")
+		// only permissions change; the file lists the fields it keeps, and the
+		// unmanaged team key must survive the update either way.
+		spec := []byte("- {name: compute_manager, title: Compute Manager, description: old, permissions: [compute_order_get, compute_order_update]}\n")
 
 		rep, err := NewRoleReconciler(api, "").Reconcile(context.Background(), spec, false)
 
@@ -113,7 +114,7 @@ func TestRoleReconciler(t *testing.T) {
 			f := body.GetMetadata().GetFields()
 			assert.Equal(t, "compute", f["team"].GetStringValue())            // preserved, not dropped
 			assert.Equal(t, managedByValue, f[managedByKey].GetStringValue()) // still stamped
-			assert.Equal(t, "old", f[descriptionKey].GetStringValue())        // kept
+			assert.Equal(t, "old", f[descriptionKey].GetStringValue())        // kept because the file lists it
 		}
 	})
 
@@ -165,10 +166,11 @@ func TestRoleReconciler(t *testing.T) {
 		}
 	})
 
-	t.Run("a predefined role with empty legacy fields round-trips as converged", func(t *testing.T) {
-		// A row from before the scopes column: empty on the server, non-empty in
-		// the definition. A file cannot hold an empty value, so export omits the
-		// role and reconcile leaves the field alone instead of fighting forever.
+	t.Run("a predefined role with an empty legacy field round-trips", func(t *testing.T) {
+		// A row from before the scopes column: empty scopes on the server, non-empty
+		// in the definition. Presence-tracking pointers let a file hold an empty
+		// value, so export writes `scopes: []` and reconcile keeps it as-is instead
+		// of fighting the definition forever.
 		api := &fakeRoleAPI{roles: []*frontierv1beta1.Role{
 			rolePB("r-owner", schema.RoleOrganizationOwner, "Owner", []string{"app_organization_administer"}),
 		}}
@@ -176,7 +178,27 @@ func TestRoleReconciler(t *testing.T) {
 
 		out, err := Export(context.Background(), registry, KindRole)
 		assert.NoError(t, err)
-		assert.Contains(t, string(out), "spec: []")
+		assert.Contains(t, string(out), "scopes: []") // the empty value written explicitly
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+
+	t.Run("a custom role with no permissions round-trips", func(t *testing.T) {
+		// A custom role whose permissions were emptied. Export writes an entry so
+		// the role is kept, and reconciling that entry plans no changes.
+		api := &fakeRoleAPI{roles: []*frontierv1beta1.Role{
+			ownerDefaultPB(),
+			rolePB("r1", "compute_manager", "Compute Manager", nil), // no permissions
+		}}
+		registry := map[string]Reconciler{KindRole: NewRoleReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindRole)
+		assert.NoError(t, err)
+		assert.Contains(t, string(out), "compute_manager") // the custom role is kept in the file
 
 		reports, err := Run(context.Background(), registry, out, true)
 		assert.NoError(t, err)
@@ -269,7 +291,7 @@ func TestRoleReconciler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []RoleSpec{{
 			Name:        schema.RoleOrganizationOwner,
-			Permissions: []string{"app_organization_get", "app_organization_policymanage", "app_organization_update"},
+			Permissions: ptr([]string{"app_organization_get", "app_organization_policymanage", "app_organization_update"}),
 		}}, spec)
 
 		out, err := Export(context.Background(), registry, KindRole)
@@ -292,7 +314,7 @@ func TestRoleReconciler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []RoleSpec{{
 			Name:   schema.RoleOrganizationOwner,
-			Scopes: []string{schema.OrganizationNamespace, "compute/order"},
+			Scopes: ptr([]string{schema.OrganizationNamespace, "compute/order"}),
 		}}, spec)
 
 		out, err := Export(context.Background(), registry, KindRole)
