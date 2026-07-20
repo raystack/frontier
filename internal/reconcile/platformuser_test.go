@@ -135,6 +135,23 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Error(t, err)
 	})
 
+	t.Run("rejects the bootstrap service account in a non-canonical uuid form", func(t *testing.T) {
+		_, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "serviceuser", Ref: "urn:uuid:" + schema.BootstrapServiceUserID, Relation: admin}}, nil)
+		assert.ErrorContains(t, err, "bootstrap service account")
+	})
+
+	t.Run("a user that happens to share the bootstrap uuid is a different principal, not rejected", func(t *testing.T) {
+		// The bootstrap id is a service-user id; users are a separate id space, so a
+		// user entry with that id is not the bootstrap SA and must not be rejected.
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "user", Ref: schema.BootstrapServiceUserID, Relation: admin}},
+			[]platformPrincipal{principal("user", schema.BootstrapServiceUserID, "", admin)},
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
 	t.Run("a non-canonical uuid ref matches the stored principal, no spurious remove", func(t *testing.T) {
 		// The file lists the same id the server stored, but uppercased. Without
 		// canonicalization this fails to match and plans an add + a remove that

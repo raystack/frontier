@@ -113,7 +113,7 @@ func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPr
 	}
 	for _, su := range resp.Msg.GetServiceusers() {
 		// Never reconcile the bootstrap SA — it is server-managed and removal-blocked.
-		if su.GetId() == schema.BootstrapServiceUserID {
+		if schema.IsBootstrapServiceUser(su.GetId()) {
 			continue
 		}
 		current = append(current, platformPrincipal{

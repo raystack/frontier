@@ -93,8 +93,12 @@ func validateSpec(s PlatformUserSpec) error {
 	} else if !isUUID(ref) {
 		return fmt.Errorf("ref %q must be a service user id (uuid)", s.Ref)
 	}
-	// The bootstrap SA is server-managed; reject it here too, not just skip it on the current side.
-	if s.Type == principalTypeServiceUser && ref == schema.BootstrapServiceUserID {
+	// The bootstrap SA is server-managed; reject it here too, not just skip it on
+	// the current side. It is a service-user id, and users are a separate id space
+	// (the server's own guard checks only the service-user id), so this is scoped
+	// to serviceuser entries. IsBootstrapServiceUser matches the id in any UUID
+	// form, so a non-canonical spelling cannot slip past the guard.
+	if s.Type == principalTypeServiceUser && schema.IsBootstrapServiceUser(ref) {
 		return fmt.Errorf("ref %q is the bootstrap service account, which the server manages and cannot be reconciled", s.Ref)
 	}
 	return nil
