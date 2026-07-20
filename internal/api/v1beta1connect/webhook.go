@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -10,6 +11,22 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// webhookErrCode maps a webhook service error to the connect status code the
+// caller should see, so a bad request reads as invalid-argument rather than an
+// internal error.
+func webhookErrCode(err error) connect.Code {
+	switch {
+	case errors.Is(err, webhook.ErrInvalidDetail), errors.Is(err, webhook.ErrInvalidUUID):
+		return connect.CodeInvalidArgument
+	case errors.Is(err, webhook.ErrConflict):
+		return connect.CodeAlreadyExists
+	case errors.Is(err, webhook.ErrNotFound):
+		return connect.CodeNotFound
+	default:
+		return connect.CodeInternal
+	}
+}
 
 func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request[frontierv1beta1.CreateWebhookRequest]) (*connect.Response[frontierv1beta1.CreateWebhookResponse], error) {
 	var metaDataMap metadata.Metadata
@@ -25,7 +42,7 @@ func (h *ConnectHandler) CreateWebhook(ctx context.Context, req *connect.Request
 		Metadata:         metaDataMap,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateWebhook: url=%s: %w", req.Msg.GetBody().GetUrl(), err))
+		return nil, connect.NewError(webhookErrCode(err), fmt.Errorf("CreateWebhook: url=%s: %w", req.Msg.GetBody().GetUrl(), err))
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
 	if err != nil {
@@ -53,7 +70,7 @@ func (h *ConnectHandler) UpdateWebhook(ctx context.Context, req *connect.Request
 		Metadata:         metaDataMap,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateWebhook: webhook_id=%s url=%s: %w", webhookID, req.Msg.GetBody().GetUrl(), err))
+		return nil, connect.NewError(webhookErrCode(err), fmt.Errorf("UpdateWebhook: webhook_id=%s url=%s: %w", webhookID, req.Msg.GetBody().GetUrl(), err))
 	}
 	endpointPb, err := toProtoWebhookEndpoint(endpoint)
 	if err != nil {
