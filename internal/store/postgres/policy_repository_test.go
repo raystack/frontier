@@ -226,16 +226,18 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			Description: "should get all policies",
 			ExpectedPolicys: []policy.Policy{
 				{
-					RoleID:       s.roles[0].ID,
-					PrincipalID:  s.userID,
-					ResourceID:   s.orgID,
-					ResourceType: "ns1",
+					RoleID:        s.roles[0].ID,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceID:    s.orgID,
+					ResourceType:  "ns1",
 				},
 				{
-					RoleID:       s.roles[0].ID,
-					PrincipalID:  s.userID,
-					ResourceID:   s.orgID,
-					ResourceType: "ns2",
+					RoleID:        s.roles[0].ID,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceID:    s.orgID,
+					ResourceType:  "ns2",
 				},
 			},
 		},
@@ -266,8 +268,11 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			if len(got) != len(tc.ExpectedPolicys) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedPolicys)
 			}
-			if !cmp.Equal(got, tc.ExpectedPolicys, cmpopts.IgnoreFields(policy.Policy{},
-				"ID", "CreatedAt", "UpdatedAt")) {
+			if diff := cmp.Diff(tc.ExpectedPolicys, got,
+				cmpopts.IgnoreFields(policy.Policy{}, "ID", "CreatedAt", "UpdatedAt"),
+				cmpopts.SortSlices(func(a, b policy.Policy) bool { return a.ResourceType < b.ResourceType }),
+			); diff != "" {
+				s.T().Fatalf("mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
