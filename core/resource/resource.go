@@ -19,10 +19,6 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 }
 
-type ConfigRepository interface {
-	GetAll(ctx context.Context) ([]YAML, error)
-}
-
 type Resource struct {
 	ID            string `json:"id"`
 	URN           string `json:"urn"`
@@ -40,13 +36,6 @@ type Resource struct {
 
 func (res Resource) CreateURN(projectName string) string {
 	return fmt.Sprintf("frn:%s:%s:%s", projectName, res.NamespaceID, res.Name)
-}
-
-type YAML struct {
-	Name         string              `json:"name" yaml:"name"`
-	Backend      string              `json:"backend" yaml:"backend"`
-	ResourceType string              `json:"resource_type" yaml:"resource_type"`
-	Actions      map[string][]string `json:"actions" yaml:"actions"`
 }
 
 type Check struct {

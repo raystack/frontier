@@ -76,6 +76,15 @@ Two safety properties:
 
 Adding a user by an email that does not exist creates that user.
 
+A `ref` must be a plain email address or a uuid (a user id, or a service user id). A
+display-name email like `Alice <alice@x.com>` or a name slug is rejected, so an entry always
+resolves to exactly the principal you meant, and a non-canonical id (uppercase, `urn:uuid:`)
+still matches its principal instead of being treated as a new one.
+
+Because the file is the full list, `spec: []` removes every platform user. The bootstrap
+service account is the exception: it is never removed. Keep `app.admin.bootstrap` configured,
+since that account is the recovery path if a file ever empties the list.
+
 ## The Permission kind
 
 A permission is an identity: a `service/resource` namespace plus a verb. There is nothing
@@ -116,10 +125,14 @@ spec:
     permissions:
       - compute_order_get
       - compute_order_update
+    scopes:                          # resource types this role can attach to
+      - compute/order
   - name: app_project_viewer         # predefined role: override only the fields you list
     permissions:
       - app_project_get
       - resource_aoi_get
+    scopes:                          # override the scope too, if you need to
+      - app/project
   - name: old_role
     delete: true
 ```
@@ -149,6 +162,13 @@ takes those permissions away on the next apply.
 
 Permission references accept any form the server knows: the slug (`compute_order_get`),
 `service/resource:verb`, or `service.resource.verb`.
+
+`scopes` is the list of resource types a role can attach to (`app/organization`,
+`app/project`, `compute/order`, and so on). Note how it shows up in an export: a custom
+role lists its scopes in full, but a predefined role lists `scopes` only when they differ
+from the shipped default. So a predefined role whose scope already matches the default
+won't show a `scopes` line — the scope is still enforced, it just isn't repeated. The same
+goes for `title`: it appears only when you have changed it.
 
 ## The Preference kind
 
