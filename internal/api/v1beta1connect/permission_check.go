@@ -156,6 +156,7 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 	errorLogger := NewErrorLogger()
 
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.Msg.GetResource())
+	//nolint:staticcheck
 	if len(req.Msg.GetResource()) == 0 || err != nil {
 		objectNamespace = schema.ParseNamespaceAliasIfRequired(req.Msg.GetObjectNamespace())
 		objectID = req.Msg.GetObjectId()

@@ -112,6 +112,7 @@ func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1
 	}
 
 	str := "created custom permissions : "
+	//nolint:staticcheck
 	for _, v := range permissionBodies {
 		str = fmt.Sprintf("%s %s:%s", str, v.GetNamespace(), v.GetName())
 		resourceNamespaces = append(resourceNamespaces, v.GetNamespace())

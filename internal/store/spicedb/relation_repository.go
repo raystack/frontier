@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent" //nolint:staticcheck
 	"github.com/raystack/frontier/core/relation"
 )
 

@@ -187,6 +187,7 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 			spinner.Stop()
 
 			report = append(report, []string{"ID", "NAME", "NAMESPACE"})
+			//nolint:staticcheck
 			report = append(report, []string{
 				action.GetId(),
 				action.GetName(),
@@ -247,6 +248,7 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 			fmt.Printf(" \nShowing %d permission(s)\n \n", len(permissions))
 
 			report = append(report, []string{"ID", "NAME", "NAMESPACE"})
+			//nolint:staticcheck
 			for _, a := range permissions {
 				report = append(report, []string{
 					a.GetId(),
