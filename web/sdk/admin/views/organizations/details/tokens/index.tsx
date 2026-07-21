@@ -45,6 +45,20 @@ const NoTokens = () => {
   );
 };
 
+const ZeroState = () => {
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        className={styles["zero-state"]}
+        icon={<CoinIcon />}
+        heading="Tokens"
+        subHeading="Token transactions for this organization's consumable balance will appear here."
+      />
+    </div>
+  );
+};
+
 const ErrorState = () => {
   const t = useTerminology();
   return (
@@ -150,6 +164,7 @@ export function OrganizationTokensView() {
           <DataTable.Toolbar />
           <DataTable.Content
             emptyState={isError ? <ErrorState /> : <NoTokens />}
+            zeroState={<ZeroState />}
             classNames={{
               table: styles["table"],
               root: styles["table-wrapper"],

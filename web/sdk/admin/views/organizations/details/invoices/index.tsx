@@ -70,6 +70,20 @@ const NoInvoices = () => {
   );
 };
 
+const ZeroState = () => {
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        className={styles["zero-state"]}
+        icon={<FileTextIcon />}
+        heading="Invoices"
+        subHeading="Invoices generated for this organization's billing activity will appear here."
+      />
+    </div>
+  );
+};
+
 const ErrorState = () => {
   const t = useTerminology();
   return (
@@ -180,6 +194,7 @@ export function OrganizationInvoicesView() {
           <DataTable.Toolbar />
           <DataTable.Content
             emptyState={isError ? <ErrorState /> : <NoInvoices />}
+            zeroState={<ZeroState />}
             classNames={{
               table: styles["table"],
               root: styles["table-wrapper"],
