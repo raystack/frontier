@@ -11,12 +11,11 @@ import {
 } from "@raystack/apsara";
 import { useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import dayjs from "dayjs";
 import { useMutation, createConnectQueryKey, useTransport } from "@connectrpc/connect-query";
 import { handleConnectError } from "~/utils/error";
 import { AdminServiceQueries, CreatePreferencesRequestSchema, ListPreferencesResponse } from "@raystack/proton/frontier";
 import { Preference, PreferenceTrait, PreferenceTrait_InputType } from "@raystack/proton/frontier";
-import { timestampDate } from "@bufbuild/protobuf/wkt";
+import { DATE_FORMAT, formatTimestamp } from "~/admin/utils/connect-timestamp";
 import { useQueryClient } from "@tanstack/react-query";
 import { create } from "@bufbuild/protobuf";
 
@@ -168,9 +167,7 @@ export default function PreferenceDetails({
     },
     {
       key: "Last updated",
-      value:
-        preference?.updatedAt &&
-        dayjs(timestampDate(preference.updatedAt)).format("MMM DD, YYYY hh:mm:ss A"),
+      value: formatTimestamp(preference?.updatedAt, `${DATE_FORMAT} hh:mm:ss A`),
     },
   ];
 

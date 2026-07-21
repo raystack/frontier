@@ -1,6 +1,6 @@
 import { Flex, Image, Amount, type DataTableColumnDef } from "@raystack/apsara";
 import type { Product } from "@raystack/proton/frontier";
-import { timestampToDate, TimeStamp } from "../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import styles from "./products.module.css";
 
 export const getColumns = (
@@ -79,38 +79,23 @@ export const getColumns = (
     {
       header: "Product Id",
       accessorKey: "id",
-      filterVariant: "text",
+      filterType: "string",
+      enableColumnFilter: true,
       cell: (info) => info.getValue(),
     },
     {
       header: "Created on",
       accessorKey: "createdAt",
-      cell: ({ getValue }) => {
-        const timestamp = getValue() as TimeStamp | undefined;
-        const date = timestampToDate(timestamp);
-        if (!date) return "-";
-        return date.toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        });
-      },
-      filterVariant: "date",
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
+      filterType: "date",
+      enableColumnFilter: true,
     },
     {
       header: "Updated on",
       accessorKey: "updatedAt",
-      cell: ({ getValue }) => {
-        const timestamp = getValue() as TimeStamp | undefined;
-        const date = timestampToDate(timestamp);
-        if (!date) return "-";
-        return date.toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        });
-      },
-      filterVariant: "date",
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
+      filterType: "date",
+      enableColumnFilter: true,
     },
   ];
 };

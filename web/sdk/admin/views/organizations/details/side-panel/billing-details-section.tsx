@@ -8,7 +8,10 @@ import { OrganizationContext } from "../contexts/organization-context";
 import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { CreateCheckoutRequestSchema, FrontierServiceQueries, GetUpcomingInvoiceRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { timestampToDayjs } from "../../../../utils/connect-timestamp";
+import {
+  formatTimestamp,
+  isNullTimestamp,
+} from "~/admin/utils/connect-timestamp";
 
 export const BillingDetailsSection = () => {
   const { billingAccount, organization } = useContext(OrganizationContext);
@@ -169,10 +172,10 @@ export const BillingDetailsSection = () => {
         <List.Value className={styles["side-panel-section-item-value"]}>
           {isLoading ? (
             <Skeleton />
-          ) : timestampToDayjs(due_date) ? (
+          ) : !isNullTimestamp(due_date) ? (
             <Flex gap={3}>
               <CalendarIcon />
-              <Text>{timestampToDayjs(due_date)?.format("DD MMM YYYY")}</Text>
+              <Text>{formatTimestamp(due_date)}</Text>
             </Flex>
           ) : (
             <Text>-</Text>

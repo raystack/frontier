@@ -1,4 +1,3 @@
-export const DEFAULT_DATE_FORMAT = "MMM DD, YYYY";
 export const DEFAULT_TOKEN_PRODUCT_NAME = "token";
 
 export const PERMISSIONS = {

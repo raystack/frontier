@@ -13,12 +13,7 @@ import type {
 } from "@raystack/proton/frontier";
 import styles from "./projects.module.css";
 
-import dayjs from "dayjs";
-import {
-  isNullTimestamp,
-  TimeStamp,
-  timestampToDate,
-} from "../../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { RenameProjectDialog } from "./rename-project";
 import { useState } from "react";
@@ -276,13 +271,7 @@ export const getColumns = ({
     {
       accessorKey: "createdAt",
       header: "Created On",
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
-        return date;
-      },
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       enableSorting: true,
       enableHiding: true,
       enableColumnFilter: true,

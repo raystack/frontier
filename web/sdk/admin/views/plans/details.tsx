@@ -1,6 +1,6 @@
 import { Flex, Text, Grid } from "@raystack/apsara";
 import type { Plan } from "@raystack/proton/frontier";
-import { timestampToDate } from "../../utils/connect-timestamp";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 
 export default function PlanDetails({ plan }: { plan: Plan | null }) {
 
@@ -18,16 +18,7 @@ export default function PlanDetails({ plan }: { plan: Plan | null }) {
         </Grid>
         <Grid columns={2} gap={3}>
           <Text size="mini">Created At</Text>
-          <Text size="mini">
-            {(() => {
-              const date = timestampToDate(plan?.createdAt);
-              return date ? date.toLocaleString("en", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }) : "-";
-            })()}
-          </Text>
+          <Text size="mini">{formatTimestamp(plan?.createdAt)}</Text>
         </Grid>
       </Flex>
     </Flex>

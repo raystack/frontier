@@ -7,7 +7,10 @@ import { OrganizationContext } from "../contexts/organization-context";
 import { useQuery } from "@connectrpc/connect-query";
 import { FrontierServiceQueries, ListSubscriptionsRequestSchema, GetPlanRequestSchema } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { timestampToDayjs } from "../../../../utils/connect-timestamp";
+import {
+  formatTimestamp,
+  isNullTimestamp,
+} from "~/admin/utils/connect-timestamp";
 
 export const PlanDetailsSection = () => {
   const { billingAccount, organization } = useContext(OrganizationContext);
@@ -69,13 +72,11 @@ export const PlanDetailsSection = () => {
         <List.Value>
           {isLoading ? (
             <Skeleton />
-          ) : timestampToDayjs(activeSubscription?.currentPeriodStartAt) ? (
+          ) : !isNullTimestamp(activeSubscription?.currentPeriodStartAt) ? (
             <Flex gap={3}>
               <CalendarIcon />
               <Text>
-                {timestampToDayjs(activeSubscription?.currentPeriodStartAt)?.format(
-                  "DD MMM YYYY",
-                )}
+                {formatTimestamp(activeSubscription?.currentPeriodStartAt)}
               </Text>
             </Flex>
           ) : (
@@ -90,13 +91,11 @@ export const PlanDetailsSection = () => {
         <List.Value>
           {isLoading ? (
             <Skeleton />
-          ) : timestampToDayjs(activeSubscription?.currentPeriodEndAt) ? (
+          ) : !isNullTimestamp(activeSubscription?.currentPeriodEndAt) ? (
             <Flex gap={3}>
               <CalendarIcon />
               <Text>
-                {timestampToDayjs(activeSubscription?.currentPeriodEndAt)?.format(
-                  "DD MMM YYYY",
-                )}
+                {formatTimestamp(activeSubscription?.currentPeriodEndAt)}
               </Text>
             </Flex>
           ) : (
