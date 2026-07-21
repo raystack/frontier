@@ -64,16 +64,20 @@ export const OrganizationsNavabar = ({
         </Text>
       </Flex>
       <Flex align="center" gap={4}>
-        <Button
-          variant="text"
-          color="neutral"
-          leadingIcon={<PlusIcon />}
-          data-test-id="admin-create-organization-btn"
-          onClick={openCreatePanel}
-        >
-          New {t.organization({ case: "capital" })}
-        </Button>
-        <Separator orientation="vertical" size="small" />
+        {!showSearch ? (
+          <>
+            <Button
+              variant="text"
+              color="neutral"
+              leadingIcon={<PlusIcon />}
+              data-test-id="admin-create-organization-btn"
+              onClick={openCreatePanel}
+            >
+              New {t.organization({ case: "capital" })}
+            </Button>
+            <Separator orientation="vertical" size="small" />
+          </>
+        ) : null}
         {showSearch ? (
           <DataTable.Search
             showClearButton={true}
