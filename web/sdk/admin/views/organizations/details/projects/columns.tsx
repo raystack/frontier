@@ -50,6 +50,7 @@ interface AddMemberDropdownProps {
   eligibleMembers: User[];
   isLoading: boolean;
   setSearchQuery: (query: string) => void;
+  disabled?: boolean;
 }
 
 function AddMemberDropdown({
@@ -57,6 +58,7 @@ function AddMemberDropdown({
   eligibleMembers,
   isLoading,
   setSearchQuery,
+  disabled,
 }: AddMemberDropdownProps) {
   const t = useTerminology();
   return (
@@ -65,7 +67,7 @@ function AddMemberDropdown({
       autocompleteMode="manual"
       onInputValueChange={setSearchQuery}
     >
-      <Menu.SubmenuTrigger data-test-id="add-members">
+      <Menu.SubmenuTrigger disabled={disabled} data-test-id="add-members">
         Add {t.member({ case: "lower" })}
       </Menu.SubmenuTrigger>
       <Menu.SubmenuContent>
@@ -101,12 +103,14 @@ function ProjectActionsContent({
   project,
   handleProjectUpdate,
   handleRenameOptionOpen,
+  canAddMember,
 }: {
   project: SearchOrganizationProjectsResponse_OrganizationProject;
   handleProjectUpdate: (
     project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
   handleRenameOptionOpen: () => void;
+  canAddMember: boolean;
 }) {
   const t = useTerminology();
   const handleRenameOptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -135,6 +139,7 @@ function ProjectActionsContent({
         eligibleMembers={eligibleMembers}
         isLoading={isLoading}
         setSearchQuery={setSearchQuery}
+        disabled={!canAddMember}
       />
       <Menu.Item
         onClick={handleRenameOptionClick}
@@ -149,11 +154,13 @@ function ProjectActionsContent({
 function ProjectActions({
   project,
   handleProjectUpdate,
+  canAddMember,
 }: {
   project: SearchOrganizationProjectsResponse_OrganizationProject;
   handleProjectUpdate: (
     project: SearchOrganizationProjectsResponse_OrganizationProject,
   ) => void;
+  canAddMember: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -198,6 +205,7 @@ function ProjectActions({
             project={project}
             handleProjectUpdate={handleProjectUpdate}
             handleRenameOptionOpen={handleRenameOptionOpen}
+            canAddMember={canAddMember}
           />
         </Menu.Content>
       </Menu>
@@ -221,6 +229,10 @@ export const getColumns = ({
   SearchOrganizationProjectsResponse_OrganizationProject,
   unknown
 >[] => {
+  // Adding a project member requires searching org members. With a single org
+  // member there is no one to add, so the action is disabled until more members
+  // are invited.
+  const canAddMember = Object.keys(orgMembersMap).length > 1;
   return [
     {
       accessorKey: "title",
@@ -300,6 +312,7 @@ export const getColumns = ({
           <ProjectActions
             project={row?.original}
             handleProjectUpdate={handleProjectUpdate}
+            canAddMember={canAddMember}
           />
         );
       },

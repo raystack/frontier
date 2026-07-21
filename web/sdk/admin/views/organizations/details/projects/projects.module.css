@@ -35,6 +35,11 @@
     width: var(--rs-space-12);
 }
 
+/* Keep the row highlighted while its action menu is open. */
+.table-wrapper tr:has([data-test-id="admin-project-actions"][data-popup-open]) {
+    background: var(--rs-color-background-base-primary-hover);
+}
+
 .flex1 {
     flex: 1;
 }
