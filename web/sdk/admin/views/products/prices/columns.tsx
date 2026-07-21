@@ -62,11 +62,14 @@ export const getColumns = (
     {
       header: "creation date",
       accessorKey: "createdAt",
+      filterType: "date",
+      enableColumnFilter: true,
       cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
     },
     {
       header: "Updated date",
       accessorKey: "updatedAt",
+      filterType: "date",
       enableColumnFilter: false,
       cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
     },
