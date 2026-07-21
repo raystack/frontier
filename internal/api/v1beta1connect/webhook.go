@@ -85,7 +85,7 @@ func (h *ConnectHandler) ListWebhooks(ctx context.Context, req *connect.Request[
 	filter := webhook.EndpointFilter{}
 	endpoints, err := h.webhookService.ListEndpoints(ctx, filter)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListWebhooks: %w", err))
+		return nil, connect.NewError(webhookErrCode(err), fmt.Errorf("ListWebhooks: %w", err))
 	}
 	var webhooks []*frontierv1beta1.Webhook
 	for _, endpoint := range endpoints {
@@ -105,7 +105,7 @@ func (h *ConnectHandler) DeleteWebhook(ctx context.Context, req *connect.Request
 
 	err := h.webhookService.DeleteEndpoint(ctx, webhookID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteWebhook: webhook_id=%s: %w", webhookID, err))
+		return nil, connect.NewError(webhookErrCode(err), fmt.Errorf("DeleteWebhook: webhook_id=%s: %w", webhookID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteWebhookResponse{}), nil
 }
