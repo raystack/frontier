@@ -45,7 +45,6 @@ type PATService interface {
 
 type Service struct {
 	repository            Repository
-	configRepository      ConfigRepository
 	relationService       RelationService
 	authnService          AuthnService
 	projectService        ProjectService
@@ -58,13 +57,12 @@ type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord auditmodels.AuditRecord) (auditmodels.AuditRecord, error)
 }
 
-func NewService(repository Repository, configRepository ConfigRepository,
+func NewService(repository Repository,
 	relationService RelationService, authnService AuthnService,
 	projectService ProjectService, orgService OrgService,
 	patService PATService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repository:            repository,
-		configRepository:      configRepository,
 		relationService:       relationService,
 		authnService:          authnService,
 		projectService:        projectService,

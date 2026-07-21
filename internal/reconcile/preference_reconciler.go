@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -32,6 +33,27 @@ func NewPreferenceReconciler(client PreferenceAPI, header string) *PreferenceRec
 }
 
 func (r *PreferenceReconciler) Kind() string { return KindPreference }
+
+// Validate checks the server-free parts of every entry (name present, no
+// duplicates) so a bad entry stops the whole file before anything applies. The
+// unknown-name check needs the server's trait list, so it stays in the diff.
+func (r *PreferenceReconciler) Validate(spec []byte) error {
+	var specs []PreferenceSpec
+	if err := decodeSpec(spec, &specs); err != nil {
+		return fmt.Errorf("parse %s spec: %w", KindPreference, err)
+	}
+	seen := map[string]struct{}{}
+	for _, s := range specs {
+		if strings.TrimSpace(s.Name) == "" {
+			return fmt.Errorf("preference name is required")
+		}
+		if _, dup := seen[s.Name]; dup {
+			return fmt.Errorf("preference %q is listed more than once", s.Name)
+		}
+		seen[s.Name] = struct{}{}
+	}
+	return nil
+}
 
 func (r *PreferenceReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []PreferenceSpec

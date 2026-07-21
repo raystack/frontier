@@ -41,6 +41,27 @@ func NewRoleReconciler(client RoleAPI, header string) *RoleReconciler {
 
 func (r *RoleReconciler) Kind() string { return KindRole }
 
+// Validate checks every entry, and rejects duplicate role names, without touching
+// the server, so a bad entry stops the whole file before anything applies.
+func (r *RoleReconciler) Validate(spec []byte) error {
+	var specs []RoleSpec
+	if err := decodeSpec(spec, &specs); err != nil {
+		return fmt.Errorf("parse %s spec: %w", KindRole, err)
+	}
+	seen := map[string]struct{}{}
+	for _, s := range specs {
+		_, isPredefined := predefinedRole(s.Name)
+		if err := validateRoleSpec(s, isPredefined); err != nil {
+			return fmt.Errorf("invalid role spec %q: %w", s.Name, err)
+		}
+		if _, dup := seen[s.Name]; dup {
+			return fmt.Errorf("role %q is listed more than once", s.Name)
+		}
+		seen[s.Name] = struct{}{}
+	}
+	return nil
+}
+
 func (r *RoleReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
 	var specs []RoleSpec
 	if err := decodeSpec(spec, &specs); err != nil {

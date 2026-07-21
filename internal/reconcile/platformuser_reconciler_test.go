@@ -91,6 +91,15 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		}
 	})
 
+	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {
+		api := &fakePlatformUserAPI{}
+		// `relatio` instead of `relation`: must fail, not be silently ignored
+		spec := []byte("- {type: user, ref: a@x.com, relatio: admin}\n")
+		_, err := NewPlatformUserReconciler(api, "").Reconcile(context.Background(), spec, true)
+		assert.ErrorContains(t, err, "parse PlatformUser spec")
+		assert.Empty(t, api.added)
+	})
+
 	t.Run("dry-run plans without applying", func(t *testing.T) {
 		api := &fakePlatformUserAPI{users: []*frontierv1beta1.User{
 			platformUserPB(t, "drop-id", "drop@x.com", schema.AdminRelationName),
@@ -160,13 +169,15 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 	})
 
 	t.Run("reconciling an exported document plans no changes", func(t *testing.T) {
+		// A user without an email and a service user both export by id, so their ids
+		// must be real uuids for the exported document to pass reconcile validation.
 		api := &fakePlatformUserAPI{
 			users: []*frontierv1beta1.User{
 				platformUserPBRelations(t, "alice-id", "alice@x.com", schema.AdminRelationName, schema.MemberRelationName),
-				platformUserPBRelations(t, "noemail-id", "", schema.MemberRelationName),
+				platformUserPBRelations(t, "33333333-3333-3333-3333-333333333333", "", schema.MemberRelationName),
 			},
 			sus: []*frontierv1beta1.ServiceUser{
-				serviceUserPBRelations(t, "sa-id", schema.MemberRelationName, schema.AdminRelationName),
+				serviceUserPBRelations(t, "44444444-4444-4444-4444-444444444444", schema.MemberRelationName, schema.AdminRelationName),
 			},
 		}
 		registry := map[string]Reconciler{KindPlatformUser: NewPlatformUserReconciler(api, "")}
