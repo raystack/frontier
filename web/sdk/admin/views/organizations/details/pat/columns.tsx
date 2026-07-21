@@ -15,6 +15,7 @@ import {
   formatTimestamp,
   isNullTimestamp,
   timestampToDayjs,
+  type TimeStamp,
 } from "~/admin/utils/connect-timestamp";
 import { SCOPES } from "~/admin/utils/constants";
 import { getInitials } from "~/utils";
@@ -89,8 +90,8 @@ export function getColumns({
       accessorKey: "createdAt",
       header: "Created On",
       styles: { header: { width: "152px" } },
-      cell: ({ row }) => (
-        <Text>{formatTimestamp(row.original.createdAt)}</Text>
+      cell: ({ getValue }) => (
+        <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>
       ),
       enableSorting: true,
       enableColumnFilter: true,
@@ -101,8 +102,8 @@ export function getColumns({
       accessorKey: "expiresAt",
       header: "Expiry Date",
       styles: { header: { width: "152px" } },
-      cell: ({ row }) => (
-        <Text>{formatTimestamp(row.original.expiresAt)}</Text>
+      cell: ({ getValue }) => (
+        <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>
       ),
       enableSorting: true,
       enableColumnFilter: true,

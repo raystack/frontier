@@ -80,6 +80,7 @@ export const getColumns = (
       header: "Product Id",
       accessorKey: "id",
       filterType: "string",
+      enableColumnFilter: true,
       cell: (info) => info.getValue(),
     },
     {
@@ -87,12 +88,14 @@ export const getColumns = (
       accessorKey: "createdAt",
       cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       filterType: "date",
+      enableColumnFilter: true,
     },
     {
       header: "Updated on",
       accessorKey: "updatedAt",
       cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       filterType: "date",
+      enableColumnFilter: true,
     },
   ];
 };

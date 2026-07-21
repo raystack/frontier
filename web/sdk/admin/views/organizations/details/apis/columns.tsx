@@ -1,7 +1,5 @@
 import { Text, type DataTableColumnDef } from "@raystack/apsara";
-import dayjs from "dayjs";
-import { NULL_DATE } from "../../../../utils/constants";
-import { DATE_FORMAT } from "~/admin/utils/connect-timestamp";
+import { formatTimestamp, type TimeStamp } from "~/admin/utils/connect-timestamp";
 import styles from "./apis.module.css";
 import type {
   SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
@@ -49,12 +47,9 @@ SearchOrganizationServiceUsersResponse_OrganizationServiceUser,
       enableColumnFilter: true,
     },
     {
-      accessorKey: "created_at",
+      accessorKey: "createdAt",
       header: "Created on",
-      cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format(DATE_FORMAT) : "-";
-      },
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",

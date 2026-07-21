@@ -63,6 +63,7 @@ export const getColumns = ({
       accessorKey: "createdAt",
       header: "Joined on",
       filterType: "date",
+      enableColumnFilter: true,
       cell: ({ getValue }) => {
         return <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>;
       },

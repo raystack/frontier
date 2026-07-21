@@ -17,30 +17,35 @@ export const getColumns = (
       },
       cell: (info) => info.getValue(),
       filterType: "string",
+      enableColumnFilter: true,
     },
     {
       header: "name",
       accessorKey: "name",
       cell: (info) => info.getValue(),
       filterType: "string",
+      enableColumnFilter: true,
     },
     {
       header: "interval",
       accessorKey: "interval",
       cell: (info) => info.getValue(),
       filterType: "string",
+      enableColumnFilter: true,
     },
     {
       header: "Usage Type",
       accessorKey: "usageType",
       cell: (info) => info.getValue(),
       filterType: "string",
+      enableColumnFilter: true,
     },
     {
       header: "billing_scheme",
       accessorKey: "billingScheme",
       cell: (info) => info.getValue(),
       filterType: "string",
+      enableColumnFilter: true,
     },
     {
       header: "Amount",
@@ -52,6 +57,7 @@ export const getColumns = (
         />
       ),
       filterType: "string",
+      enableColumnFilter: true,
     },
     {
       header: "creation date",

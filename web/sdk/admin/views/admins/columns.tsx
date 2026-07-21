@@ -21,12 +21,14 @@ export const getColumns: (options?: {
         header: styles["first-column"],
       },
       filterType: "string",
+      enableColumnFilter: true,
       cell: (info) => info.getValue() || "-",
     },
     {
       header: "Email",
       accessorKey: "email",
       filterType: "string",
+      enableColumnFilter: true,
       cell: (info) => info.getValue() || "-",
     },
     {

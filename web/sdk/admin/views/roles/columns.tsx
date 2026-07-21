@@ -11,18 +11,21 @@ export const getColumns: () => DataTableColumnDef<Role, unknown>[] = () => {
         header: styles["first-column"],
       },
       filterType: "string",
+      enableColumnFilter: true,
       cell: ({ getValue }) => getValue(),
     },
     {
       header: "Title",
       accessorKey: "title",
       filterType: "string",
+      enableColumnFilter: true,
       cell: info => info.getValue(),
     },
     {
       header: "Name",
       accessorKey: "name",
       filterType: "string",
+      enableColumnFilter: true,
       cell: info => info.getValue(),
     },
     {

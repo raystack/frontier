@@ -18,6 +18,7 @@ export const getColumns: (options?: {
         header: styles["first-column"],
       },
       filterType: "string",
+      enableColumnFilter: true,
       cell: ({ getValue }) => {
         const id = getValue() as string;
         return (
@@ -35,12 +36,14 @@ export const getColumns: (options?: {
       header: "Title",
       accessorKey: "title",
       filterType: "string",
+      enableColumnFilter: true,
       cell: (info) => info.getValue(),
     },
     {
       header: "Interval",
       accessorKey: "interval",
       filterType: "string",
+      enableColumnFilter: true,
       cell: (info) => info.getValue(),
     },
     {

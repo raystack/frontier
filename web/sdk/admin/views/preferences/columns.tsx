@@ -24,6 +24,7 @@ export const getColumns: (
         header: styles["first-column"],
       },
       filterType: "string",
+      enableColumnFilter: true,
       cell: (info) => info.getValue(),
       footer: (props) => props.column.id,
     },
