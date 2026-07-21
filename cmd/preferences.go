@@ -8,12 +8,11 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/cli/printer"
-	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )
 
-func PreferencesCommand(cliConfig *Config) *cobra.Command {
-	cmd := &cobra.Command{
+func PreferencesCommand(cliConfig *Config) *cli.Command {
+	cmd := &cli.Command{
 		Use:     "preferences",
 		Aliases: []string{"p"},
 		Short:   "Preferences management",
@@ -34,13 +33,13 @@ func PreferencesCommand(cliConfig *Config) *cobra.Command {
 	return cmd
 }
 
-func preferencesListCommand(cliConfig *Config) *cobra.Command {
+func preferencesListCommand(cliConfig *Config) *cli.Command {
 	var header string
-	cmd := &cobra.Command{
+	cmd := &cli.Command{
 		Use:   "list",
 		Short: "list preferences",
 		Long:  "List preferences prints the current preferences set in the db. If no preferences are set, it will print the default preferences.",
-		Args:  cobra.NoArgs,
+		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ frontier preferences list
 		`),
@@ -88,12 +87,12 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 	return cmd
 }
 
-func preferencesSetCommand(cliConfig *Config) *cobra.Command {
+func preferencesSetCommand(cliConfig *Config) *cli.Command {
 	var header, name, value string
-	cmd := &cobra.Command{
+	cmd := &cli.Command{
 		Use:   "set",
 		Short: "Set value for a preference trait",
-		Args:  cobra.NoArgs,
+		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ frontier preferences set --name mail_link_subject --value Your Frontier login link
 			$ frontier preferences set -n disable_orgs_on_create -v true
@@ -101,7 +100,7 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 		Annotations: map[string]string{
 			"group": "core",
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cli.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
@@ -144,13 +143,13 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 	return cmd
 }
 
-func preferencesGetCommand(cliConfig *Config) *cobra.Command {
+func preferencesGetCommand(cliConfig *Config) *cli.Command {
 	var header string
-	cmd := &cobra.Command{
+	cmd := &cli.Command{
 		Use:   "get",
 		Short: "Get preference traits list",
 		Long:  "Display the predefined preferences traits used by Frontier for settings at platform, org, group and project levels.",
-		Args:  cobra.NoArgs,
+		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
 			$ frontier preferences get
 		`),

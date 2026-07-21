@@ -291,9 +291,7 @@ func convertStatusToPBFormat(status prospect.Status) frontierv1beta1.Prospect_St
 }
 
 func buildAndValidateMetadata(m map[string]any, h *ConnectHandler) (metadata.Metadata, error) {
-	var metaDataMap metadata.Metadata
-
-	metaDataMap = metadata.Build(m)
+	metaDataMap := metadata.Build(m)
 	if err := h.metaSchemaService.Validate(metaDataMap, prospectMetaSchema); err != nil {
 		return nil, ErrBadBodyMetaSchemaError
 	}

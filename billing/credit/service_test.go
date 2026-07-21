@@ -195,7 +195,7 @@ func TestService_Add(t *testing.T) {
 					Amount: 10,
 				},
 			},
-			want: errors.New(fmt.Sprintf("transactionRepository.CreateEntry: %v", dummyError)),
+			want: fmt.Errorf("transactionRepository.CreateEntry: %v", dummyError),
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, dummyError)
@@ -320,7 +320,7 @@ func TestService_Deduct(t *testing.T) {
 					CustomerID: "customer_id",
 				},
 			},
-			want: errors.New(fmt.Sprintf("failed to deduct credits: %v", dummyError)),
+			want: fmt.Errorf("failed to deduct credits: %v", dummyError),
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, dummyError)

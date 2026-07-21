@@ -170,7 +170,7 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 		}
 
 		if amount := p.billingConf.AccountConfig.OnboardCreditsWithOrg; amount > 0 {
-			txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(fmt.Sprintf("%s", customr.OrgID))).String()
+			txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(customr.OrgID)).String()
 			if err := p.creditService.Add(ctx, credit.Credit{
 				ID:          txID,
 				CustomerID:  customr.ID,
