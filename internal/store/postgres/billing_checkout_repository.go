@@ -158,7 +158,7 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 	}
 	query, params, err := dialect.Insert(TABLE_BILLING_CHECKOUTS).Rows(record).Returning(&Checkout{}).ToSQL()
 	if err != nil {
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", parseErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var checkoutModel Checkout
@@ -204,7 +204,7 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", dbErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return checkoutModel.transform()
@@ -216,7 +216,7 @@ func (r BillingCheckoutRepository) GetByID(ctx context.Context, id string) (chec
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", parseErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var checkoutModel Checkout
@@ -228,7 +228,7 @@ func (r BillingCheckoutRepository) GetByID(ctx context.Context, id string) (chec
 		case errors.Is(err, sql.ErrNoRows):
 			return checkout.Checkout{}, checkout.ErrNotFound
 		}
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", dbErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return checkoutModel.transform()
@@ -240,7 +240,7 @@ func (r BillingCheckoutRepository) GetByName(ctx context.Context, name string) (
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", parseErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var checkoutModel Checkout
@@ -252,7 +252,7 @@ func (r BillingCheckoutRepository) GetByName(ctx context.Context, name string) (
 		case errors.Is(err, sql.ErrNoRows):
 			return checkout.Checkout{}, checkout.ErrNotFound
 		}
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", dbErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return checkoutModel.transform()
@@ -267,7 +267,7 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", parseErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 	updateRecord := goqu.Record{
 		"metadata":   marshaledMetadata,
@@ -283,7 +283,7 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 		"id": toUpdate.ID,
 	}).Returning(&Checkout{}).ToSQL()
 	if err != nil {
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", queryErr, err)
+		return checkout.Checkout{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var customerModel Checkout
@@ -297,7 +297,7 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return checkout.Checkout{}, checkout.ErrInvalidUUID
 		default:
-			return checkout.Checkout{}, fmt.Errorf("%w: %w", txnErr, err)
+			return checkout.Checkout{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -318,14 +318,14 @@ func (r BillingCheckoutRepository) List(ctx context.Context, flt checkout.Filter
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var checkoutModels []Checkout
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &checkoutModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	checkouts := make([]checkout.Checkout, 0, len(checkoutModels))

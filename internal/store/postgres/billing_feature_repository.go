@@ -83,14 +83,14 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate product.F
 			"updated_at":  goqu.L("now()"),
 		}).Returning(&Feature{}).ToSQL()
 	if err != nil {
-		return product.Feature{}, fmt.Errorf("%w: %w", parseErr, err)
+		return product.Feature{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var featureModel Feature
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_FEATURES, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
 	}); err != nil {
-		return product.Feature{}, fmt.Errorf("%w: %w", dbErr, err)
+		return product.Feature{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return featureModel.transform()
@@ -102,7 +102,7 @@ func (r BillingFeatureRepository) GetByID(ctx context.Context, id string) (produ
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return product.Feature{}, fmt.Errorf("%w: %w", parseErr, err)
+		return product.Feature{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var featureModel Feature
@@ -114,7 +114,7 @@ func (r BillingFeatureRepository) GetByID(ctx context.Context, id string) (produ
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Feature{}, product.ErrFeatureNotFound
 		}
-		return product.Feature{}, fmt.Errorf("%w: %w", dbErr, err)
+		return product.Feature{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return featureModel.transform()
@@ -126,7 +126,7 @@ func (r BillingFeatureRepository) GetByName(ctx context.Context, name string) (p
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return product.Feature{}, fmt.Errorf("%w: %w", parseErr, err)
+		return product.Feature{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var featureModel Feature
@@ -138,7 +138,7 @@ func (r BillingFeatureRepository) GetByName(ctx context.Context, name string) (p
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Feature{}, product.ErrFeatureNotFound
 		}
-		return product.Feature{}, fmt.Errorf("%w: %w", dbErr, err)
+		return product.Feature{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return featureModel.transform()
@@ -154,14 +154,14 @@ func (r BillingFeatureRepository) List(ctx context.Context, flt product.Filter) 
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", parseErr, err)
+		return nil, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var featureModels []Feature
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_FEATURES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &featureModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	features := make([]product.Feature, 0, len(featureModels))
@@ -187,7 +187,7 @@ func (r BillingFeatureRepository) UpdateByName(ctx context.Context, toUpdate pro
 	if toUpdate.Metadata != nil {
 		marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 		if err != nil {
-			return product.Feature{}, fmt.Errorf("%w: %s", parseErr, err)
+			return product.Feature{}, fmt.Errorf("%w: %s", errParse, err)
 		}
 		updateRecord["metadata"] = marshaledMetadata
 	}
@@ -197,7 +197,7 @@ func (r BillingFeatureRepository) UpdateByName(ctx context.Context, toUpdate pro
 		"name": toUpdate.Name,
 	}).Returning(&Feature{}).ToSQL()
 	if err != nil {
-		return product.Feature{}, fmt.Errorf("%w: %s", queryErr, err)
+		return product.Feature{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var featureModel Feature
@@ -209,7 +209,7 @@ func (r BillingFeatureRepository) UpdateByName(ctx context.Context, toUpdate pro
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Feature{}, product.ErrFeatureNotFound
 		default:
-			return product.Feature{}, fmt.Errorf("%w: %w", txnErr, err)
+			return product.Feature{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 

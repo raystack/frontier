@@ -43,7 +43,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 			"id": id,
 		}).Where(notDisabledGroupExp).ToSQL()
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", queryErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var groupModel Group
@@ -63,7 +63,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 
 	transformedGroup, err := groupModel.transformToGroup()
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedGroup, nil
@@ -94,7 +94,7 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string, flt gr
 	}
 	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
-		return []group.Group{}, fmt.Errorf("%w: %w", queryErr, err)
+		return []group.Group{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_GROUPS, "GetByIDs", func(ctx context.Context) error {
@@ -115,7 +115,7 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string, flt gr
 	for _, g := range fetchedGroups {
 		transformedGroup, err := g.transformToGroup()
 		if err != nil {
-			return []group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
+			return []group.Group{}, fmt.Errorf("%w: %w", errParse, err)
 		}
 
 		transformedGroups = append(transformedGroups, transformedGroup)
@@ -131,7 +131,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	insertRow := goqu.Record{
@@ -145,7 +145,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 	}
 	query, params, err := dialect.Insert(TABLE_GROUPS).Rows(insertRow).Returning(&Group{}).ToSQL()
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", queryErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var groupModel Group
@@ -167,7 +167,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 
 	transformedGroup, err := groupModel.transformToGroup()
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedGroup, nil
@@ -189,7 +189,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 
 	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
-		return []group.Group{}, fmt.Errorf("%w: %w", queryErr, err)
+		return []group.Group{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var fetchedGroups []Group
@@ -203,7 +203,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return []group.Group{}, nil
 		default:
-			return []group.Group{}, fmt.Errorf("%w: %w", dbErr, err)
+			return []group.Group{}, fmt.Errorf("%w: %w", errDB, err)
 		}
 	}
 
@@ -211,7 +211,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	for _, v := range fetchedGroups {
 		transformedGroup, err := v.transformToGroup()
 		if err != nil {
-			return []group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
+			return []group.Group{}, fmt.Errorf("%w: %w", errParse, err)
 		}
 		transformedGroups = append(transformedGroups, transformedGroup)
 	}
@@ -230,7 +230,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 
 	marshaledMetadata, err := json.Marshal(grp.Metadata)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_GROUPS).Set(
@@ -243,7 +243,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		"id": grp.ID,
 	}).Returning(&Group{}).ToSQL()
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", queryErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var groupModel Group
@@ -259,13 +259,13 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		case errors.Is(err, ErrDuplicateKey):
 			return group.Group{}, group.ErrConflict
 		default:
-			return group.Group{}, fmt.Errorf("%w: %w", dbErr, err)
+			return group.Group{}, fmt.Errorf("%w: %w", errDB, err)
 		}
 	}
 
 	updated, err := groupModel.transformToGroup()
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return updated, nil
@@ -281,7 +281,7 @@ func (r GroupRepository) SetState(ctx context.Context, id string, state group.St
 		},
 	).Returning(&Group{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var groupModel Group
@@ -308,7 +308,7 @@ func (r GroupRepository) Delete(ctx context.Context, id string) error {
 		},
 	).Returning(&Group{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var groupModel Group

@@ -60,14 +60,14 @@ func (r WebhookEndpointRepository) Create(ctx context.Context, toCreate webhook.
 			"updated_at":        goqu.L("now()"),
 		}).Returning(&WebhookEndpoint{}).ToSQL()
 	if err != nil {
-		return webhook.Endpoint{}, fmt.Errorf("%w: %s", parseErr, err)
+		return webhook.Endpoint{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var endpointModel WebhookEndpoint
 	if err = r.dbc.WithTimeout(ctx, TABLE_WEBHOOK_ENDPOINTS, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&endpointModel)
 	}); err != nil {
-		return webhook.Endpoint{}, fmt.Errorf("%w: %s", dbErr, err)
+		return webhook.Endpoint{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return endpointModel.transform(r.encryptionKey)
@@ -79,7 +79,7 @@ func (r WebhookEndpointRepository) GetByID(ctx context.Context, id string) (webh
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return webhook.Endpoint{}, fmt.Errorf("%w: %s", parseErr, err)
+		return webhook.Endpoint{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var endpointModel WebhookEndpoint
@@ -91,7 +91,7 @@ func (r WebhookEndpointRepository) GetByID(ctx context.Context, id string) (webh
 		case errors.Is(err, sql.ErrNoRows):
 			return webhook.Endpoint{}, webhook.ErrNotFound
 		}
-		return webhook.Endpoint{}, fmt.Errorf("%w: %s", dbErr, err)
+		return webhook.Endpoint{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return endpointModel.transform(r.encryptionKey)
@@ -106,14 +106,14 @@ func (r WebhookEndpointRepository) List(ctx context.Context, flt webhook.Endpoin
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var endpointModels []WebhookEndpoint
 	if err = r.dbc.WithTimeout(ctx, TABLE_WEBHOOK_ENDPOINTS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &endpointModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	endpoints := make([]webhook.Endpoint, 0, len(endpointModels))
@@ -142,7 +142,7 @@ func (r WebhookEndpointRepository) UpdateByID(ctx context.Context, toUpdate webh
 	if toUpdate.Metadata != nil {
 		marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 		if err != nil {
-			return webhook.Endpoint{}, fmt.Errorf("%w: %s", parseErr, err)
+			return webhook.Endpoint{}, fmt.Errorf("%w: %s", errParse, err)
 		}
 		updateRecord["metadata"] = marshaledMetadata
 	}
@@ -154,7 +154,7 @@ func (r WebhookEndpointRepository) UpdateByID(ctx context.Context, toUpdate webh
 		"id": toUpdate.ID,
 	}).Returning(&WebhookEndpoint{}).ToSQL()
 	if err != nil {
-		return webhook.Endpoint{}, fmt.Errorf("%w: %s", queryErr, err)
+		return webhook.Endpoint{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var endpointModel WebhookEndpoint
@@ -166,7 +166,7 @@ func (r WebhookEndpointRepository) UpdateByID(ctx context.Context, toUpdate webh
 		case errors.Is(err, sql.ErrNoRows):
 			return webhook.Endpoint{}, webhook.ErrNotFound
 		default:
-			return webhook.Endpoint{}, fmt.Errorf("%w: %w", txnErr, err)
+			return webhook.Endpoint{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -178,14 +178,14 @@ func (r WebhookEndpointRepository) Delete(ctx context.Context, id string) error 
 		"id": id,
 	}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_WEBHOOK_ENDPOINTS, "Delete", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		return fmt.Errorf("%w: %w", txnErr, err)
+		return fmt.Errorf("%w: %w", errTxn, err)
 	}
 	return nil
 }

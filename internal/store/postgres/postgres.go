@@ -14,11 +14,11 @@ import (
 const pgUserDefinedImmutabilityError = "45000"
 
 var (
-	parseErr    = errors.New("parsing error")
-	queryErr    = errors.New("error while creating the query")
-	dbErr       = errors.New("error while running query")
-	beginTnxErr = errors.New("error while beginning transaction")
-	txnErr      = errors.New("error while running transaction")
+	errParse    = errors.New("parsing error")
+	errQuery    = errors.New("error while creating the query")
+	errDB       = errors.New("error while running query")
+	errBeginTnx = errors.New("error while beginning transaction")
+	errTxn      = errors.New("error while running transaction")
 	dialect     = goqu.Dialect("postgres")
 )
 

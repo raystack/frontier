@@ -151,7 +151,7 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 			"metadata": marshaledMetadata,
 		}).Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var customerModel Customer
@@ -185,7 +185,7 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %w", dbErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return customerModel.transform()
@@ -197,7 +197,7 @@ func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (cust
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var customerModel Customer
@@ -209,7 +209,7 @@ func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (cust
 		case errors.Is(err, sql.ErrNoRows):
 			return customer.Customer{}, customer.ErrNotFound
 		}
-		return customer.Customer{}, fmt.Errorf("%w: %w", dbErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return customerModel.transform()
@@ -240,7 +240,7 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", parseErr, err)
+		return nil, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var customerModels []Customer
@@ -250,7 +250,7 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 		if errors.Is(err, sql.ErrNoRows) {
 			return []customer.Customer{}, nil
 		}
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	customers := make([]customer.Customer, 0, len(customerModels))
@@ -277,7 +277,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	// Query to fetch customer name before update
@@ -285,7 +285,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		Select("name").
 		Where(goqu.Ex{"id": toUpdate.ID}).ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %w", queryErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	updateRecord := goqu.Record{
@@ -311,7 +311,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		"id": toUpdate.ID,
 	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %w", queryErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var customerModel Customer
@@ -363,7 +363,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return customer.Customer{}, customer.ErrInvalidUUID
 		default:
-			return customer.Customer{}, fmt.Errorf("%w: %w", txnErr, err)
+			return customer.Customer{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -382,7 +382,7 @@ func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, cust
 		"id": customerID,
 	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.Details{}, fmt.Errorf("%w: %w", queryErr, err)
+		return customer.Details{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var customerModel Customer
@@ -396,7 +396,7 @@ func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, cust
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return customer.Details{}, customer.ErrInvalidUUID
 		default:
-			return customer.Details{}, fmt.Errorf("%w: %w", txnErr, err)
+			return customer.Details{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -412,7 +412,7 @@ func (r BillingCustomerRepository) GetDetailsByID(ctx context.Context, customerI
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return customer.Details{}, fmt.Errorf("%w: %w", parseErr, err)
+		return customer.Details{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var customerModel Customer
@@ -426,7 +426,7 @@ func (r BillingCustomerRepository) GetDetailsByID(ctx context.Context, customerI
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return customer.Details{}, customer.ErrInvalidUUID
 		default:
-			return customer.Details{}, fmt.Errorf("%w: %w", dbErr, err)
+			return customer.Details{}, fmt.Errorf("%w: %w", errDB, err)
 		}
 	}
 
@@ -449,7 +449,7 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 		"id": customerID,
 	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.Details{}, fmt.Errorf("%w: %w", queryErr, err)
+		return customer.Details{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var customerModel Customer
@@ -486,7 +486,7 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return customer.Details{}, customer.ErrInvalidUUID
 		default:
-			return customer.Details{}, fmt.Errorf("%w: %w", txnErr, err)
+			return customer.Details{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -501,7 +501,7 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 		Where(goqu.Ex{"id": id}).
 		Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", parseErr, err)
+		return fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var customerModel Customer
@@ -545,7 +545,7 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 		case errors.Is(err, sql.ErrNoRows):
 			return customer.ErrNotFound
 		default:
-			return fmt.Errorf("%w: %w", txnErr, err)
+			return fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 

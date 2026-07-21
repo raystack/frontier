@@ -48,7 +48,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 	invite.Metadata["role_ids"] = invite.RoleIDs
 	marshaledMetadata, err := json.Marshal(invite.Metadata)
 	if err != nil {
-		return invitation.Invitation{}, fmt.Errorf("%w: %s", parseErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 	invite.CreatedAt = s.Now()
 	if invite.ExpiresAt.IsZero() {
@@ -82,7 +82,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 		orgNameSubquery.As("org_name"),
 	).ToSQL()
 	if err != nil {
-		return invitation.Invitation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var result invitationWithContext
@@ -118,7 +118,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 		})
 	}); err != nil {
 		err = checkPostgresError(err)
-		return invitation.Invitation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return result.Invitation.transformToInvitation()
@@ -132,7 +132,7 @@ func (s *InvitationRepository) Get(ctx context.Context, id uuid.UUID) (invitatio
 		},
 	).ToSQL()
 	if err != nil {
-		return invitation.Invitation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "Get", func(ctx context.Context) error {
@@ -143,7 +143,7 @@ func (s *InvitationRepository) Get(ctx context.Context, id uuid.UUID) (invitatio
 		case errors.Is(err, sql.ErrNoRows):
 			return invitation.Invitation{}, invitation.ErrNotFound
 		}
-		return invitation.Invitation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return inviteModel.transformToInvitation()
@@ -165,7 +165,7 @@ func (s *InvitationRepository) List(ctx context.Context, flt invitation.Filter) 
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "List", func(ctx context.Context) error {
@@ -174,7 +174,7 @@ func (s *InvitationRepository) List(ctx context.Context, flt invitation.Filter) 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedInvitations []invitation.Invitation
@@ -197,7 +197,7 @@ func (s *InvitationRepository) ListByUser(ctx context.Context, id string) ([]inv
 		},
 	).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "ListByUser", func(ctx context.Context) error {
@@ -206,7 +206,7 @@ func (s *InvitationRepository) ListByUser(ctx context.Context, id string) ([]inv
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedInvitations []invitation.Invitation
@@ -229,14 +229,14 @@ func (s *InvitationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			},
 		).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "Delete", func(ctx context.Context) error {
 		_, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return fmt.Errorf("%w: %s", errDB, err)
 		}
 
 		return nil
@@ -254,7 +254,7 @@ func (s *InvitationRepository) ListExpired(ctx context.Context, expiredBefore ti
 			},
 		).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_INVITATIONS, "ListExpired", func(ctx context.Context) error {
@@ -263,7 +263,7 @@ func (s *InvitationRepository) ListExpired(ctx context.Context, expiredBefore ti
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedInvitations []invitation.Invitation
