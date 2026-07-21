@@ -1,13 +1,8 @@
 import { OrganizationDetailsView, useAdminPaths } from '@raystack/frontier/admin';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, Outlet, Navigate } from 'react-router-dom';
 import { useQuery } from '@connectrpc/connect-query';
-import { create } from '@bufbuild/protobuf';
-import {
-  AdminServiceQueries,
-  RQLRequestSchema,
-  RQLFilterSchema,
-} from '@raystack/proton/frontier';
+import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { AppContext } from '~/contexts/App';
 import { clients } from '~/connect/clients';
 import { exportCsvFromStream } from '~/utils/helper';
@@ -28,7 +23,8 @@ export default function OrganizationDetailsPage() {
   /*
    * View runs by org id:
    * - in-app nav: id via router state (fast path)
-   * - cold load: resolve URL slug/id via admin API (returns disabled orgs too)
+   * - cold load: resolve the URL id/slug via getOrganization (accepts either)
+   * - old UUID URL: rewrite to the canonical slug once resolved
    * - unresolvable URL: redirect to list
    */
   const { organizationId: urlParam } = useParams<{ organizationId: string }>();
@@ -56,42 +52,57 @@ export default function OrganizationDetailsPage() {
   const stateOrgId = held.param === urlParam ? held.orgId : undefined;
 
   /*
-   * Cold-load resolve (only when state has no id):
-   * - UUID param is already the id
-   * - slug → admin searchOrganizations, which returns disabled orgs too
-   *   (getOrganization-by-slug does not)
+   * Cold-load resolve (only when state carries no id):
+   * - getOrganization takes an id OR a slug and returns disabled orgs too,
+   *   so a single call covers every URL form (server GetRaw branches on UUID)
+   * - a UUID param is already the id, but we still resolve to read the slug +
+   *   state for the canonical-URL rewrite below
    */
   const paramIsId = !!urlParam && UUID_RE.test(urlParam);
-  const needsResolve = !stateOrgId && !!urlParam && !paramIsId;
-  const searchReq = useMemo(
-    () => ({
-      query: create(RQLRequestSchema, {
-        filters: needsResolve
-          ? [
-              create(RQLFilterSchema, {
-                name: 'name',
-                operator: 'eq',
-                value: { case: 'stringValue', value: urlParam as string },
-              }),
-            ]
-          : [],
-        limit: 1,
-      }),
-    }),
-    [needsResolve, urlParam],
-  );
+  const needsResolve = !stateOrgId && !!urlParam;
   const {
-    data: searchedId,
+    data: org,
     error: resolveError,
     isSuccess,
-  } = useQuery(AdminServiceQueries.searchOrganizations, searchReq, {
-    enabled: needsResolve,
-    staleTime: 5 * 60 * 1000,
-    select: (d) => d?.organizations?.[0]?.id,
-  });
+  } = useQuery(
+    FrontierServiceQueries.getOrganization,
+    { id: urlParam ?? '' },
+    {
+      enabled: needsResolve,
+      staleTime: 5 * 60 * 1000,
+      select: (d) => d?.organization,
+    },
+  );
 
-  const orgId = stateOrgId || (paramIsId ? urlParam : searchedId);
-  const notFound = needsResolve && isSuccess && !searchedId;
+  const orgId = stateOrgId || (paramIsId ? urlParam : org?.id);
+  const notFound = needsResolve && isSuccess && !org?.id;
+
+  /*
+   * Old UUID bookmark → canonical slug URL:
+   * - one live URL per org; replace keeps the back-button sane
+   * - preserve the sub-tab (rest of the path) across the swap
+   * - skip disabled orgs — keep them on the stable id URL
+   */
+  useEffect(() => {
+    if (paramIsId && org?.name && org.state !== 'disabled') {
+      const rest = location.pathname.slice(
+        location.pathname.indexOf(urlParam!) + urlParam!.length,
+      );
+      navigate(`/${paths.organizations}/${org.name}${rest}`, {
+        replace: true,
+        state: { orgId },
+      });
+    }
+  }, [
+    paramIsId,
+    org?.name,
+    org?.state,
+    orgId,
+    urlParam,
+    location.pathname,
+    navigate,
+    paths.organizations,
+  ]);
 
   /* Carry the org id in router state so breadcrumb/tab navs skip the resolve. */
   const onNavigate = useCallback(
