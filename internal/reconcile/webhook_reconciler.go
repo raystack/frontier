@@ -39,17 +39,8 @@ func (r *WebhookReconciler) Validate(spec []byte) error {
 	if err := decodeSpec(spec, &specs); err != nil {
 		return fmt.Errorf("parse %s spec: %w", KindWebhook, err)
 	}
-	seen := map[string]struct{}{}
-	for _, s := range specs {
-		if err := validateWebhookSpec(s); err != nil {
-			return fmt.Errorf("invalid webhook spec %q: %w", s.URL, err)
-		}
-		if _, dup := seen[s.URL]; dup {
-			return fmt.Errorf("webhook %q is listed more than once", s.URL)
-		}
-		seen[s.URL] = struct{}{}
-	}
-	return nil
+	_, err := normalizeWebhookSpecs(specs)
+	return err
 }
 
 func (r *WebhookReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {

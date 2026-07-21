@@ -184,6 +184,20 @@ func TestDiffWebhooks(t *testing.T) {
 		assert.ErrorContains(t, err, "absolute URL")
 	})
 
+	t.Run("validation rejects a non-http(s) scheme", func(t *testing.T) {
+		_, err := diffWebhooks([]WebhookSpec{{URL: "ftp://a.example/hook"}}, nil)
+		assert.ErrorContains(t, err, "http or https")
+	})
+
+	t.Run("surrounding whitespace in the url is trimmed to match the server url", func(t *testing.T) {
+		// the server trims before it stores, so an untrimmed file url must still
+		// match the stored endpoint rather than plan a spurious add.
+		current := []currentWebhook{cw("w1", "https://a.example/hook", "", webhookStateEnabled)}
+		ops, err := diffWebhooks([]WebhookSpec{{URL: "  https://a.example/hook  "}}, current)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
 	t.Run("an entry with no events adds an endpoint subscribed to all events", func(t *testing.T) {
 		ops, err := diffWebhooks([]WebhookSpec{{URL: "https://a.example/hook"}}, nil)
 		assert.NoError(t, err)

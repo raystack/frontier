@@ -82,8 +82,14 @@ func validateWebhookSpec(s WebhookSpec) error {
 	if strings.TrimSpace(s.URL) == "" {
 		return fmt.Errorf("url is required")
 	}
-	if u, err := url.Parse(s.URL); err != nil || !u.IsAbs() {
+	u, err := url.Parse(s.URL)
+	if err != nil || !u.IsAbs() {
 		return fmt.Errorf("url %q must be a valid absolute URL", s.URL)
+	}
+	// The server only dispatches over http(s) and rejects other schemes, so
+	// reject them at plan time too and keep the export round-trip consistent.
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("url %q must use http or https", s.URL)
 	}
 	if s.Delete {
 		return nil
@@ -92,6 +98,27 @@ func validateWebhookSpec(s WebhookSpec) error {
 		return fmt.Errorf("state must be %q or %q", webhookStateEnabled, webhookStateDisabled)
 	}
 	return nil
+}
+
+// normalizeWebhookSpecs trims each url so it matches the server's own
+// normalization (the service trims before it stores), validates every entry,
+// and rejects a url listed more than once. It returns the normalized specs so
+// diffWebhooks and Validate work from identical, deduplicated input.
+func normalizeWebhookSpecs(specs []WebhookSpec) ([]WebhookSpec, error) {
+	seen := map[string]struct{}{}
+	out := make([]WebhookSpec, 0, len(specs))
+	for _, s := range specs {
+		s.URL = strings.TrimSpace(s.URL)
+		if err := validateWebhookSpec(s); err != nil {
+			return nil, fmt.Errorf("invalid webhook spec %q: %w", s.URL, err)
+		}
+		if _, dup := seen[s.URL]; dup {
+			return nil, fmt.Errorf("webhook %q is listed more than once", s.URL)
+		}
+		seen[s.URL] = struct{}{}
+		out = append(out, s)
+	}
+	return out, nil
 }
 
 // diffWebhooks returns the ops that make the current webhook endpoints match the
@@ -122,15 +149,14 @@ func diffWebhooks(desired []WebhookSpec, current []currentWebhook) ([]webhookOp,
 		byURL[c.URL] = c
 	}
 
+	desired, err := normalizeWebhookSpecs(desired)
+	if err != nil {
+		return nil, err
+	}
+
 	seen := map[string]struct{}{}
 	var adds, updates, removes []webhookOp
 	for _, s := range desired {
-		if err := validateWebhookSpec(s); err != nil {
-			return nil, fmt.Errorf("invalid webhook spec %q: %w", s.URL, err)
-		}
-		if _, dup := seen[s.URL]; dup {
-			return nil, fmt.Errorf("webhook %q is listed more than once", s.URL)
-		}
 		seen[s.URL] = struct{}{}
 
 		cur, exists := byURL[s.URL]

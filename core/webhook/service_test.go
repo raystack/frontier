@@ -47,6 +47,12 @@ func TestServiceCreateEndpointValidation(t *testing.T) {
 		assert.ErrorIs(t, err, webhook.ErrInvalidDetail)
 	})
 
+	t.Run("rejects a non-http(s) scheme", func(t *testing.T) {
+		s := webhook.NewService(&fakeEndpointRepo{})
+		_, err := s.CreateEndpoint(context.Background(), webhook.Endpoint{URL: "ftp://a.example/hook"})
+		assert.ErrorIs(t, err, webhook.ErrInvalidDetail)
+	})
+
 	t.Run("rejects an unknown state", func(t *testing.T) {
 		s := webhook.NewService(&fakeEndpointRepo{})
 		_, err := s.CreateEndpoint(context.Background(), webhook.Endpoint{URL: "https://a.example/hook", State: "paused"})

@@ -94,8 +94,14 @@ func (s Service) UpdateEndpoint(ctx context.Context, endpoint Endpoint) (Endpoin
 // as enabled/disabled, so the server only stores values that reconcile can
 // represent and round-trip: a valid absolute URL, and a known state.
 func validateEndpoint(endpoint Endpoint) error {
-	if u, err := url.Parse(endpoint.URL); err != nil || !u.IsAbs() {
+	u, err := url.Parse(endpoint.URL)
+	if err != nil || !u.IsAbs() {
 		return fmt.Errorf("%w: url must be a valid absolute URL", ErrInvalidDetail)
+	}
+	// The server dispatches events to this URL, so restrict it to http(s). This
+	// keeps other schemes (file, gopher, ...) out of the delivery path.
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("%w: url scheme must be http or https", ErrInvalidDetail)
 	}
 	switch endpoint.State {
 	case "", Enabled, Disabled:
