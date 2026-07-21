@@ -1,14 +1,23 @@
 import { OrganizationDetailsView, useAdminPaths } from '@raystack/frontier/admin';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, Outlet, Navigate } from 'react-router-dom';
 import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { create } from '@bufbuild/protobuf';
+import {
+  AdminServiceQueries,
+  RQLRequestSchema,
+  RQLFilterSchema,
+} from '@raystack/proton/frontier';
 import { AppContext } from '~/contexts/App';
 import { clients } from '~/connect/clients';
 import { exportCsvFromStream } from '~/utils/helper';
 import LoadingState from '~/components/states/Loading';
 
 const adminClient = clients.admin({ useBinary: true });
+
+/* Old bookmarks use the id; new URLs use the slug — tell them apart. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function loadCountries(): Promise<string[]> {
   const data = await import("~/assets/data/countries.json");
@@ -17,10 +26,10 @@ async function loadCountries(): Promise<string[]> {
 
 export default function OrganizationDetailsPage() {
   /*
-   * RPCs run by id:
-   * - in-app nav passes the id via router state (fast path, works for any org)
-   * - cold load (refresh/bookmark) → resolve the URL id/slug instead
-   * - a disabled org's slug can't resolve → redirect to the list
+   * View runs by org id:
+   * - in-app nav: id via router state (fast path)
+   * - cold load: resolve URL slug/id via admin API (returns disabled orgs too)
+   * - unresolvable URL: redirect to list
    */
   const { organizationId: urlParam } = useParams<{ organizationId: string }>();
   const location = useLocation();
@@ -29,25 +38,67 @@ export default function OrganizationDetailsPage() {
   const { config } = useContext(AppContext);
   const [countries, setCountries] = useState<string[]>([]);
 
-  const [stateOrgId, setStateOrgId] = useState<string | undefined>(
-    (location.state as { orgId?: string } | null)?.orgId,
+  const incomingOrgId = (location.state as { orgId?: string } | null)?.orgId;
+
+  /*
+   * Hold the id keyed to its URL, recomputed during render:
+   * - a urlParam change invalidates a stale id, re-arming the resolve
+   * - setState-during-render keeps children from seeing the old id (no flash,
+   *   no stale org under a new URL)
+   */
+  const [held, setHeld] = useState<{ param?: string; orgId?: string }>({
+    param: urlParam,
+    orgId: incomingOrgId,
+  });
+  if (held.param !== urlParam || (incomingOrgId && incomingOrgId !== held.orgId)) {
+    setHeld({ param: urlParam, orgId: incomingOrgId });
+  }
+  const stateOrgId = held.param === urlParam ? held.orgId : undefined;
+
+  /*
+   * Cold-load resolve (only when state has no id):
+   * - UUID param is already the id
+   * - slug → admin searchOrganizations, which returns disabled orgs too
+   *   (getOrganization-by-slug does not)
+   */
+  const paramIsId = !!urlParam && UUID_RE.test(urlParam);
+  const needsResolve = !stateOrgId && !!urlParam && !paramIsId;
+  const searchReq = useMemo(
+    () => ({
+      query: create(RQLRequestSchema, {
+        filters: needsResolve
+          ? [
+              create(RQLFilterSchema, {
+                name: 'name',
+                operator: 'eq',
+                value: { case: 'stringValue', value: urlParam as string },
+              }),
+            ]
+          : [],
+        limit: 1,
+      }),
+    }),
+    [needsResolve, urlParam],
   );
+  const {
+    data: searchedId,
+    error: resolveError,
+    isSuccess,
+  } = useQuery(AdminServiceQueries.searchOrganizations, searchReq, {
+    enabled: needsResolve,
+    staleTime: 5 * 60 * 1000,
+    select: (d) => d?.organizations?.[0]?.id,
+  });
 
-  // New id on org switch; keep the current one on tab switches.
-  useEffect(() => {
-    const next = (location.state as { orgId?: string } | null)?.orgId;
-    if (next && next !== stateOrgId) setStateOrgId(next);
-  }, [location.state, stateOrgId]);
+  const orgId = stateOrgId || (paramIsId ? urlParam : searchedId);
+  const notFound = needsResolve && isSuccess && !searchedId;
 
-  // Cold-load fallback: resolve from the URL only when state has no id.
-  const needsResolve = !stateOrgId && !!urlParam;
-  const { data: resolvedId, error: resolveError } = useQuery(
-    FrontierServiceQueries.getOrganization,
-    { id: urlParam || "" },
-    { enabled: needsResolve, select: (data) => data?.organization?.id },
+  /* Carry the org id in router state so breadcrumb/tab navs skip the resolve. */
+  const onNavigate = useCallback(
+    (path: string, state?: { orgId?: string }) =>
+      navigate(path, state ? { state } : undefined),
+    [navigate],
   );
-
-  const orgId = stateOrgId || resolvedId;
 
   useEffect(() => {
     loadCountries().then(setCountries);
@@ -80,12 +131,12 @@ export default function OrganizationDetailsPage() {
     );
   }, [orgId]);
 
-  // No id, or the URL didn't resolve → list.
-  if (!urlParam || resolveError) {
+  /* No id, error, or empty result (also guards the infinite loader) → list. */
+  if (!urlParam || resolveError || notFound) {
     return <Navigate to={`/${paths.organizations}`} replace />;
   }
 
-  // Still resolving the cold-load id — show a loader, don't flash a redirect.
+  /* Still resolving — loader, not a redirect flash. */
   if (!orgId) {
     return <LoadingState />;
   }
@@ -101,7 +152,7 @@ export default function OrganizationDetailsPage() {
       onExportProjects={onExportProjects}
       onExportTokens={onExportTokens}
       currentPath={location.pathname}
-      onNavigate={navigate}
+      onNavigate={onNavigate}
     >
       <Outlet />
     </OrganizationDetailsView>

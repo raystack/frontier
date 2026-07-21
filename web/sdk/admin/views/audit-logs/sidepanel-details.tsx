@@ -85,7 +85,7 @@ export default function SidePanelDetails({
             <ActorCell value={actor!} size="small" maxLength={12} />
           </SidepanelListItemLink>
           <SidepanelListItemLink
-            isLink={isOrgLink}
+            isLink={isOrgLink && !!org}
             href={`/${paths.organizations}/${org?.name || orgId}`}
             state={orgId ? { orgId } : undefined}
             label={t.organization({ case: "capital" })}

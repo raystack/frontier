@@ -227,7 +227,7 @@ const NavLinks = ({
 }: {
   organizationId: string;
   currentPath: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, state?: { orgId?: string }) => void;
 }) => {
   const t = useTerminology();
   const paths = useAdminPaths();
@@ -238,8 +238,10 @@ const NavLinks = ({
    * Fall back to the prop before the path is available.
    */
   const orgPrefix = `/${paths.organizations}/`;
-  const orgSegment = currentPath.startsWith(orgPrefix)
-    ? currentPath.slice(orgPrefix.length).split("/")[0]
+  // Strip any query string / hash before splitting so the slug isn't polluted.
+  const path = currentPath.split(/[?#]/)[0];
+  const orgSegment = path.startsWith(orgPrefix)
+    ? path.slice(orgPrefix.length).split("/")[0]
     : organizationId;
   const basePath = `/${paths.organizations}/${orgSegment}`;
   const links = [
@@ -287,7 +289,7 @@ interface OrganizationDetailsNavbarProps {
   onExportProjects?: () => Promise<void>;
   onExportTokens?: () => Promise<void>;
   currentPath: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, state?: { orgId?: string }) => void;
 }
 
 export const OrganizationsDetailsNavabar = ({
@@ -326,13 +328,14 @@ export const OrganizationsDetailsNavabar = ({
             {t.organization({ plural: true, case: "capital" })}
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
-          {/* Navigate client-side so we don't full-reload and lose the held org id. */}
+          {/* Carry the org id in state so the details page skips the resolve. */}
           <Breadcrumb.Item
-            href={`/${adminPaths.organizations}/${organization?.name || organization?.id}`}
+            href={`/${adminPaths.organizations}/${organization.name || organization.id}`}
             onClick={(e) => {
               e.preventDefault();
               onNavigate(
-                `/${adminPaths.organizations}/${organization?.name || organization?.id}`,
+                `/${adminPaths.organizations}/${organization.name || organization.id}`,
+                { orgId: organization.id },
               );
             }}
             leadingIcon={

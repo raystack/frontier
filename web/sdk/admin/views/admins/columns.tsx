@@ -17,7 +17,8 @@ const OrgCell = ({
   return (
     <Button
       variant="text"
-      onClick={() => onNavigateToOrg?.(org?.name || orgId, orgId)}
+      disabled={!org}
+      onClick={() => org && onNavigateToOrg?.(org.name || orgId, orgId)}
       data-test-id="frontier-admin-navigate-to-org-btn"
     >
       {org?.title || org?.name || orgId}
