@@ -22,6 +22,7 @@ import {
   TimeStamp,
   timestampToDate,
 } from "../../../../utils/connect-timestamp";
+import { formatRoleTitle } from "../../../../utils/helper";
 
 const MemberStates = {
   enabled: "Active",
@@ -51,7 +52,7 @@ export const getColumns = ({
   const roleMap = roles.reduce(
     (acc, role) => {
       const id = role?.id ?? "";
-      acc[id] = role.title || "";
+      acc[id] = formatRoleTitle(role.title);
       return acc;
     },
     {} as Record<string, string>,

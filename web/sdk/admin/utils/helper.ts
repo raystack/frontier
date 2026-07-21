@@ -41,6 +41,13 @@ export function randomSuffix(length = 4): string {
   return out;
 }
 
+// Role titles come prefixed with the scope (e.g. "Organization Owner").
+// For display we only want the bare title: "Owner", "Member", "Admin".
+export function formatRoleTitle(title?: string): string {
+  if (!title) return '';
+  return title.replace(/^organization\s+/i, '');
+}
+
 export function convertBillingAddressToString(address?: {
   line1?: string;
   line2?: string;
