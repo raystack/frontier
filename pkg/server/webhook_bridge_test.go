@@ -18,7 +18,7 @@ type mockHandler struct {
 
 func (m *mockHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(m.statusCode)
-	w.Write(m.response)
+	_, _ = w.Write(m.response)
 }
 
 func TestWebhookBridgeHandler_HTTPMethods(t *testing.T) {
@@ -158,7 +158,7 @@ func TestWebhookBridgeHandler_SuccessfulRequest(t *testing.T) {
 		// Return success
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{}`))
+		_, _ = w.Write([]byte(`{}`))
 	})
 
 	req := httptest.NewRequest("POST", "/billing/webhooks/callback/stripe", bytes.NewReader([]byte(`{"event":"test"}`)))

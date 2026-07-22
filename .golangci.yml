@@ -6,6 +6,7 @@ output:
 linters:
   default: none
   enable:
+    - errcheck
     - forbidigo
     - gosec
     - govet
@@ -14,6 +15,7 @@ linters:
     - misspell
     - protogetter
     - revive
+    - staticcheck
     - thelper
     - unconvert
     - unused
@@ -22,6 +24,20 @@ linters:
   settings:
     revive:
       severity: warning
+    staticcheck:
+      # The golangci-lint default check set, minus the QF family: QF checks
+      # are editor refactoring suggestions, not problems.
+      checks:
+        [
+          "all",
+          "-ST1000",
+          "-ST1003",
+          "-ST1016",
+          "-ST1020",
+          "-ST1021",
+          "-ST1022",
+          "-QF*",
+        ]
     gosec:
       # Only run SQL-injection rules. Revisit if specific risks emerge.
       includes:
