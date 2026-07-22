@@ -105,10 +105,6 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
 
-			if name == "" || value == "" {
-				return fmt.Errorf("name and value are required")
-			}
-
 			var reqBody frontierv1beta1.CreatePreferencesRequest
 			reqBody.Preferences = append(reqBody.GetPreferences(), &frontierv1beta1.PreferenceRequestBody{
 				Name:  name,
@@ -140,7 +136,7 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 	cmd.Flags().StringVarP(&name, "name", "n", "", "Name of the preference")
 	cmd.Flags().StringVarP(&value, "value", "v", "", "Value of the preference")
 
-	mustMarkRequired(cmd, "header")
+	mustMarkRequired(cmd, "header", "name", "value")
 	return cmd
 }
 
