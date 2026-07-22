@@ -288,10 +288,8 @@ func buildOrgUpdateAuditRecord(ctx context.Context, orgBeforeUpdate, orgAfterUpd
 	if title != updatedTitle {
 		// Create a new one to avoid mutating the original
 		auditMetadata = make(map[string]interface{})
-		if metadata != nil {
-			for k, v := range metadata {
-				auditMetadata[k] = v
-			}
+		for k, v := range metadata {
+			auditMetadata[k] = v
 		}
 		auditMetadata["title"] = title
 		auditMetadata["updated_title"] = updatedTitle

@@ -102,6 +102,6 @@ func (s Service) ListRelations(ctx context.Context, rel Relation) ([]Relation, e
 }
 
 func isValidID(id string) bool {
-	idRegex := regexp.MustCompile("^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\\*)$")
+	idRegex := regexp.MustCompile(`^(([a-zA-Z0-9_][a-zA-Z0-9/_|-]{0,127})|\*)$`)
 	return idRegex.MatchString(id)
 }

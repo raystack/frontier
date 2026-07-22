@@ -12,7 +12,6 @@ import (
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
-	projectMocks "github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -752,7 +751,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 	tests := []struct {
 		name         string
 		setupPolicy  func(ps *mocks.PolicyService)
-		setupProject func(ps *projectMocks.ProjectService)
+		setupProject func(ps *mocks.ProjectService)
 		request      *connect.Request[frontierv1beta1.CreatePolicyForProjectRequest]
 		want         *connect.Response[frontierv1beta1.CreatePolicyForProjectResponse]
 		wantErr      error
@@ -763,7 +762,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 			setupPolicy: func(ps *mocks.PolicyService) {
 				// No expectations as we return early
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				// No expectations as we return early
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -779,7 +778,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 			setupPolicy: func(ps *mocks.PolicyService) {
 				// No expectations as we return early
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				// No expectations as we return early
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -798,7 +797,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 			setupPolicy: func(ps *mocks.PolicyService) {
 				// No expectations as we return early
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				// No expectations as we return early
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -817,7 +816,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 			setupPolicy: func(ps *mocks.PolicyService) {
 				// No expectations as we return early
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				// No expectations as we return early
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -836,7 +835,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 			setupPolicy: func(ps *mocks.PolicyService) {
 				// No expectations as we return early
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				ps.On("Get", mock.Anything, testProjectID).Return(project.Project{}, errors.New("project not found"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -861,7 +860,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 					ResourceType:  "app/project",
 				}).Return(policy.Policy{}, role.ErrInvalidID)
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -886,7 +885,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 					ResourceType:  "app/project",
 				}).Return(policy.Policy{}, policy.ErrInvalidDetail)
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -911,7 +910,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 					ResourceType:  "app/project",
 				}).Return(policy.Policy{}, errors.New("service error"))
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -945,7 +944,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 					UpdatedAt:     fixedTime,
 				}, nil)
 			},
-			setupProject: func(ps *projectMocks.ProjectService) {
+			setupProject: func(ps *mocks.ProjectService) {
 				ps.On("Get", mock.Anything, testProjectID).Return(testProject, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreatePolicyForProjectRequest{
@@ -963,7 +962,7 @@ func TestConnectHandler_CreatePolicyForProject(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockPolicyService := &mocks.PolicyService{}
-			mockProjectService := &projectMocks.ProjectService{}
+			mockProjectService := &mocks.ProjectService{}
 
 			if tt.setupPolicy != nil {
 				tt.setupPolicy(mockPolicyService)
