@@ -377,7 +377,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		var subsItems []*stripe.CheckoutSessionLineItemParams
 		var minQ int64 = MinimumProductQuantity
 		var maxQ int64 = MaximumProductQuantity
-		var adjustableQuantity bool = true
+		var adjustableQuantity = true
 		if chProduct.Config.MinQuantity > 0 {
 			minQ = chProduct.Config.MinQuantity
 		}
