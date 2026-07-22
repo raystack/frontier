@@ -3,6 +3,7 @@ package v1beta1connect
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -20,12 +21,17 @@ func logAuditForCheck(ctx context.Context, result bool, objectID string, objectN
 	if !result {
 		auditStatus = "failure"
 	}
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).LogWithAttrs(audit.PermissionCheckedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).LogWithAttrs(audit.PermissionCheckedEvent, audit.Target{
 		ID:   objectID,
 		Type: objectNamespace,
 	}, map[string]string{
 		"status": auditStatus,
-	})
+	}); err != nil {
+		slog.ErrorContext(ctx, "PermissionCheck.AuditLog operation failed",
+			"error", err,
+			"object_id", objectID,
+			"object_namespace", objectNamespace)
+	}
 }
 
 func (h *ConnectHandler) getPermissionName(ctx context.Context, ns, name string) (string, error) {

@@ -125,10 +125,13 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource: entity_id=%s: %w", newResource.ID, err))
 	}
 
-	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceCreatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceCreatedEvent, audit.Target{
 		ID:   newResource.ID,
 		Type: newResource.NamespaceID,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateProjectResource.AuditLog", err,
+			"resource_id", newResource.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.CreateProjectResourceResponse{
 		Resource: resourcePB,
 	}), nil
@@ -225,10 +228,13 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProjectResource: entity_id=%s: %w", updatedResource.ID, err))
 	}
 
-	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceUpdatedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceUpdatedEvent, audit.Target{
 		ID:   updatedResource.ID,
 		Type: updatedResource.NamespaceID,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateProjectResource.AuditLog", err,
+			"resource_id", updatedResource.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateProjectResourceResponse{
 		Resource: resourcePB,
 	}), nil
@@ -263,10 +269,13 @@ func (h *ConnectHandler) DeleteProjectResource(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource: resource_id=%s project_id=%s namespace=%s: %w", resourceID, resourceToDel.ProjectID, resourceToDel.NamespaceID, err))
 	}
 
-	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{
 		ID:   resourceID,
 		Type: resourceToDel.NamespaceID,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource.AuditLog", err,
+			"resource_id", resourceID)
+	}
 	return connect.NewResponse(&frontierv1beta1.DeleteProjectResourceResponse{}), nil
 }
 
