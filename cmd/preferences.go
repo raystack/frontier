@@ -83,7 +83,7 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -104,10 +104,6 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			spinner := printer.Spin("")
 			defer spinner.Stop()
-
-			if name == "" || value == "" {
-				return fmt.Errorf("name and value are required")
-			}
 
 			var reqBody frontierv1beta1.CreatePreferencesRequest
 			reqBody.Preferences = append(reqBody.GetPreferences(), &frontierv1beta1.PreferenceRequestBody{
@@ -140,7 +136,7 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 	cmd.Flags().StringVarP(&name, "name", "n", "", "Name of the preference")
 	cmd.Flags().StringVarP(&value, "value", "v", "", "Value of the preference")
 
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header", "name", "value")
 	return cmd
 }
 
@@ -182,7 +178,7 @@ func preferencesGetCommand(cliConfig *Config) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
