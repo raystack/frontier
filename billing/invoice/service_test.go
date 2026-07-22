@@ -150,3 +150,29 @@ func TestService_getCreditOverdraftRange(t *testing.T) {
 		})
 	}
 }
+
+func TestService_overdraftItemName(t *testing.T) {
+	tests := []struct {
+		name     string
+		itemName string
+		want     string
+	}{
+		{
+			name:     "uses the overdraft product title when set",
+			itemName: "For Satellite Images and Data Analytics Services",
+			want:     "For Satellite Images and Data Analytics Services",
+		},
+		{
+			name: "falls back to default when product title is empty",
+			want: DefaultCreditOverdraftItemName,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &Service{creditOverdraftItemName: tt.itemName}
+			if got := s.overdraftItemName(); got != tt.want {
+				t.Errorf("overdraftItemName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
