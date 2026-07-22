@@ -669,11 +669,12 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 	}
 	authToken, err := idp.Token(ctx, request.Code, flow.Nonce)
 	if err != nil {
-		// The token endpoint rejected the authorization code. This is a client-side
-		// problem (code expired, already used, or the redirect did not match), not a
-		// server fault
-		var retrieveErr *oauth2.RetrieveError
-		if errors.As(err, &retrieveErr) {
+		// A bad authorization code (expired, already used, or a redirect mismatch)
+		// shows up as an oauth2 "invalid_grant" error from the token endpoint. That is
+		// a client problem, so mark it and let the handler return a 4xx instead of a
+		// 500. Other token endpoint failures (provider 429/5xx, misconfig) are left as
+		// is so they still surface as internal errors and page the on-call.
+		if isInvalidGrantErr(err) {
 			return nil, fmt.Errorf("%w: %w", ErrOIDCTokenExchange, err)
 		}
 		return nil, err
@@ -693,6 +694,18 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 		User: newUser,
 		Flow: flow,
 	}, nil
+}
+
+// isInvalidGrantErr reports whether err is an oauth2 token endpoint rejection
+// caused by a bad authorization code (RFC 6749 "invalid_grant"). oauth2 returns
+// a RetrieveError for any non-2xx token response, so we check the error code to
+// avoid treating provider 429/5xx or misconfiguration errors as client errors.
+func isInvalidGrantErr(err error) bool {
+	var retrieveErr *oauth2.RetrieveError
+	if !errors.As(err, &retrieveErr) {
+		return false
+	}
+	return retrieveErr.ErrorCode == "invalid_grant"
 }
 
 // BuildToken creates an access token for the given subjectID
