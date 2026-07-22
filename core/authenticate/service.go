@@ -673,7 +673,7 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 		// shows up as an oauth2 "invalid_grant" error from the token endpoint. That is
 		// a client problem, so mark it and let the handler return a 4xx instead of a
 		// 500. Other token endpoint failures (provider 429/5xx, misconfig) are left as
-		// is so they still surface as internal errors and page the on-call.
+		// is so they still surface as internal errors.
 		if isInvalidGrantErr(err) {
 			return nil, fmt.Errorf("%w: %w", ErrOIDCTokenExchange, err)
 		}
