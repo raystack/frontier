@@ -22,6 +22,7 @@ import (
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
 )
 
@@ -801,6 +802,41 @@ func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, 
 	return nil
 }
 
+// createAuditRecord writes the audit record and, when the write fails, logs
+// every detail of the record so it can be recreated manually.
+func (s *Service) createAuditRecord(ctx context.Context, record auditrecord.AuditRecord) {
+	if _, err := s.auditRecordRepository.Create(ctx, record); err != nil {
+		args := []any{
+			"error", err,
+			"event", record.Event,
+			"org_id", record.OrgID,
+			"resource_id", record.Resource.ID,
+			"resource_type", record.Resource.Type,
+			"resource_name", record.Resource.Name,
+			"occurred_at", record.OccurredAt,
+		}
+		if record.Target != nil {
+			args = append(args,
+				"target_id", record.Target.ID,
+				"target_type", record.Target.Type,
+				"target_name", record.Target.Name,
+				"target_metadata", record.Target.Metadata,
+			)
+		}
+		// The actor is enriched from the context by the repository, so the
+		// failed record carries none; read it from the same place.
+		if actorMap, ok := ctx.Value(consts.AuditRecordActorContextKey).(map[string]interface{}); ok {
+			if id, ok := actorMap["id"].(string); ok {
+				args = append(args, "actor_id", id)
+			}
+			if actorType, ok := actorMap["type"].(string); ok {
+				args = append(args, "actor_type", actorType)
+			}
+		}
+		s.log.WarnContext(ctx, "failed to create audit record", args...)
+	}
+}
+
 func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
 	targetType, _ := principalTypeToAuditType(p.Type)
 	meta := map[string]any{"role_id": roleID}
@@ -808,7 +844,7 @@ func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organizatio
 		meta["email"] = p.Email
 	}
 
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+	s.createAuditRecord(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
 		Resource: auditrecord.Resource{
 			ID:   org.ID,
@@ -840,7 +876,7 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 		meta["email"] = p.Email
 	}
 
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+	s.createAuditRecord(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
 		Resource: auditrecord.Resource{
 			ID:   org.ID,
@@ -866,7 +902,7 @@ func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Orga
 }
 
 func (s *Service) auditOrgMemberRemoved(ctx context.Context, org organization.Organization, targetID string, targetType pkgAuditRecord.EntityType) {
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+	s.createAuditRecord(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.OrganizationMemberRemovedEvent,
 		Resource: auditrecord.Resource{
 			ID:   org.ID,
@@ -1103,7 +1139,7 @@ func (s *Service) auditProjectMember(ctx context.Context, event pkgAuditRecord.E
 		meta = map[string]any{}
 	}
 	meta["principal_type"] = principalType
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+	s.createAuditRecord(ctx, auditrecord.AuditRecord{
 		Event: event,
 		Resource: auditrecord.Resource{
 			ID:   prj.ID,
@@ -1708,7 +1744,7 @@ func (s *Service) auditGroupMemberAdded(ctx context.Context, grp group.Group, p 
 		meta["email"] = p.Email
 	}
 
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+	s.createAuditRecord(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.GroupMemberAddedEvent,
 		Resource: auditrecord.Resource{
 			ID:   grp.ID,
@@ -1741,7 +1777,7 @@ func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Gro
 		meta["email"] = p.Email
 	}
 
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+	s.createAuditRecord(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.GroupMemberRoleChangedEvent,
 		Resource: auditrecord.Resource{
 			ID:   grp.ID,
@@ -1774,7 +1810,7 @@ func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, 
 		meta["email"] = p.Email
 	}
 
-	s.auditRecordRepository.Create(ctx, auditrecord.AuditRecord{
+	s.createAuditRecord(ctx, auditrecord.AuditRecord{
 		Event: pkgAuditRecord.GroupMemberRemovedEvent,
 		Resource: auditrecord.Resource{
 			ID:   grp.ID,
