@@ -82,7 +82,7 @@ export function AddTokenForm({
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
       <Flex className={styles.addTokenRow} align="start">
         <Field
           error={errors.title && String(errors.title?.message)}

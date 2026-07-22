@@ -152,7 +152,7 @@ export const SubscribeView = ({
 
   return (
     <Flex direction="column" gap={9} align="center" justify="center">
-      <form onSubmit={handleSubmit(onFormSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onFormSubmit)}>
         <Flex
           className={styles.subscribeContainer}
           direction="column"

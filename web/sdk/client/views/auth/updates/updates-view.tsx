@@ -64,7 +64,7 @@ export const UpdatesView = ({
   return (
     <Flex direction="column" gap={9}>
       <AuthHeader logo={logo} title={title} />
-      <form onSubmit={handleSubmit(onFormSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onFormSubmit)}>
         <AuthContainer className={styles.updatesContainer}>
           <Flex direction="column" gap={5}>
             <Flex justify="between">

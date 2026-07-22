@@ -119,7 +119,7 @@ function EditProjectForm({ payload, handle, refetch }: EditProjectFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
       <Dialog.Header>
         <Dialog.Title>Edit project details</Dialog.Title>
       </Dialog.Header>

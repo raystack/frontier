@@ -94,7 +94,7 @@ export const MagicLinkVerifyView = ({
         )}
       </Flex>
 
-      <form onSubmit={OTPVerifyHandler} className={styles.form}>
+      <form noValidate onSubmit={OTPVerifyHandler} className={styles.form}>
         <Flex direction="column" gap={2} className={styles.otpInputContainer}>
           <Input
             data-test-id="enter-code"

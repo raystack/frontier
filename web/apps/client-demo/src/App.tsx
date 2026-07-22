@@ -5,8 +5,8 @@ import { Toast } from '@raystack/apsara';
 import Router from './Router';
 import { v4 as uuid } from 'uuid';
 import './styles.css';
-import '@raystack/apsara/style.css'
 import '@raystack/apsara/normalize.css';
+import '@raystack/apsara/style.css'
 
 const customHeaders = {
   'X-Request-ID': () => `client-demo:${uuid()}`

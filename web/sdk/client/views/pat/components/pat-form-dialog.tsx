@@ -399,7 +399,7 @@ export function PATFormDialog({
   return (
     <Dialog handle={handle} onOpenChange={handleOpenChange}>
       <Dialog.Content>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form noValidate onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
             <Dialog.Title>
               {isUpdateMode ? 'Update PAT' : 'Create new PAT'}

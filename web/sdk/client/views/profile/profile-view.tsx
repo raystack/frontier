@@ -110,7 +110,7 @@ export function ProfileView() {
         description="Manage your profile information and settings."
       />
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <Flex direction="column">
           {/* Avatar section */}
           <Flex direction="column" gap={5} className={styles.section}>

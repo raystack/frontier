@@ -162,7 +162,7 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
         <Dialog.Header>
           <Dialog.Title>Invite people</Dialog.Title>
         </Dialog.Header>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form noValidate onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex direction="column" gap={7}>
               <Field label="Email" error={errors?.emails?.message}>
@@ -214,7 +214,7 @@ export function InviteMemberDialog({ handle, showTeamField = true, refetch }: In
                 )}
               </Field>
               {showTeamField && (
-                <Field label="Add to team (optional)">
+                <Field label="Add to team" required={false}>
                   {isLoading ? (
                     <Skeleton height="36px" />
                   ) : (
