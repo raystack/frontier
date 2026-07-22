@@ -399,7 +399,7 @@ func buildAPIDependencies(
 
 	authzSchemaRepository := spicedb.NewSchemaRepository(logger, sdb)
 	consistencyLevel := spicedb.ConsistencyLevel(cfg.SpiceDB.Consistency)
-	if cfg.SpiceDB.FullyConsistent {
+	if cfg.SpiceDB.FullyConsistent { //nolint:staticcheck
 		consistencyLevel = spicedb.ConsistencyLevelFull
 	}
 	if !slices.Contains([]spicedb.ConsistencyLevel{

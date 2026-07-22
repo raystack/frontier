@@ -1068,6 +1068,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		beforeBalance := getBalanceResp.Msg.GetBalance().GetAmount()
 
 		// set limit to -20
+		//nolint:staticcheck
 		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountLimitsRequest{
 			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			Id:        createBillingResp.Msg.GetBillingAccount().GetId(),
@@ -1129,6 +1130,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		s.Assert().NoError(err)
 
 		// reset limit
+		//nolint:staticcheck
 		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountLimitsRequest{
 			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			Id:        createBillingResp.Msg.GetBillingAccount().GetId(),

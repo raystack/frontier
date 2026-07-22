@@ -98,6 +98,7 @@ func (h *ConnectHandler) CancelSubscription(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) ChangeSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.ChangeSubscriptionRequest]) (*connect.Response[frontierv1beta1.ChangeSubscriptionResponse], error) {
+	//nolint:staticcheck
 	changeReq := subscription.ChangeRequest{
 		PlanID:         request.Msg.GetPlan(),
 		Immediate:      request.Msg.GetImmediate(),

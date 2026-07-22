@@ -12,7 +12,7 @@ import (
 
 	"github.com/raystack/frontier/internal/metrics"
 
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent" //nolint:staticcheck
 
 	"github.com/jmoiron/sqlx"
 )
