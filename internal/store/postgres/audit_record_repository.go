@@ -310,7 +310,7 @@ func (r AuditRecordRepository) executeCursorQuery(ctx context.Context, selectQue
 			if err != nil {
 				return fmt.Errorf("failed to begin transaction: %w", err)
 			}
-			defer tx.Rollback()
+			defer tx.Rollback() // nolint
 
 			// Generate unique cursor name
 			cursorName, err := r.generateCursorName()

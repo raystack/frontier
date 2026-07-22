@@ -94,7 +94,7 @@ func (r *RelationRepository) Add(ctx context.Context, rel relation.Relation) err
 			Operation: "Upsert_Relation",
 			StartTime: nrCtx.StartSegmentNow(),
 		}
-		defer nr.End()
+		defer nr.End() // nolint
 	}
 
 	resp, err := r.spiceDB.client.WriteRelationships(ctx, request)
@@ -132,7 +132,7 @@ func (r *RelationRepository) Check(ctx context.Context, rel relation.Relation) (
 			Operation:  "Check",
 			StartTime:  nrCtx.StartSegmentNow(),
 		}
-		defer nr.End()
+		defer nr.End() // nolint
 	}
 
 	response, err := r.spiceDB.client.CheckPermission(ctx, request)
@@ -179,7 +179,7 @@ func (r *RelationRepository) Delete(ctx context.Context, rel relation.Relation) 
 			Operation: "Delete_Relation",
 			StartTime: nrCtx.StartSegmentNow(),
 		}
-		defer nr.End()
+		defer nr.End() // nolint
 	}
 	resp, err := r.spiceDB.client.DeleteRelationships(ctx, request)
 	if err != nil {
