@@ -43,7 +43,7 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var fetchedNamespace Namespace
@@ -53,7 +53,7 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 		if errors.Is(err, sql.ErrNoRows) {
 			return namespace.Namespace{}, namespace.ErrNotExist
 		}
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return fetchedNamespace.transformToNamespace()
@@ -69,7 +69,7 @@ func (r NamespaceRepository) Upsert(ctx context.Context, ns namespace.Namespace)
 	}
 	marshaledMetadata, err := json.Marshal(ns.Metadata)
 	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("namespace metadata: %w: %s", parseErr, err)
+		return namespace.Namespace{}, fmt.Errorf("namespace metadata: %w: %s", errParse, err)
 	}
 	query, params, err := dialect.Insert(TABLE_NAMESPACES).Rows(
 		goqu.Record{
@@ -82,7 +82,7 @@ func (r NamespaceRepository) Upsert(ctx context.Context, ns namespace.Namespace)
 			"updated_at": goqu.L("now()"),
 		})).Returning(&Namespace{}).ToSQL()
 	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var nsModel Namespace
@@ -104,7 +104,7 @@ func (r NamespaceRepository) Upsert(ctx context.Context, ns namespace.Namespace)
 func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, error) {
 	query, params, err := dialect.Select(&Namespace{}).From(TABLE_NAMESPACES).ToSQL()
 	if err != nil {
-		return []namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []namespace.Namespace{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var fetchedNamespaces []Namespace
@@ -114,7 +114,7 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 		if errors.Is(err, sql.ErrNoRows) {
 			return []namespace.Namespace{}, nil
 		}
-		return []namespace.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []namespace.Namespace{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedNamespaces []namespace.Namespace
@@ -136,7 +136,7 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 
 	marshaledMetadata, err := json.Marshal(ns.Metadata)
 	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("namespace metadata: %w: %s", parseErr, err)
+		return namespace.Namespace{}, fmt.Errorf("namespace metadata: %w: %s", errParse, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_NAMESPACES).Set(
@@ -149,7 +149,7 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 		},
 	).Returning(&Namespace{}).ToSQL()
 	if err != nil {
-		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
+		return namespace.Namespace{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var nsModel Namespace

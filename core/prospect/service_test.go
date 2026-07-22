@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var sampleError = errors.New("sample error")
+var errSample = errors.New("sample error")
 
 func mockService(t *testing.T) *mocks.Repository {
 	t.Helper()
@@ -41,13 +41,13 @@ func TestService_Get(t *testing.T) {
 				ctx:        ctx,
 				prospectID: prospectId,
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			want:    prospect.Prospect{},
 			setup: func() *prospect.Service {
 				repository := mockService(t)
 				service := prospect.NewService(repository)
 
-				repository.On("Get", ctx, prospectId).Return(prospect.Prospect{}, sampleError).Once()
+				repository.On("Get", ctx, prospectId).Return(prospect.Prospect{}, errSample).Once()
 				return service
 			},
 		},
@@ -104,12 +104,12 @@ func TestService_Delete(t *testing.T) {
 				ctx:        ctx,
 				prospectID: prospectId,
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *prospect.Service {
 				repository := mockService(t)
 				service := prospect.NewService(repository)
 
-				repository.On("Delete", ctx, prospectId).Return(sampleError).Once()
+				repository.On("Delete", ctx, prospectId).Return(errSample).Once()
 				return service
 			},
 		},
@@ -170,12 +170,12 @@ func TestService_Create(t *testing.T) {
 				prospect: testProspect,
 			},
 			want:    prospect.Prospect{},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *prospect.Service {
 				repository := mockService(t)
 				service := prospect.NewService(repository)
 
-				repository.On("Create", ctx, testProspect).Return(prospect.Prospect{}, sampleError).Once()
+				repository.On("Create", ctx, testProspect).Return(prospect.Prospect{}, errSample).Once()
 				return service
 			},
 		},
@@ -235,13 +235,13 @@ func TestService_List(t *testing.T) {
 				ctx:   ctx,
 				query: testQuery,
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			want:    prospect.ListProspects{},
 			setup: func() *prospect.Service {
 				repository := mockService(t)
 				service := prospect.NewService(repository)
 
-				repository.On("List", ctx, testQuery).Return(prospect.ListProspects{}, sampleError).Once()
+				repository.On("List", ctx, testQuery).Return(prospect.ListProspects{}, errSample).Once()
 				return service
 			},
 		},
@@ -313,12 +313,12 @@ func TestService_Update(t *testing.T) {
 				prospect: testProspect,
 			},
 			want:    prospect.Prospect{},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *prospect.Service {
 				repository := mockService(t)
 				service := prospect.NewService(repository)
 
-				repository.On("Update", ctx, testProspect).Return(prospect.Prospect{}, sampleError).Once()
+				repository.On("Update", ctx, testProspect).Return(prospect.Prospect{}, errSample).Once()
 				return service
 			},
 		},

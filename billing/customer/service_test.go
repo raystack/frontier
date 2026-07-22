@@ -17,7 +17,7 @@ import (
 	"github.com/stripe/stripe-go/v79/client"
 )
 
-var sampleError = errors.New("sample error")
+var errSample = errors.New("sample error")
 
 func mockService(t *testing.T) (*client.API, *stripemock.Backend, *mocks.Repository, *mocks.CreditService) {
 	t.Helper()
@@ -277,11 +277,11 @@ func TestService_Update(t *testing.T) {
 			},
 			want: customer.Customer{},
 
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *customer.Service {
 				stripeClient, _, mockRepo, mockCredit := mockService(t)
 
-				mockRepo.EXPECT().GetByID(ctx, "1").Return(customer.Customer{}, sampleError)
+				mockRepo.EXPECT().GetByID(ctx, "1").Return(customer.Customer{}, errSample)
 
 				cfg := billing.Config{}
 
@@ -298,7 +298,7 @@ func TestService_Update(t *testing.T) {
 				},
 			},
 			want:    customer.Customer{},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *customer.Service {
 				stripeClient, mockStripeBackend, mockRepo, mockCredit := mockService(t)
 
@@ -329,7 +329,7 @@ func TestService_Update(t *testing.T) {
 							"managed_by": "frontier",
 							"org_id":     "org1",
 						},
-					}, &stripe.Customer{ID: ""}).Return(sampleError)
+					}, &stripe.Customer{ID: ""}).Return(errSample)
 
 				cfg := billing.Config{}
 
@@ -397,11 +397,11 @@ func TestService_GetByID(t *testing.T) {
 				id: "1",
 			},
 			want:    customer.Customer{},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *customer.Service {
 				stripeClient, _, mockRepo, mockCredit := mockService(t)
 				mockRepo.EXPECT().GetByID(ctx, "1").Return(
-					customer.Customer{}, sampleError)
+					customer.Customer{}, errSample)
 
 				cfg := billing.Config{}
 
@@ -481,11 +481,11 @@ func TestService_List(t *testing.T) {
 				filter: customer.Filter{},
 			},
 			want:    []customer.Customer{},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *customer.Service {
 				stripeClient, _, mockRepo, mockCredit := mockService(t)
 				mockRepo.EXPECT().List(ctx, customer.Filter{}).Return(
-					[]customer.Customer{}, sampleError)
+					[]customer.Customer{}, errSample)
 
 				cfg := billing.Config{}
 

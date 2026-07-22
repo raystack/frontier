@@ -53,7 +53,7 @@ func (r OrgKycRepository) GetByOrgID(ctx context.Context, orgID string) (kyc.KYC
 	}).ToSQL()
 
 	if err != nil {
-		return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
+		return kyc.KYC{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var kycModel KYC
@@ -108,7 +108,7 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 				goqu.I(TABLE_ORGANIZATIONS+".title").As("org_name"),
 			).ToSQL()
 		if err != nil {
-			return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
+			return kyc.KYC{}, fmt.Errorf("%w: %w", errQuery, err)
 		}
 	} else if err.Error() == kyc.ErrNotExist.Error() {
 		// kyc for org doesn't exist, prepare INSERT query with subquery for org name
@@ -127,14 +127,14 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 				orgNameSubquery.As("org_name"),
 			).ToSQL()
 		if err != nil {
-			return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
+			return kyc.KYC{}, fmt.Errorf("%w: %w", errQuery, err)
 		}
 	} else if errors.Is(err, kyc.ErrInvalidUUID) {
 		// invalid UUID provided
 		return kyc.KYC{}, kyc.ErrInvalidUUID
 	} else {
 		// unexpected error happened in getting org kyc
-		return kyc.KYC{}, fmt.Errorf("%w: %w", queryErr, err)
+		return kyc.KYC{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
@@ -204,7 +204,7 @@ func (r OrgKycRepository) List(ctx context.Context) ([]kyc.KYC, error) {
 		).Prepared(true).ToSQL()
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var results []joinResult

@@ -55,7 +55,7 @@ func NewProspectRepository(dbc *db.Client) *ProspectRepository {
 func (r ProspectRepository) Create(ctx context.Context, prspct prospect.Prospect) (prospect.Prospect, error) {
 	marshaledMetadata, err := json.Marshal(prspct.Metadata)
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", parseErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	insertRow := goqu.Record{
@@ -71,12 +71,12 @@ func (r ProspectRepository) Create(ctx context.Context, prspct prospect.Prospect
 
 	createQuery, params, err := dialect.Insert(TABLE_PROSPECTS).Rows(insertRow).Returning(&Prospect{}).ToSQL()
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	tx, err := r.dbc.BeginTxx(ctx, nil)
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", beginTnxErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errBeginTnx, err)
 	}
 
 	var prospectModel Prospect
@@ -99,7 +99,7 @@ func (r ProspectRepository) Create(ctx context.Context, prspct prospect.Prospect
 	}
 	transformedProspect, err := prospectModel.transformToProspect()
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", parseErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 	return transformedProspect, nil
 }
@@ -108,7 +108,7 @@ func (r ProspectRepository) Get(ctx context.Context, id string) (prospect.Prospe
 	stmt := dialect.From(TABLE_PROSPECTS).Where(goqu.Ex{"id": id})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var prospectModel Prospect
@@ -128,7 +128,7 @@ func (r ProspectRepository) Get(ctx context.Context, id string) (prospect.Prospe
 
 	transformedProspect, err := prospectModel.transformToProspect()
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", parseErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 	return transformedProspect, nil
 }
@@ -155,7 +155,7 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 	// Get total row count
 	countQuery, countParams, err := countStmt.Select(goqu.L("COUNT(*) as total")).ToSQL()
 	if err != nil {
-		return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.ListProspects{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 	var totalCount int64
 	if err = r.dbc.WithTimeout(ctx, TABLE_PROSPECTS, "Count", func(ctx context.Context) error {
@@ -175,7 +175,7 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 
 		query, params, err := groupStmt.ToSQL()
 		if err != nil {
-			return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
+			return prospect.ListProspects{}, fmt.Errorf("%w: %w", errQuery, err)
 		}
 
 		if err = r.dbc.WithTimeout(ctx, TABLE_PROSPECTS, "groupCount", func(ctx context.Context) error {
@@ -198,7 +198,7 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 
 	query, params, err := listStmt.ToSQL()
 	if err != nil {
-		return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.ListProspects{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var prospectModel []Prospect
@@ -222,7 +222,7 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 	for _, p := range prospectModel {
 		transformedProspect, err := p.transformToProspect()
 		if err != nil {
-			return prospect.ListProspects{}, fmt.Errorf("%w: %w", parseErr, err)
+			return prospect.ListProspects{}, fmt.Errorf("%w: %w", errParse, err)
 		}
 		transformedProspects = append(transformedProspects, transformedProspect)
 	}
@@ -245,7 +245,7 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 func (r ProspectRepository) Update(ctx context.Context, prspct prospect.Prospect) (prospect.Prospect, error) {
 	marshaledMetadata, err := json.Marshal(prspct.Metadata)
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", parseErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	updateRow := goqu.Record{
@@ -264,12 +264,12 @@ func (r ProspectRepository) Update(ctx context.Context, prspct prospect.Prospect
 		Returning(&Prospect{}).
 		ToSQL()
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	tx, err := r.dbc.BeginTxx(ctx, nil)
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", beginTnxErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errBeginTnx, err)
 	}
 
 	var prospectModel Prospect
@@ -297,7 +297,7 @@ func (r ProspectRepository) Update(ctx context.Context, prspct prospect.Prospect
 	}
 	transformedProspect, err := prospectModel.transformToProspect()
 	if err != nil {
-		return prospect.Prospect{}, fmt.Errorf("%w: %w", parseErr, err)
+		return prospect.Prospect{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 	return transformedProspect, nil
 }
@@ -305,7 +305,7 @@ func (r ProspectRepository) Update(ctx context.Context, prspct prospect.Prospect
 func (r ProspectRepository) Delete(ctx context.Context, id string) error {
 	query, params, err := dialect.Delete(TABLE_PROSPECTS).Where(goqu.Ex{"id": id}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 	return r.dbc.WithTimeout(ctx, TABLE_PROSPECTS, "Delete", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)

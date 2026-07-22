@@ -42,7 +42,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *frontiersession.Se
 
 	marshaledMetadata, err := json.Marshal(session.Metadata)
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	query, params, err := dialect.Insert(TABLE_SESSIONS).Rows(
@@ -56,7 +56,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *frontiersession.Se
 			"metadata":         marshaledMetadata,
 		}).Returning(&Session{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var sessionModel Session
@@ -64,7 +64,7 @@ func (s *SessionRepository) Set(ctx context.Context, session *frontiersession.Se
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&sessionModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return fmt.Errorf("%w: %s", dbErr, err)
+		return fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return nil
@@ -77,7 +77,7 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 			"id": id,
 		}).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err := s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Get", func(ctx context.Context) error {
@@ -86,9 +86,9 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, fmt.Errorf("%w: %w", dbErr, frontiersession.ErrNoSession)
+			return nil, fmt.Errorf("%w: %w", errDB, frontiersession.ErrNoSession)
 		default:
-			return nil, fmt.Errorf("%w: %w", dbErr, err)
+			return nil, fmt.Errorf("%w: %w", errDB, err)
 		}
 	}
 
@@ -120,7 +120,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			userNameSubquery.As("user_name"),
 		).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
@@ -135,7 +135,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			return s.createSessionRevokeAuditRecord(ctx, tx, result)
 		})
 	}); err != nil {
-		return fmt.Errorf("%w: %w", dbErr, err)
+		return fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return nil
@@ -188,14 +188,14 @@ func (s *SessionRepository) DeleteExpiredSessions(ctx context.Context) error {
 			),
 		).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "DeleteExpiredSessions", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return fmt.Errorf("%w: %s", errDB, err)
 		}
 
 		count, _ := result.RowsAffected()
@@ -214,14 +214,14 @@ func (s *SessionRepository) UpdateValidity(ctx context.Context, id uuid.UUID, va
 	}).ToSQL()
 
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Update", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return fmt.Errorf("%w: %s", errDB, err)
 		}
 
 		if count, _ := result.RowsAffected(); count > 0 {
@@ -245,12 +245,12 @@ func (s *SessionRepository) UpdateSessionMetadata(ctx context.Context, id uuid.U
 		},
 	).Where(goqu.Ex{"id": id}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "UpdateSessionMetadata", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return fmt.Errorf("%w: %s", errDB, err)
 		}
 		if count, _ := result.RowsAffected(); count == 0 {
 			return sql.ErrNoRows
@@ -271,14 +271,14 @@ func (s *SessionRepository) List(ctx context.Context, userID string) ([]*frontie
 			"deleted_at": nil,
 		}).Order(goqu.I("created_at").Desc()).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var sessions []*Session
 	if err := s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "List", func(ctx context.Context) error {
 		return s.dbc.SelectContext(ctx, &sessions, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var domainSessions []*frontiersession.Session

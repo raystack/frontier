@@ -42,7 +42,7 @@ func (r UserPATRepository) Create(ctx context.Context, pat models.PAT) (models.P
 
 	marshaledMetadata, err := json.Marshal(pat.Metadata)
 	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", parseErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var model UserPAT
@@ -57,7 +57,7 @@ func (r UserPATRepository) Create(ctx context.Context, pat models.PAT) (models.P
 			"expires_at":  pat.ExpiresAt,
 		}).Returning(&UserPAT{}).ToSQL()
 	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "Create", func(ctx context.Context) error {
@@ -67,7 +67,7 @@ func (r UserPATRepository) Create(ctx context.Context, pat models.PAT) (models.P
 		if errors.Is(err, ErrDuplicateKey) {
 			return models.PAT{}, paterrors.ErrConflict
 		}
-		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return model.transform()
@@ -82,14 +82,14 @@ func (r UserPATRepository) CountActive(ctx context.Context, userID, orgID string
 		goqu.C("expires_at").Gt(now),
 	).ToSQL()
 	if err != nil {
-		return 0, fmt.Errorf("%w: %w", queryErr, err)
+		return 0, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var count int64
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "CountActive", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &count, query, params...)
 	}); err != nil {
-		return 0, fmt.Errorf("%w: %w", dbErr, err)
+		return 0, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return count, nil
@@ -103,7 +103,7 @@ func (r UserPATRepository) GetByID(ctx context.Context, id string) (models.PAT, 
 			goqu.Ex{"deleted_at": nil},
 		).Limit(1).ToSQL()
 	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var model UserPAT
@@ -114,7 +114,7 @@ func (r UserPATRepository) GetByID(ctx context.Context, id string) (models.PAT, 
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.PAT{}, paterrors.ErrNotFound
 		}
-		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return model.transform()
@@ -142,7 +142,7 @@ func (r UserPATRepository) List(ctx context.Context, userID, orgID string, rqlQu
 
 	query, params, err := listStmt.ToSQL()
 	if err != nil {
-		return models.PATList{}, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PATList{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var rows []UserPAT
@@ -153,7 +153,7 @@ func (r UserPATRepository) List(ctx context.Context, userID, orgID string, rqlQu
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.PATList{}, nil
 		}
-		return models.PATList{}, fmt.Errorf("%w: %w", dbErr, err)
+		return models.PATList{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	pats := make([]models.PAT, 0, len(rows))
@@ -202,7 +202,7 @@ func (r UserPATRepository) buildPATFilteredQuery(userID, orgID string, rqlQuery 
 func (r UserPATRepository) countPATs(ctx context.Context, baseStmt *goqu.SelectDataset) (int64, error) {
 	countQuery, countParams, err := baseStmt.Select(goqu.L("COUNT(*) as total")).ToSQL()
 	if err != nil {
-		return 0, fmt.Errorf("%w: %w", queryErr, err)
+		return 0, fmt.Errorf("%w: %w", errQuery, err)
 	}
 	var totalCount int64
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListCount", func(ctx context.Context) error {
@@ -212,7 +212,7 @@ func (r UserPATRepository) countPATs(ctx context.Context, baseStmt *goqu.SelectD
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, nil
 		}
-		return 0, fmt.Errorf("%w: %w", dbErr, err)
+		return 0, fmt.Errorf("%w: %w", errDB, err)
 	}
 	return totalCount, nil
 }
@@ -227,14 +227,14 @@ func (r UserPATRepository) IsTitleAvailable(ctx context.Context, userID, orgID, 
 		).Limit(1),
 	)).ToSQL()
 	if err != nil {
-		return false, fmt.Errorf("%w: %w", queryErr, err)
+		return false, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var available bool
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "IsTitleAvailable", func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &available, query, params...)
 	}); err != nil {
-		return false, fmt.Errorf("%w: %w", dbErr, err)
+		return false, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return available, nil
@@ -248,7 +248,7 @@ func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash strin
 			goqu.Ex{"deleted_at": nil},
 		).Limit(1).ToSQL()
 	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var model UserPAT
@@ -259,7 +259,7 @@ func (r UserPATRepository) GetBySecretHash(ctx context.Context, secretHash strin
 		if errors.Is(err, sql.ErrNoRows) {
 			return models.PAT{}, paterrors.ErrNotFound
 		}
-		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return model.transform()
@@ -271,14 +271,14 @@ func (r UserPATRepository) UpdateUsedAt(ctx context.Context, id string, at time.
 		Where(goqu.Ex{"id": id}).
 		ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "UpdateUsedAt", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		return fmt.Errorf("%w: %w", dbErr, err)
+		return fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return nil
@@ -287,7 +287,7 @@ func (r UserPATRepository) UpdateUsedAt(ctx context.Context, id string, at time.
 func (r UserPATRepository) Update(ctx context.Context, pat models.PAT) (models.PAT, error) {
 	marshaledMetadata, err := json.Marshal(pat.Metadata)
 	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", parseErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_USER_PATS).
@@ -302,7 +302,7 @@ func (r UserPATRepository) Update(ctx context.Context, pat models.PAT) (models.P
 		Returning(&UserPAT{}).
 		ToSQL()
 	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var model UserPAT
@@ -316,7 +316,7 @@ func (r UserPATRepository) Update(ctx context.Context, pat models.PAT) (models.P
 		if errors.Is(err, ErrDuplicateKey) {
 			return models.PAT{}, paterrors.ErrConflict
 		}
-		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return model.transform()
@@ -338,7 +338,7 @@ func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string
 		Returning(&UserPAT{}).
 		ToSQL()
 	if err != nil {
-		return models.PAT{}, fmt.Errorf("%w: %w", queryErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var model UserPAT
@@ -352,7 +352,7 @@ func (r UserPATRepository) Regenerate(ctx context.Context, id, secretHash string
 		if errors.Is(err, ErrDuplicateKey) {
 			return models.PAT{}, paterrors.ErrConflict
 		}
-		return models.PAT{}, fmt.Errorf("%w: %w", dbErr, err)
+		return models.PAT{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return model.transform()
@@ -366,13 +366,13 @@ func (r UserPATRepository) ListExpiryReminderPending(ctx context.Context, days i
 		goqu.L("(metadata->>?) IS NULL", userpat.ExpiryReminderMetadataKey),
 	).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 	var rows []UserPAT
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListExpiryReminderPending", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &rows, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 	var pats []models.PAT
 	for _, m := range rows {
@@ -392,13 +392,13 @@ func (r UserPATRepository) ListExpiredNoticePending(ctx context.Context) ([]mode
 		goqu.L("(metadata->>?) IS NULL", userpat.ExpiredNoticeMetadataKey),
 	).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 	var rows []UserPAT
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListExpiredNoticePending", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &rows, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 	var pats []models.PAT
 	for _, m := range rows {
@@ -418,13 +418,13 @@ func (r UserPATRepository) ListByUser(ctx context.Context, userID string) ([]mod
 		goqu.Ex{"deleted_at": nil},
 	).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 	var rows []UserPAT
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListByUser", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &rows, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 	pats := make([]models.PAT, 0, len(rows))
 	for _, m := range rows {
@@ -447,13 +447,13 @@ func (r UserPATRepository) SetAlertSentMetadata(ctx context.Context, id string, 
 		Where(goqu.Ex{"id": id}).
 		ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "SetAlertSentMetadata", func(ctx context.Context) error {
 		_, execErr := r.dbc.ExecContext(ctx, query, params...)
 		return execErr
 	}); err != nil {
-		return fmt.Errorf("%w: %w", dbErr, err)
+		return fmt.Errorf("%w: %w", errDB, err)
 	}
 	return nil
 }
@@ -467,7 +467,7 @@ func (r UserPATRepository) Delete(ctx context.Context, id string) error {
 		).
 		ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var result sql.Result
@@ -476,12 +476,12 @@ func (r UserPATRepository) Delete(ctx context.Context, id string) error {
 		result, execErr = r.dbc.ExecContext(ctx, query, params...)
 		return execErr
 	}); err != nil {
-		return fmt.Errorf("%w: %w", dbErr, err)
+		return fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("%w: %w", dbErr, err)
+		return fmt.Errorf("%w: %w", errDB, err)
 	}
 	if rowsAffected == 0 {
 		return paterrors.ErrNotFound
