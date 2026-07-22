@@ -40,6 +40,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/robfig/cron/v3"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -56,6 +57,7 @@ var (
 	ErrMissingOIDCCode       = errors.New("OIDC code is missing")
 	ErrInvalidOIDCState      = errors.New("invalid auth state")
 	ErrFlowInvalid           = errors.New("invalid flow or expired")
+	ErrOIDCTokenExchange     = errors.New("failed to exchange oidc authorization code")
 )
 
 type UserService interface {
@@ -667,6 +669,13 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 	}
 	authToken, err := idp.Token(ctx, request.Code, flow.Nonce)
 	if err != nil {
+		// The token endpoint rejected the authorization code. This is a client-side
+		// problem (code expired, already used, or the redirect did not match), not a
+		// server fault
+		var retrieveErr *oauth2.RetrieveError
+		if errors.As(err, &retrieveErr) {
+			return nil, fmt.Errorf("%w: %w", ErrOIDCTokenExchange, err)
+		}
 		return nil, err
 	}
 	oauthProfile, err := idp.GetUser(ctx, authToken)

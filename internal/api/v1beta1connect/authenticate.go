@@ -107,7 +107,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		StateConfig: request.Msg.GetStateOptions().AsMap(),
 	})
 	if err != nil {
-		if errors.Is(err, authenticate.ErrInvalidMailOTP) || errors.Is(err, authenticate.ErrMissingOIDCCode) || errors.Is(err, authenticate.ErrInvalidOIDCState) || errors.Is(err, authenticate.ErrFlowInvalid) {
+		if errors.Is(err, authenticate.ErrInvalidMailOTP) || errors.Is(err, authenticate.ErrMissingOIDCCode) || errors.Is(err, authenticate.ErrInvalidOIDCState) || errors.Is(err, authenticate.ErrFlowInvalid) || errors.Is(err, authenticate.ErrOIDCTokenExchange) {
 			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
 				"strategy", request.Msg.GetStrategyName(),
 				"state", request.Msg.GetState())
