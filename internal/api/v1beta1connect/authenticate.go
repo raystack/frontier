@@ -107,7 +107,10 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		StateConfig: request.Msg.GetStateOptions().AsMap(),
 	})
 	if err != nil {
-		if errors.Is(err, authenticate.ErrInvalidMailOTP) || errors.Is(err, authenticate.ErrMissingOIDCCode) || errors.Is(err, authenticate.ErrInvalidOIDCState) || errors.Is(err, authenticate.ErrFlowInvalid) || errors.Is(err, authenticate.ErrOIDCTokenExchange) {
+		// ErrUnsupportedMethod here means the strategy and state the client sent match
+		// no known method (e.g. a malformed, non-base64 state). That is bad client
+		// input, same class as an empty or invalid state, so return a 4xx not a 500.
+		if errors.Is(err, authenticate.ErrInvalidMailOTP) || errors.Is(err, authenticate.ErrMissingOIDCCode) || errors.Is(err, authenticate.ErrInvalidOIDCState) || errors.Is(err, authenticate.ErrFlowInvalid) || errors.Is(err, authenticate.ErrOIDCTokenExchange) || errors.Is(err, authenticate.ErrUnsupportedMethod) {
 			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
 				"strategy", request.Msg.GetStrategyName(),
 				"state", request.Msg.GetState())
