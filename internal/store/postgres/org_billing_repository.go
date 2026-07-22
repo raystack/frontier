@@ -141,7 +141,7 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 		ReadOnly:  true,
 	}
 
-	r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
 		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
 			return tx.SelectContext(ctx, &orgBilling, dataQuery, params...)
 		})
