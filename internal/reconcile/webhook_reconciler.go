@@ -77,9 +77,10 @@ func (r *WebhookReconciler) Reconcile(ctx context.Context, spec []byte, dryRun b
 
 // Export returns the current webhook endpoints as a desired-state spec, sorted
 // by url. State is written only when it is not the default ("enabled") and an
-// empty description is left out, so an omitted field on reconcile keeps the
-// server value and the export round-trips to no changes. Secrets are never read
-// from the server, so they can never appear in an export.
+// empty description is left out. Because reconcile converges an omitted field to
+// its default, dropping a default-valued field keeps the export minimal and
+// still round-trips to no changes. Secrets are never read from the server, so
+// they can never appear in an export.
 func (r *WebhookReconciler) Export(ctx context.Context) (any, error) {
 	current, err := r.fetchCurrent(ctx)
 	if err != nil {

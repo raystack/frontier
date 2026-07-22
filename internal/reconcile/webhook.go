@@ -10,22 +10,25 @@ import (
 // KindWebhook is the desired-state document kind for webhook endpoints.
 const KindWebhook = "Webhook"
 
-// Webhook states. The server enables a new endpoint by default, so an entry
-// that does not set a state leaves the server's value in place.
+// Webhook states. The server gives a new endpoint the enabled state, so enabled
+// is the default an entry converges to when it does not set a state.
 const (
 	webhookStateEnabled  = "enabled"
 	webhookStateDisabled = "disabled"
 )
 
 // WebhookSpec is one desired webhook endpoint. The URL is the identity and
-// never changes. Subscribed events are the full desired set for the endpoint,
-// not a per-field overlay: an empty list (or none) means the endpoint receives
+// never changes. Every other field states the whole desired value under the one
+// field model: a field written in the file is used as-is, and an omitted field
+// takes its default, nothing is merged from the server. Subscribed events are
+// the full desired set: an empty list (or none) means the endpoint receives
 // every event, which is the server's own default, and export always writes the
 // field so an all-events endpoint reads as an explicit `subscribed_events: []`.
-// Description and state are managed the ordinary way: present is set, omitted
-// keeps the server value. Signing secrets are server-owned: the server
-// generates one on create and never returns it on read, so they are not part of
-// the spec.
+// Description defaults to empty, so omitting it clears any description on the
+// server. State defaults to enabled, the state the server gives a new endpoint,
+// so omitting it converges the endpoint to enabled. Signing secrets are
+// server-owned: the server generates one on create and never returns it on read,
+// so they are not part of the spec.
 type WebhookSpec struct {
 	URL              string   `yaml:"url"`
 	Description      string   `yaml:"description,omitempty"`
@@ -121,6 +124,26 @@ func normalizeWebhookSpecs(specs []WebhookSpec) ([]WebhookSpec, error) {
 	return out, nil
 }
 
+// resolve returns the whole desired state for one entry under the one field
+// model. A field present in the file is used as written; an omitted field takes
+// its default. Description defaults to empty, so omitting it clears the server's
+// description. Subscribed events default to the full set, so an empty or omitted
+// list means every event. State defaults to enabled, the state the server gives
+// a new endpoint. Nothing is merged from the server: omitting a field converges
+// it to its default rather than keeping whatever the server holds.
+func (s WebhookSpec) resolve() WebhookSpec {
+	want := WebhookSpec{
+		URL:              s.URL,
+		Description:      s.Description,
+		SubscribedEvents: uniqueSorted(s.SubscribedEvents),
+		State:            s.State,
+	}
+	if want.State == "" {
+		want.State = webhookStateEnabled
+	}
+	return want
+}
+
 // diffWebhooks returns the ops that make the current webhook endpoints match the
 // desired spec. The URL is the identity: every endpoint on the server must
 // appear in the file — kept, or marked delete — so nothing is removed by
@@ -166,45 +189,31 @@ func diffWebhooks(desired []WebhookSpec, current []currentWebhook) ([]webhookOp,
 			}
 			continue
 		}
-		desiredEvents := uniqueSorted(s.SubscribedEvents)
+
+		want := s.resolve()
 		if !exists {
-			adds = append(adds, webhookOp{action: opAdd, spec: WebhookSpec{
-				URL:              s.URL,
-				Description:      s.Description,
-				SubscribedEvents: desiredEvents,
-				State:            s.State,
-			}})
+			adds = append(adds, webhookOp{action: opAdd, spec: want})
 			continue
 		}
 
-		merged := WebhookSpec{
-			URL:              s.URL,
-			Description:      cur.Description,
-			SubscribedEvents: uniqueSorted(cur.SubscribedEvents),
-			State:            cur.State,
-		}
+		// want is the whole desired state, nothing merged from the server: an
+		// omitted field has already converged to its default in resolve. Events
+		// are the full desired set (an empty set means every event), deduplicated
+		// so a hand-written list that repeats a value plans no spurious update.
 		var changes []string
-		if s.Description != "" && s.Description != cur.Description {
-			merged.Description = s.Description
+		if want.Description != cur.Description {
 			changes = append(changes, "description")
 		}
-		// Events are the full desired set, always compared. An empty or omitted
-		// list means every event, so leaving it out sets the endpoint to all
-		// events rather than keeping the server's set. The set is deduplicated so
-		// a hand-written list that repeats a value does not send duplicates or
-		// plan a spurious update.
-		if !stringSetsEqual(desiredEvents, uniqueSorted(cur.SubscribedEvents)) {
-			merged.SubscribedEvents = desiredEvents
+		if !stringSetsEqual(want.SubscribedEvents, uniqueSorted(cur.SubscribedEvents)) {
 			changes = append(changes, "subscribed_events")
 		}
-		if s.State != "" && s.State != cur.State {
-			merged.State = s.State
+		if want.State != cur.State {
 			changes = append(changes, "state")
 		}
 		if len(changes) > 0 {
 			updates = append(updates, webhookOp{
 				action:   opUpdate,
-				spec:     merged,
+				spec:     want,
 				id:       cur.ID,
 				detail:   strings.Join(changes, ", "),
 				headers:  cur.Headers,

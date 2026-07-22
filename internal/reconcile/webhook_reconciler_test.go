@@ -81,7 +81,7 @@ func TestWebhookReconciler(t *testing.T) {
 		wh.Metadata = md
 		api := &fakeWebhookAPI{webhooks: []*frontierv1beta1.Webhook{wh}}
 		// only the event set changes; headers and metadata must survive the update
-		spec := []byte("- {url: \"https://a.example/hook\", subscribed_events: [org.created, org.deleted]}\n")
+		spec := []byte("- {url: \"https://a.example/hook\", description: desc, subscribed_events: [org.created, org.deleted]}\n")
 
 		rep, err := NewWebhookReconciler(api, "").Reconcile(context.Background(), spec, false)
 
@@ -90,8 +90,9 @@ func TestWebhookReconciler(t *testing.T) {
 		if body := api.updated["w1"]; assert.NotNil(t, body) {
 			assert.Equal(t, map[string]string{"X-Token": "abc"}, body.GetHeaders())
 			assert.Equal(t, "platform", body.GetMetadata().GetFields()["team"].GetStringValue())
-			// state was not in the file; the update must carry the server value
-			// through, not drop it to empty (which would reset it on the server).
+			// state was not in the file; it converges to the enabled default, which
+			// matches the server here, so the update keeps it enabled rather than
+			// dropping it to empty (which would reset it on the server).
 			assert.Equal(t, webhookStateEnabled, body.GetState())
 		}
 	})

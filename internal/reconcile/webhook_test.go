@@ -49,14 +49,35 @@ func TestDiffWebhooks(t *testing.T) {
 		assert.Empty(t, ops)
 	})
 
-	t.Run("an omitted state keeps the server value", func(t *testing.T) {
+	t.Run("an omitted state resets the endpoint to the enabled default", func(t *testing.T) {
+		// Under the one field model an omitted field converges to its default, and
+		// the state default is enabled. A disabled endpoint with no state in the
+		// file must plan a reset to enabled, not keep the server value.
 		current := []currentWebhook{cw("w1", "https://a.example/hook", "desc", webhookStateDisabled, "org.created")}
 		ops, err := diffWebhooks(
 			[]WebhookSpec{{URL: "https://a.example/hook", Description: "desc", SubscribedEvents: []string{"org.created"}}},
 			current,
 		)
 		assert.NoError(t, err)
-		assert.Empty(t, ops)
+		if assert.Len(t, ops, 1) {
+			assert.Equal(t, "update webhook https://a.example/hook (state)", ops[0].String())
+			assert.Equal(t, webhookStateEnabled, ops[0].spec.State)
+		}
+	})
+
+	t.Run("omitting a description clears it", func(t *testing.T) {
+		// Description defaults to empty, so leaving it out of the file clears any
+		// description the server holds rather than keeping it.
+		current := []currentWebhook{cw("w1", "https://a.example/hook", "old", webhookStateEnabled, "org.created")}
+		ops, err := diffWebhooks(
+			[]WebhookSpec{{URL: "https://a.example/hook", SubscribedEvents: []string{"org.created"}}},
+			current,
+		)
+		assert.NoError(t, err)
+		if assert.Len(t, ops, 1) {
+			assert.Equal(t, "update webhook https://a.example/hook (description)", ops[0].String())
+			assert.Equal(t, "", ops[0].spec.Description)
+		}
 	})
 
 	t.Run("dropping events from an entry widens the endpoint to all events", func(t *testing.T) {
