@@ -62,7 +62,7 @@ func TestProjectUsersRepository_PrepareDataQuery(t *testing.T) {
 
 func TestProjectUsersRepository_Search(t *testing.T) {
 	t.Run("should return error when the transaction cannot start", func(t *testing.T) {
-		repo := NewProjectUsersRepository(txnFailClient())
+		repo := NewProjectUsersRepository(txnFailClient(t))
 		_, err := repo.Search(context.Background(), "project-123", &rql.Query{Limit: 10})
 		assert.Error(t, err)
 	})

@@ -220,7 +220,7 @@ func TestPrepareGroupByQuery(t *testing.T) {
 
 func TestOrgBillingRepository_Search(t *testing.T) {
 	t.Run("should return error when the transaction cannot start", func(t *testing.T) {
-		repo := NewOrgBillingRepository(txnFailClient())
+		repo := NewOrgBillingRepository(txnFailClient(t))
 		_, err := repo.Search(context.Background(), &rql.Query{Limit: 10})
 		assert.Error(t, err)
 	})

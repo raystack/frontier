@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"testing"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/pkg/db"
@@ -12,8 +13,11 @@ import (
 
 // txnFailClient returns a client whose connections always fail, so any
 // transaction begin returns an error.
-func txnFailClient() *db.Client {
-	return &db.Client{DB: sqlx.NewDb(sql.OpenDB(failConnector{}), "postgres")}
+func txnFailClient(t *testing.T) *db.Client {
+	t.Helper()
+	client := &db.Client{DB: sqlx.NewDb(sql.OpenDB(failConnector{}), "postgres")}
+	t.Cleanup(func() { _ = client.Close() })
+	return client
 }
 
 type failConnector struct{}
