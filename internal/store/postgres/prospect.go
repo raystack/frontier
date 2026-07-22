@@ -28,6 +28,7 @@ func (a *Prospect) transformToProspect() (prospect.Prospect, error) {
 	var unmarshalledMetadata map[string]any
 	if len(a.Metadata) > 0 {
 		if err := json.Unmarshal(a.Metadata, &unmarshalledMetadata); err != nil {
+			return prospect.Prospect{}, err
 		}
 	}
 	return prospect.Prospect{
