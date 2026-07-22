@@ -142,7 +142,7 @@ function DeleteDomainContent({
 
   return (
     <AlertDialog.Content>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <AlertDialog.Header>
           <AlertDialog.Title>Delete Domain</AlertDialog.Title>
         </AlertDialog.Header>

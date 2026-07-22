@@ -93,7 +93,7 @@ export function AddProjectDialog({ handle, refetch }: AddProjectDialogProps) {
         <Dialog.Header>
           <Dialog.Title>Add Project</Dialog.Title>
         </Dialog.Header>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form noValidate onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex direction="column" gap={5}>
               <Field

@@ -111,7 +111,7 @@ export function AddDomainDialog({
           <Dialog.Header>
             <Dialog.Title>Add domain</Dialog.Title>
           </Dialog.Header>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form noValidate onSubmit={handleSubmit(onSubmit)}>
             <Dialog.Body>
               <Flex direction="column" gap={5}>
                 <Text size="small">

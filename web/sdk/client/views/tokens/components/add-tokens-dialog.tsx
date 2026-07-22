@@ -132,7 +132,7 @@ export function AddTokensDialog({ handle }: AddTokensDialogProps) {
   return (
     <Dialog handle={handle}>
       <Dialog.Content showCloseButton={false}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form noValidate onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
             <Dialog.Title>Add tokens</Dialog.Title>
           </Dialog.Header>

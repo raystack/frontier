@@ -93,7 +93,7 @@ export const CreateOrganizationView = ({
           {description}
         </Text>
       </Flex>
-      <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className={styles.form}>
         <Flex direction="column" align="center" gap={9} className={styles.card}>
           <Field
             label={`${t.organization({ case: 'capital' })} name`}
