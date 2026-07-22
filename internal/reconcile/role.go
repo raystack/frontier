@@ -17,7 +17,7 @@ const opUpdate opAction = "update"
 // RoleSpec is one desired platform-level role. Name is the identity and never
 // changes. Every other field uses presence tracking: a pointer is nil when the
 // field is omitted, and non-nil when the file lists it (including an explicit
-// empty value like `title: ""` or `permissions: []`).
+// empty value like `title: ""` or `scopes: []`).
 //
 // A present field is the whole desired value for that field. An omitted field
 // takes the role's default: empty for a custom role, and the shipped
@@ -180,14 +180,25 @@ func stringSetsEqual(a, b []string) bool {
 }
 
 // validateRoleSpec rejects entries the flow cannot manage: an entry needs a
-// name, and a predefined role cannot be deleted because bootstrap recreates it
-// on the next boot.
+// name, a predefined role cannot be deleted because bootstrap recreates it on
+// the next boot, and a role must resolve to at least one permission.
 func validateRoleSpec(s RoleSpec, isPredefined bool) error {
 	if strings.TrimSpace(s.Name) == "" {
 		return fmt.Errorf("name is required")
 	}
 	if s.Delete && isPredefined {
 		return fmt.Errorf("cannot delete a predefined role; bootstrap recreates it on the next boot")
+	}
+	// The server rejects a role with no permissions, so a spec that resolves to an
+	// empty permission set is a plan that can never apply. Fail here with a clear
+	// message instead of late at the API. A custom role defaults to empty, so
+	// omitting its permissions resolves to empty; writing `permissions: []` on any
+	// role resolves to empty too.
+	if !s.Delete {
+		def, _ := roleDefault(s.Name)
+		if len(s.resolve(def).Permissions) == 0 {
+			return fmt.Errorf("must list at least one permission; a role with no permissions cannot be applied")
+		}
 	}
 	return nil
 }

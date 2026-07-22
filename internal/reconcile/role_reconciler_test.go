@@ -187,26 +187,6 @@ func TestRoleReconciler(t *testing.T) {
 		}
 	})
 
-	t.Run("a custom role with no permissions round-trips", func(t *testing.T) {
-		// A custom role whose permissions were emptied. Export writes an entry so
-		// the role is kept, and reconciling that entry plans no changes.
-		api := &fakeRoleAPI{roles: []*frontierv1beta1.Role{
-			ownerDefaultPB(),
-			rolePB("r1", "compute_manager", "Compute Manager", nil), // no permissions
-		}}
-		registry := map[string]Reconciler{KindRole: NewRoleReconciler(api, "")}
-
-		out, err := Export(context.Background(), registry, KindRole)
-		assert.NoError(t, err)
-		assert.Contains(t, string(out), "compute_manager") // the custom role is kept in the file
-
-		reports, err := Run(context.Background(), registry, out, true)
-		assert.NoError(t, err)
-		if assert.Len(t, reports, 1) {
-			assert.Empty(t, reports[0].Planned)
-		}
-	})
-
 	t.Run("applying a role with a description writes it to metadata", func(t *testing.T) {
 		api := &fakeRoleAPI{}
 		spec := []byte("- {name: new_role, description: Runs compute orders, permissions: [compute_order_get]}\n")

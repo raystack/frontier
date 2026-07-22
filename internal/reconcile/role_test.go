@@ -249,23 +249,6 @@ func TestDiffRoles(t *testing.T) {
 		assert.ErrorContains(t, err, "delete: true")
 	})
 
-	t.Run("a custom role with no permissions is allowed", func(t *testing.T) {
-		// The old "must list at least one permission" rule is gone. A custom role
-		// with an omitted or empty permission list is a valid desired state.
-		withEmpty := []currentRole{
-			{ID: "r1", Name: "compute_manager", Title: "Compute Manager",
-				Permissions: []string{"compute_order_get", "compute_order_update"}, Scopes: []string{"compute/order"}},
-			{ID: "r2", Name: "old_role", Title: "Old"}, // no permissions on the server
-		}
-		ops, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Title: ptr("Compute Manager"),
-				Permissions: ptr([]string{"compute_order_get", "compute_order_update"}), Scopes: ptr([]string{"compute/order"})},
-			{Name: "old_role", Title: ptr("Old")}, // omitted permissions default to empty for a custom role
-		}, withEmpty)
-		assert.NoError(t, err)
-		assert.Empty(t, ops)
-	})
-
 	t.Run("an omitted custom title clears it", func(t *testing.T) {
 		// A custom role defaults to empty fields, so omitting the title means the
 		// desired title is empty. A server role that still has a title drifts and
@@ -293,6 +276,24 @@ func TestDiffRoles(t *testing.T) {
 		ops, err := diffRoles(append(keepCustom, RoleSpec{Name: "already_gone", Delete: true}), current)
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
+	})
+
+	t.Run("a custom role that resolves to no permissions fails the plan", func(t *testing.T) {
+		// The server rejects a role with no permissions, so a spec resolving to an
+		// empty set is a plan that can never apply. It must fail at plan time. A
+		// custom role defaults to empty, so both omitting permissions and writing
+		// an explicit empty list resolve to empty.
+		_, omitted := diffRoles([]RoleSpec{{Name: "empty_custom"}}, nil)
+		assert.ErrorContains(t, omitted, "at least one permission")
+
+		_, explicit := diffRoles([]RoleSpec{{Name: "empty_custom", Permissions: ptr([]string{})}}, nil)
+		assert.ErrorContains(t, explicit, "at least one permission")
+	})
+
+	t.Run("a predefined role set to empty permissions fails the plan", func(t *testing.T) {
+		cur := []currentRole{{ID: "r1", Name: schema.RoleOrganizationViewer, Permissions: []string{"app_organization_get"}}}
+		_, err := diffRoles([]RoleSpec{{Name: schema.RoleOrganizationViewer, Permissions: ptr([]string{})}}, cur)
+		assert.ErrorContains(t, err, "at least one permission")
 	})
 }
 
