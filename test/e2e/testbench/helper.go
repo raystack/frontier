@@ -69,6 +69,47 @@ func PromoteBootstrapAdmin(ctx context.Context, ad frontierv1beta1connect.AdminS
 	return fmt.Errorf("promote bootstrap admin (server unavailable after retries): %w", lastErr)
 }
 
+// SeedComputeResources creates the custom "compute" permissions and roles the
+// regression suites rely on, through the admin API. This replaces the removed
+// boot-time resources_config loader: tests now seed custom resources the same
+// way operators do, via reconcile/the admin API.
+func SeedComputeResources(ctx context.Context, ad frontierv1beta1connect.AdminServiceClient) error {
+	basic := base64.StdEncoding.EncodeToString([]byte(BootstrapClientID + ":" + BootstrapClientSecret))
+	authCtx := ContextWithHeaders(ctx, map[string]string{"Authorization": "Basic " + basic})
+
+	permKeys := []string{
+		"compute.order.delete", "compute.order.update", "compute.order.get",
+		"compute.order.create", "compute.order.configure",
+		"compute.disk.get", "compute.disk.create", "compute.disk.delete",
+	}
+	bodies := make([]*frontierv1beta1.PermissionRequestBody, 0, len(permKeys))
+	for _, key := range permKeys {
+		bodies = append(bodies, &frontierv1beta1.PermissionRequestBody{Key: key})
+	}
+	if _, err := ad.CreatePermission(authCtx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+		Bodies: bodies,
+	})); err != nil {
+		return fmt.Errorf("seed compute permissions: %w", err)
+	}
+
+	roles := []struct {
+		name  string
+		perms []string
+	}{
+		{"compute_order_manager", []string{"compute_order_delete", "compute_order_update", "compute_order_get", "compute_order_create"}},
+		{"compute_order_viewer", []string{"compute_order_get"}},
+		{"compute_order_owner", []string{"compute_order_delete", "compute_order_update", "compute_order_get", "compute_order_create"}},
+	}
+	for _, r := range roles {
+		if _, err := ad.CreateRole(authCtx, connect.NewRequest(&frontierv1beta1.CreateRoleRequest{
+			Body: &frontierv1beta1.RoleRequestBody{Name: r.name, Permissions: r.perms},
+		})); err != nil {
+			return fmt.Errorf("seed compute role %s: %w", r.name, err)
+		}
+	}
+	return nil
+}
+
 // headersKey is the context key for storing headers to be sent with ConnectRPC requests.
 type headersKey struct{}
 
