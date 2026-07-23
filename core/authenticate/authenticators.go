@@ -54,6 +54,20 @@ func authenticateWithSession(ctx context.Context, s *Service) (Principal, error)
 	return Principal{}, errSkip
 }
 
+func (s *Service) ensureOrgEnabled(ctx context.Context, orgID string) error {
+	if s.orgService == nil || orgID == "" || orgID == schema.PlatformOrgID.String() {
+		return nil
+	}
+	enabled, err := s.orgService.IsEnabled(ctx, orgID)
+	if err != nil {
+		return err
+	}
+	if !enabled {
+		return errors.ErrForbidden
+	}
+	return nil
+}
+
 // authenticateWithPAT validates a personal access token.
 func authenticateWithPAT(ctx context.Context, s *Service) (Principal, error) {
 	value, ok := GetTokenFromContext(ctx)
@@ -67,6 +81,10 @@ func authenticateWithPAT(ctx context.Context, s *Service) (Principal, error) {
 			return Principal{}, errSkip
 		}
 		s.log.DebugContext(ctx, "PAT validation failed", "err", err)
+		return Principal{}, err
+	}
+
+	if err := s.ensureOrgEnabled(ctx, pat.OrgID); err != nil {
 		return Principal{}, err
 	}
 
@@ -125,6 +143,9 @@ func authenticateWithAccessToken(ctx context.Context, s *Service) (Principal, er
 				s.log.DebugContext(ctx, "failed to get service user", "err", err)
 				return Principal{}, err
 			}
+			if err := s.ensureOrgEnabled(ctx, currentUser.OrgID); err != nil {
+				return Principal{}, err
+			}
 			return Principal{
 				ID:          currentUser.ID,
 				Type:        schema.ServiceUserPrincipal,
@@ -142,6 +163,9 @@ func authenticateWithAccessToken(ctx context.Context, s *Service) (Principal, er
 			if pat.ExpiresAt.Before(s.Now()) {
 				s.log.DebugContext(ctx, "PAT has expired", "pat_id", patID)
 				return Principal{}, errors.ErrUnauthenticated
+			}
+			if err := s.ensureOrgEnabled(ctx, pat.OrgID); err != nil {
+				return Principal{}, err
 			}
 			currentUser, err := s.userService.GetByID(ctx, pat.UserID)
 			if err != nil {
@@ -183,6 +207,9 @@ func authenticateWithJWTGrant(ctx context.Context, s *Service) (Principal, error
 
 	serviceUser, err := s.serviceUserService.GetByJWT(ctx, userToken)
 	if err == nil {
+		if err := s.ensureOrgEnabled(ctx, serviceUser.OrgID); err != nil {
+			return Principal{}, err
+		}
 		return Principal{
 			ID:          serviceUser.ID,
 			Type:        schema.ServiceUserPrincipal,
@@ -226,6 +253,9 @@ func authenticateWithClientCredentials(ctx context.Context, s *Service) (Princip
 	// extract user from secret if it's a service user
 	serviceUser, err := s.serviceUserService.GetBySecret(ctx, clientID, clientSecret)
 	if err == nil {
+		if err := s.ensureOrgEnabled(ctx, serviceUser.OrgID); err != nil {
+			return Principal{}, err
+		}
 		return Principal{
 			ID:          serviceUser.ID,
 			Type:        schema.ServiceUserPrincipal,

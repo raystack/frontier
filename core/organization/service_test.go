@@ -73,6 +73,52 @@ func TestService_Get(t *testing.T) {
 	})
 }
 
+func TestService_IsEnabled(t *testing.T) {
+	newSvc := func(t *testing.T) (*mocks.Repository, *organization.Service) {
+		mockRepo := mocks.NewRepository(t)
+		svc := organization.NewService(mockRepo, mocks.NewRelationService(t), mocks.NewUserService(t),
+			mocks.NewAuthnService(t), mocks.NewPolicyService(t), mocks.NewPreferencesService(t), mocks.NewRoleService(t))
+		return mockRepo, svc
+	}
+
+	t.Run("enabled org returns true", func(t *testing.T) {
+		mockRepo, svc := newSvc(t)
+		id := uuid.New().String()
+		mockRepo.On("GetByID", mock.Anything, id).Return(organization.Organization{ID: id, State: organization.Enabled}, nil).Once()
+		ok, err := svc.IsEnabled(context.Background(), id)
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+
+	t.Run("disabled org returns false", func(t *testing.T) {
+		mockRepo, svc := newSvc(t)
+		id := uuid.New().String()
+		mockRepo.On("GetByID", mock.Anything, id).Return(organization.Organization{ID: id, State: organization.Disabled}, nil).Once()
+		ok, err := svc.IsEnabled(context.Background(), id)
+		assert.NoError(t, err)
+		assert.False(t, ok)
+	})
+
+	t.Run("missing org returns false", func(t *testing.T) {
+		mockRepo, svc := newSvc(t)
+		id := uuid.New().String()
+		mockRepo.On("GetByID", mock.Anything, id).Return(organization.Organization{}, organization.ErrNotExist).Once()
+		ok, err := svc.IsEnabled(context.Background(), id)
+		assert.NoError(t, err)
+		assert.False(t, ok)
+	})
+
+	t.Run("unexpected error propagates", func(t *testing.T) {
+		mockRepo, svc := newSvc(t)
+		id := uuid.New().String()
+		repoErr := errors.New("db down")
+		mockRepo.On("GetByID", mock.Anything, id).Return(organization.Organization{}, repoErr).Once()
+		ok, err := svc.IsEnabled(context.Background(), id)
+		assert.ErrorIs(t, err, repoErr)
+		assert.False(t, ok)
+	})
+}
+
 func TestService_GetRaw(t *testing.T) {
 	mockRepo := mocks.NewRepository(t)
 	mockRelationSvc := mocks.NewRelationService(t)

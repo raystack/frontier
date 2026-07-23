@@ -26,6 +26,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	patModels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	frontiererrors "github.com/raystack/frontier/pkg/errors"
 	mailerMock "github.com/raystack/frontier/pkg/mailer/mocks"
 	pkgMetadata "github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -506,6 +507,117 @@ func TestService_GetPrincipal_RestrictsByAuthVia(t *testing.T) {
 			})
 			if _, err := svc.GetPrincipal(ctx, tt.allowed...); (err != nil) != tt.wantErr {
 				t.Errorf("GetPrincipal() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
+	orgID := uuid.New().String()
+	userID := uuid.New().String()
+	patID := uuid.New().String()
+	secret := base64.StdEncoding.EncodeToString([]byte("user:password"))
+
+	tests := []struct {
+		name       string
+		ctx        context.Context
+		assertions []authenticate.ClientAssertion
+		want       authenticate.Principal
+		wantErr    error
+		setup      func(t *testing.T) *authenticate.Service
+	}{
+		{
+			name: "reject PAT whose org is disabled or gone",
+			ctx: metadata.NewIncomingContext(context.Background(), map[string][]string{
+				consts.UserTokenGatewayKey: {"pat-token"},
+			}),
+			assertions: []authenticate.ClientAssertion{authenticate.PATClientAssertion},
+			wantErr:    frontiererrors.ErrForbidden,
+			setup: func(t *testing.T) *authenticate.Service {
+				pat := mocks.NewUserPATService(t)
+				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: orgID}, nil)
+				org := mocks.NewOrgService(t)
+				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(false, nil)
+				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+					nil, nil, nil, nil, mocks.NewUserService(t), nil, nil, pat)
+				s.SetOrgService(org)
+				return s
+			},
+		},
+		{
+			name: "allow PAT whose org is enabled",
+			ctx: metadata.NewIncomingContext(context.Background(), map[string][]string{
+				consts.UserTokenGatewayKey: {"pat-token"},
+			}),
+			assertions: []authenticate.ClientAssertion{authenticate.PATClientAssertion},
+			want: authenticate.Principal{
+				ID:      patID,
+				Type:    schema.PATPrincipal,
+				AuthVia: authenticate.PATClientAssertion,
+				PAT:     &patModels.PAT{ID: patID, UserID: userID, OrgID: orgID},
+				User:    &user.User{ID: userID},
+			},
+			setup: func(t *testing.T) *authenticate.Service {
+				pat := mocks.NewUserPATService(t)
+				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: orgID}, nil)
+				usr := mocks.NewUserService(t)
+				usr.EXPECT().GetByID(mock.Anything, userID).Return(user.User{ID: userID}, nil)
+				org := mocks.NewOrgService(t)
+				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(true, nil)
+				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+					nil, nil, nil, nil, usr, nil, nil, pat)
+				s.SetOrgService(org)
+				return s
+			},
+		},
+		{
+			name: "reject service user (client credentials) whose org is disabled or gone",
+			ctx: metadata.NewIncomingContext(context.Background(), map[string][]string{
+				consts.UserSecretGatewayKey: {secret},
+			}),
+			assertions: []authenticate.ClientAssertion{authenticate.ClientCredentialsClientAssertion},
+			wantErr:    frontiererrors.ErrForbidden,
+			setup: func(t *testing.T) *authenticate.Service {
+				su := mocks.NewServiceUserService(t)
+				su.EXPECT().GetBySecret(mock.Anything, "user", "password").Return(serviceuser.ServiceUser{ID: userID, OrgID: orgID}, nil)
+				org := mocks.NewOrgService(t)
+				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(false, nil)
+				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+					nil, nil, nil, nil, nil, su, nil, nil)
+				s.SetOrgService(org)
+				return s
+			},
+		},
+		{
+			name: "reject service user (jwt grant) whose org is disabled or gone",
+			ctx: metadata.NewIncomingContext(context.Background(), map[string][]string{
+				consts.UserTokenGatewayKey: {"grant-token"},
+			}),
+			assertions: []authenticate.ClientAssertion{authenticate.JWTGrantClientAssertion},
+			wantErr:    frontiererrors.ErrForbidden,
+			setup: func(t *testing.T) *authenticate.Service {
+				su := mocks.NewServiceUserService(t)
+				su.EXPECT().GetByJWT(mock.Anything, "grant-token").Return(serviceuser.ServiceUser{ID: userID, OrgID: orgID}, nil)
+				org := mocks.NewOrgService(t)
+				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(false, nil)
+				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+					nil, nil, nil, nil, nil, su, nil, nil)
+				s.SetOrgService(org)
+				return s
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup(t)
+			got, err := s.GetPrincipal(tt.ctx, tt.assertions...)
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			assert.NoError(t, err)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("GetPrincipal() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

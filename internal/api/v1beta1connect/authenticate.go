@@ -285,6 +285,8 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 			return principal, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, errors.ErrUnauthenticated):
 			return principal, connect.NewError(connect.CodeUnauthenticated, ErrUnauthenticated)
+		case errors.Is(err, errors.ErrForbidden):
+			return principal, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
 		case errors.Is(err, patErrors.ErrMalformedPAT),
 			errors.Is(err, patErrors.ErrNotFound),
 			errors.Is(err, patErrors.ErrExpired),
