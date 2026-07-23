@@ -213,7 +213,7 @@ spec:
     delete: true
 ```
 
-- The URL must be a valid absolute URL, and it is the identity. If two endpoints on the
+- The URL must be a valid absolute HTTP(S) URL, and it is the identity. If two endpoints on the
   server share a URL, the identity is ambiguous: the plan fails and names the ids so you can
   remove the extra one by hand.
 - `subscribed_events` is the full set of events the endpoint receives, compared as a set. An
@@ -224,8 +224,8 @@ spec:
   field model: a value you write is used as-is, and leaving the field out converges it to the
   default. Description defaults to empty, so dropping it clears any description on the server;
   state defaults to `enabled`, so dropping it re-enables the endpoint.
-- Every endpoint on the server must appear in the file, kept or marked `delete: true`. One
-  that is missing fails the plan; nothing is deleted just because it is missing.
+- Every endpoint on the server must appear in the file, kept or marked `delete: true`. An
+  endpoint that is missing fails the plan; nothing is deleted just because it is missing.
 - The signing secret is server-owned. The server generates it when the endpoint is created
   and never returns it on read, so it is not part of the file, never shows up in a plan, and
   can never appear in an export.
