@@ -164,14 +164,32 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Empty(t, ops)
 	})
 
-	t.Run("rejects a user ref that is neither a uuid nor a plain email", func(t *testing.T) {
+	t.Run("rejects a user ref that is neither a uuid nor an email", func(t *testing.T) {
 		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "alice-slug", Relation: admin}}, nil)
-		assert.ErrorContains(t, err, "must be a user id (uuid) or a plain email address")
+		assert.ErrorContains(t, err, "must be a user id (uuid) or an email address")
 	})
 
-	t.Run("rejects a display-name email ref", func(t *testing.T) {
-		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "user", Ref: "Alice <alice@x.com>", Relation: admin}}, nil)
-		assert.ErrorContains(t, err, "must be a user id (uuid) or a plain email address")
+	t.Run("a display-name email ref matches the stored principal by address", func(t *testing.T) {
+		// A display-name email is a valid ref; it matches by its address, so it does
+		// not plan a spurious remove of access it means to keep.
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "user", Ref: "Alice <alice@x.com>", Relation: admin}},
+			[]platformPrincipal{principal("user", "alice-id", "alice@x.com", admin)},
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("an add for a new email ref uses the normalized address, not the ref verbatim", func(t *testing.T) {
+		// A display-name or differently-cased ref for a user with no current grant
+		// must add by the plain address, so the server grants the real user rather
+		// than creating a shadow user whose email is the literal display-name form.
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "user", Ref: "Alice <Alice@X.com>", Relation: admin}},
+			nil,
+		)
+		assert.NoError(t, err)
+		assert.Equal(t, []Op{{Action: opAdd, Type: "user", Ref: "alice@x.com", Relation: admin}}, ops)
 	})
 
 	t.Run("rejects a service user ref that is not a uuid", func(t *testing.T) {
@@ -205,6 +223,13 @@ func TestSpecRefMatching(t *testing.T) {
 	})
 	t.Run("no match on an unrelated ref", func(t *testing.T) {
 		assert.False(t, specMatchesPrincipal(PlatformUserSpec{Type: "user", Ref: "bob@x.com", Relation: admin}, userP))
+	})
+	t.Run("a uuid ref does not match a user whose email is that uuid", func(t *testing.T) {
+		// A user's email can be any string, including another user's id. A uuid ref
+		// parses to no address, so it matches only by id, never against that email.
+		victim := principal("user", "victim-id", "bbbbbbbb-2222-2222-2222-222222222222")
+		assert.False(t, specMatchesPrincipal(
+			PlatformUserSpec{Type: "user", Ref: "bbbbbbbb-2222-2222-2222-222222222222", Relation: admin}, victim))
 	})
 
 	// end-to-end through the diff: a user referenced by id and a service user by id

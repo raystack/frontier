@@ -819,6 +819,22 @@ func TestService_Sudo(t *testing.T) {
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
 		},
+		{
+			// An id that is neither an existing user nor an email must fail, not be
+			// skipped: a silent skip reports success while granting nothing, so a
+			// reconcile add for a missing user id would never converge.
+			name:    "an unknown non-email id fails loudly instead of a silent skip",
+			wantErr: true,
+			args: args{
+				id:           "00000000-0000-0000-0000-000000000001",
+				relationName: schema.AdminRelationName,
+			},
+			setup: func() *user.Service {
+				repo, relationService, sessionService, auditRecordRepository := mockService(t)
+				repo.EXPECT().GetByID(mock.Anything, "00000000-0000-0000-0000-000000000001").Return(user.User{}, user.ErrNotExist)
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

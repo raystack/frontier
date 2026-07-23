@@ -192,6 +192,75 @@ func TestPlatformUserReconciler_Reconcile(t *testing.T) {
 		}
 	})
 
+	t.Run("a user with a display-name email round-trips via its address", func(t *testing.T) {
+		// The server can store a display-name email. Export normalizes it to the bare
+		// address, and re-reconcile matches by address, so the round-trip plans nothing.
+		api := &fakePlatformUserAPI{
+			users: []*frontierv1beta1.User{
+				platformUserPBRelations(t, "55555555-5555-5555-5555-555555555555", "Alice <alice@x.com>", schema.AdminRelationName),
+			},
+		}
+		registry := map[string]Reconciler{KindPlatformUser: NewPlatformUserReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindPlatformUser)
+		assert.NoError(t, err)
+		assert.Contains(t, string(out), "alice@x.com") // the address, normalized
+		assert.NotContains(t, string(out), "Alice")    // display name dropped
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+
+	t.Run("a user whose email is another user's id exports by id and round-trips", func(t *testing.T) {
+		// Emails are unvalidated, so a user's email can be another user's id. Export
+		// must reference such a user by its own id, not emit the id-shaped email as
+		// the ref (which would grant the other user on re-reconcile).
+		aID := "aaaaaaaa-1111-1111-1111-111111111111"
+		bID := "bbbbbbbb-2222-2222-2222-222222222222"
+		api := &fakePlatformUserAPI{
+			users: []*frontierv1beta1.User{
+				platformUserPBRelations(t, aID, bID, schema.MemberRelationName), // A's email is B's id
+				platformUserPBRelations(t, bID, "b@x.com", schema.AdminRelationName),
+			},
+		}
+		registry := map[string]Reconciler{KindPlatformUser: NewPlatformUserReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindPlatformUser)
+		assert.NoError(t, err)
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+
+	t.Run("a user with a quoted-local-part email exports by id and round-trips", func(t *testing.T) {
+		// mail.ParseAddress accepts "john smith"@x.com, but its unquoted address does
+		// not re-parse, so emitting it would fail the tool's own validation. Export
+		// must fall back to the id, like the empty and garbage cases.
+		api := &fakePlatformUserAPI{
+			users: []*frontierv1beta1.User{
+				platformUserPBRelations(t, "66666666-6666-6666-6666-666666666666", `"john smith"@x.com`, schema.AdminRelationName),
+			},
+		}
+		registry := map[string]Reconciler{KindPlatformUser: NewPlatformUserReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindPlatformUser)
+		assert.NoError(t, err)
+		assert.Contains(t, string(out), "66666666-6666-6666-6666-666666666666") // by id
+		assert.NotContains(t, string(out), "john smith")
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+
 	t.Run("export of an empty platform yields a document Run accepts", func(t *testing.T) {
 		registry := map[string]Reconciler{KindPlatformUser: NewPlatformUserReconciler(&fakePlatformUserAPI{}, "")}
 

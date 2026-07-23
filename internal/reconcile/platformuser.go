@@ -83,12 +83,13 @@ func validateSpec(s PlatformUserSpec) error {
 		return fmt.Errorf("empty ref")
 	}
 	// The ref must be a form the server resolves to exactly one principal, so the
-	// diff can match it to a live principal. A user is an id or a plain email; a
-	// service user is an id. A slug or a display-name email would resolve on the
-	// server but not match here, silently planning a remove of access meant to stay.
+	// diff can match it to a live principal. A user is a uuid or an email; a
+	// service user is a uuid. An email ref is matched by its address, so a
+	// display-name or differently-cased form still matches the address the server
+	// stored. A slug (neither a uuid nor an email) is rejected.
 	if s.Type == principalTypeUser {
-		if !isUUID(ref) && !isBareEmail(ref) {
-			return fmt.Errorf("ref %q must be a user id (uuid) or a plain email address", s.Ref)
+		if _, isEmail := emailAddress(ref); !isUUID(ref) && !isEmail {
+			return fmt.Errorf("ref %q must be a user id (uuid) or an email address", s.Ref)
 		}
 	} else if !isUUID(ref) {
 		return fmt.Errorf("ref %q must be a service user id (uuid)", s.Ref)
@@ -111,26 +112,51 @@ func isUUID(s string) bool {
 	return err == nil
 }
 
-// isBareEmail reports whether s is a plain email address with no display name,
-// so it matches the address the server stores. "Alice <a@x.com>" is rejected.
-func isBareEmail(s string) bool {
-	addr, err := mail.ParseAddress(s)
-	return err == nil && addr.Name == "" && addr.Address == s
+// emailAddress returns the lowercased address part of an email and whether s
+// parsed as one. "Alice <A@X.com>", "a@x.com", and "A@X.com" all yield
+// "a@x.com", so a display-name or differently-cased ref matches the address the
+// server stored. A value that is not an email (a uuid, a slug) does not parse
+// and returns ok=false.
+func emailAddress(s string) (addr string, ok bool) {
+	a, err := mail.ParseAddress(strings.TrimSpace(s))
+	if err != nil {
+		return "", false
+	}
+	got := strings.ToLower(a.Address)
+	// A quoted local part unquotes to an address ParseAddress cannot read back
+	// (`"john smith"@x.com` -> `john smith@x.com`). Treat it as not a usable email,
+	// so callers fall back to the id and export never emits a ref that fails its
+	// own re-validation.
+	if _, err := mail.ParseAddress(got); err != nil {
+		return "", false
+	}
+	return got, true
 }
 
 // canonicalRef normalizes a ref to the form the server stores. A UUID in any
-// accepted form becomes the canonical lowercase id; anything else (an email) is
-// only trimmed and still matches case-insensitively against the stored address.
+// accepted form becomes the canonical lowercase id; an email becomes its
+// lowercased address with any display name dropped, which is the form an add
+// sends and the form matching compares. Anything else is only trimmed.
 func canonicalRef(ref string) string {
 	ref = strings.TrimSpace(ref)
 	if u, err := uuid.Parse(ref); err == nil {
 		return u.String()
 	}
+	// An add for an unmatched email spec sends this ref, so normalize it to the
+	// plain address the server resolves, not a display-name form it would treat as
+	// a new user.
+	if addr, ok := emailAddress(ref); ok {
+		return addr
+	}
 	return ref
 }
 
 // specMatchesPrincipal reports whether a desired spec refers to a current
-// principal: users match by id or email, service users by id.
+// principal: a service user matches by id, a user by id or by email address.
+// Emails compare by their parsed address (lowercased), so a display-name or
+// differently-cased ref matches the plain address the server stored. A uuid ref
+// does not parse as an email, so it only ever matches by id, never against a
+// user whose email happens to be another user's id.
 func specMatchesPrincipal(s PlatformUserSpec, p platformPrincipal) bool {
 	if s.Type != p.Type {
 		return false
@@ -138,7 +164,12 @@ func specMatchesPrincipal(s PlatformUserSpec, p platformPrincipal) bool {
 	if s.Ref == p.ID {
 		return true
 	}
-	return p.Type == principalTypeUser && s.Ref != "" && strings.EqualFold(s.Ref, p.Email)
+	if p.Type != principalTypeUser {
+		return false
+	}
+	refAddr, refOK := emailAddress(s.Ref)
+	pAddr, pOK := emailAddress(p.Email)
+	return refOK && pOK && refAddr == pAddr
 }
 
 var platformRelationOrder = []string{schema.AdminRelationName, schema.MemberRelationName}

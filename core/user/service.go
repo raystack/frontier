@@ -173,8 +173,11 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 				return err
 			}
 		} else {
-			// skip
-			return nil
+			// A non-email id that resolves to no user cannot be granted anything.
+			// Fail loudly instead of returning success: a silent skip reports the
+			// grant as done while nothing changed, so a reconcile add for a missing
+			// user id would report success and re-plan the same add forever.
+			return fmt.Errorf("%w: %q is not an existing user id or a valid email", ErrNotExist, id)
 		}
 	}
 	if err != nil {
