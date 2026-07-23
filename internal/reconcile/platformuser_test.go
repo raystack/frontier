@@ -180,6 +180,18 @@ func TestDiffPlatformUsers(t *testing.T) {
 		assert.Empty(t, ops)
 	})
 
+	t.Run("an add for a new email ref uses the normalized address, not the ref verbatim", func(t *testing.T) {
+		// A display-name or differently-cased ref for a user with no current grant
+		// must add by the plain address, so the server grants the real user rather
+		// than creating a shadow user whose email is the literal display-name form.
+		ops, err := diffPlatformUsers(
+			[]PlatformUserSpec{{Type: "user", Ref: "Alice <Alice@X.com>", Relation: admin}},
+			nil,
+		)
+		assert.NoError(t, err)
+		assert.Equal(t, []Op{{Action: opAdd, Type: "user", Ref: "alice@x.com", Relation: admin}}, ops)
+	})
+
 	t.Run("rejects a service user ref that is not a uuid", func(t *testing.T) {
 		_, err := diffPlatformUsers([]PlatformUserSpec{{Type: "serviceuser", Ref: "not-a-uuid", Relation: admin}}, nil)
 		assert.ErrorContains(t, err, "must be a service user id (uuid)")

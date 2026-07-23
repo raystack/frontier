@@ -122,16 +122,31 @@ func emailAddress(s string) (addr string, ok bool) {
 	if err != nil {
 		return "", false
 	}
-	return strings.ToLower(a.Address), true
+	got := strings.ToLower(a.Address)
+	// A quoted local part unquotes to an address ParseAddress cannot read back
+	// (`"john smith"@x.com` -> `john smith@x.com`). Treat it as not a usable email,
+	// so callers fall back to the id and export never emits a ref that fails its
+	// own re-validation.
+	if _, err := mail.ParseAddress(got); err != nil {
+		return "", false
+	}
+	return got, true
 }
 
 // canonicalRef normalizes a ref to the form the server stores. A UUID in any
-// accepted form becomes the canonical lowercase id; anything else (an email) is
-// only trimmed and still matches case-insensitively against the stored address.
+// accepted form becomes the canonical lowercase id; an email becomes its
+// lowercased address with any display name dropped, which is the form an add
+// sends and the form matching compares. Anything else is only trimmed.
 func canonicalRef(ref string) string {
 	ref = strings.TrimSpace(ref)
 	if u, err := uuid.Parse(ref); err == nil {
 		return u.String()
+	}
+	// An add for an unmatched email spec sends this ref, so normalize it to the
+	// plain address the server resolves, not a display-name form it would treat as
+	// a new user.
+	if addr, ok := emailAddress(ref); ok {
+		return addr
 	}
 	return ref
 }
