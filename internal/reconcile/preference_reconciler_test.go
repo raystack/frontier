@@ -94,6 +94,16 @@ func TestPreferenceReconciler(t *testing.T) {
 		assert.Empty(t, api.created)
 	})
 
+	t.Run("a value the trait rejects fails before applying", func(t *testing.T) {
+		api := &fakePreferenceAPI{traits: platformTraits()}
+		spec := []byte("- {name: disable_orgs_on_create, value: \"\"}\n") // empty is never accepted
+
+		_, err := NewPreferenceReconciler(api, "").Reconcile(context.Background(), spec, false)
+
+		assert.ErrorContains(t, err, "not a valid value")
+		assert.Empty(t, api.created)
+	})
+
 	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {
 		api := &fakePreferenceAPI{traits: platformTraits()}
 		// `valu` instead of `value`: must fail, not silently ignore the value

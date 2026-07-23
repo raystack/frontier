@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
@@ -65,12 +66,12 @@ func (r *PreferenceReconciler) Reconcile(ctx context.Context, spec []byte, dryRu
 	if err != nil {
 		return Report{}, err
 	}
-	defaults, err := r.fetchDefaults(ctx)
+	traits, err := r.fetchTraits(ctx)
 	if err != nil {
 		return Report{}, err
 	}
 
-	ops, err := diffPreferences(specs, current, defaults)
+	ops, err := diffPreferences(specs, current, traits)
 	if err != nil {
 		return Report{}, err
 	}
@@ -99,15 +100,15 @@ func (r *PreferenceReconciler) Export(ctx context.Context) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	defaults, err := r.fetchDefaults(ctx)
+	traits, err := r.fetchTraits(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	specs := make([]PreferenceSpec, 0, len(current))
 	for name, value := range current {
-		def, known := defaults[name]
-		if !known || value == def {
+		trait, known := traits[name]
+		if !known || value == trait.Default {
 			continue
 		}
 		specs = append(specs, PreferenceSpec{Name: name, Value: value})
@@ -130,21 +131,62 @@ func (r *PreferenceReconciler) fetchCurrent(ctx context.Context) (map[string]str
 	return current, nil
 }
 
-// fetchDefaults reads the platform traits and their defaults. It is both the
-// map of defaults and the set of valid platform preference names.
-func (r *PreferenceReconciler) fetchDefaults(ctx context.Context) (map[string]string, error) {
+// fetchTraits reads the platform traits, keyed by name. A trait carries its
+// default and its validator, so this one map is the source of defaults, the set
+// of valid platform preference names, and the rule a value must pass.
+func (r *PreferenceReconciler) fetchTraits(ctx context.Context) (map[string]preference.Trait, error) {
 	resp, err := r.client.DescribePreferences(ctx, authReq(&frontierv1beta1.DescribePreferencesRequest{}, r.header))
 	if err != nil {
 		return nil, fmt.Errorf("describe preferences: %w", err)
 	}
-	defaults := map[string]string{}
+	traits := map[string]preference.Trait{}
 	for _, t := range resp.Msg.GetTraits() {
 		if t.GetResourceType() != schema.PlatformNamespace {
 			continue
 		}
-		defaults[t.GetName()] = t.GetDefault()
+		traits[t.GetName()] = traitFromPB(t)
 	}
-	return defaults, nil
+	return traits, nil
+}
+
+// traitFromPB rebuilds the core trait from its wire form, so the plan can
+// validate a value with the same validator the server applies on write.
+func traitFromPB(t *frontierv1beta1.PreferenceTrait) preference.Trait {
+	tr := preference.Trait{
+		Name:       t.GetName(),
+		Default:    t.GetDefault(),
+		Input:      inputTypeFromPB(t.GetInputType()),
+		InputHints: t.GetInputHints(),
+	}
+	for _, o := range t.GetInputOptions() {
+		tr.InputOptions = append(tr.InputOptions, preference.InputHintOption{
+			Name:        o.GetName(),
+			Description: o.GetDescription(),
+		})
+	}
+	return tr
+}
+
+// inputTypeFromPB maps the wire input type back to the core one, the inverse of
+// transformPreferenceTraitToPB in the API layer. An unset or unknown type falls
+// back to text, which the trait validator treats as "any non-empty value".
+func inputTypeFromPB(it frontierv1beta1.PreferenceTrait_InputType) preference.TraitInput {
+	switch it {
+	case frontierv1beta1.PreferenceTrait_INPUT_TYPE_TEXTAREA:
+		return preference.TraitInputTextarea
+	case frontierv1beta1.PreferenceTrait_INPUT_TYPE_SELECT:
+		return preference.TraitInputSelect
+	case frontierv1beta1.PreferenceTrait_INPUT_TYPE_COMBOBOX:
+		return preference.TraitInputCombobox
+	case frontierv1beta1.PreferenceTrait_INPUT_TYPE_CHECKBOX:
+		return preference.TraitInputCheckbox
+	case frontierv1beta1.PreferenceTrait_INPUT_TYPE_MULTISELECT:
+		return preference.TraitInputMultiselect
+	case frontierv1beta1.PreferenceTrait_INPUT_TYPE_NUMBER:
+		return preference.TraitInputNumber
+	default:
+		return preference.TraitInputText
+	}
 }
 
 func (r *PreferenceReconciler) apply(ctx context.Context, op preferenceOp) error {
