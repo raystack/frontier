@@ -43,6 +43,17 @@
     width: var(--rs-space-12);
 }
 
+.table-action-column > * {
+    opacity: 0;
+    transition: opacity 120ms ease-in-out;
+}
+
+.table-wrapper tr:hover .table-action-column > *,
+.table-action-column:focus-within > *,
+.table-action-column:has([data-popup-open]) > * {
+    opacity: 1;
+}
+
 /* Keep the row highlighted while its action menu is open. */
 .table-wrapper tr:has([data-test-id="admin-project-actions"][data-popup-open]) {
     background: var(--rs-color-background-base-primary-hover);

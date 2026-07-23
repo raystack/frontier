@@ -5,6 +5,7 @@ import {
   Flex,
   Text,
   Menu,
+  IconButton,
 } from "@raystack/apsara";
 import type { DataTableColumnDef } from "@raystack/apsara";
 import type {
@@ -161,7 +162,7 @@ function ProjectActions({
 
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
-  const preventClickBubbling = (e: React.MouseEvent<SVGElement>) => {
+  const preventClickBubbling = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
@@ -189,10 +190,13 @@ function ProjectActions({
       <Menu open={open} onOpenChange={handleOpen}>
         <Menu.Trigger
           render={
-            <DotsHorizontalIcon
+            <IconButton
+              size={3}
               onClick={preventClickBubbling}
               data-test-id="admin-project-actions"
-            />
+            >
+              <DotsHorizontalIcon />
+            </IconButton>
           }
         />
         <Menu.Content className={styles["table-action-dropdown"]}>
