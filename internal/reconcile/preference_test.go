@@ -124,6 +124,16 @@ func TestDiffPreferences(t *testing.T) {
 		assert.Empty(t, ops)
 	})
 
+	t.Run("a stored empty value not in the file is left alone, not reset", func(t *testing.T) {
+		// An empty stored value counts as unset, so it is already at its default
+		// and needs no reset. Planning a reset here would write the default on
+		// every run and break the export round trip.
+		current := map[string]string{"disable_orgs_on_create": ""}
+		ops, err := diffPreferences(nil, current, traits)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
 	t.Run("an empty value the trait does not accept fails the plan", func(t *testing.T) {
 		// A checkbox trait accepts only "true" or "false", so an empty value is a
 		// set the server would reject. It must fail the plan, not appear in it.
@@ -138,6 +148,21 @@ func TestDiffPreferences(t *testing.T) {
 			{Name: "disable_orgs_on_create", Value: "maybe"},
 		}, map[string]string{}, traits)
 		assert.ErrorContains(t, err, "not a valid value")
+	})
+
+	t.Run("a listed value equal to the server value round-trips even if the trait would now reject it", func(t *testing.T) {
+		// R5: export lists the server's stored value verbatim. If a trait's options
+		// tighten after a value was stored (a changed custom trait, or an upgrade),
+		// the server still holds the old value. Reconciling its export must plan
+		// zero ops, not reject the value it just exported. So a value equal to the
+		// one in effect is never re-validated, only a value that becomes a set is.
+		theme := map[string]preference.Trait{
+			"theme": {Input: preference.TraitInputSelect, InputHints: "light,dark", Default: "light"},
+		}
+		current := map[string]string{"theme": "auto"} // stored when "auto" was allowed
+		ops, err := diffPreferences([]PreferenceSpec{{Name: "theme", Value: "auto"}}, current, theme)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
 	})
 
 	t.Run("a reset to an unreachable default fails the plan", func(t *testing.T) {

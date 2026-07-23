@@ -33,6 +33,13 @@ func platformTraitPB(name, def string) *frontierv1beta1.PreferenceTrait {
 	return &frontierv1beta1.PreferenceTrait{Name: name, Default: def, ResourceType: schema.PlatformNamespace}
 }
 
+func platformCheckboxTraitPB(name, def string) *frontierv1beta1.PreferenceTrait {
+	return &frontierv1beta1.PreferenceTrait{
+		Name: name, Default: def, ResourceType: schema.PlatformNamespace,
+		InputType: frontierv1beta1.PreferenceTrait_INPUT_TYPE_CHECKBOX, InputHints: "true,false",
+	}
+}
+
 func prefPB(name, value string) *frontierv1beta1.Preference {
 	return &frontierv1beta1.Preference{Name: name, Value: value}
 }
@@ -102,6 +109,42 @@ func TestPreferenceReconciler(t *testing.T) {
 
 		assert.ErrorContains(t, err, "not a valid value")
 		assert.Empty(t, api.created)
+	})
+
+	t.Run("validates a value over the wire using the trait input type", func(t *testing.T) {
+		// The trait comes back as a checkbox, so the boolean validator rejects a
+		// value that is not true or false. This exercises the proto-to-core trait
+		// mapping, not just the default text path.
+		api := &fakePreferenceAPI{traits: []*frontierv1beta1.PreferenceTrait{
+			platformCheckboxTraitPB("disable_orgs_on_create", "false"),
+		}}
+		spec := []byte("- {name: disable_orgs_on_create, value: maybe}\n")
+
+		_, err := NewPreferenceReconciler(api, "").Reconcile(context.Background(), spec, false)
+
+		assert.ErrorContains(t, err, "not a valid value")
+		assert.Empty(t, api.created)
+	})
+
+	t.Run("a stored empty value is left out of the export and round-trips", func(t *testing.T) {
+		// The server treats an empty stored value as unset, so it is effectively at
+		// its default. Export must leave it out, and reconciling the export must
+		// plan nothing, not a set of "" that the plan would now reject.
+		api := &fakePreferenceAPI{
+			traits: platformTraits(),
+			prefs:  []*frontierv1beta1.Preference{prefPB("disable_orgs_on_create", "")},
+		}
+		registry := map[string]Reconciler{KindPreference: NewPreferenceReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindPreference)
+		assert.NoError(t, err)
+		assert.NotContains(t, string(out), "disable_orgs_on_create")
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
 	})
 
 	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {

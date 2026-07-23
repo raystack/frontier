@@ -108,7 +108,10 @@ func (r *PreferenceReconciler) Export(ctx context.Context) (any, error) {
 	specs := make([]PreferenceSpec, 0, len(current))
 	for name, value := range current {
 		trait, known := traits[name]
-		if !known || value == trait.Default {
+		// A stored empty value counts as unset, so it is already at its default;
+		// leave it out, matching how the diff resolves it. Exporting it would emit
+		// a value the plan then rejects.
+		if !known || value == "" || value == trait.Default {
 			continue
 		}
 		specs = append(specs, PreferenceSpec{Name: name, Value: value})
