@@ -5,7 +5,7 @@
 | **Status** | Accepted. Implemented in the `reconcile` package and the `reconcile` and `export` commands. |
 | **Author** | Rohil Surana |
 | **Created** | 2026-07-09 |
-| **Updated** | 2026-07-20 |
+| **Updated** | 2026-07-23 |
 
 ## Summary
 
@@ -18,6 +18,54 @@ be seeded from a running server.
 This document sets the rules every kind follows. The kinds are PlatformUser, Permission, Role,
 Preference, and Webhook. New kinds plug in under the same rules without changing the commands
 or the file format.
+
+## At a glance
+
+The whole tool is one loop:
+
+```mermaid
+flowchart LR
+    file["Desired-state file<br/>one YAML doc per kind"]
+    plan["Plan<br/>the difference<br/>always printed"]
+    server[("Live Frontier server<br/>admin API")]
+
+    file -->|"reconcile reads the file"| plan
+    server -->|"reconcile reads the live state"| plan
+    plan -->|"apply, skipped on a dry run"| server
+    server -.->|"export prints the live state as a file"| file
+```
+
+Each entry is either an **object** or a **value**. That one choice decides what a missing entry
+means and whether you can delete it:
+
+```mermaid
+flowchart TD
+    r["A resource the kind manages"] --> q{"Can reconcile<br/>create and delete it?"}
+    q -->|"yes"| o["Object<br/>Permission, Webhook, custom Role<br/>on the server but not in the file: the plan fails<br/>to delete one, set delete: true"]
+    q -->|"no"| v["Value<br/>PlatformUser, Preference, predefined Role<br/>always exists, so no delete flag<br/>not in the file: back to its default"]
+```
+
+The kinds split cleanly, except Role, which is both: a custom role is an object, a predefined
+role is a value.
+
+| Kind | Object or value | Identity | A missing entry | How to remove |
+|---|---|---|---|---|
+| PlatformUser | value | principal + relation | access removed | leave the entry out |
+| Permission | object | namespace + name | plan fails | set `delete: true` |
+| Role, custom | object | name | plan fails | set `delete: true` |
+| Role, predefined | value | name | reset to the shipped definition | cannot be removed |
+| Preference | value | trait name | reset to the trait default | leave the entry out, it resets |
+| Webhook | object | URL | plan fails | set `delete: true` |
+
+Every kind, current and future, follows the same five rules:
+
+1. **Scope and identity.** A kind manages only the entries and fields it declares. Identity is stable, so a rename is a delete plus a create.
+2. **The file is the desired state.** Each entry is an object or a value. A field you write is the whole value. A field you leave out takes the default. An empty field means empty.
+3. **Check the whole file before changing anything.** Nothing applies until the file passes. A check that needs the server runs later, in the diff.
+4. **Converge, do not transact.** One API call per change, adds and updates before deletes, no rollback. To recover from any failure, fix the cause and run again.
+5. **Export is the reverse of reconcile.** For every state the server can reach, reconciling its export plans zero changes.
+
+The rest of this document is the detail behind that picture.
 
 ## Problem
 
@@ -73,13 +121,26 @@ spec:
   and applies it unless this is a dry run.
 - `frontier export <kind>` prints the live state of one kind as a file on stdout.
 
+A reconcile run has three steps. A dry run stops after the plan:
+
+```mermaid
+flowchart TD
+    s1["1. Check the whole file<br/>a bad file stops the run<br/>before any change"]
+    s2["2. Diff each kind against the live server<br/>print one plan per kind<br/>a dry run stops after this"]
+    s3["3. Apply, in file order<br/>adds and updates first, then deletes<br/>one API call per change, no rollback"]
+    fail["If a call fails<br/>fix the cause and run again<br/>what already applied plans no change"]
+
+    s1 --> s2 --> s3
+    s3 -.-> fail
+```
+
 Both log in as a superuser through the admin API. The bootstrap service account exists so
 automation always has one. The `-H` flag passes the token for now. A file or environment input
 is planned (see future work).
 
 ## The five rules
 
-Every kind, current and future, follows these five rules.
+These are the one-liners from [At a glance](#at-a-glance), in full.
 
 ### 1. Scope and identity
 
@@ -136,16 +197,8 @@ export of a state the server can reach is a bug in the kind.
 
 ## The kinds
 
-| Kind | Type | Identity | A missing entry | Delete |
-|---|---|---|---|---|
-| PlatformUser | value | (principal, relation) | access removed | remove the entry |
-| Permission | object | namespace + name | plan fails | `delete: true` |
-| Role, custom | object | name | plan fails | `delete: true` |
-| Role, predefined | value | name | reset to the shipped definition | not allowed |
-| Preference | value | trait name | reset to the trait default | reset, no flag |
-| Webhook | object | URL | plan fails | `delete: true` |
-
-Only what is specific to each kind follows.
+The table in [At a glance](#at-a-glance) maps each kind to its type and behavior. Only what is
+specific to each kind follows.
 
 **PlatformUser.** An entry is `{type, ref, relation}`: a user (by email or id) or a service
 user (by id), with relation `admin` or `member`. The file is the full access list, so a missing
