@@ -1,6 +1,6 @@
 import { AlertDialog, DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery } from "@raystack/apsara";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import {
   AdminServiceQueries,
@@ -47,10 +47,14 @@ const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 export const ProjectMembersDialog = ({
   projectId,
   onClose,
+  canAddMember,
 }: {
   projectId: string;
   onClose: () => void;
+  canAddMember: boolean;
 }) => {
+  const initialFocusRef = useRef<HTMLDivElement>(null);
+
   const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;
     rqlRequest: RQLRequest;
@@ -199,14 +203,16 @@ export const ProjectMembersDialog = ({
         />
       ) : null}
       <Dialog open onOpenChange={onClose}>
-        <Dialog.Content className={styles["dialog-content"]}>
+        <Dialog.Content
+          className={styles["dialog-content"]}
+          initialFocus={() => initialFocusRef.current}
+        >
           <Dialog.Header>
             {isProjectLoading ? (
               <Skeleton containerClassName={styles["flex1"]} width={"200px"} />
             ) : (
               <Dialog.Title>{project?.title ?? ""}</Dialog.Title>
             )}
-            <Dialog.CloseButton data-test-id="close-button" />
           </Dialog.Header>
           <Dialog.Body className={styles["dialog-body"]}>
             <DataTable
@@ -220,6 +226,8 @@ export const ProjectMembersDialog = ({
               onLoadMore={handleLoadMore}
             >
               <Flex
+                ref={initialFocusRef}
+                tabIndex={-1}
                 direction="column"
                 gap={5}
                 className={styles["table-content-wrapper"]}
@@ -229,6 +237,7 @@ export const ProjectMembersDialog = ({
                   <AddMembersDropdown
                     projectId={projectId}
                     refetchMembers={refetchMembers}
+                    disabled={!canAddMember}
                   />
                 </Flex>
                 <DataTable.Content
