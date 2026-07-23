@@ -103,6 +103,11 @@ func validateEndpoint(endpoint Endpoint) error {
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return fmt.Errorf("%w: url scheme must be http or https", ErrInvalidDetail)
 	}
+	// "https://" and "http:///path" parse as absolute http(s) URLs with an empty
+	// host. A webhook with no host to deliver to is useless, so reject it.
+	if u.Host == "" {
+		return fmt.Errorf("%w: url must include a host", ErrInvalidDetail)
+	}
 	switch endpoint.State {
 	case "", Enabled, Disabled:
 	default:

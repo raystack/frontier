@@ -53,6 +53,14 @@ func TestServiceCreateEndpointValidation(t *testing.T) {
 		assert.ErrorIs(t, err, webhook.ErrInvalidDetail)
 	})
 
+	t.Run("rejects an http(s) url with no host", func(t *testing.T) {
+		// "https://" and "http:///path" parse as absolute http(s) URLs with an
+		// empty host, but a webhook with no host to deliver to is useless.
+		s := webhook.NewService(&fakeEndpointRepo{})
+		_, err := s.CreateEndpoint(context.Background(), webhook.Endpoint{URL: "https://"})
+		assert.ErrorIs(t, err, webhook.ErrInvalidDetail)
+	})
+
 	t.Run("rejects an unknown state", func(t *testing.T) {
 		s := webhook.NewService(&fakeEndpointRepo{})
 		_, err := s.CreateEndpoint(context.Background(), webhook.Endpoint{URL: "https://a.example/hook", State: "paused"})

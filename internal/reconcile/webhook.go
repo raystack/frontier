@@ -94,6 +94,11 @@ func validateWebhookSpec(s WebhookSpec) error {
 	if u.Scheme != "http" && u.Scheme != "https" {
 		return fmt.Errorf("url %q must use http or https", s.URL)
 	}
+	// "http://" and "http:///path" parse as absolute http(s) URLs with an empty
+	// host. There is nowhere to deliver to, so reject them, matching the server.
+	if u.Host == "" {
+		return fmt.Errorf("url %q must include a host", s.URL)
+	}
 	if s.Delete {
 		return nil
 	}
