@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: var(--rs-space-11);
+  height: var(--rs-space-11);
 }
 
 .table {
