@@ -50,6 +50,36 @@ func TestFQPermissionNameFromNamespace(t *testing.T) {
 	}
 }
 
+func TestIsValidPermissionNamespace(t *testing.T) {
+	tests := []struct {
+		ns   string
+		want bool
+	}{
+		{"resource/aoi", true},
+		{"user/project", true},
+		{"org/user", true},
+		{"compute/disk", true},
+		{"a1/b2", true},
+		{"resource_order/item", false}, // underscore in a part collides on the slug
+		{"resource/order_item", false},
+		{"Compute/order", false}, // uppercase is not a SpiceDB object type
+		{"compute/Order", false},
+		{"compute", false},    // one part
+		{"a/b/c", false},      // three parts
+		{"/x", false},         // empty part
+		{"x/", false},         // empty part
+		{"", false},           // empty
+		{"comp-ute/x", false}, // hyphen is not alphanumeric
+	}
+	for _, tt := range tests {
+		t.Run(tt.ns, func(t *testing.T) {
+			if got := schema.IsValidPermissionNamespace(tt.ns); got != tt.want {
+				t.Errorf("IsValidPermissionNamespace(%q) = %v, want %v", tt.ns, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIsBootstrapServiceUser(t *testing.T) {
 	tests := []struct {
 		name string

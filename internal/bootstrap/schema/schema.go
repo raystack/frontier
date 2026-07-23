@@ -311,6 +311,30 @@ func IsValidPermissionName(name string) bool {
 	return true
 }
 
+// IsValidPermissionNamespace checks that a custom permission namespace is in
+// service/resource form with each part lowercase alphanumeric. An underscore is
+// forbidden inside a part: FQPermissionNameFromNamespace joins service, resource,
+// and the verb with "_", so an underscore in a part would let two different
+// namespaces flatten to the same slug. Uppercase is forbidden because SpiceDB
+// object type names are lowercase, so it could never be stored anyway.
+func IsValidPermissionNamespace(namespace string) bool {
+	parts := strings.Split(namespace, "/")
+	if len(parts) != 2 {
+		return false
+	}
+	for _, part := range parts {
+		if part == "" {
+			return false
+		}
+		for _, r := range part {
+			if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func IsPlatformPermission(name string) bool {
 	name = strings.ToLower(name)
 	return name == PlatformSudoPermission || name == PlatformCheckPermission

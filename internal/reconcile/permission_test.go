@@ -63,14 +63,34 @@ func TestDiffPermissions(t *testing.T) {
 		assert.ErrorContains(t, err, "listed both with and without delete")
 	})
 
-	t.Run("distinct entries that flatten to the same slug fail", func(t *testing.T) {
-		_, err := diffPermissions([]PermissionSpec{
-			{Namespace: "compute/order", Name: "get"},
-			{Namespace: "compute/order", Name: "legacy"},
-			{Namespace: "resource/order_item", Name: "get"},
-			{Namespace: "resource_order/item", Name: "get"},
-		}, current)
-		assert.ErrorContains(t, err, `collide on the same slug "resource_order_item_get"`)
+	t.Run("a file namespace that would collide with a server slug is rejected, not absorbed", func(t *testing.T) {
+		// The server stores resource/order_item; the file lists a genuinely different
+		// namespace resource_order/item that flattens to the same slug. The diff used
+		// to treat it as already present and plan zero ops (the rule 2 gap). The
+		// ambiguous namespace is now rejected at validation, so it cannot be absorbed.
+		server := []currentPermission{{ID: "p1", Namespace: "resource/order_item", Name: "get"}}
+		_, err := diffPermissions([]PermissionSpec{{Namespace: "resource_order/item", Name: "get"}}, server)
+		assert.ErrorContains(t, err, "resource_order/item")
+	})
+
+	t.Run("rejects a namespace with an underscore or uppercase in a part", func(t *testing.T) {
+		// The slug joins service, resource, and verb with "_", so an underscore in a
+		// part makes two namespaces flatten to one slug; uppercase cannot be a
+		// SpiceDB object type. Both are rejected so the slug stays one-to-one.
+		for _, ns := range []string{"resource_order/item", "resource/order_item", "Compute/order", "compute/Order"} {
+			_, err := diffPermissions([]PermissionSpec{{Namespace: ns, Name: "get"}}, nil)
+			if assert.Error(t, err, ns) {
+				assert.ErrorContains(t, err, "namespace")
+			}
+		}
+	})
+
+	t.Run("accepts valid custom namespaces", func(t *testing.T) {
+		for _, ns := range []string{"resource/aoi", "user/project", "org/user", "compute/disk"} {
+			ops, err := diffPermissions([]PermissionSpec{{Namespace: ns, Name: "get"}}, nil)
+			assert.NoError(t, err, ns)
+			assert.Len(t, ops, 1) // a valid new permission plans an add
+		}
 	})
 
 	t.Run("rejects base-schema namespaces and bad shapes", func(t *testing.T) {

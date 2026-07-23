@@ -77,6 +77,18 @@ func TestPermissionReconciler(t *testing.T) {
 		assert.Empty(t, api.created)
 	})
 
+	t.Run("an ambiguous namespace fails Validate before any server call", func(t *testing.T) {
+		// The charset check is server-free, so a namespace that would collide on the
+		// slug must fail the whole file up front (rule 3), not at apply.
+		api := &fakePermissionAPI{}
+		spec := []byte("- {namespace: resource_order/item, name: get}\n")
+
+		err := NewPermissionReconciler(api, "").Validate(spec)
+
+		assert.ErrorContains(t, err, "resource_order/item")
+		assert.Empty(t, api.created)
+	})
+
 	t.Run("reconciling an exported document plans no changes", func(t *testing.T) {
 		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
 			permissionPB("b1", "app/project", "get"),

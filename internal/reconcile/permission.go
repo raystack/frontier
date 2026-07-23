@@ -48,6 +48,13 @@ func validatePermissionSpec(s PermissionSpec) error {
 	if parts := strings.Split(s.Namespace, "/"); len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		return fmt.Errorf("namespace %q must be in service/resource form", s.Namespace)
 	}
+	// The slug joins service, resource, and verb with "_", so an underscore inside
+	// a namespace part would make two different namespaces flatten to the same slug
+	// and be silently treated as one. Require each part to be lowercase alphanumeric
+	// so the slug is one-to-one and a plan cannot mistake one namespace for another.
+	if !schema.IsValidPermissionNamespace(s.Namespace) {
+		return fmt.Errorf("invalid namespace %q (each of service/resource must be lowercase alphanumeric, no underscore)", s.Namespace)
+	}
 	return nil
 }
 
