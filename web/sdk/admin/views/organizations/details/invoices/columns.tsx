@@ -75,7 +75,12 @@ export const getColumns = ({
       cell: ({ getValue }) => {
         const value = getValue() as string;
         return (
-          <Link href={value} target="_blank" data-test-id="invoice-link">
+          <Link
+            href={value}
+            target="_blank"
+            className={styles["invoice-link"]}
+            data-test-id="invoice-link"
+          >
             View Invoice
           </Link>
         );
