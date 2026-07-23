@@ -55,8 +55,11 @@ func authenticateWithSession(ctx context.Context, s *Service) (Principal, error)
 }
 
 func (s *Service) ensureOrgEnabled(ctx context.Context, orgID string) error {
-	if s.orgService == nil || orgID == "" || orgID == schema.PlatformOrgID.String() {
+	if s.orgService == nil || orgID == schema.PlatformOrgID.String() {
 		return nil
+	}
+	if orgID == "" {
+		return errors.ErrForbidden
 	}
 	enabled, err := s.orgService.IsEnabled(ctx, orgID)
 	if err != nil {

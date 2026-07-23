@@ -545,6 +545,23 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			},
 		},
 		{
+			name: "reject PAT with empty org id",
+			ctx: metadata.NewIncomingContext(context.Background(), map[string][]string{
+				consts.UserTokenGatewayKey: {"pat-token"},
+			}),
+			assertions: []authenticate.ClientAssertion{authenticate.PATClientAssertion},
+			wantErr:    frontiererrors.ErrForbidden,
+			setup: func(t *testing.T) *authenticate.Service {
+				pat := mocks.NewUserPATService(t)
+				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: ""}, nil)
+				org := mocks.NewOrgService(t)
+				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+					nil, nil, nil, nil, mocks.NewUserService(t), nil, nil, pat)
+				s.SetOrgService(org)
+				return s
+			},
+		},
+		{
 			name: "allow PAT whose org is enabled",
 			ctx: metadata.NewIncomingContext(context.Background(), map[string][]string{
 				consts.UserTokenGatewayKey: {"pat-token"},
