@@ -536,10 +536,12 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			setup: func(t *testing.T) *authenticate.Service {
 				pat := mocks.NewUserPATService(t)
 				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: orgID}, nil)
+				usr := mocks.NewUserService(t)
+				usr.EXPECT().GetByID(mock.Anything, userID).Return(user.User{ID: userID}, nil)
 				org := mocks.NewOrgService(t)
 				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(false, nil)
 				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					nil, nil, nil, nil, mocks.NewUserService(t), nil, nil, pat)
+					nil, nil, nil, nil, usr, nil, nil, pat)
 				s.SetOrgService(org)
 				return s
 			},
@@ -554,9 +556,11 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			setup: func(t *testing.T) *authenticate.Service {
 				pat := mocks.NewUserPATService(t)
 				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: ""}, nil)
+				usr := mocks.NewUserService(t)
+				usr.EXPECT().GetByID(mock.Anything, userID).Return(user.User{ID: userID}, nil)
 				org := mocks.NewOrgService(t)
 				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					nil, nil, nil, nil, mocks.NewUserService(t), nil, nil, pat)
+					nil, nil, nil, nil, usr, nil, nil, pat)
 				s.SetOrgService(org)
 				return s
 			},

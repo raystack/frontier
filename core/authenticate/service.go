@@ -807,6 +807,9 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		principal, err := authenticator(ctx, &s)
 		if err == nil {
 			principal.AuthVia = assertion
+			if err := s.ensurePrincipalOrgEnabled(ctx, principal); err != nil {
+				return Principal{}, err
+			}
 			return principal, nil
 		}
 		if !errors.Is(err, errSkip) {
