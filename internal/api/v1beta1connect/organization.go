@@ -151,6 +151,7 @@ func (h *ConnectHandler) CreateOrganization(ctx context.Context, request *connec
 }
 
 func (h *ConnectHandler) AdminCreateOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.AdminCreateOrganizationRequest]) (*connect.Response[frontierv1beta1.AdminCreateOrganizationResponse], error) {
+	errorLogger := NewErrorLogger()
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
@@ -181,14 +182,18 @@ func (h *ConnectHandler) AdminCreateOrganization(ctx context.Context, request *c
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AdminCreateOrganization: entity_id=%s: %w", newOrg.ID, err))
 	}
 
-	audit.GetAuditor(ctx, newOrg.ID).LogWithAttrs(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID), map[string]string{
+	if err := audit.GetAuditor(ctx, newOrg.ID).LogWithAttrs(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID), map[string]string{
 		"title": newOrg.Title,
 		"name":  newOrg.Name,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "AdminCreateOrganization.AuditLog", err,
+			"org_id", newOrg.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.AdminCreateOrganizationResponse{Organization: orgPB}), nil
 }
 
 func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateOrganizationRequest]) (*connect.Response[frontierv1beta1.UpdateOrganizationResponse], error) {
+	errorLogger := NewErrorLogger()
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -233,7 +238,10 @@ func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connec
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization: entity_id=%s: %w", updatedOrg.ID, err))
 	}
 
-	audit.GetAuditor(ctx, updatedOrg.ID).Log(audit.OrgUpdatedEvent, audit.OrgTarget(updatedOrg.ID))
+	if err := audit.GetAuditor(ctx, updatedOrg.ID).Log(audit.OrgUpdatedEvent, audit.OrgTarget(updatedOrg.ID)); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateOrganization.AuditLog", err,
+			"org_id", updatedOrg.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateOrganizationResponse{Organization: orgPB}), nil
 }
 

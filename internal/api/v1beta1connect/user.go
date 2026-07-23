@@ -148,13 +148,16 @@ func (h *ConnectHandler) CreateUser(ctx context.Context, request *connect.Reques
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateUser: entity_id=%s: %w", newUser.ID, err))
 	}
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
 		LogWithAttrs(audit.UserCreatedEvent, audit.UserTarget(newUser.ID), map[string]string{
 			"email":  newUser.Email,
 			"name":   newUser.Name,
 			"title":  newUser.Title,
 			"avatar": newUser.Avatar,
-		})
+		}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateUser.AuditLog", err,
+			"user_id", newUser.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.CreateUserResponse{User: transformedUser}), nil
 }
 
@@ -286,12 +289,15 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateUser: entity_id=%s: %w", updatedUser.ID, err))
 	}
 
-	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
+	if err := auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
 		"email":  updatedUser.Email,
 		"name":   updatedUser.Name,
 		"title":  updatedUser.Title,
 		"avatar": updatedUser.Avatar,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateUser.AuditLog", err,
+			"user_id", updatedUser.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateUserResponse{User: userPB}), nil
 }
 
@@ -349,12 +355,15 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateCurrentUser: entity_id=%s: %w", updatedUser.ID, err))
 	}
 
-	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
+	if err := auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
 		"email":  updatedUser.Email,
 		"name":   updatedUser.Name,
 		"title":  updatedUser.Title,
 		"avatar": updatedUser.Avatar,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateCurrentUser.AuditLog", err,
+			"user_id", updatedUser.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateCurrentUserResponse{User: userPB}), nil
 }
 
@@ -416,7 +425,10 @@ func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Reques
 		}
 	}
 
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.Msg.GetId()))
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.Msg.GetId())); err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteUser.AuditLog", err,
+			"user_id", userID)
+	}
 	return connect.NewResponse(&frontierv1beta1.DeleteUserResponse{}), nil
 }
 
@@ -525,6 +537,7 @@ func (h *ConnectHandler) ListCurrentUserGroups(ctx context.Context, request *con
 }
 
 func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListUsersRequest]) (*connect.Response[frontierv1beta1.ListUsersResponse], error) {
+	errorLogger := NewErrorLogger()
 	auditor := audit.GetAuditor(ctx, request.Msg.GetOrgId())
 
 	var users []*frontierv1beta1.User
@@ -555,7 +568,10 @@ func (h *ConnectHandler) ListUsers(ctx context.Context, request *connect.Request
 		users = append(users, userPB)
 	}
 
-	auditor.Log(audit.UserListedEvent, audit.OrgTarget(request.Msg.GetOrgId()))
+	if err := auditor.Log(audit.UserListedEvent, audit.OrgTarget(request.Msg.GetOrgId())); err != nil {
+		errorLogger.LogServiceError(ctx, request, "ListUsers.AuditLog", err,
+			"org_id", request.Msg.GetOrgId())
+	}
 	return connect.NewResponse(&frontierv1beta1.ListUsersResponse{
 		Count: int32(len(users)),
 		Users: users,

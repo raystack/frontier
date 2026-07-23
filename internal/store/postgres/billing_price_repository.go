@@ -114,14 +114,14 @@ func (r BillingPriceRepository) Create(ctx context.Context, toCreate product.Pri
 			"metadata":          marshaledMetadata,
 		}).Returning(&Price{}).ToSQL()
 	if err != nil {
-		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var priceModel Price
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRICES, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&priceModel)
 	}); err != nil {
-		return product.Price{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return priceModel.transform()
@@ -133,7 +133,7 @@ func (r BillingPriceRepository) GetByID(ctx context.Context, id string) (product
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var priceModel Price
@@ -145,7 +145,7 @@ func (r BillingPriceRepository) GetByID(ctx context.Context, id string) (product
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Price{}, product.ErrPriceNotFound
 		}
-		return product.Price{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return priceModel.transform()
@@ -157,7 +157,7 @@ func (r BillingPriceRepository) GetByName(ctx context.Context, name string) (pro
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var priceModel Price
@@ -169,7 +169,7 @@ func (r BillingPriceRepository) GetByName(ctx context.Context, name string) (pro
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Price{}, product.ErrPriceNotFound
 		}
-		return product.Price{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return priceModel.transform()
@@ -181,7 +181,7 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate product
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 	updateRecord := goqu.Record{
 		"name":       toUpdate.Name,
@@ -192,7 +192,7 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate product
 		"id": toUpdate.ID,
 	}).Returning(&Price{}).ToSQL()
 	if err != nil {
-		return product.Price{}, fmt.Errorf("%w: %s", queryErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var priceModel Price
@@ -204,7 +204,7 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate product
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Price{}, product.ErrPriceNotFound
 		default:
-			return product.Price{}, fmt.Errorf("%w: %w", txnErr, err)
+			return product.Price{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -224,7 +224,7 @@ func (r BillingPriceRepository) List(ctx context.Context, filter product.Filter)
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var priceModels []Price
@@ -234,7 +234,7 @@ func (r BillingPriceRepository) List(ctx context.Context, filter product.Filter)
 		if errors.Is(err, sql.ErrNoRows) {
 			return []product.Price{}, nil
 		}
-		return nil, fmt.Errorf("%w: %w", err, dbErr)
+		return nil, fmt.Errorf("%w: %w", err, errDB)
 	}
 
 	prices := make([]product.Price, 0, len(priceModels))

@@ -92,7 +92,7 @@ export const DeleteOrganizationDialog = ({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Content width={480}>
-        <form onSubmit={handleSubmit(onDeleteSubmit)}>
+        <form noValidate onSubmit={handleSubmit(onDeleteSubmit)}>
           <AlertDialog.Header>
             <AlertDialog.Title>Delete {orgLabel}</AlertDialog.Title>
           </AlertDialog.Header>

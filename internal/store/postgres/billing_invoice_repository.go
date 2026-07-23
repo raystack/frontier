@@ -171,14 +171,14 @@ func (r BillingInvoiceRepository) Create(ctx context.Context, toCreate invoice.I
 			"updated_at":      goqu.L("now()"),
 		}).Returning(&Invoice{}).ToSQL()
 	if err != nil {
-		return invoice.Invoice{}, fmt.Errorf("%w: %w", parseErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var invoiceModel Invoice
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&invoiceModel)
 	}); err != nil {
-		return invoice.Invoice{}, fmt.Errorf("%w: %w", dbErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return invoiceModel.transform()
@@ -190,7 +190,7 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return invoice.Invoice{}, fmt.Errorf("%w: %w", parseErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var invoiceModel Invoice
@@ -202,7 +202,7 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 		case errors.Is(err, sql.ErrNoRows):
 			return invoice.Invoice{}, invoice.ErrNotFound
 		}
-		return invoice.Invoice{}, fmt.Errorf("%w: %w", dbErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return invoiceModel.transform()
@@ -235,14 +235,14 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 		totalCountQuery, totalCountParams, err := totalCountStmt.ToSQL()
 
 		if err != nil {
-			return []invoice.Invoice{}, fmt.Errorf("%w: %w", queryErr, err)
+			return []invoice.Invoice{}, fmt.Errorf("%w: %w", errQuery, err)
 		}
 
 		var totalCount int32
 		if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Count", func(ctx context.Context) error {
 			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery, totalCountParams...)
 		}); err != nil {
-			return nil, fmt.Errorf("%w: %w", dbErr, err)
+			return nil, fmt.Errorf("%w: %w", errDB, err)
 		}
 
 		flt.Pagination.SetCount(totalCount)
@@ -252,14 +252,14 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 	stmt = stmt.Order(goqu.I("created_at").Desc())
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", parseErr, err)
+		return nil, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var invoiceModels []Invoice
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &invoiceModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	invoices := make([]invoice.Invoice, 0, len(invoiceModels))
@@ -284,7 +284,7 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 	if toUpdate.Metadata != nil {
 		marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 		if err != nil {
-			return invoice.Invoice{}, fmt.Errorf("%w: %s", parseErr, err)
+			return invoice.Invoice{}, fmt.Errorf("%w: %s", errParse, err)
 		}
 		updateRecord["metadata"] = marshaledMetadata
 	}
@@ -302,7 +302,7 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 		"id": toUpdate.ID,
 	}).Returning(&Invoice{}).ToSQL()
 	if err != nil {
-		return invoice.Invoice{}, fmt.Errorf("%w: %s", queryErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var invoiceModel Invoice
@@ -314,7 +314,7 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 		case errors.Is(err, sql.ErrNoRows):
 			return invoice.Invoice{}, invoice.ErrNotFound
 		default:
-			return invoice.Invoice{}, fmt.Errorf("%w: %w", txnErr, err)
+			return invoice.Invoice{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -326,14 +326,14 @@ func (r BillingInvoiceRepository) Delete(ctx context.Context, id string) error {
 		"id": id,
 	}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Delete", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		return fmt.Errorf("%w: %w", txnErr, err)
+		return fmt.Errorf("%w: %w", errTxn, err)
 	}
 	return nil
 }
@@ -349,7 +349,7 @@ func (r BillingInvoiceRepository) Search(ctx context.Context, rqlQuery *rql.Quer
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Search", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &invoiceModels, dataQuery, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	// Transform results

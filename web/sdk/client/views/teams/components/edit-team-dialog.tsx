@@ -118,7 +118,7 @@ function EditTeamForm({ payload, handle, refetch }: EditTeamFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
       <Dialog.Header>
         <Dialog.Title>Edit team</Dialog.Title>
       </Dialog.Header>

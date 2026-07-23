@@ -1,14 +1,9 @@
 import styles from "./invoices.module.css";
-import dayjs from "dayjs";
 import { DataTableColumnDef, Link, Amount } from "@raystack/apsara";
 import type {
   SearchOrganizationInvoicesResponse_OrganizationInvoice,
 } from "@raystack/proton/frontier";
-import {
-  isNullTimestamp,
-  TimeStamp,
-  timestampToDate,
-} from "../../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 
 // https://docs.stripe.com/invoicing/overview#invoice-statuses
 const InvoiceStatusesMap = {
@@ -38,13 +33,7 @@ export const getColumns = ({
         cell: styles["first-column"],
         header: styles["first-column"],
       },
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
-        return date;
-      },
+      cell: ({ getValue }) => formatTimestamp(getValue() as TimeStamp),
       enableSorting: true,
       enableColumnFilter: true,
       filterType: "date",

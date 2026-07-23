@@ -24,7 +24,7 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 	for _, permBody := range request.Msg.GetBodies() {
 		permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(permBody.GetKey())
 		if permNamespace == "" || permName == "" {
-			permNamespace, permName = permBody.GetNamespace(), permBody.GetName()
+			permNamespace, permName = permBody.GetNamespace(), permBody.GetName() //nolint:staticcheck
 		}
 		if permName == "" || permNamespace == "" {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -116,7 +116,7 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 
 	permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(request.Msg.GetBody().GetKey())
 	if permNamespace == "" || permName == "" {
-		permNamespace, permName = request.Msg.GetBody().GetNamespace(), request.Msg.GetBody().GetName()
+		permNamespace, permName = request.Msg.GetBody().GetNamespace(), request.Msg.GetBody().GetName() //nolint:staticcheck
 	}
 	updatedPermission, err := h.permissionService.Update(ctx, permission.Permission{
 		ID:          request.Msg.GetId(),

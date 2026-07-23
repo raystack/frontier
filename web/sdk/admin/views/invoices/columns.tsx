@@ -1,11 +1,6 @@
 import { Amount, type DataTableColumnDef, Link, Text } from "@raystack/apsara";
-import dayjs from "dayjs";
 import type { SearchInvoicesResponse_Invoice } from "@raystack/proton/frontier";
-import {
-  isNullTimestamp,
-  TimeStamp,
-  timestampToDate,
-} from "../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import { TerminologyEntity } from "../../hooks/useTerminology";
 import styles from "./invoices.module.css";
 
@@ -29,13 +24,9 @@ export const getColumns = ({ t }: GetColumnsOptions): DataTableColumnDef<
       },
       filterType: "date",
       enableColumnFilter: true,
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
-        return <Text>{date}</Text>;
-      },
+      cell: ({ getValue }) => (
+        <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>
+      ),
       enableHiding: true,
       enableSorting: true,
     },

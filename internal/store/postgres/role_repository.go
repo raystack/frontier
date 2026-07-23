@@ -58,7 +58,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 			goqu.Ex{"r.id": id},
 		).ToSQL()
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %w", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var roleModel Role
@@ -68,7 +68,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return role.Role{}, role.ErrNotExist
 		}
-		return role.Role{}, fmt.Errorf("%w: %w", dbErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return roleModel.transformToRole()
@@ -87,7 +87,7 @@ func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role
 			goqu.Ex{"r.org_id": orgID},
 		).ToSQL()
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %w", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var roleModel Role
@@ -97,7 +97,7 @@ func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role
 		if errors.Is(err, sql.ErrNoRows) {
 			return role.Role{}, role.ErrNotExist
 		}
-		return role.Role{}, fmt.Errorf("%w: %w", dbErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return roleModel.transformToRole()
@@ -114,12 +114,12 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %w", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	marshaledPermissions, err := json.Marshal(rl.Permissions)
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	query, params, err := dialect.Insert(TABLE_ROLES).Rows(
@@ -140,7 +140,7 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 		"scopes":      pq.Array(rl.Scopes),
 	})).Returning(&Role{}).ToSQL()
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var roleDB Role
@@ -180,21 +180,21 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []role.Role{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var fetchedRoles []Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRoles, query, params...)
 	}); err != nil {
-		return []role.Role{}, fmt.Errorf("%w: %w", err, dbErr)
+		return []role.Role{}, fmt.Errorf("%w: %w", err, errDB)
 	}
 
 	var transformedRoles []role.Role
 	for _, o := range fetchedRoles {
 		transformedRole, err := o.transformToRole()
 		if err != nil {
-			return []role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []role.Role{}, fmt.Errorf("%w: %s", errParse, err)
 		}
 		transformedRoles = append(transformedRoles, transformedRole)
 	}
@@ -213,11 +213,11 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 	marshaledPermissions, err := json.Marshal(rl.Permissions)
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_ROLES).Set(
@@ -233,7 +233,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 		goqu.Ex{"id": rl.ID},
 	).Returning(&Role{}).ToSQL()
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var roleDB Role
@@ -263,7 +263,7 @@ func (r RoleRepository) Delete(ctx context.Context, id string) error {
 		},
 	).Returning(&Role{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var roleModel Role
@@ -298,7 +298,7 @@ func (r RoleRepository) RemovePermissionFromRoles(ctx context.Context, slug stri
 		goqu.L("permissions @> ?::jsonb", fmt.Sprintf("[%q]", slug)),
 	).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return r.dbc.WithTimeout(ctx, TABLE_ROLES, "RemovePermissionFromRoles", func(ctx context.Context) error {

@@ -1,6 +1,4 @@
-import dayjs from 'dayjs';
 import type { TableColumnMetadata } from '~/types/types';
-import { DEFAULT_DATE_FORMAT } from './constants';
 import { BillingAccount_Address } from '@raystack/proton/frontier';
 
 const currencySymbolMap: Record<string, string> = {
@@ -47,12 +45,6 @@ export const capitalizeFirstLetter = (str: string) => {
 
 export const keyToColumnMetaObject = (key: any) =>
   ({ key: key, name: key, value: key } as TableColumnMetadata);
-
-/*
- * @desc returns date string - Eg, June 13, 2025. return '-' if the date in the argument is invalid.
- */
-export const getFormattedDateString = (date: string) =>
-  date ? dayjs(date).format(DEFAULT_DATE_FORMAT) : '-';
 
 export const convertBillingAddressToString = (
   address?: BillingAccount_Address

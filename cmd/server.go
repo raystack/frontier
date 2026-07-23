@@ -13,14 +13,13 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/config"
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
-	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 
 	_ "net/http/pprof"
 )
 
-func ServerCommand() *cobra.Command {
-	cmd := &cobra.Command{
+func ServerCommand() *cli.Command {
+	cmd := &cli.Command{
 		Use:     "server",
 		Aliases: []string{"s"},
 		Short:   "Server management",
@@ -46,7 +45,7 @@ func ServerCommand() *cobra.Command {
 	return cmd
 }
 
-func serverInitCommand() *cobra.Command {
+func serverInitCommand() *cli.Command {
 	var configFile string
 	c := &cli.Command{
 		Use:   "init",
@@ -70,7 +69,7 @@ func serverInitCommand() *cobra.Command {
 	return c
 }
 
-func serverStartCommand() *cobra.Command {
+func serverStartCommand() *cli.Command {
 	var configFile string
 
 	c := &cli.Command{
@@ -102,7 +101,7 @@ func serverStartCommand() *cobra.Command {
 	return c
 }
 
-func serverMigrateCommand() *cobra.Command {
+func serverMigrateCommand() *cli.Command {
 	var configFile string
 
 	c := &cli.Command{
@@ -133,7 +132,7 @@ func serverMigrateCommand() *cobra.Command {
 	return c
 }
 
-func serverMigrateRollbackCommand() *cobra.Command {
+func serverMigrateRollbackCommand() *cli.Command {
 	var configFile string
 
 	c := &cli.Command{
@@ -163,7 +162,7 @@ func serverMigrateRollbackCommand() *cobra.Command {
 	return c
 }
 
-func serverGenRSACommand() *cobra.Command {
+func serverGenRSACommand() *cli.Command {
 	var numOfKeys int
 	c := &cli.Command{
 		Use:     "keygen",

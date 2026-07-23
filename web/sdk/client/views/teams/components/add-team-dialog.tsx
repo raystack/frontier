@@ -94,7 +94,7 @@ export function AddTeamDialog({ handle, refetch }: AddTeamDialogProps) {
         <Dialog.Header>
           <Dialog.Title>Add Team</Dialog.Title>
         </Dialog.Header>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form noValidate onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
             <Flex direction="column" gap={5}>
               <Field

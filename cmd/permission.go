@@ -86,9 +86,9 @@ func createPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the permission body file")
-	cmd.MarkFlagRequired("file")
+	mustMarkRequired(cmd, "file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -140,9 +140,9 @@ func editPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the permission body file")
-	cmd.MarkFlagRequired("file")
+	mustMarkRequired(cmd, "file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -187,6 +187,7 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 			spinner.Stop()
 
 			report = append(report, []string{"ID", "NAME", "NAMESPACE"})
+			//nolint:staticcheck
 			report = append(report, []string{
 				action.GetId(),
 				action.GetName(),
@@ -199,7 +200,7 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }
@@ -247,6 +248,7 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 			fmt.Printf(" \nShowing %d permission(s)\n \n", len(permissions))
 
 			report = append(report, []string{"ID", "NAME", "NAMESPACE"})
+			//nolint:staticcheck
 			for _, a := range permissions {
 				report = append(report, []string{
 					a.GetId(),
@@ -261,7 +263,7 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 
 	return cmd
 }

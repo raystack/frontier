@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"testing"
 
 	"strings"
@@ -305,4 +306,12 @@ func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 			assert.Equal(t, tt.wantArgs, args)
 		})
 	}
+}
+
+func TestOrgUsersRepository_Search(t *testing.T) {
+	t.Run("should return error when the transaction cannot start", func(t *testing.T) {
+		repo := NewOrgUsersRepository(txnFailClient(t))
+		_, err := repo.Search(context.Background(), "org-id", &rql.Query{Limit: 10})
+		assert.Error(t, err)
+	})
 }

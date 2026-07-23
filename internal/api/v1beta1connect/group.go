@@ -148,6 +148,7 @@ func (h *ConnectHandler) listGroupUsers(ctx context.Context, groupID, roleID str
 }
 
 func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Request[frontierv1beta1.CreateGroupRequest]) (*connect.Response[frontierv1beta1.CreateGroupResponse], error) {
+	errorLogger := NewErrorLogger()
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -201,7 +202,11 @@ func (h *ConnectHandler) CreateGroup(ctx context.Context, request *connect.Reque
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateGroup: entity_id=%s: %w", newGroup.ID, err))
 	}
 
-	audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.GroupCreatedEvent, audit.GroupTarget(newGroup.ID))
+	if err := audit.GetAuditor(ctx, request.Msg.GetOrgId()).Log(audit.GroupCreatedEvent, audit.GroupTarget(newGroup.ID)); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateGroup.AuditLog", err,
+			"group_id", newGroup.ID,
+			"org_id", request.Msg.GetOrgId())
+	}
 	return connect.NewResponse(&frontierv1beta1.CreateGroupResponse{Group: &groupPB}), nil
 }
 
@@ -241,6 +246,7 @@ func (h *ConnectHandler) GetGroup(ctx context.Context, request *connect.Request[
 }
 
 func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateGroupRequest]) (*connect.Response[frontierv1beta1.UpdateGroupResponse], error) {
+	errorLogger := NewErrorLogger()
 	if request.Msg.GetBody() == nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
@@ -279,7 +285,11 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateGroup: entity_id=%s: %w", updatedGroup.ID, err))
 	}
 
-	audit.GetAuditor(ctx, updatedGroup.OrganizationID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
+	if err := audit.GetAuditor(ctx, updatedGroup.OrganizationID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID)); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateGroup.AuditLog", err,
+			"group_id", updatedGroup.ID,
+			"org_id", updatedGroup.OrganizationID)
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateGroupResponse{Group: &groupPB}), nil
 }
 

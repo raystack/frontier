@@ -83,6 +83,7 @@ func (h *ConnectHandler) ListBillingTransactions(ctx context.Context, request *c
 
 	var transactions []*frontierv1beta1.BillingTransaction
 	var startRange time.Time
+	//nolint:staticcheck
 	if request.Msg.GetSince() != nil {
 		startRange = request.Msg.GetSince().AsTime()
 	}

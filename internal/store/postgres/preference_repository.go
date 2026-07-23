@@ -55,7 +55,7 @@ func (s *PreferenceRepository) Set(ctx context.Context, pref preference.Preferen
 		},
 	)).Returning(&Preference{}).ToSQL()
 	if err != nil {
-		return preference.Preference{}, fmt.Errorf("%w: %s", queryErr, err)
+		return preference.Preference{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var prefModel Preference
@@ -63,7 +63,7 @@ func (s *PreferenceRepository) Set(ctx context.Context, pref preference.Preferen
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&prefModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return preference.Preference{}, fmt.Errorf("%w: %s", dbErr, err)
+		return preference.Preference{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return prefModel.transformToPreference(), nil
@@ -77,7 +77,7 @@ func (s *PreferenceRepository) Get(ctx context.Context, id uuid.UUID) (preferenc
 		},
 	).ToSQL()
 	if err != nil {
-		return preference.Preference{}, fmt.Errorf("%w: %s", queryErr, err)
+		return preference.Preference{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_PREFERENCES, "Get", func(ctx context.Context) error {
@@ -88,7 +88,7 @@ func (s *PreferenceRepository) Get(ctx context.Context, id uuid.UUID) (preferenc
 		case errors.Is(err, sql.ErrNoRows):
 			return preference.Preference{}, preference.ErrNotFound
 		}
-		return preference.Preference{}, fmt.Errorf("%w: %s", dbErr, err)
+		return preference.Preference{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return prefModel.transformToPreference(), nil
@@ -142,7 +142,7 @@ func (s *PreferenceRepository) List(ctx context.Context, flt preference.Filter) 
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_PREFERENCES, "List", func(ctx context.Context) error {
@@ -151,7 +151,7 @@ func (s *PreferenceRepository) List(ctx context.Context, flt preference.Filter) 
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedPreferences []preference.Preference

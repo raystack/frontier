@@ -12,7 +12,10 @@ import {
 import { useFrontier } from '~/client/contexts/FrontierContext';
 import { usePlans } from '../hooks/use-plans';
 import { PlanChangeAction, getPlanChangeAction } from '~/client/utils';
-import { SUBSCRIPTION_STATES } from '~/client/utils/constants';
+import {
+  DEFAULT_DATE_SHORT_FORMAT,
+  SUBSCRIPTION_STATES
+} from '~/client/utils/constants';
 import { timestampToDayjs } from '~/utils/timestamp';
 import {
   IntervalKeys,
@@ -141,7 +144,7 @@ export function PlanCard({
       sub.state === SUBSCRIPTION_STATES.TRIALING
   );
 
-  const shortDateFormat = config?.shortDateFormat || 'DD MMM';
+  const shortDateFormat = config?.shortDateFormat || DEFAULT_DATE_SHORT_FORMAT;
   const trialEndDate = trialSubscription?.trialEndsAt
     ? timestampToDayjs(trialSubscription?.trialEndsAt)?.format(shortDateFormat)
     : '';

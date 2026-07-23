@@ -1,5 +1,4 @@
 import { Badge, DataTableColumnDef, Flex, Text } from "@raystack/apsara";
-import dayjs from "dayjs";
 import styles from "./audit-logs.module.css";
 import {
   AuditRecord,
@@ -7,10 +6,10 @@ import {
   AuditRecordResource,
 } from "@raystack/proton/frontier";
 import {
+  formatTimestamp,
   isNullTimestamp,
   TimeStamp,
-  timestampToDate,
-} from "../../utils/connect-timestamp";
+} from "~/admin/utils/connect-timestamp";
 import { ACTOR_TYPES, getActionBadgeColor } from "./util";
 import { ComponentPropsWithoutRef } from "react";
 import ActorCell from "./actor-cell";
@@ -113,14 +112,13 @@ export const getColumns = ({
         if (isNullTimestamp(value)) {
           return <Text>-</Text>;
         }
-        const date = dayjs(timestampToDate(value));
         return (
           <Flex gap={1} direction="column">
             <Text size="small" weight="medium">
-              {date.format("DD MMM YYYY")}
+              {formatTimestamp(value)}
             </Text>
             <Text size="small" variant="secondary">
-              {date.format("hh:mm A")}
+              {formatTimestamp(value, "hh:mm A")}
             </Text>
           </Flex>
         );

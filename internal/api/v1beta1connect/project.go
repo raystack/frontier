@@ -72,7 +72,10 @@ func (h *ConnectHandler) CreateProject(ctx context.Context, request *connect.Req
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProject: entity_id=%s: %w", newProject.ID, err))
 	}
-	auditor.Log(audit.ProjectCreatedEvent, audit.ProjectTarget(newProject.ID))
+	if err := auditor.Log(audit.ProjectCreatedEvent, audit.ProjectTarget(newProject.ID)); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateProject.AuditLog", err,
+			"project_id", newProject.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.CreateProjectResponse{Project: projectPB}), nil
 }
 
@@ -122,7 +125,10 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProject: entity_id=%s: %w", updatedProject.ID, err))
 	}
 
-	audit.GetAuditor(ctx, updatedProject.Organization.ID).Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
+	if err := audit.GetAuditor(ctx, updatedProject.Organization.ID).Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID)); err != nil {
+		errorLogger.LogServiceError(ctx, request, "UpdateProject.AuditLog", err,
+			"project_id", updatedProject.ID)
+	}
 	return connect.NewResponse(&frontierv1beta1.UpdateProjectResponse{Project: projectPB}), nil
 }
 
@@ -415,11 +421,15 @@ func (h *ConnectHandler) SetProjectMemberRole(ctx context.Context, request *conn
 		}
 	}
 
-	audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRoleChangedEvent, audit.ProjectTarget(projectID), map[string]string{
+	if err := audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRoleChangedEvent, audit.ProjectTarget(projectID), map[string]string{
 		"principal_id":   principalID,
 		"principal_type": principalType,
 		"role_id":        roleID,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "SetProjectMemberRole.AuditLog", err,
+			"project_id", projectID,
+			"principal_id", principalID)
+	}
 	return connect.NewResponse(&frontierv1beta1.SetProjectMemberRoleResponse{}), nil
 }
 
@@ -448,10 +458,14 @@ func (h *ConnectHandler) RemoveProjectMember(ctx context.Context, request *conne
 		}
 	}
 
-	audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRemovedEvent, audit.ProjectTarget(projectID), map[string]string{
+	if err := audit.GetAuditor(ctx, "").LogWithAttrs(audit.ProjectMemberRemovedEvent, audit.ProjectTarget(projectID), map[string]string{
 		"principal_id":   principalID,
 		"principal_type": principalType,
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "RemoveProjectMember.AuditLog", err,
+			"project_id", projectID,
+			"principal_id", principalID)
+	}
 	return connect.NewResponse(&frontierv1beta1.RemoveProjectMemberResponse{}), nil
 }
 

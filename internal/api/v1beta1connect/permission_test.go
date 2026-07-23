@@ -397,9 +397,7 @@ func TestHandler_ListPermissions(t *testing.T) {
 			name: "should return success if permission service return nil error",
 			setup: func(as *mocks.PermissionService) {
 				var testPermissionList []permission.Permission
-				for _, act := range testPermissions {
-					testPermissionList = append(testPermissionList, act)
-				}
+				testPermissionList = append(testPermissionList, testPermissions...)
 				as.EXPECT().List(mock.Anything, permission.Filter{}).Return(testPermissionList, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListPermissionsRequest{}),

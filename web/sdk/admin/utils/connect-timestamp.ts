@@ -19,4 +19,14 @@ export function isNullTimestamp(timestamp?: Timestamp): boolean {
   return Number(timestamp.seconds) <= 0;
 }
 
+/** Canonical admin date format (matches Apsara). */
+export const DATE_FORMAT = "DD MMM YYYY";
+
+/** Formats a Timestamp, returning "-" for missing/null-time values (which would otherwise render as 01 Jan 1970). */
+export function formatTimestamp(timestamp?: Timestamp, format: string = DATE_FORMAT): string {
+  if (isNullTimestamp(timestamp)) return "-";
+  const date = timestampToDayjs(timestamp);
+  return date ? date.format(format) : "-";
+}
+
 export type TimeStamp = Timestamp;

@@ -210,7 +210,7 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 		customerNameSubquery.As("customer_name"),
 	).ToSQL()
 	if err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var result subscriptionWithCustomer
@@ -234,7 +234,7 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 			)
 		})
 	}); err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", dbErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return result.Subscription.transform()
@@ -246,7 +246,7 @@ func (r BillingSubscriptionRepository) GetByID(ctx context.Context, id string) (
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var subscriptionModel Subscription
@@ -258,7 +258,7 @@ func (r BillingSubscriptionRepository) GetByID(ctx context.Context, id string) (
 		case errors.Is(err, sql.ErrNoRows):
 			return subscription.Subscription{}, subscription.ErrNotFound
 		}
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", dbErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return subscriptionModel.transform()
@@ -270,7 +270,7 @@ func (r BillingSubscriptionRepository) GetByName(ctx context.Context, name strin
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var subscriptionModel Subscription
@@ -282,7 +282,7 @@ func (r BillingSubscriptionRepository) GetByName(ctx context.Context, name strin
 		case errors.Is(err, sql.ErrNoRows):
 			return subscription.Subscription{}, subscription.ErrNotFound
 		}
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", dbErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return subscriptionModel.transform()
@@ -294,7 +294,7 @@ func (r BillingSubscriptionRepository) GetByProviderID(ctx context.Context, id s
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var subscriptionModel Subscription
@@ -306,7 +306,7 @@ func (r BillingSubscriptionRepository) GetByProviderID(ctx context.Context, id s
 		case errors.Is(err, sql.ErrNoRows):
 			return subscription.Subscription{}, subscription.ErrNotFound
 		}
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", dbErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return subscriptionModel.transform()
@@ -328,7 +328,7 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	updateRecord := goqu.Record{
@@ -372,7 +372,7 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 		customerNameSubquery.As("customer_name"),
 	).ToSQL()
 	if err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", queryErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var result subscriptionWithCustomer
@@ -408,7 +408,7 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 			return nil
 		})
 	}); err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %w", txnErr, err)
+		return subscription.Subscription{}, fmt.Errorf("%w: %w", errTxn, err)
 	}
 
 	return result.Subscription.transform()
@@ -452,14 +452,14 @@ func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscrip
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var subscriptionModels []Subscription
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &subscriptionModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var subscriptions []subscription.Subscription
@@ -479,14 +479,14 @@ func (r BillingSubscriptionRepository) Delete(ctx context.Context, id string) er
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "Delete", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		return fmt.Errorf("%w: %s", dbErr, err)
+		return fmt.Errorf("%w: %s", errDB, err)
 	}
 	return nil
 }

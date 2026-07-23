@@ -14,14 +14,9 @@ import type {
 } from "@raystack/proton/frontier";
 import type { UpdateRolePayload } from "./update-role";
 import styles from "./members.module.css";
-import dayjs from "dayjs";
 import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { DeleteIcon } from "~/admin/assets/icons/DeleteIcon";
-import {
-  isNullTimestamp,
-  TimeStamp,
-  timestampToDate,
-} from "../../../../utils/connect-timestamp";
+import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
 import { formatRoleTitle } from "../../../../utils/helper";
 
 const MemberStates = {
@@ -123,13 +118,9 @@ export const getColumns = ({
     {
       accessorKey: "orgJoinedAt",
       header: "Joined On",
-      cell: ({ getValue }) => {
-        const value = getValue() as TimeStamp;
-        const date = isNullTimestamp(value)
-          ? "-"
-          : dayjs(timestampToDate(value)).format("YYYY-MM-DD");
-        return <Text>{date}</Text>;
-      },
+      cell: ({ getValue }) => (
+        <Text>{formatTimestamp(getValue() as TimeStamp)}</Text>
+      ),
       enableSorting: true,
       enableHiding: true,
       // enableColumnFilter: true,

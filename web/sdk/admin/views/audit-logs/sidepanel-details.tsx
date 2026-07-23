@@ -9,8 +9,7 @@ import { List } from "@raystack/apsara";
 import styles from "./audit-logs.module.css";
 import { AuditRecord } from "@raystack/proton/frontier";
 import { ACTOR_TYPES } from "./util";
-import { timestampToDate } from "../../utils/connect-timestamp";
-import dayjs from "dayjs";
+import { formatTimestamp } from "~/admin/utils/connect-timestamp";
 import { MapIcon } from "../../assets/icons/MapIcon";
 import SidePanelLogDialog from "./sidepanel-log-dialog";
 import ActorCell from "./actor-cell";
@@ -44,8 +43,6 @@ export default function SidePanelDetails({
   const paths = useAdminPaths();
   const { actor, event, resource, occurredAt, id, orgId, orgName, target } =
     rest;
-  const date = dayjs(timestampToDate(occurredAt));
-
   const session = actor?.metadata?.context as AuditSessionContext;
   const location =
     (session && `${session.Location.City}, ${session.Location.Country}`) || "-";
@@ -100,11 +97,11 @@ export default function SidePanelDetails({
           </List.Item>
           <List.Item>
             <List.Label className={styles["sidepanel-list"]}>Date</List.Label>
-            <List.Value>{date.format("DD MMM YYYY")}</List.Value>
+            <List.Value>{formatTimestamp(occurredAt)}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label className={styles["sidepanel-list"]}>Time</List.Label>
-            <List.Value>{date.format("hh:mm A")}</List.Value>
+            <List.Value>{formatTimestamp(occurredAt, "hh:mm A")}</List.Value>
           </List.Item>
           <List.Item>
             <List.Label className={styles["sidepanel-list"]}>ID</List.Label>

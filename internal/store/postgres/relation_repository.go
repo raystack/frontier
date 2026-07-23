@@ -39,7 +39,7 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 			"subject_namespace_name": relationToCreate.Subject.Namespace,
 		})).Returning(&relationCols{}).ToSQL()
 	if err != nil {
-		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var relationModel Relation
@@ -74,7 +74,7 @@ func (r RelationRepository) List(ctx context.Context, flt relation.Filter) ([]re
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var fetchedRelations []Relation
@@ -85,7 +85,7 @@ func (r RelationRepository) List(ctx context.Context, flt relation.Filter) ([]re
 		if errors.Is(err, sql.ErrNoRows) {
 			return []relation.Relation{}, nil
 		}
-		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []relation.Relation{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedRelations []relation.Relation
@@ -106,7 +106,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 			"id": id,
 		}).ToSQL()
 	if err != nil {
-		return relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
+		return relation.Relation{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var relationModel Relation
@@ -135,7 +135,7 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 		"id": id,
 	}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "DeleteByID", func(ctx context.Context) error {
@@ -195,7 +195,7 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "GetByFields", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
@@ -232,7 +232,7 @@ func (r RelationRepository) ListByFields(ctx context.Context, rel relation.Relat
 	}
 	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(exprs...).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 	if err = r.dbc.WithTimeout(ctx, TABLE_RELATIONS, "GetByFields", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRelation, query, params...)

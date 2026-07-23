@@ -53,7 +53,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 
 	marshaledMetadata, err := json.Marshal(res.Metadata)
 	if err != nil {
-		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
+		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", errParse, err)
 	}
 
 	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
@@ -78,7 +78,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			"metadata":       marshaledMetadata,
 		})).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+		return resource.Resource{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var resourceModel Resource
@@ -130,7 +130,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 		if errors.Is(err, ErrInvalidTextRepresentation) {
 			return []resource.Resource{}, nil
 		}
-		return []resource.Resource{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []resource.Resource{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedResources []resource.Resource
@@ -154,7 +154,7 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 		"id": id,
 	}).ToSQL()
 	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+		return resource.Resource{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var resourceModel Resource
@@ -182,7 +182,7 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 
 	marshaledMetadata, err := json.Marshal(res.Metadata)
 	if err != nil {
-		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", parseErr, err)
+		return resource.Resource{}, fmt.Errorf("resource metadata: %w: %s", errParse, err)
 	}
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
@@ -191,7 +191,7 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 		},
 	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+		return resource.Resource{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var resourceModel Resource
@@ -226,7 +226,7 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 			"urn": urn,
 		}).ToSQL()
 	if err != nil {
-		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+		return resource.Resource{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var resourceModel Resource
@@ -249,7 +249,7 @@ func (r ResourceRepository) Delete(ctx context.Context, id string) error {
 		},
 	).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Delete", func(ctx context.Context) error {

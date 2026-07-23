@@ -53,7 +53,7 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 			},
 		).ToSQL()
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %w", queryErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var policyModel Policy
@@ -73,7 +73,7 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 
 	transformedPolicy, err := policyModel.transformToPolicy()
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %w", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedPolicy, nil
@@ -151,7 +151,7 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %w", queryErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "List", func(ctx context.Context) error {
@@ -170,7 +170,7 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 	for _, p := range fetchedPolicies {
 		transformedPolicy, err := p.transformToPolicy()
 		if err != nil {
-			return []policy.Policy{}, fmt.Errorf("%w: %w", parseErr, err)
+			return []policy.Policy{}, fmt.Errorf("%w: %w", errParse, err)
 		}
 		transformedPolicies = append(transformedPolicies, transformedPolicy)
 	}
@@ -185,7 +185,7 @@ func (r PolicyRepository) Count(ctx context.Context, flt policy.Filter) (int64, 
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return count, fmt.Errorf("%w: %w", queryErr, err)
+		return count, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "Count", func(ctx context.Context) error {
@@ -205,7 +205,7 @@ func (r PolicyRepository) Count(ctx context.Context, flt policy.Filter) (int64, 
 func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy.Policy, error) {
 	marshaledMetadata, err := json.Marshal(pol.Metadata)
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %w", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
@@ -223,7 +223,7 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 		"updated_at":     goqu.L("now()"),
 	})).Returning(&PolicyCols{}).ToSQL()
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %w", queryErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	// Check if policy exists before upsert
@@ -261,7 +261,7 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 		case errors.Is(err, ErrForeignKeyViolation):
 			return policy.Policy{}, fmt.Errorf("%w: %w", policy.ErrInvalidDetail, err)
 		default:
-			return policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
+			return policy.Policy{}, fmt.Errorf("%w: %s", errDB, err)
 		}
 	}
 
@@ -281,7 +281,7 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", parseErr, err)
+		return "", fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_POLICIES).Set(
@@ -293,7 +293,7 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 		"id": toUpdate.ID,
 	}).Returning("id", "updated_at").ToSQL()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", queryErr, err)
+		return "", fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var policyID string
@@ -349,7 +349,7 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 				Where(goqu.Ex{"id": id}).
 				ToSQL()
 			if err != nil {
-				return fmt.Errorf("%w: %w", queryErr, err)
+				return fmt.Errorf("%w: %w", errQuery, err)
 			}
 			if _, err := tx.ExecContext(ctx, deleteQuery, deleteParams...); err != nil {
 				return err
@@ -474,7 +474,7 @@ func (r PolicyRepository) GroupMemberCount(ctx context.Context, groupIDs []strin
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var result []policy.MemberCount
@@ -510,7 +510,7 @@ func (r PolicyRepository) ProjectMemberCount(ctx context.Context, projectIDs []s
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var result []policy.MemberCount
@@ -546,7 +546,7 @@ func (r PolicyRepository) OrgMemberCount(ctx context.Context, id string) (policy
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return policy.MemberCount{}, fmt.Errorf("%w: %s", queryErr, err)
+		return policy.MemberCount{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var result policy.MemberCount

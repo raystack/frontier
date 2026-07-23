@@ -3,7 +3,6 @@ package cmd
 import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/salt/cli/commander"
-	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
 )
 
@@ -30,7 +29,7 @@ func New(cliConfig *Config) *cli.Command {
 		},
 	}
 
-	cmd.PersistentPreRunE = func(subCmd *cobra.Command, args []string) error {
+	cmd.PersistentPreRunE = func(subCmd *cli.Command, args []string) error {
 		if isClientCLI(subCmd) {
 			if err := overrideClientConfigHost(subCmd, cliConfig); err != nil {
 				return err

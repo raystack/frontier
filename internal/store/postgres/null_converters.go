@@ -24,7 +24,7 @@ func nullJSONTextToMetadata(njt types.NullJSONText) metadata.Metadata {
 // metadataToNullJSONText converts metadata.Metadata to NullJSONText.
 // Empty or nil metadata will be stored as NULL in the database, not as an empty JSON object.
 func metadataToNullJSONText(m metadata.Metadata) types.NullJSONText {
-	if m == nil || len(m) == 0 {
+	if len(m) == 0 {
 		return types.NullJSONText{Valid: false}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/raystack/frontier/core/audit"
 
@@ -259,7 +260,9 @@ func (s Service) Enable(ctx context.Context, id string) error {
 func (s Service) Disable(ctx context.Context, id string) error {
 	err := s.repository.SetState(ctx, id, Disabled)
 	if err == nil {
-		audit.GetAuditor(ctx, id).Log(audit.OrgDisabledEvent, audit.OrgTarget(id))
+		if auditErr := audit.GetAuditor(ctx, id).Log(audit.OrgDisabledEvent, audit.OrgTarget(id)); auditErr != nil {
+			slog.WarnContext(ctx, "failed to write audit log", "error", auditErr, "event", audit.OrgDisabledEvent)
+		}
 	}
 	return err
 }

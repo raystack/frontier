@@ -213,7 +213,7 @@ func (r BillingTransactionRepository) createTransactionEntry(ctx context.Context
 
 	query, params, err := dialect.Insert(TABLE_BILLING_TRANSACTIONS).Rows(record).Returning(&Transaction{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", parseErr, err)
+		return fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "Create", func(ctx context.Context) error {
@@ -225,7 +225,7 @@ func (r BillingTransactionRepository) createTransactionEntry(ctx context.Context
 				return credit.ErrAlreadyApplied
 			}
 		}
-		return fmt.Errorf("%w: %w", dbErr, err)
+		return fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return nil
@@ -250,7 +250,7 @@ func (r BillingTransactionRepository) GetByID(ctx context.Context, id string) (c
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return credit.Transaction{}, fmt.Errorf("%w: %w", parseErr, err)
+		return credit.Transaction{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var transactionModel Transaction
@@ -262,7 +262,7 @@ func (r BillingTransactionRepository) GetByID(ctx context.Context, id string) (c
 		case errors.Is(err, sql.ErrNoRows):
 			return credit.Transaction{}, credit.ErrNotFound
 		}
-		return credit.Transaction{}, fmt.Errorf("%w: %s", dbErr, err)
+		return credit.Transaction{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return transactionModel.transform()
@@ -274,7 +274,7 @@ func (r BillingTransactionRepository) UpdateByID(ctx context.Context, toUpdate c
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return credit.Transaction{}, fmt.Errorf("%w: %s", parseErr, err)
+		return credit.Transaction{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 	updateRecord := goqu.Record{
 		"metadata":   marshaledMetadata,
@@ -284,7 +284,7 @@ func (r BillingTransactionRepository) UpdateByID(ctx context.Context, toUpdate c
 		"id": toUpdate.ID,
 	}).Returning(&Transaction{}).ToSQL()
 	if err != nil {
-		return credit.Transaction{}, fmt.Errorf("%w: %s", queryErr, err)
+		return credit.Transaction{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var customerModel Transaction
@@ -298,7 +298,7 @@ func (r BillingTransactionRepository) UpdateByID(ctx context.Context, toUpdate c
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return credit.Transaction{}, credit.ErrInvalidUUID
 		default:
-			return credit.Transaction{}, fmt.Errorf("%w: %w", txnErr, err)
+			return credit.Transaction{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
@@ -329,14 +329,14 @@ func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Fi
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var transactionModels []Transaction
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &transactionModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transactions []credit.Transaction
@@ -368,14 +368,14 @@ func (r BillingTransactionRepository) getDebitBalance(ctx context.Context, tx *s
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var debitBalance *int64
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetDebitBalance", func(ctx context.Context) error {
 		return tx.QueryRowxContext(ctx, query, params...).Scan(&debitBalance)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 	return debitBalance, nil
 }
@@ -398,14 +398,14 @@ func (r BillingTransactionRepository) getCreditBalance(ctx context.Context, tx *
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var creditBalance *int64
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetCreditBalance", func(ctx context.Context) error {
 		return tx.QueryRowxContext(ctx, query, params...).Scan(&creditBalance)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 	return creditBalance, nil
 }
@@ -513,14 +513,14 @@ func (r BillingTransactionRepository) getCreditBalanceExcludingSource(ctx contex
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var creditBalance *int64
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetCreditBalanceExcludingSource", func(ctx context.Context) error {
 		return tx.QueryRowxContext(ctx, query, params...).Scan(&creditBalance)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 	return creditBalance, nil
 }

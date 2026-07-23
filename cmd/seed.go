@@ -89,7 +89,7 @@ func SeedCommand(cliConfig *Config) *cli.Command {
 
 	bindFlagsFromClientConfig(cmd)
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>")
-	cmd.MarkFlagRequired("header")
+	mustMarkRequired(cmd, "header")
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "config file path")
 	return cmd
 }
@@ -112,6 +112,7 @@ func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1
 	}
 
 	str := "created custom permissions : "
+	//nolint:staticcheck
 	for _, v := range permissionBodies {
 		str = fmt.Sprintf("%s %s:%s", str, v.GetNamespace(), v.GetName())
 		resourceNamespaces = append(resourceNamespaces, v.GetNamespace())

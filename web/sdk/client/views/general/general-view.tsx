@@ -174,7 +174,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
         description={`Basic configurations for the ${orgLabelLower}`}
       />
 
-      <form onSubmit={handleSubmit(onUpdateSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onUpdateSubmit)}>
         <Flex direction="column">
           {/* Logo section */}
           <Flex direction="column" gap={5} className={styles.section}>

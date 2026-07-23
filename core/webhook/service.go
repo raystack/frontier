@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -48,6 +50,13 @@ func (s Service) CreateEndpoint(ctx context.Context, endpoint Endpoint) (Endpoin
 	if endpoint.State == "" {
 		endpoint.State = Enabled
 	}
+	endpoint.URL = strings.TrimSpace(endpoint.URL)
+	if err := validateEndpoint(endpoint); err != nil {
+		return Endpoint{}, err
+	}
+	if err := s.ensureURLIsFree(ctx, endpoint.URL, endpoint.ID); err != nil {
+		return Endpoint{}, err
+	}
 
 	// generate a random secret in hex
 	secretHex, err := crypt.NewEncryptionKeyInHex()
@@ -65,12 +74,63 @@ func (s Service) UpdateEndpoint(ctx context.Context, endpoint Endpoint) (Endpoin
 	if endpoint.ID == "" {
 		return Endpoint{}, ErrInvalidUUID
 	}
+	endpoint.URL = strings.TrimSpace(endpoint.URL)
+	if err := validateEndpoint(endpoint); err != nil {
+		return Endpoint{}, err
+	}
+	if err := s.ensureURLIsFree(ctx, endpoint.URL, endpoint.ID); err != nil {
+		return Endpoint{}, err
+	}
 	updated, err := s.eRepo.UpdateByID(ctx, endpoint)
 	if err != nil {
 		return Endpoint{}, err
 	}
 	updated.Secrets = nil
 	return updated, nil
+}
+
+// validateEndpoint checks the operator-supplied fields the reconcile flow relies
+// on. The URL is that flow's identity for an endpoint and the state is managed
+// as enabled/disabled, so the server only stores values that reconcile can
+// represent and round-trip: a valid absolute URL, and a known state.
+func validateEndpoint(endpoint Endpoint) error {
+	u, err := url.Parse(endpoint.URL)
+	if err != nil || !u.IsAbs() {
+		return fmt.Errorf("%w: url must be a valid absolute URL", ErrInvalidDetail)
+	}
+	// The server dispatches events to this URL, so restrict it to http(s). This
+	// keeps other schemes (file, gopher, ...) out of the delivery path.
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("%w: url scheme must be http or https", ErrInvalidDetail)
+	}
+	// "https://" and "http:///path" parse as absolute http(s) URLs with an empty
+	// host. A webhook with no host to deliver to is useless, so reject it.
+	if u.Host == "" {
+		return fmt.Errorf("%w: url must include a host", ErrInvalidDetail)
+	}
+	switch endpoint.State {
+	case "", Enabled, Disabled:
+	default:
+		return fmt.Errorf("%w: state must be %q or %q", ErrInvalidDetail, Enabled, Disabled)
+	}
+	return nil
+}
+
+// ensureURLIsFree rejects a URL that another endpoint already uses. The reconcile
+// flow uses the URL as the endpoint's identity, so two endpoints sharing a URL
+// would be ambiguous. excludeID is the endpoint being updated, so it does not
+// conflict with itself.
+func (s Service) ensureURLIsFree(ctx context.Context, rawURL, excludeID string) error {
+	existing, err := s.eRepo.List(ctx, EndpointFilter{})
+	if err != nil {
+		return err
+	}
+	for _, e := range existing {
+		if e.ID != excludeID && e.URL == rawURL {
+			return fmt.Errorf("%w: url %q is already used by another webhook", ErrConflict, rawURL)
+		}
+	}
+	return nil
 }
 
 func (s Service) DeleteEndpoint(ctx context.Context, id string) error {

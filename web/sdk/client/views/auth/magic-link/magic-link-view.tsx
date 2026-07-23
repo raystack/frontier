@@ -112,7 +112,7 @@ export const MagicLinkView = ({
       Continue with Email
     </Button>
   ) : (
-    <form className={styles.form} onSubmit={handleSubmit(magicLinkHandler)}>
+    <form noValidate className={styles.form} onSubmit={handleSubmit(magicLinkHandler)}>
       {!open && <Separator />}
       <Flex direction="column" align="start" className={styles.field}>
         <Input

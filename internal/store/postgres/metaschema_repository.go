@@ -70,7 +70,7 @@ func (m MetaSchemaRepository) Get(ctx context.Context, id string) (metaschema.Me
 		},
 	).ToSQL()
 	if err != nil {
-		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", queryErr, err)
+		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var fetchedMetaSchema MetaSchema
@@ -82,7 +82,7 @@ func (m MetaSchemaRepository) Get(ctx context.Context, id string) (metaschema.Me
 		case errors.Is(err, sql.ErrNoRows):
 			return metaschema.MetaSchema{}, metaschema.ErrNotExist
 		default:
-			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, err)
+			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", errDB, err)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 			"schema": mschema.Schema,
 		}).OnConflict(goqu.DoNothing()).Returning(&MetaSchema{}).ToSQL()
 	if err != nil {
-		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", queryErr, err)
+		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var schemaModel MetaSchema
@@ -126,7 +126,7 @@ func (m MetaSchemaRepository) Create(ctx context.Context, mschema metaschema.Met
 func (m MetaSchemaRepository) List(ctx context.Context) ([]metaschema.MetaSchema, error) {
 	query, params, err := dialect.From(TABLE_METASCHEMA).ToSQL()
 	if err != nil {
-		return []metaschema.MetaSchema{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []metaschema.MetaSchema{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var schemaModels []MetaSchema
@@ -137,7 +137,7 @@ func (m MetaSchemaRepository) List(ctx context.Context) ([]metaschema.MetaSchema
 		if errors.Is(err, sql.ErrNoRows) {
 			return []metaschema.MetaSchema{}, metaschema.ErrNotExist
 		}
-		return []metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []metaschema.MetaSchema{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedSchemas []metaschema.MetaSchema
@@ -156,7 +156,7 @@ func (m MetaSchemaRepository) Delete(ctx context.Context, id string) (string, er
 			},
 		).Returning("name").ToSQL()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", queryErr, err)
+		return "", fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var name string
@@ -168,7 +168,7 @@ func (m MetaSchemaRepository) Delete(ctx context.Context, id string) (string, er
 		case errors.Is(err, sql.ErrNoRows):
 			return "", metaschema.ErrNotExist
 		default:
-			return "", fmt.Errorf("%w: %s", dbErr, err)
+			return "", fmt.Errorf("%w: %s", errDB, err)
 		}
 	}
 
@@ -185,7 +185,7 @@ func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema met
 	}).Returning(&MetaSchema{}).ToSQL()
 
 	if err != nil {
-		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", queryErr, err)
+		return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var schemaModel MetaSchema
@@ -197,7 +197,7 @@ func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema met
 		case errors.Is(err, sql.ErrNoRows):
 			return metaschema.MetaSchema{}, metaschema.ErrNotExist
 		default:
-			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", dbErr, err)
+			return metaschema.MetaSchema{}, fmt.Errorf("%w: %s", errDB, err)
 		}
 	}
 

@@ -233,6 +233,15 @@ func (s *ProspectRepositoryTestSuite) TestGet() {
 			}
 		})
 	}
+
+	s.Run("should return error when stored metadata cannot be parsed", func() {
+		// a top-level JSON array is valid JSONB but does not fit the metadata map
+		query := fmt.Sprintf("UPDATE %s SET metadata = '[1,2,3]'::jsonb WHERE id = '%s'", postgres.TABLE_PROSPECTS, s.prospects[0].ID)
+		s.Require().NoError(execQueries(s.ctx, s.client, []string{query}))
+
+		_, err := s.repository.Get(s.ctx, s.prospects[0].ID)
+		s.Assert().Error(err)
+	})
 }
 
 func (s *ProspectRepositoryTestSuite) TestList() {
@@ -519,7 +528,7 @@ func (s *ProspectRepositoryTestSuite) TestDelete() {
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			// Reset the test data for each test case
-			s.cleanup()
+			s.Require().NoError(s.cleanup())
 			s.SetupTest()
 
 			if tc.SetupFn != nil {

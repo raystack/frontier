@@ -127,14 +127,14 @@ func (r BillingProductRepository) Create(ctx context.Context, toCreate product.P
 			"metadata":    marshaledMetadata,
 		}).Returning(&Product{}).Prepared(true).ToSQL()
 	if err != nil {
-		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var productModel Product
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&productModel)
 	}); err != nil {
-		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return productModel.transform()
@@ -146,7 +146,7 @@ func (r BillingProductRepository) GetByID(ctx context.Context, id string) (produ
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var productModel Product
@@ -158,7 +158,7 @@ func (r BillingProductRepository) GetByID(ctx context.Context, id string) (produ
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Product{}, product.ErrProductNotFound
 		}
-		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return productModel.transform()
@@ -170,7 +170,7 @@ func (r BillingProductRepository) GetByName(ctx context.Context, name string) (p
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var productModel Product
@@ -182,7 +182,7 @@ func (r BillingProductRepository) GetByName(ctx context.Context, name string) (p
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Product{}, product.ErrProductNotFound
 		}
-		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return productModel.transform()
@@ -200,14 +200,14 @@ func (r BillingProductRepository) List(ctx context.Context, flt product.Filter) 
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var productModels []Product
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &productModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	features := make([]product.Product, 0, len(productModels))
@@ -227,7 +227,7 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 	updateRecord := goqu.Record{
 		"title":       toUpdate.Title,
@@ -246,7 +246,7 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 		"name": toUpdate.Name,
 	}).Returning(&Product{}).ToSQL()
 	if err != nil {
-		return product.Product{}, fmt.Errorf("%w: %s", queryErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var productModel Product
@@ -258,7 +258,7 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Product{}, product.ErrProductNotFound
 		default:
-			return product.Product{}, fmt.Errorf("%w: %w", txnErr, err)
+			return product.Product{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 

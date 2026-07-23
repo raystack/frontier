@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var sampleError = errors.New("sample error")
+var errSample = errors.New("sample error")
 
 func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.CustomerService, *mocks.OrganizationService, *mocks.PlanService, *mocks.UserService, *mocks.MembershipService, *mocks.RoleService, *mocks.SubscriptionService, *mocks.CreditService, *mocks.InvoiceService) {
 	t.Helper()
@@ -89,12 +89,12 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
-				customerService.On("List", ctx, customer.Filter{}).Return(nil, sampleError).Once()
+				customerService.On("List", ctx, customer.Filter{}).Return(nil, errSample).Once()
 				return service
 			},
 		},
@@ -119,13 +119,13 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return([]customer.Customer{}, nil).Once()
-				orgService.On("GetRaw", ctx, "").Return(organization.Organization{}, sampleError).Once()
+				orgService.On("GetRaw", ctx, "").Return(organization.Organization{}, errSample).Once()
 				return service
 			},
 		},
@@ -135,14 +135,14 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				orgService.On("GetRaw", ctx, "").Return(organization.Organization{ID: "org_1"}, nil).Once()
-				roleService.On("Get", ctx, organization.AdminRole).Return(role.Role{}, sampleError).Once()
+				roleService.On("Get", ctx, organization.AdminRole).Return(role.Role{}, errSample).Once()
 				return service
 			},
 		},
@@ -152,7 +152,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
@@ -168,7 +168,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 					Currency: "USD",
 					Metadata: map[string]any{
 						"auto_created": "true",
-					}}, false).Return(customer.Customer{}, sampleError).Once()
+					}}, false).Return(customer.Customer{}, errSample).Once()
 				return service
 			},
 		},
@@ -178,7 +178,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
@@ -195,7 +195,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 					Metadata: map[string]any{
 						"auto_created": "true",
 					}}, false).Return(customer.Customer{ID: "cid_1"}, nil).Once()
-				planService.On("GetByID", ctx, "default_plan").Return(plan.Plan{}, sampleError).Once()
+				planService.On("GetByID", ctx, "default_plan").Return(plan.Plan{}, errSample).Once()
 				return service
 			},
 		},
@@ -205,7 +205,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: DefaultPlanNotFree,
+			wantErr: ErrDefaultPlanNotFree,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
@@ -243,7 +243,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
@@ -277,7 +277,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 					CustomerID: "cid_1",
 					PlanID:     "plan_1",
 					SkipTrial:  true,
-				}).Return(nil, nil, sampleError).Once()
+				}).Return(nil, nil, errSample).Once()
 				return service
 			},
 		},
@@ -342,7 +342,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 				ctx:   ctx,
 				orgID: "",
 			},
-			wantErr: sampleError,
+			wantErr: errSample,
 			setup: func() *Service {
 				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
 				const onboardingAmount = 10.0
@@ -387,7 +387,7 @@ func TestEnsureDefaultPlan(t *testing.T) {
 					Source:      "system.awarded",
 					Description: "Awarded 10 credits for onboarding",
 					Metadata:    metadata.Metadata{"auto_created": "true"},
-				}).Return(sampleError).Once()
+				}).Return(errSample).Once()
 				return service
 			},
 		},

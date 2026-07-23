@@ -14,6 +14,7 @@ import (
 )
 
 func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connect.Request[frontierv1beta1.SetOrganizationKycRequest]) (*connect.Response[frontierv1beta1.SetOrganizationKycResponse], error) {
+	errorLogger := NewErrorLogger()
 	orgKyc, err := h.orgKycService.SetKyc(ctx, kyc.KYC{
 		OrgID:  request.Msg.GetOrgId(),
 		Status: request.Msg.GetStatus(),
@@ -33,11 +34,14 @@ func (h *ConnectHandler) SetOrganizationKyc(ctx context.Context, request *connec
 	}
 
 	// Add audit log
-	audit.GetAuditor(ctx, orgKyc.OrgID).
+	if err := audit.GetAuditor(ctx, orgKyc.OrgID).
 		LogWithAttrs(audit.OrgKycUpdatedEvent, audit.OrgTarget(orgKyc.OrgID), map[string]string{
 			"status": strconv.FormatBool(orgKyc.Status),
 			"link":   orgKyc.Link,
-		})
+		}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "SetOrganizationKyc.AuditLog", err,
+			"org_id", orgKyc.OrgID)
+	}
 
 	return connect.NewResponse(&frontierv1beta1.SetOrganizationKycResponse{OrganizationKyc: transformOrgKycToPB(orgKyc)}), nil
 }

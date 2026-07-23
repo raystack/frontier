@@ -49,7 +49,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 			"id": id,
 		}).Where(notDisabledUserExp).ToSQL()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", queryErr, err)
+		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByID", func(ctx context.Context) error {
@@ -70,7 +70,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 
 	transformedUser, err := fetchedUser.transformToUser()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", parseErr, err)
+		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedUser, nil
@@ -87,7 +87,7 @@ func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, 
 			"name": strings.ToLower(name),
 		}).ToSQL()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", queryErr, err)
+		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByName", func(ctx context.Context) error {
@@ -104,7 +104,7 @@ func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, 
 
 	transformedUser, err := fetchedUser.transformToUser()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", parseErr, err)
+		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedUser, nil
@@ -126,7 +126,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	if usr.Metadata != nil {
 		marshaledMetadata, err := json.Marshal(usr.Metadata)
 		if err != nil {
-			return user.User{}, fmt.Errorf("%w: %w", parseErr, err)
+			return user.User{}, fmt.Errorf("%w: %w", errParse, err)
 		}
 		insertRow["metadata"] = marshaledMetadata
 	}
@@ -135,7 +135,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	}
 	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", queryErr, err)
+		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	tx, err := r.dbc.BeginTxx(ctx, nil)
@@ -166,7 +166,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 
 	transformedUser, err := userModel.transformToUser()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", parseErr, err)
+		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 	return transformedUser, nil
 }
@@ -201,7 +201,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 
 	query, params, err := sqlStmt.Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
 	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %w", queryErr, err)
+		return []user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var dbUsers []User
@@ -211,7 +211,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		if errors.Is(err, sql.ErrNoRows) {
 			return []user.User{}, nil
 		}
-		return []user.User{}, fmt.Errorf("%w: %w", dbErr, err)
+		return []user.User{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	var transformedUsers []user.User
@@ -237,7 +237,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 			"id": goqu.Op{"in": userIDs},
 		}).Where(notDisabledUserExp).ToSQL()
 	if err != nil {
-		return []user.User{}, fmt.Errorf("%w: %w", queryErr, err)
+		return []user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByIDs", func(ctx context.Context) error {
@@ -272,7 +272,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 	}
 	marshaledMetadata, err := json.Marshal(usr.Metadata)
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", parseErr, err)
+		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 	var transformedUser user.User
 
@@ -289,7 +289,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 			},
 		).Returning(&User{}).ToSQL()
 		if err != nil {
-			return fmt.Errorf("%w: %s", queryErr, err)
+			return fmt.Errorf("%w: %s", errQuery, err)
 		}
 
 		var userModel User
@@ -299,12 +299,12 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 			if errors.Is(err, sql.ErrNoRows) {
 				return user.ErrNotExist
 			}
-			return fmt.Errorf("%w: %w", txnErr, err)
+			return fmt.Errorf("%w: %w", errTxn, err)
 		}
 
 		transformedUser, err = userModel.transformToUser()
 		if err != nil {
-			return fmt.Errorf("%w: %w", parseErr, err)
+			return fmt.Errorf("%w: %w", errParse, err)
 		}
 
 		return nil
@@ -324,7 +324,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 
 	marshaledMetadata, err := json.Marshal(usr.Metadata)
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		return user.User{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 	var transformedUser user.User
 	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
@@ -340,7 +340,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			},
 		).Returning(&User{}).ToSQL()
 		if err != nil {
-			return fmt.Errorf("%w: %s", queryErr, err)
+			return fmt.Errorf("%w: %s", errQuery, err)
 		}
 
 		var userModel User
@@ -360,7 +360,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 
 		transformedUser, err = userModel.transformToUser()
 		if err != nil {
-			return fmt.Errorf("%w: %w", parseErr, err)
+			return fmt.Errorf("%w: %w", errParse, err)
 		}
 
 		return nil
@@ -386,7 +386,7 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 	if len(usr.Metadata) > 0 {
 		marshaledMetadata, err := json.Marshal(usr.Metadata)
 		if err != nil {
-			return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+			return user.User{}, fmt.Errorf("%w: %s", errParse, err)
 		}
 		updateRecord["metadata"] = marshaledMetadata
 	}
@@ -397,7 +397,7 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 		},
 	).Returning(&User{}).ToSQL()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return user.User{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var userModel User
@@ -437,7 +437,7 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		}).Where(notDisabledUserExp).ToSQL()
 
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		return user.User{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "GetByEmail", func(ctx context.Context) error {
@@ -446,12 +446,12 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		if errors.Is(err, sql.ErrNoRows) {
 			return user.User{}, user.ErrNotExist
 		}
-		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
+		return user.User{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	transformedUser, err := fetchedUser.transformToUser()
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		return user.User{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	return transformedUser, nil
@@ -467,7 +467,7 @@ func (r UserRepository) SetState(ctx context.Context, id string, state user.Stat
 		},
 	).Returning(&User{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var userModel User
@@ -492,7 +492,7 @@ func (r UserRepository) Delete(ctx context.Context, id string) error {
 		},
 	).Returning(&User{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var userModel User

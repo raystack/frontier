@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
@@ -121,10 +122,13 @@ func (h *ConnectHandler) DeletePolicy(ctx context.Context, request *connect.Requ
 		}
 	}
 
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.PolicyDeletedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.PolicyDeletedEvent, audit.Target{
 		ID:   policyID,
 		Type: "app/policy",
-	})
+	}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeletePolicy.AuditLog", err,
+			"policy_id", policyID)
+	}
 	return connect.NewResponse(&frontierv1beta1.DeletePolicyResponse{}), nil
 }
 
@@ -235,7 +239,7 @@ func transformPolicyToPB(policy policy.Policy) (*frontierv1beta1.Policy, error) 
 }
 
 func auditPolicyCreationEvent(ctx context.Context, policyCreated policy.Policy) {
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
 		LogWithAttrs(audit.PolicyCreatedEvent, audit.Target{
 			ID:   policyCreated.ResourceID,
 			Type: policyCreated.ResourceType,
@@ -243,7 +247,12 @@ func auditPolicyCreationEvent(ctx context.Context, policyCreated policy.Policy) 
 			"role_id":        policyCreated.RoleID,
 			"principal_id":   policyCreated.PrincipalID,
 			"principal_type": policyCreated.PrincipalType,
-		})
+		}); err != nil {
+		slog.ErrorContext(ctx, "PolicyCreation.AuditLog operation failed",
+			"error", err,
+			"policy_id", policyCreated.ID,
+			"resource_id", policyCreated.ResourceID)
+	}
 }
 
 // resolveFilter resolves the filter from the request and returns a policy filter

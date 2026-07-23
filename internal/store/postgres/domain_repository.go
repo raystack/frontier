@@ -40,7 +40,7 @@ func (s *DomainRepository) Create(ctx context.Context, toCreate domain.Domain) (
 			"token":  toCreate.Token,
 		}).Returning(&Domain{}).ToSQL()
 	if err != nil {
-		return domain.Domain{}, fmt.Errorf("%w: %s", parseErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var domainModel Domain
@@ -51,7 +51,7 @@ func (s *DomainRepository) Create(ctx context.Context, toCreate domain.Domain) (
 		if errors.Is(err, ErrDuplicateKey) {
 			return domain.Domain{}, domain.ErrDuplicateKey
 		}
-		return domain.Domain{}, fmt.Errorf("%w: %s", dbErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	dmn := domainModel.transform()
@@ -78,7 +78,7 @@ func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domai
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	var domains []Domain
@@ -86,7 +86,7 @@ func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domai
 		return s.dbc.SelectContext(ctx, &domains, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var result []domain.Domain
@@ -104,7 +104,7 @@ func (s *DomainRepository) Get(ctx context.Context, id string) (domain.Domain, e
 	}).ToSQL()
 
 	if err != nil {
-		return domain.Domain{}, fmt.Errorf("%w: %s", queryErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var domainModel Domain
@@ -112,7 +112,7 @@ func (s *DomainRepository) Get(ctx context.Context, id string) (domain.Domain, e
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&domainModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return domain.Domain{}, fmt.Errorf("%w: %s", dbErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	domain := domainModel.transform()
@@ -124,14 +124,14 @@ func (s *DomainRepository) Delete(ctx context.Context, id string) error {
 		"id": id,
 	}).Returning(&Domain{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return s.dbc.WithTimeout(ctx, TABLE_DOMAINS, "Delete", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return fmt.Errorf("%w: %s", errDB, err)
 		}
 
 		if count, _ := result.RowsAffected(); count > 0 {
@@ -156,7 +156,7 @@ func (s *DomainRepository) Update(ctx context.Context, toUpdate domain.Domain) (
 		"id": toUpdate.ID,
 	}).Returning(&Domain{}).ToSQL()
 	if err != nil {
-		return domain.Domain{}, fmt.Errorf("%w: %s", queryErr, err)
+		return domain.Domain{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var domainModel Domain
@@ -168,7 +168,7 @@ func (s *DomainRepository) Update(ctx context.Context, toUpdate domain.Domain) (
 		case errors.Is(err, sql.ErrNoRows):
 			return domain.Domain{}, domain.ErrNotExist
 		default:
-			return domain.Domain{}, fmt.Errorf("%w: %s", dbErr, err)
+			return domain.Domain{}, fmt.Errorf("%w: %s", errDB, err)
 		}
 	}
 
@@ -182,14 +182,14 @@ func (s *DomainRepository) DeleteExpiredDomainRequests(ctx context.Context) erro
 		"state":      domain.Pending,
 	}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return s.dbc.WithTimeout(ctx, TABLE_DOMAINS, "DeleteExpiredDomain", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return fmt.Errorf("%w: %s", errDB, err)
 		}
 
 		count, _ := result.RowsAffected()

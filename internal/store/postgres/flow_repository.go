@@ -43,7 +43,7 @@ func (s *FlowRepository) Set(ctx context.Context, flow *authenticate.Flow) error
 	flow.Metadata["finish_url"] = flow.FinishURL
 	marshaledMetadata, err := json.Marshal(flow.Metadata)
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return fmt.Errorf("%w: %s", errParse, err)
 	}
 
 	query, params, err := dialect.Insert(TABLE_FLOWS).Rows(
@@ -63,7 +63,7 @@ func (s *FlowRepository) Set(ctx context.Context, flow *authenticate.Flow) error
 		"expires_at": flow.ExpiresAt,
 	})).Returning(&Flow{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var flowModel Flow
@@ -71,7 +71,7 @@ func (s *FlowRepository) Set(ctx context.Context, flow *authenticate.Flow) error
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&flowModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return fmt.Errorf("%w: %s", dbErr, err)
+		return fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.F
 	).ToSQL()
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_FLOWS, "Get", func(ctx context.Context) error {
@@ -97,7 +97,7 @@ func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.F
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, authenticate.ErrFlowInvalid
 		default:
-			return nil, fmt.Errorf("%w: %s", dbErr, err)
+			return nil, fmt.Errorf("%w: %s", errDB, err)
 		}
 	}
 
@@ -112,7 +112,7 @@ func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			},
 		).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return s.dbc.WithTimeout(ctx, TABLE_FLOWS,
@@ -120,7 +120,7 @@ func (s *FlowRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			result, err := s.dbc.ExecContext(ctx, query, params...)
 			if err != nil {
 				err = checkPostgresError(err)
-				return fmt.Errorf("%w: %s", dbErr, err)
+				return fmt.Errorf("%w: %s", errDB, err)
 			}
 
 			if count, _ := result.RowsAffected(); count > 0 {
@@ -139,14 +139,14 @@ func (s *FlowRepository) DeleteExpiredFlows(ctx context.Context) error {
 			},
 		).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	return s.dbc.WithTimeout(ctx, TABLE_FLOWS, "DeleteExpiredFlows", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)
-			return fmt.Errorf("%w: %s", dbErr, err)
+			return fmt.Errorf("%w: %s", errDB, err)
 		}
 
 		count, _ := result.RowsAffected()

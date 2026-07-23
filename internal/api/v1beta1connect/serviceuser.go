@@ -159,10 +159,14 @@ func (h *ConnectHandler) CreateServiceUser(ctx context.Context, request *connect
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUser: entity_id=%s: %w", svUser.ID, err))
 	}
 
-	audit.GetAuditor(ctx, request.Msg.GetOrgId()).
+	if err := audit.GetAuditor(ctx, request.Msg.GetOrgId()).
 		LogWithAttrs(audit.ServiceUserCreatedEvent, audit.ServiceUserTarget(svUser.ID), map[string]string{
 			"title": svUser.Title,
-		})
+		}); err != nil {
+		errorLogger.LogServiceError(ctx, request, "CreateServiceUser.AuditLog", err,
+			"service_user_id", svUser.ID,
+			"org_id", request.Msg.GetOrgId())
+	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateServiceUserResponse{
 		Serviceuser: svUserPb,
@@ -205,8 +209,12 @@ func (h *ConnectHandler) DeleteServiceUser(ctx context.Context, request *connect
 		}
 	}
 
-	audit.GetAuditor(ctx, orgID).
-		Log(audit.ServiceUserDeletedEvent, audit.ServiceUserTarget(serviceUserID))
+	if err := audit.GetAuditor(ctx, orgID).
+		Log(audit.ServiceUserDeletedEvent, audit.ServiceUserTarget(serviceUserID)); err != nil {
+		errorLogger.LogServiceError(ctx, request, "DeleteServiceUser.AuditLog", err,
+			"service_user_id", serviceUserID,
+			"org_id", orgID)
+	}
 
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserResponse{}), nil
 }

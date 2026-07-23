@@ -64,21 +64,21 @@ func (s ServiceUserRepository) List(ctx context.Context, flt serviceuser.Filter)
 
 	query, params, err := stmt.From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var fetchedServiceUsers []ServiceUser
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "List", func(ctx context.Context) error {
 		return s.dbc.SelectContext(ctx, &fetchedServiceUsers, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	var transformedServiceUsers []serviceuser.ServiceUser
 	for _, o := range fetchedServiceUsers {
 		transformedServiceUser, err := o.transform()
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", parseErr, err)
+			return nil, fmt.Errorf("%w: %w", errParse, err)
 		}
 		transformedServiceUsers = append(transformedServiceUsers, transformedServiceUser)
 	}
@@ -93,7 +93,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 
 	marshaledMetadata, err := json.Marshal(serviceUser.Metadata)
 	if err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", parseErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	var result serviceUserWithContext
@@ -117,7 +117,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 		orgNameSubquery.As("org_name"),
 	).ToSQL()
 	if err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", queryErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	if err = s.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
@@ -146,7 +146,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", dbErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return result.ServiceUser.transform()
@@ -169,7 +169,7 @@ func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceu
 		goqu.Ex{"s.id": id},
 	).From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
 	if err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", queryErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var serviceUserModel ServiceUser
@@ -179,7 +179,7 @@ func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceu
 		if errors.Is(err, sql.ErrNoRows) {
 			return serviceuser.ServiceUser{}, serviceuser.ErrNotExist
 		}
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", dbErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	return serviceUserModel.transform()
@@ -203,7 +203,7 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 		goqu.Ex{"s.id": goqu.Op{"in": ids}},
 	).From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	var fetchedUsers []ServiceUser
@@ -213,7 +213,7 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, serviceuser.ErrNotExist
 		}
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
 	var transformedUsers []serviceuser.ServiceUser
@@ -250,7 +250,7 @@ func (s ServiceUserRepository) ListMissingOrgPolicy(ctx context.Context) ([]boot
 			goqu.L("NOT EXISTS ?", policiesSubquery),
 		).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	type row struct {
@@ -264,7 +264,7 @@ func (s ServiceUserRepository) ListMissingOrgPolicy(ctx context.Context) ([]boot
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("%w: %w", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	candidates := make([]bootstrap.ServiceUserCandidate, 0, len(rows))
@@ -291,7 +291,7 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 			orgNameSubquery.As("org_name"),
 		).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
 	if err = s.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {

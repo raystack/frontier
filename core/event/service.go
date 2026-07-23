@@ -30,7 +30,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 )
 
-var DefaultPlanNotFree = errors.New("default plan is not free")
+var ErrDefaultPlanNotFree = errors.New("default plan is not free")
 
 type CheckoutService interface {
 	Apply(ctx context.Context, ch checkout.Checkout) (*subscription.Subscription, *product.Product, error)
@@ -157,7 +157,7 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 			}
 
 			if !defaultPlan.IsFree() {
-				return DefaultPlanNotFree
+				return ErrDefaultPlanNotFree
 			}
 			_, _, err = p.checkoutService.Apply(ctx, checkout.Checkout{
 				CustomerID: customr.ID,
@@ -170,7 +170,7 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 		}
 
 		if amount := p.billingConf.AccountConfig.OnboardCreditsWithOrg; amount > 0 {
-			txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(fmt.Sprintf("%s", customr.OrgID))).String()
+			txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(customr.OrgID)).String()
 			if err := p.creditService.Add(ctx, credit.Credit{
 				ID:          txID,
 				CustomerID:  customr.ID,

@@ -373,13 +373,16 @@ func (h *ConnectHandler) UpdateBillingAccountDetails(ctx context.Context, reques
 	// Add audit log - infer org_id from billing account
 	customerOb, err := h.customerService.GetByID(ctx, request.Msg.GetId())
 	if err == nil {
-		audit.GetAuditor(ctx, customerOb.OrgID).LogWithAttrs(audit.BillingAccountDetailsUpdatedEvent, audit.Target{
+		if err := audit.GetAuditor(ctx, customerOb.OrgID).LogWithAttrs(audit.BillingAccountDetailsUpdatedEvent, audit.Target{
 			ID:   request.Msg.GetId(),
 			Type: "billing_account",
 		}, map[string]string{
 			"credit_min":  fmt.Sprintf("%d", details.CreditMin),
 			"due_in_days": fmt.Sprintf("%d", details.DueInDays),
-		})
+		}); err != nil {
+			errorLogger.LogServiceError(ctx, request, "UpdateBillingAccountDetails.AuditLog", err,
+				"customer_id", request.Msg.GetId())
+		}
 	} else {
 		errorLogger.LogServiceError(ctx, request, "UpdateBillingAccountDetails.GetByID", err,
 			"customer_id", request.Msg.GetId())

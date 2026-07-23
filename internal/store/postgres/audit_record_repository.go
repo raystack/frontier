@@ -106,12 +106,12 @@ func (r AuditRecordRepository) Create(ctx context.Context, auditRecord auditreco
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return auditrecord.AuditRecord{}, auditrecord.ErrInvalidUUID
 		default:
-			return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", dbErr, err)
+			return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", errDB, err)
 		}
 	}
 	transformedAuditRecord, err := auditRecordModel.transformToDomain()
 	if err != nil {
-		return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", parseErr, err)
+		return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 	return transformedAuditRecord, nil
 }
@@ -145,13 +145,13 @@ func (r AuditRecordRepository) getByField(ctx context.Context, field string, val
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return auditrecord.AuditRecord{}, auditrecord.ErrInvalidUUID
 		default:
-			return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", dbErr, err)
+			return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", errDB, err)
 		}
 	}
 
 	transformedAuditRecord, err := auditRecordModel.transformToDomain()
 	if err != nil {
-		return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", parseErr, err)
+		return auditrecord.AuditRecord{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 	return transformedAuditRecord, nil
 }
@@ -310,7 +310,7 @@ func (r AuditRecordRepository) executeCursorQuery(ctx context.Context, selectQue
 			if err != nil {
 				return fmt.Errorf("failed to begin transaction: %w", err)
 			}
-			defer tx.Rollback()
+			defer tx.Rollback() // nolint
 
 			// Generate unique cursor name
 			cursorName, err := r.generateCursorName()

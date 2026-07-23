@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent" //nolint:staticcheck
 	"github.com/raystack/frontier/core/relation"
 )
 
@@ -94,7 +94,7 @@ func (r *RelationRepository) Add(ctx context.Context, rel relation.Relation) err
 			Operation: "Upsert_Relation",
 			StartTime: nrCtx.StartSegmentNow(),
 		}
-		defer nr.End()
+		defer nr.End() // nolint
 	}
 
 	resp, err := r.spiceDB.client.WriteRelationships(ctx, request)
@@ -132,7 +132,7 @@ func (r *RelationRepository) Check(ctx context.Context, rel relation.Relation) (
 			Operation:  "Check",
 			StartTime:  nrCtx.StartSegmentNow(),
 		}
-		defer nr.End()
+		defer nr.End() // nolint
 	}
 
 	response, err := r.spiceDB.client.CheckPermission(ctx, request)
@@ -179,7 +179,7 @@ func (r *RelationRepository) Delete(ctx context.Context, rel relation.Relation) 
 			Operation: "Delete_Relation",
 			StartTime: nrCtx.StartSegmentNow(),
 		}
-		defer nr.End()
+		defer nr.End() // nolint
 	}
 	resp, err := r.spiceDB.client.DeleteRelationships(ctx, request)
 	if err != nil {
@@ -296,9 +296,9 @@ func (r *RelationRepository) ListRelations(ctx context.Context, rel relation.Rel
 
 func (r *RelationRepository) BatchCheck(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error) {
 	result := make([]relation.CheckPair, len(relations))
-	items := make([]*authzedpb.BulkCheckPermissionRequestItem, 0, len(relations))
+	items := make([]*authzedpb.CheckBulkPermissionsRequestItem, 0, len(relations))
 	for _, rel := range relations {
-		items = append(items, &authzedpb.BulkCheckPermissionRequestItem{
+		items = append(items, &authzedpb.CheckBulkPermissionsRequestItem{
 			Resource: &authzedpb.ObjectReference{
 				ObjectId:   rel.Object.ID,
 				ObjectType: rel.Object.Namespace,
@@ -313,12 +313,12 @@ func (r *RelationRepository) BatchCheck(ctx context.Context, relations []relatio
 			Permission: rel.RelationName,
 		})
 	}
-	request := &authzedpb.BulkCheckPermissionRequest{
+	request := &authzedpb.CheckBulkPermissionsRequest{
 		Consistency: r.getConsistencyForCheck(),
 		Items:       items,
 	}
 
-	response, err := r.spiceDB.client.BulkCheckPermission(ctx, request)
+	response, err := r.spiceDB.client.CheckBulkPermissions(ctx, request)
 	if err != nil {
 		return result, err
 	}

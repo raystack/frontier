@@ -117,6 +117,7 @@ func (r *PermissionReconciler) fetchCurrent(ctx context.Context) ([]currentPermi
 		return nil, fmt.Errorf("list permissions: %w", err)
 	}
 	var current []currentPermission
+	//nolint:staticcheck
 	for _, p := range resp.Msg.GetPermissions() {
 		if isBaseNamespace(p.GetNamespace()) {
 			continue

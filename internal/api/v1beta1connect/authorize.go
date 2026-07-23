@@ -162,10 +162,14 @@ func (h *ConnectHandler) CheckPlanEntitlement(ctx context.Context, obj relation.
 			return err
 		}
 		for _, customr := range customers {
-			audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.BillingEntitlementCheckedEvent, audit.Target{
+			if err := audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.BillingEntitlementCheckedEvent, audit.Target{
 				ID:   customr.ID,
 				Type: "billing_account",
-			}, map[string]string{})
+			}, map[string]string{}); err != nil {
+				errorLogger.LogServiceError(ctx, request, "CheckPlanEntitlement.AuditLog", err,
+					"customer_id", customr.ID,
+					"org_id", orgID)
+			}
 			if err := h.entitlementService.CheckPlanEligibility(ctx, customr.ID); err != nil {
 				errorLogger.LogUnexpectedError(ctx, request, "CheckPlanEntitlement", err,
 					"customer_id", customr.ID,

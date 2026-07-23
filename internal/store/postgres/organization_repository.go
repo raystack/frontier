@@ -44,7 +44,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 		"id": id,
 	}).ToSQL()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModel Organization
@@ -64,7 +64,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 
 	transformedOrg, err := orgModel.transformToOrg()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedOrg, nil
@@ -79,7 +79,7 @@ func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]o
 		"id": goqu.Op{"in": ids},
 	}).Where(notDisabledOrgExp).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgs []Organization
@@ -119,7 +119,7 @@ func (r OrganizationRepository) GetByName(ctx context.Context, name string) (org
 		"name": name,
 	}).ToSQL()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModel Organization
@@ -139,7 +139,7 @@ func (r OrganizationRepository) GetByName(ctx context.Context, name string) (org
 
 	transformedOrg, err := orgModel.transformToOrg()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedOrg, nil
@@ -153,7 +153,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	insertRow := goqu.Record{
@@ -167,7 +167,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	}
 	query, params, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(insertRow).Returning(&Organization{}).ToSQL()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModel Organization
@@ -210,7 +210,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 
 	transformedOrg, err := orgModel.transformToOrg()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return transformedOrg, nil
@@ -238,14 +238,14 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 		totalCountStmt := stmt.Select(goqu.COUNT("*"))
 		totalCountQuery, totalCountParams, err := totalCountStmt.ToSQL()
 		if err != nil {
-			return []organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+			return []organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 		}
 
 		var totalCount int32
 		if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Count", func(ctx context.Context) error {
 			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery, totalCountParams...)
 		}); err != nil {
-			return nil, fmt.Errorf("%w: %w", dbErr, err)
+			return nil, fmt.Errorf("%w: %w", errDB, err)
 		}
 
 		flt.Pagination.SetCount(totalCount)
@@ -254,7 +254,7 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return []organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModels []Organization
@@ -264,14 +264,14 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 		if errors.Is(err, sql.ErrNoRows) {
 			return []organization.Organization{}, nil
 		}
-		return []organization.Organization{}, fmt.Errorf("%w: %w", dbErr, err)
+		return []organization.Organization{}, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	var transformedOrgs []organization.Organization
 	for _, o := range orgModels {
 		transformedOrg, err := o.transformToOrg()
 		if err != nil {
-			return []organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+			return []organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 		}
 		transformedOrgs = append(transformedOrgs, transformedOrg)
 	}
@@ -288,10 +288,8 @@ func buildOrgUpdateAuditRecord(ctx context.Context, orgBeforeUpdate, orgAfterUpd
 	if title != updatedTitle {
 		// Create a new one to avoid mutating the original
 		auditMetadata = make(map[string]interface{})
-		if metadata != nil {
-			for k, v := range metadata {
-				auditMetadata[k] = v
-			}
+		for k, v := range metadata {
+			auditMetadata[k] = v
 		}
 		auditMetadata["title"] = title
 		auditMetadata["updated_title"] = updatedTitle
@@ -327,7 +325,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	// Query to fetch org title before update
@@ -335,7 +333,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		Select("title").
 		Where(goqu.Ex{"id": org.ID}).ToSQL()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
@@ -348,7 +346,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		"id": org.ID,
 	}).Returning(&Organization{}).ToSQL()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModel Organization
@@ -379,13 +377,13 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
 		default:
-			return organization.Organization{}, fmt.Errorf("%w: %w", txnErr, err)
+			return organization.Organization{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
 	org, err = orgModel.transformToOrg()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return org, nil
@@ -398,7 +396,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	// Query to fetch org data before update
@@ -406,7 +404,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		Select("title").
 		Where(goqu.Ex{"name": org.Name}).ToSQL()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
@@ -420,7 +418,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 			"name": org.Name,
 		}).Returning(&Organization{}).ToSQL()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", queryErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModel Organization
@@ -448,13 +446,13 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		case errors.Is(err, ErrDuplicateKey):
 			return organization.Organization{}, organization.ErrConflict
 		default:
-			return organization.Organization{}, fmt.Errorf("%w: %w", txnErr, err)
+			return organization.Organization{}, fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
 	org, err = orgModel.transformToOrg()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	return org, nil
@@ -471,7 +469,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 		},
 	).Returning(&Organization{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModel Organization
@@ -519,7 +517,7 @@ func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
 		},
 	).Returning(&Organization{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", queryErr, err)
+		return fmt.Errorf("%w: %w", errQuery, err)
 	}
 
 	var orgModel Organization
