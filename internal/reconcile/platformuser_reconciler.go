@@ -80,8 +80,9 @@ func (r *PlatformUserReconciler) Reconcile(ctx context.Context, spec []byte, dry
 }
 
 // Export returns the current platform users as a desired-state spec: one entry
-// per (principal, relation), users referenced by email when they have one.
-// Entries are sorted so repeated exports produce identical files.
+// per (principal, relation), users referenced by email address when they have a
+// parseable one, else by id. Entries are sorted so repeated exports produce
+// identical files.
 func (r *PlatformUserReconciler) Export(ctx context.Context) (any, error) {
 	current, err := r.fetchCurrent(ctx)
 	if err != nil {
@@ -89,9 +90,16 @@ func (r *PlatformUserReconciler) Export(ctx context.Context) (any, error) {
 	}
 	specs := make([]PlatformUserSpec, 0, len(current))
 	for _, p := range current {
+		// Reference a user by its email address when it has a parseable one, else by
+		// id. The address is normalized (lowercased, display name dropped) so the
+		// export is canonical and matches the principal on re-reconcile. A stored
+		// value that is not an email (empty, or another user's id) falls back to the
+		// id, so it cannot masquerade as that id when the export is reconciled.
 		ref := p.ID
-		if p.Type == principalTypeUser && p.Email != "" {
-			ref = p.Email
+		if p.Type == principalTypeUser {
+			if addr, ok := emailAddress(p.Email); ok {
+				ref = addr
+			}
 		}
 		for _, rel := range platformRelationOrder {
 			if _, ok := p.Relations[rel]; ok {
