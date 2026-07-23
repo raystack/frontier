@@ -75,6 +75,7 @@ func TestService_Get(t *testing.T) {
 
 func TestService_IsEnabled(t *testing.T) {
 	newSvc := func(t *testing.T) (*mocks.Repository, *organization.Service) {
+		t.Helper()
 		mockRepo := mocks.NewRepository(t)
 		svc := organization.NewService(mockRepo, mocks.NewRelationService(t), mocks.NewUserService(t),
 			mocks.NewAuthnService(t), mocks.NewPolicyService(t), mocks.NewPreferencesService(t), mocks.NewRoleService(t))

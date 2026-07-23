@@ -524,7 +524,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 		assertions []authenticate.ClientAssertion
 		want       authenticate.Principal
 		wantErr    error
-		setup      func(t *testing.T) *authenticate.Service
+		setup      func() *authenticate.Service
 	}{
 		{
 			name: "reject PAT whose org is disabled or gone",
@@ -533,7 +533,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			}),
 			assertions: []authenticate.ClientAssertion{authenticate.PATClientAssertion},
 			wantErr:    frontiererrors.ErrForbidden,
-			setup: func(t *testing.T) *authenticate.Service {
+			setup: func() *authenticate.Service {
 				pat := mocks.NewUserPATService(t)
 				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: orgID}, nil)
 				usr := mocks.NewUserService(t)
@@ -553,7 +553,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			}),
 			assertions: []authenticate.ClientAssertion{authenticate.PATClientAssertion},
 			wantErr:    frontiererrors.ErrForbidden,
-			setup: func(t *testing.T) *authenticate.Service {
+			setup: func() *authenticate.Service {
 				pat := mocks.NewUserPATService(t)
 				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: ""}, nil)
 				usr := mocks.NewUserService(t)
@@ -578,7 +578,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 				PAT:     &patModels.PAT{ID: patID, UserID: userID, OrgID: orgID},
 				User:    &user.User{ID: userID},
 			},
-			setup: func(t *testing.T) *authenticate.Service {
+			setup: func() *authenticate.Service {
 				pat := mocks.NewUserPATService(t)
 				pat.EXPECT().Validate(mock.Anything, "pat-token").Return(patModels.PAT{ID: patID, UserID: userID, OrgID: orgID}, nil)
 				usr := mocks.NewUserService(t)
@@ -598,7 +598,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			}),
 			assertions: []authenticate.ClientAssertion{authenticate.ClientCredentialsClientAssertion},
 			wantErr:    frontiererrors.ErrForbidden,
-			setup: func(t *testing.T) *authenticate.Service {
+			setup: func() *authenticate.Service {
 				su := mocks.NewServiceUserService(t)
 				su.EXPECT().GetBySecret(mock.Anything, "user", "password").Return(serviceuser.ServiceUser{ID: userID, OrgID: orgID}, nil)
 				org := mocks.NewOrgService(t)
@@ -616,7 +616,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			}),
 			assertions: []authenticate.ClientAssertion{authenticate.JWTGrantClientAssertion},
 			wantErr:    frontiererrors.ErrForbidden,
-			setup: func(t *testing.T) *authenticate.Service {
+			setup: func() *authenticate.Service {
 				su := mocks.NewServiceUserService(t)
 				su.EXPECT().GetByJWT(mock.Anything, "grant-token").Return(serviceuser.ServiceUser{ID: userID, OrgID: orgID}, nil)
 				org := mocks.NewOrgService(t)
@@ -630,7 +630,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := tt.setup(t)
+			s := tt.setup()
 			got, err := s.GetPrincipal(tt.ctx, tt.assertions...)
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
