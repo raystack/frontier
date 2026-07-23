@@ -7,6 +7,14 @@
   text-wrap: auto;
 }
 
+.zero-state-container {
+  padding: var(--rs-space-10);
+}
+
+.zero-state {
+  padding-top: var(--rs-space-17);
+}
+
 .table {
   width: 100%;
   table-layout: fixed;

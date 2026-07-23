@@ -54,6 +54,20 @@ const NoMembers = () => {
   );
 };
 
+const ZeroState = () => {
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        className={styles["zero-state"]}
+        icon={<UsersIcon />}
+        heading="Members"
+        subHeading="Members are users who belong to this organization and can access its resources."
+      />
+    </div>
+  );
+};
+
 const ErrorState = () => {
   return (
     <EmptyState
@@ -217,6 +231,7 @@ export function OrganizationMembersView() {
             <DataTable.Toolbar />
             <DataTable.Content
               emptyState={isError ? <ErrorState /> : <NoMembers />}
+              zeroState={<ZeroState />}
               classNames={{
                 table: styles["table"],
                 root: styles["table-wrapper"],
