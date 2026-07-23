@@ -53,7 +53,7 @@ func validatePermissionSpec(s PermissionSpec) error {
 	// and be silently treated as one. Require each part to be lowercase alphanumeric
 	// so the slug is one-to-one and a plan cannot mistake one namespace for another.
 	if !schema.IsValidPermissionNamespace(s.Namespace) {
-		return fmt.Errorf("invalid namespace %q (each of service/resource must be lowercase alphanumeric, no underscore)", s.Namespace)
+		return fmt.Errorf("invalid namespace %q (each of service/resource must be lowercase alphanumeric)", s.Namespace)
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
@@ -311,28 +312,18 @@ func IsValidPermissionName(name string) bool {
 	return true
 }
 
-// IsValidPermissionNamespace checks that a custom permission namespace is in
-// service/resource form with each part lowercase alphanumeric. An underscore is
-// forbidden inside a part: FQPermissionNameFromNamespace joins service, resource,
-// and the verb with "_", so an underscore in a part would let two different
-// namespaces flatten to the same slug. Uppercase is forbidden because SpiceDB
-// object type names are lowercase, so it could never be stored anyway.
+// permissionNamespaceRe matches a custom permission namespace: service/resource
+// with each part one or more lowercase alphanumeric characters. It forbids the
+// underscore inside a part, because FQPermissionNameFromNamespace joins service,
+// resource, and the verb with "_", so an underscore in a part would let two
+// different namespaces flatten to the same slug. Uppercase is forbidden because
+// SpiceDB object type names are lowercase, so it could never be stored anyway.
+var permissionNamespaceRe = regexp.MustCompile(`^[a-z0-9]+/[a-z0-9]+$`)
+
+// IsValidPermissionNamespace reports whether namespace is in service/resource
+// form with each part lowercase alphanumeric.
 func IsValidPermissionNamespace(namespace string) bool {
-	parts := strings.Split(namespace, "/")
-	if len(parts) != 2 {
-		return false
-	}
-	for _, part := range parts {
-		if part == "" {
-			return false
-		}
-		for _, r := range part {
-			if !((r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')) {
-				return false
-			}
-		}
-	}
-	return true
+	return permissionNamespaceRe.MatchString(namespace)
 }
 
 func IsPlatformPermission(name string) bool {
