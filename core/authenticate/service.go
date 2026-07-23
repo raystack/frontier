@@ -95,6 +95,10 @@ type UserPATService interface {
 	GetByID(ctx context.Context, id string) (patModels.PAT, error)
 }
 
+type OrgService interface {
+	IsEnabled(ctx context.Context, orgID string) (bool, error)
+}
+
 type Service struct {
 	log                  *slog.Logger
 	cron                 *cron.Cron
@@ -107,6 +111,7 @@ type Service struct {
 	sessionService       SessionService
 	serviceUserService   ServiceUserService
 	userPATService       UserPATService
+	orgService           OrgService
 	webAuth              *webauthn.WebAuthn
 }
 
@@ -134,6 +139,10 @@ func NewService(logger *slog.Logger, config Config, flowRepo FlowRepository,
 		webAuth:              webAuthConfig,
 	}
 	return r
+}
+
+func (s *Service) SetOrgService(orgService OrgService) {
+	s.orgService = orgService
 }
 
 func (s Service) SupportedStrategies() []string {
@@ -798,6 +807,9 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		principal, err := authenticator(ctx, &s)
 		if err == nil {
 			principal.AuthVia = assertion
+			if err := s.ensurePrincipalOrgEnabled(ctx, principal); err != nil {
+				return Principal{}, err
+			}
 			return principal, nil
 		}
 		if !errors.Is(err, errSkip) {

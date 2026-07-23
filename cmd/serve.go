@@ -473,6 +473,7 @@ func buildAPIDependencies(
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, roleService)
+	authnService.SetOrgService(organizationService)
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService, policyService,
 		authnService, serviceUserService, groupService, roleService)

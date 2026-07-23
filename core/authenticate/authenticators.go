@@ -54,6 +54,37 @@ func authenticateWithSession(ctx context.Context, s *Service) (Principal, error)
 	return Principal{}, errSkip
 }
 
+func (s *Service) ensurePrincipalOrgEnabled(ctx context.Context, p Principal) error {
+	switch p.Type {
+	case schema.PATPrincipal:
+		if p.PAT != nil {
+			return s.ensureOrgEnabled(ctx, p.PAT.OrgID)
+		}
+	case schema.ServiceUserPrincipal:
+		if p.ServiceUser != nil {
+			return s.ensureOrgEnabled(ctx, p.ServiceUser.OrgID)
+		}
+	}
+	return nil
+}
+
+func (s *Service) ensureOrgEnabled(ctx context.Context, orgID string) error {
+	if s.orgService == nil || orgID == schema.PlatformOrgID.String() {
+		return nil
+	}
+	if orgID == "" {
+		return errors.ErrForbidden
+	}
+	enabled, err := s.orgService.IsEnabled(ctx, orgID)
+	if err != nil {
+		return err
+	}
+	if !enabled {
+		return errors.ErrForbidden
+	}
+	return nil
+}
+
 // authenticateWithPAT validates a personal access token.
 func authenticateWithPAT(ctx context.Context, s *Service) (Principal, error) {
 	value, ok := GetTokenFromContext(ctx)

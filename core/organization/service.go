@@ -125,6 +125,18 @@ func (s Service) Get(ctx context.Context, idOrName string) (Organization, error)
 	return orgResp, nil
 }
 
+func (s Service) IsEnabled(ctx context.Context, id string) (bool, error) {
+	_, err := s.Get(ctx, id)
+	switch {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, ErrDisabled), errors.Is(err, ErrNotExist):
+		return false, nil
+	default:
+		return false, err
+	}
+}
+
 func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Organization, error) {
 	return s.repository.GetByIDs(ctx, ids)
 }
