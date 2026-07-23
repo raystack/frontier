@@ -167,6 +167,26 @@ func sortedCopy(in []string) []string {
 	return out
 }
 
+// uniqueSorted returns the input as a sorted, deduplicated slice. It is used for
+// set-valued fields whose input can hold duplicates (a hand-written list may
+// repeat a value), so the compare and the value sent to the server both use the
+// same canonical set.
+func uniqueSorted(in []string) []string {
+	if len(in) == 0 {
+		return nil
+	}
+	set := make(map[string]struct{}, len(in))
+	for _, v := range in {
+		set[v] = struct{}{}
+	}
+	out := make([]string, 0, len(set))
+	for v := range set {
+		out = append(out, v)
+	}
+	sort.Strings(out)
+	return out
+}
+
 func stringSetsEqual(a, b []string) bool {
 	if len(a) != len(b) {
 		return false

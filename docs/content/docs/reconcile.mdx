@@ -194,6 +194,45 @@ spec:
 - Export writes only the preferences whose value differs from the default, so settings at
   their default stay out of the file.
 
+## The Webhook kind
+
+`Webhook` manages webhook endpoints: a URL, the events it subscribes to, and whether it is
+enabled. The URL is the identity and never changes.
+
+```yaml
+apiVersion: v1
+kind: Webhook
+spec:
+  - url: https://hooks.example.org/frontier
+    description: Ops notifications
+    subscribed_events:
+      - app.user.created
+      - app.group.created
+    state: enabled
+  - url: https://old.example.org/frontier
+    delete: true
+```
+
+- The URL must be a valid absolute HTTP(S) URL, and it is the identity. If two endpoints on the
+  server share a URL, the identity is ambiguous: the plan fails and names the ids so you can
+  remove the extra one by hand.
+- `subscribed_events` is the full set of events the endpoint receives, compared as a set. An
+  empty list, or leaving the field out, means every event, which is the server default. It is
+  the complete desired set, not a keep-if-omitted field: dropping it sets the endpoint to all
+  events rather than keeping the current set, and export always writes it, showing `[]` for an
+  all-events endpoint. `description` and `state` (`enabled` or `disabled`) follow the same one
+  field model: a value you write is used as-is, and leaving the field out converges it to the
+  default. Description defaults to empty, so dropping it clears any description on the server;
+  state defaults to `enabled`, so dropping it re-enables the endpoint.
+- Every endpoint on the server must appear in the file, kept or marked `delete: true`. An
+  endpoint that is missing fails the plan; nothing is deleted just because it is missing.
+- The signing secret is server-owned. The server generates it when the endpoint is created
+  and never returns it on read, so it is not part of the file, never shows up in a plan, and
+  can never appear in an export.
+- Export leaves out `state` when it is the default `enabled` and `description` when it is
+  empty, so reconciling an export plans nothing, and headers and metadata set through other
+  tools are carried through an update untouched.
+
 ## Running it
 
 Log in as a superuser. The bootstrap service user exists for exactly this; its client id
@@ -236,7 +275,7 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 
 ## More kinds
 
-This page covers `PlatformUser`, `Permission`, `Role`, and `Preference`. The design and
+This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, and `Webhook`. The design and
 the rules every kind follows live in
 [RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
 which also lists the kinds proposed next. The flag reference for both commands is in the
