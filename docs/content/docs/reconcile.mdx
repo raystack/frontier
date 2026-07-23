@@ -187,6 +187,9 @@ spec:
 
 - Values are strings. A yes/no setting is `"true"` or `"false"`.
 - The name must be a platform trait the server knows. An unknown name fails the plan.
+- The value must be one the trait accepts. The plan checks it against the live trait, so an
+  empty value, or a value outside a yes/no or select trait's options, fails the plan up front
+  instead of failing later when it is applied.
 - This kind resets instead of deleting. The file is the full desired state: a preference
   you list is set to your value, and a preference you leave out goes back to its default.
   There is no `delete` flag, because setting a preference back to its default is what
