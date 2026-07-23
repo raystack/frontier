@@ -183,12 +183,15 @@ export function OrganizationProjectsView() {
 
   const columns = getColumns({ orgMembersMap, handleProjectUpdate, t });
 
+  const canAddMember = Object.keys(orgMembersMap).length > 1;
+
   return (
     <>
       {memberDialogConfig.open && memberDialogConfig.projectId ? (
         <ProjectMembersDialog
           projectId={memberDialogConfig.projectId}
           onClose={handleMemberDialogClose}
+          canAddMember={canAddMember}
         />
       ) : null}
       <Flex justify="center" className={styles["container"]}>

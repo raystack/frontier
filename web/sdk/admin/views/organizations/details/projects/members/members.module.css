@@ -44,6 +44,11 @@
     height: 100%;
 }
 
+.table-content-wrapper:focus,
+.table-content-wrapper:focus-visible {
+    outline: none;
+}
+
 .table-action-column {
     width: var(--rs-space-10);
 }
@@ -57,6 +62,10 @@
 .table-action-column:focus-within>*,
 .table-action-column:has([data-popup-open])>* {
     opacity: 1;
+}
+
+.table-wrapper tr:has([data-test-id="admin-project-member-action-menu"][data-popup-open]) {
+    background: var(--rs-color-background-base-primary-hover);
 }
 
 .table-action-dropdown {
