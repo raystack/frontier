@@ -132,15 +132,15 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]ServiceUser, err
 }
 
 func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, error) {
-	userIDs, err := s.membershipService.ListPrincipalIDsByResource(ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal)
+	serviceUserIDs, err := s.membershipService.ListPrincipalIDsByResource(ctx, orgID, schema.OrganizationNamespace, schema.ServiceUserPrincipal)
 	if err != nil {
 		return nil, err
 	}
-	if len(userIDs) == 0 {
-		// no users
+	if len(serviceUserIDs) == 0 {
+		// no service users
 		return []ServiceUser{}, nil
 	}
-	return s.repo.GetByIDs(ctx, userIDs)
+	return s.repo.GetByIDs(ctx, serviceUserIDs)
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
@@ -456,7 +456,7 @@ func (s Service) FilterSudos(ctx context.Context, ids []string) ([]string, error
 
 // Sudo add platform permissions to user
 func (s Service) Sudo(ctx context.Context, id string, relationName string) error {
-	currentUser, err := s.Get(ctx, id)
+	serviceUser, err := s.Get(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -471,7 +471,7 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 	// Act on the exact relation, not the permission it grants: admin and member both
 	// grant `check`, so a permission check would skip adding member to an existing
 	// admin and break the admin->member downgrade. Safe to run again.
-	if ok, err := s.IsSudo(ctx, currentUser.ID, relationName); err != nil {
+	if ok, err := s.IsSudo(ctx, serviceUser.ID, relationName); err != nil {
 		return err
 	} else if ok {
 		return nil
@@ -483,7 +483,7 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 			Namespace: schema.PlatformNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        currentUser.ID,
+			ID:        serviceUser.ID,
 			Namespace: schema.ServiceUserPrincipal,
 		},
 		RelationName: relationName,
@@ -497,7 +497,7 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 	if relationName == schema.MemberRelationName {
 		event = pkgAuditRecord.PlatformMemberAddedEvent
 	}
-	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
+	return s.recordPlatformAuditRecord(ctx, serviceUser, event, relationName)
 }
 
 // UnSudo removes a platform relation (admin or member) from a service user.
@@ -510,7 +510,7 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
 	}
 
-	currentUser, err := s.Get(ctx, id)
+	serviceUser, err := s.Get(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -518,7 +518,7 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 	// Only act (and audit) when the specific relation actually exists, so the
 	// revoke event reflects a real state change. Checking the relation directly
 	// is precise for both admin and member.
-	present, err := s.IsSudo(ctx, currentUser.ID, relationName)
+	present, err := s.IsSudo(ctx, serviceUser.ID, relationName)
 	if err != nil {
 		return err
 	}
@@ -533,7 +533,7 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 			Namespace: schema.PlatformNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        currentUser.ID,
+			ID:        serviceUser.ID,
 			Namespace: schema.ServiceUserPrincipal,
 		},
 		RelationName: relationName,
@@ -545,7 +545,7 @@ func (s Service) UnSudo(ctx context.Context, id, relationName string) error {
 	if relationName == schema.MemberRelationName {
 		event = pkgAuditRecord.PlatformMemberRemovedEvent
 	}
-	return s.recordPlatformAuditRecord(ctx, currentUser, event, relationName)
+	return s.recordPlatformAuditRecord(ctx, serviceUser, event, relationName)
 }
 
 // recordPlatformAuditRecord logs a platform admin/member grant or revoke on a service

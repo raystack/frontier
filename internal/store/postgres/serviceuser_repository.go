@@ -206,9 +206,9 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}
 
-	var fetchedUsers []ServiceUser
+	var fetchedServiceUsers []ServiceUser
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Get", func(ctx context.Context) error {
-		return s.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
+		return s.dbc.SelectContext(ctx, &fetchedServiceUsers, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, serviceuser.ErrNotExist
@@ -216,15 +216,15 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 		return nil, fmt.Errorf("%w: %s", errDB, err)
 	}
 
-	var transformedUsers []serviceuser.ServiceUser
-	for _, u := range fetchedUsers {
-		transformedUser, err := u.transform()
+	var transformedServiceUsers []serviceuser.ServiceUser
+	for _, su := range fetchedServiceUsers {
+		transformedServiceUser, err := su.transform()
 		if err != nil {
-			return nil, fmt.Errorf("failed to transform user: %w", err)
+			return nil, fmt.Errorf("failed to transform service user: %w", err)
 		}
-		transformedUsers = append(transformedUsers, transformedUser)
+		transformedServiceUsers = append(transformedServiceUsers, transformedServiceUser)
 	}
-	return transformedUsers, nil
+	return transformedServiceUsers, nil
 }
 
 // ListMissingOrgPolicy returns service users whose owning org has no matching
