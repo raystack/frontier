@@ -11,6 +11,7 @@ import (
 	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
@@ -43,6 +44,11 @@ type PATService interface {
 	GetByID(ctx context.Context, id string) (patmodels.PAT, error)
 }
 
+type PolicyService interface {
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type Service struct {
 	repository            Repository
 	relationService       RelationService
@@ -50,6 +56,7 @@ type Service struct {
 	projectService        ProjectService
 	orgService            OrgService
 	patService            PATService
+	policyService         PolicyService
 	auditRecordRepository AuditRecordRepository
 }
 
@@ -60,7 +67,8 @@ type AuditRecordRepository interface {
 func NewService(repository Repository,
 	relationService RelationService, authnService AuthnService,
 	projectService ProjectService, orgService OrgService,
-	patService PATService, auditRecordRepository AuditRecordRepository) *Service {
+	patService PATService, policyService PolicyService,
+	auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
 		repository:            repository,
 		relationService:       relationService,
@@ -68,6 +76,7 @@ func NewService(repository Repository,
 		projectService:        projectService,
 		orgService:            orgService,
 		patService:            patService,
+		policyService:         policyService,
 		auditRecordRepository: auditRecordRepository,
 	}
 }
@@ -441,4 +450,46 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 		return err
 	}
 	return s.repository.Delete(ctx, id)
+}
+
+// RemovePrincipalAccess deletes every resource-level policy the principal holds
+// on resources owned by the given projects.
+func (s Service) RemovePrincipalAccess(ctx context.Context, principalID, principalType string, projectIDs []string) error {
+	if len(projectIDs) == 0 {
+		return nil
+	}
+
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	if err != nil {
+		return fmt.Errorf("list principal policies: %w", err)
+	}
+	if len(policies) == 0 {
+		return nil
+	}
+
+	// gather the IDs of every resource in the given projects. Below, any policy
+	// whose ResourceID matches one of these resources gets deleted.
+	projectResourceIDs := make(map[string]struct{})
+	for _, projectID := range projectIDs {
+		resources, err := s.repository.List(ctx, Filter{ProjectID: projectID})
+		if err != nil {
+			return fmt.Errorf("list resources for project %s: %w", projectID, err)
+		}
+		for _, res := range resources {
+			projectResourceIDs[res.ID] = struct{}{}
+		}
+	}
+
+	var errs error
+	for _, pol := range policies {
+		if _, ok := projectResourceIDs[pol.ResourceID]; ok {
+			if err := s.policyService.Delete(ctx, pol.ID); err != nil {
+				errs = errors.Join(errs, fmt.Errorf("delete resource policy %s: %w", pol.ID, err))
+			}
+		}
+	}
+	return errs
 }
