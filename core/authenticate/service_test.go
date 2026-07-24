@@ -546,6 +546,34 @@ func TestService_FinishFlow(t *testing.T) {
 			},
 		},
 		{
+			name: "reject the correct code if the stored nonce is not hashed",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationFinishRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					State:  flowID.String(),
+					Code:   "111111",
+				},
+			},
+			want:    nil,
+			wantErr: authenticate.ErrInvalidMailOTP,
+			setup: func() *authenticate.Service {
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				ctx := context.Background()
+				mockFlowRepo.EXPECT().Get(ctx, flowID).
+					Return(mailOTPFlow(flowID, timeNow, "111111", pkgMetadata.Metadata{"callback_url": ""}), nil)
+				mockFlowRepo.EXPECT().Set(ctx, mock.MatchedBy(func(f *authenticate.Flow) bool {
+					return f.Metadata["attempt"] == 1 && f.Nonce == "111111"
+				})).Return(nil)
+				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+					nil, nil, nil, nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+		{
 			name: "destroy the flow if the code is wrong past the attempt cap",
 			args: args{
 				ctx: context.Background(),
