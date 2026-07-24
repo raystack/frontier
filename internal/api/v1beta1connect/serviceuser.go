@@ -40,8 +40,8 @@ func toJSONWebKey(keySet jwk.Set) (*JsonWebKeySet, error) {
 }
 
 func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.Request[frontierv1beta1.ListServiceUsersRequest]) (*connect.Response[frontierv1beta1.ListServiceUsersResponse], error) {
-	var users []*frontierv1beta1.ServiceUser
-	usersList, err := h.serviceUserService.List(ctx, serviceuser.Filter{
+	var serviceUsers []*frontierv1beta1.ServiceUser
+	serviceUsersList, err := h.serviceUserService.List(ctx, serviceuser.Filter{
 		OrgID: request.Msg.GetOrgId(),
 		State: serviceuser.State(request.Msg.GetState()),
 	})
@@ -49,16 +49,16 @@ func (h *ConnectHandler) ListServiceUsers(ctx context.Context, request *connect.
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUsers: org_id=%s state=%s: %w", request.Msg.GetOrgId(), request.Msg.GetState(), err))
 	}
 
-	for _, user := range usersList {
-		userPB, err := transformServiceUserToPB(user)
+	for _, su := range serviceUsersList {
+		serviceUserPB, err := transformServiceUserToPB(su)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUsers: entity_id=%s: %w", user.ID, err))
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUsers: entity_id=%s: %w", su.ID, err))
 		}
-		users = append(users, userPB)
+		serviceUsers = append(serviceUsers, serviceUserPB)
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListServiceUsersResponse{
-		Serviceusers: users,
+		Serviceusers: serviceUsers,
 	}), nil
 }
 
