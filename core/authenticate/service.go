@@ -3,10 +3,11 @@ package authenticate
 import (
 	"bytes"
 	"context"
-	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"slices"
 	"strings"
 	"time"
 
@@ -15,8 +16,6 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 
 	"github.com/raystack/frontier/core/audit"
-
-	"slices"
 
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
@@ -33,13 +32,12 @@ import (
 
 	"github.com/raystack/frontier/pkg/mailer"
 
-	"log/slog"
-
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate/strategy"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/robfig/cron/v3"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 )
 
@@ -48,6 +46,9 @@ const (
 	maxOTPAttempt  = 3
 	otpAttemptKey  = "attempt"
 )
+
+// OTPHashCost is a var (not const) so tests can drop it to bcrypt.MinCost
+var OTPHashCost = 12
 
 var (
 	refreshTime              = "0 0 * * *" // Once a day at midnight
@@ -180,6 +181,15 @@ func (s Service) SanitizeCallbackURL(url string) string {
 	return ""
 }
 
+// hashOTP hashes the emailed code using bcrypt
+func hashOTP(otp string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(otp), OTPHashCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
 func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest) (*RegistrationStartResponse, error) {
 	if !utils.Contains(s.SupportedStrategies(), request.Method) {
 		return nil, ErrUnsupportedMethod
@@ -233,7 +243,11 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 			return nil, err
 		}
 
-		flow.Nonce = nonce
+		nonceHash, err := hashOTP(nonce)
+		if err != nil {
+			return nil, err
+		}
+		flow.Nonce = nonceHash
 		if s.config.MailOTP.Validity != 0 {
 			flow.ExpiresAt = flow.CreatedAt.Add(s.config.MailOTP.Validity)
 		}
@@ -258,7 +272,11 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 			return nil, err
 		}
 
-		flow.Nonce = nonce
+		nonceHash, err := hashOTP(nonce)
+		if err != nil {
+			return nil, err
+		}
+		flow.Nonce = nonceHash
 		if s.config.MailLink.Validity != 0 {
 			flow.ExpiresAt = flow.CreatedAt.Add(s.config.MailLink.Validity)
 		}
@@ -355,7 +373,7 @@ func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishReq
 		return nil, ErrFlowInvalid
 	}
 
-	if subtle.ConstantTimeCompare([]byte(flow.Nonce), []byte(request.Code)) == 0 {
+	if bcrypt.CompareHashAndPassword([]byte(flow.Nonce), []byte(request.Code)) != nil {
 		// avoid brute forcing otp
 		attemptInt := 0
 		if attempts, ok := flow.Metadata[otpAttemptKey]; ok {
