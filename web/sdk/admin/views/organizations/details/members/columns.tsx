@@ -17,6 +17,7 @@ import styles from "./members.module.css";
 import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { DeleteIcon } from "~/admin/assets/icons/DeleteIcon";
 import { formatTimestamp, TimeStamp } from "~/admin/utils/connect-timestamp";
+import { formatRoleTitle } from "~/admin/utils/helper";
 
 const MemberStates = {
   enabled: "Active",
@@ -46,7 +47,7 @@ export const getColumns = ({
   const roleMap = roles.reduce(
     (acc, role) => {
       const id = role?.id ?? "";
-      acc[id] = role.title || "";
+      acc[id] = formatRoleTitle(role.title);
       return acc;
     },
     {} as Record<string, string>,

@@ -15,6 +15,14 @@
     text-wrap: auto;
 }
 
+.zero-state-container {
+    padding: var(--rs-space-10);
+}
+
+.zero-state {
+    padding-top: var(--rs-space-17);
+}
+
 .table {
     width: 100%;
     table-layout: fixed;
@@ -33,4 +41,15 @@
 
 .table-action-column {
     width: var(--rs-space-12);
+}
+
+.table-action-column > * {
+    opacity: 0;
+    transition: opacity 120ms ease-in-out;
+}
+
+.table-wrapper tr:hover .table-action-column > *,
+.table-action-column:focus-within > *,
+.table-action-column:has([data-popup-open]) > * {
+    opacity: 1;
 }

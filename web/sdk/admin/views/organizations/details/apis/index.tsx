@@ -36,6 +36,20 @@ const NoCredentials = () => {
   );
 };
 
+const ZeroState = () => {
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        className={styles["zero-state"]}
+        icon={<InfoCircledIcon />}
+        heading="API Credentials"
+        subHeading="Service accounts provide programmatic API access on behalf of this organization."
+      />
+    </div>
+  );
+};
+
 const ErrorState = () => {
   return (
     <EmptyState
@@ -191,6 +205,7 @@ export function OrganizationApisView() {
           <DataTable.Toolbar />
           <DataTable.Content
             emptyState={isError ? <ErrorState /> : <NoCredentials />}
+            zeroState={<ZeroState />}
             classNames={{
               root: styles["table-wrapper"],
               table: styles["table"],

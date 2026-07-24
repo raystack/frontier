@@ -99,7 +99,6 @@ export function PatDetailsDialog({
       <Dialog.Content className={styles["details-dialog"]}>
         <Dialog.Header>
           <Dialog.Title>{pat?.title || ""}</Dialog.Title>
-          <Dialog.CloseButton data-test-id="frontier-sdk-pat-details-dialog-close-btn" />
         </Dialog.Header>
         <Dialog.Body className={styles["dialog-body"]}>
           <Tabs defaultValue="projects" className={styles["tab-root"]}>
