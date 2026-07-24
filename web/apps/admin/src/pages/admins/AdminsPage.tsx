@@ -8,7 +8,9 @@ export default function AdminsPage() {
 
   return (
     <AdminsView
-      onNavigateToOrg={(orgId: string) => navigate(`/${paths.organizations}/${orgId}`)}
+      onNavigateToOrg={(slug: string, orgId: string) =>
+        navigate(`/${paths.organizations}/${slug}`, { state: { orgId } })
+      }
       icon={<AdminsIcon />}
     />
   );

@@ -227,11 +227,23 @@ const NavLinks = ({
 }: {
   organizationId: string;
   currentPath: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, state?: { orgId?: string }) => void;
 }) => {
   const t = useTerminology();
   const paths = useAdminPaths();
-  const basePath = `/${paths.organizations}/${organizationId}`;
+  /*
+   * Reuse the org segment from the current URL so that:
+   * - tab links keep the same slug
+   * - active-tab matching against `currentPath` works
+   * Fall back to the prop before the path is available.
+   */
+  const orgPrefix = `/${paths.organizations}/`;
+  // Strip any query string / hash before splitting so the slug isn't polluted.
+  const path = currentPath.split(/[?#]/)[0];
+  const orgSegment = path.startsWith(orgPrefix)
+    ? path.slice(orgPrefix.length).split("/")[0]
+    : organizationId;
+  const basePath = `/${paths.organizations}/${orgSegment}`;
   const links = [
     { name: t.member({ plural: true, case: "capital" }), path: `${basePath}/${paths.members}` },
     { name: t.project({ plural: true, case: "capital" }), path: `${basePath}/${paths.projects}` },
@@ -277,7 +289,7 @@ interface OrganizationDetailsNavbarProps {
   onExportProjects?: () => Promise<void>;
   onExportTokens?: () => Promise<void>;
   currentPath: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, state?: { orgId?: string }) => void;
 }
 
 export const OrganizationsDetailsNavabar = ({
@@ -307,13 +319,25 @@ export const OrganizationsDetailsNavabar = ({
         <Breadcrumb size="small">
           <Breadcrumb.Item
             href={`/${adminPaths.organizations}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(`/${adminPaths.organizations}`);
+            }}
             leadingIcon={<OrganizationIcon />}
           >
             {t.organization({ plural: true, case: "capital" })}
           </Breadcrumb.Item>
           <Breadcrumb.Separator />
+          {/* Carry the org id in state so the details page skips the resolve. */}
           <Breadcrumb.Item
-            href={`/${adminPaths.organizations}/${organization?.id}`}
+            href={`/${adminPaths.organizations}/${organization.name || organization.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(
+                `/${adminPaths.organizations}/${organization.name || organization.id}`,
+                { orgId: organization.id },
+              );
+            }}
             leadingIcon={
               <Avatar
                 color={getAvatarColor(organization?.id || "")}

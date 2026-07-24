@@ -38,8 +38,8 @@ export type OrganizationDetailsViewProps = {
   organizationTypes?: string[];
   /** Current browser path (e.g. `location.pathname`) for highlighting active nav tabs. */
   currentPath: string;
-  /** Navigation callback for tab switches (e.g. `useNavigate()` from react-router-dom). */
-  onNavigate: (path: string) => void;
+  /** Navigation for tabs/breadcrumbs; `state` carries the org id (fast path). */
+  onNavigate: (path: string, state?: { orgId?: string }) => void;
   children?: React.ReactNode;
 };
 

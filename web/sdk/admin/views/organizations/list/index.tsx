@@ -50,8 +50,8 @@ const INITIAL_QUERY: DataTableQuery = {
 export type OrganizationListViewProps = {
   /** App name displayed in the page title (e.g. "Frontier Admin"). */
   appName?: string;
-  /** Called when a user clicks on an organization row. Use to navigate to the org detail page. */
-  onNavigateToOrg?: (id: string) => void;
+  /** Row click → navigate to the org. `slug` for the URL, `orgId` for the lookup. */
+  onNavigateToOrg?: (slug: string, orgId: string) => void;
   /** Callback to export organizations list as CSV. Shown in navbar when provided. */
   onExportCsv?: () => Promise<void>;
   /** List of allowed organization types for filtering / creation. */
@@ -181,7 +181,8 @@ export const OrganizationListView = ({
     data.length || loading ? styles["table"] : styles["table-empty"];
 
   function onRowClick(row: SearchOrganizationsResponse_OrganizationResult) {
-    if (row.id && onNavigateToOrg) onNavigateToOrg(row.id);
+    // Slug for the URL, id for the lookup.
+    if (row.id && onNavigateToOrg) onNavigateToOrg(row.name || row.id, row.id);
   }
   return (
     <>
@@ -191,9 +192,9 @@ export const OrganizationListView = ({
         organizationTypes={organizationTypes}
         appUrl={appUrl}
         countries={countries}
-        onSuccess={(id) => {
+        onSuccess={(slug, orgId) => {
           closeCreateOrgPanel();
-          onNavigateToOrg?.(id);
+          onNavigateToOrg?.(slug, orgId);
         }}
       />
       <PageTitle title={t.organization({ plural: true, case: "capital" })} appName={appName} />
