@@ -738,6 +738,7 @@ func isInvalidGrantErr(err error) bool {
 // BuildToken creates an access token for the given subjectID
 func (s Service) BuildToken(ctx context.Context, principal Principal, metadata map[string]string) ([]byte, error) {
 	metadata[token.SubTypeClaimsKey] = principal.Type
+	metadata[token.AuthViaClaimKey] = principal.AuthVia.String()
 	if principal.Type == schema.UserPrincipal && s.config.Token.Claims.AddUserEmailClaim {
 		metadata[token.SubEmailClaimsKey] = principal.User.Email
 	}

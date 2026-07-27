@@ -354,6 +354,9 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		subType, ok := parsed.Get(token.SubTypeClaimsKey)
 		s.Assert().True(ok)
 		s.Assert().Equal(schema.PATPrincipal, subType)
+		authVia, ok := parsed.Get(token.AuthViaClaimKey)
+		s.Assert().True(ok)
+		s.Assert().Equal(authenticate.PATClientAssertion.String(), authVia)
 
 		// and the minted jwt authenticates
 		ctxWithMinted := testbench.ContextWithHeaders(context.Background(), map[string]string{
