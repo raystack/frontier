@@ -139,7 +139,6 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 			{
 				// for org
 				nsRel, err := aznamespace.Relation(fqPermissionName, aznamespace.Union(
-					aznamespace.ComputedUserset("owner"),
 					aznamespace.TupleToUserset("platform", "superuser"),
 					aznamespace.TupleToUserset("granted", "app_organization_administer"),
 					aznamespace.TupleToUserset("granted", fqPermissionName),
