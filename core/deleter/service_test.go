@@ -262,13 +262,11 @@ func TestRemoveUsersFromOrg(t *testing.T) {
 	const orgID = "org-1"
 	const userID = "user-1"
 
-	t.Run("cleans resource access via resource service then delegates org removal to membership", func(t *testing.T) {
+	t.Run("delegates the whole removal to the membership cascade", func(t *testing.T) {
 		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
-		projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: "proj-1"}}, nil)
-		// custom-resource policy cleanup is owned by the resource service
-		resSvc.EXPECT().RemovePrincipalAccess(mock.Anything, userID, schema.UserPrincipal, []string{"proj-1"}).Return(nil)
-		// org/project/group policies and relations are left to the membership cascade
+		// org, project, group, and custom-resource cleanup all happen inside the
+		// cascade — strict mocks fail if the deleter touches them itself
 		mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, orgID, userID, schema.UserPrincipal).Return(nil)
 
 		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
@@ -279,8 +277,6 @@ func TestRemoveUsersFromOrg(t *testing.T) {
 	t.Run("propagates membership cascade failure", func(t *testing.T) {
 		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
-		projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-		resSvc.EXPECT().RemovePrincipalAccess(mock.Anything, userID, schema.UserPrincipal, []string{}).Return(nil)
 		mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, orgID, userID, schema.UserPrincipal).
 			Return(errors.New("cascade boom"))
 
@@ -289,17 +285,16 @@ func TestRemoveUsersFromOrg(t *testing.T) {
 		assert.ErrorContains(t, err, "cascade boom")
 	})
 
-	t.Run("surfaces resource cleanup error and skips membership removal for that user", func(t *testing.T) {
+	t.Run("keeps going to the next user after one fails", func(t *testing.T) {
 		orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc := newMocks(t)
 
-		projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-		resSvc.EXPECT().RemovePrincipalAccess(mock.Anything, userID, schema.UserPrincipal, []string{}).
-			Return(errors.New("resource cleanup boom"))
-		// ForceRemoveOrganizationMember must NOT be called — strict mock fails on unexpected call
+		mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, orgID, userID, schema.UserPrincipal).
+			Return(errors.New("cascade boom"))
+		mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, orgID, "user-2", schema.UserPrincipal).Return(nil)
 
 		svc := deleter.NewCascadeDeleter(orgSvc, projSvc, resSvc, grpSvc, mbrSvc, polSvc, roleSvc, invSvc, usrSvc, patSvc, suSvc, custSvc, subSvc, invocSvc)
-		err := svc.RemoveUsersFromOrg(context.Background(), orgID, []string{userID})
-		assert.ErrorContains(t, err, "resource cleanup boom")
+		err := svc.RemoveUsersFromOrg(context.Background(), orgID, []string{userID, "user-2"})
+		assert.ErrorContains(t, err, "cascade boom")
 	})
 }
 
