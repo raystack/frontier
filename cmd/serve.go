@@ -542,6 +542,7 @@ func buildAPIDependencies(
 		projectService,
 		organizationService,
 		userPATService,
+		policyService,
 		auditRecordRepository,
 	)
 
