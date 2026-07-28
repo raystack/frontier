@@ -550,9 +550,6 @@ func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, p
 }
 
 // removeRelations deletes owner and member relations for a principal on a resource.
-// New memberships only write the group member relation, but removal still clears
-// both names so members added before the owner/member writes were dropped leave
-// no stale tuples behind.
 func (s *Service) removeRelations(ctx context.Context, resourceID, resourceType, principalID, principalType string) error {
 	obj := relation.Object{ID: resourceID, Namespace: resourceType}
 	sub := relation.Subject{ID: principalID, Namespace: principalType}
@@ -1382,8 +1379,7 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 		return err
 	}
 
-	// migrate any legacy owner relation to member; role changes never alter the
-	// relation shape anymore — every group member carries the member relation.
+	// every group member carries the member relation; replace any owner relation with it
 	oldRelations := []string{schema.OwnerRelationName}
 	if err := s.replaceRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, oldRelations, schema.MemberRelationName); err != nil {
 		s.log.ErrorContext(ctx, "membership state inconsistent: policy replaced but group relation update failed, needs manual fix",
@@ -1588,10 +1584,8 @@ func (s *Service) linkGroupToOrg(ctx context.Context, groupID, orgID string) err
 	return nil
 }
 
-// unlinkGroupFromOrg removes the hierarchy relations between a group and its
+// unlinkGroupFromOrg removes both hierarchy relations between a group and its
 // org. Used as best-effort cleanup when group-create wiring fails partway.
-// The organization#member relation is no longer written but is still deleted
-// here to clean up groups created before that write was removed.
 // relation.ErrNotExist is ignored; any other error is returned.
 func (s *Service) unlinkGroupFromOrg(ctx context.Context, groupID, orgID string) error {
 	if err := s.relationService.Delete(ctx, relation.Relation{
