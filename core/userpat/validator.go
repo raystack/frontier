@@ -2,6 +2,7 @@ package userpat
 
 import (
 	"context"
+	"crypto/sha3"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -12,7 +13,6 @@ import (
 
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/models"
-	"golang.org/x/crypto/sha3"
 )
 
 // Validator validates PAT values during authentication.

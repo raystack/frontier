@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
+	"golang.org/x/net/http2/h2c" //nolint:staticcheck
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/salt/server/spa"
@@ -221,7 +221,7 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 
 	// Configure and create the server
 	h2s := &http2.Server{}
-	handler := h2c.NewHandler(mux, h2s)
+	handler := h2c.NewHandler(mux, h2s) //nolint:staticcheck
 	handler = connectinterceptors.WithConnectCORS(handler, cfg.ConnectCors)
 
 	server := &http.Server{
