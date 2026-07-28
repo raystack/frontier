@@ -60,6 +60,10 @@ func (p Plan) GetUserSeatProduct() (product.Product, bool) {
 func (p Plan) IsFree() bool {
 	for _, prod := range p.Products {
 		for _, price := range prod.Prices {
+			// a retired price is not charged, so it must not make the plan paid
+			if !price.IsActive() {
+				continue
+			}
 			if price.Amount > 0 {
 				return false
 			}
