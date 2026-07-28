@@ -1995,9 +1995,6 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 					RoleID: memberRoleID, ResourceID: groupID, ResourceType: schema.GroupNamespace,
 					PrincipalID: userID, PrincipalType: schema.UserPrincipal,
 				}).Return(policy.Policy{ID: "new-p"}, nil)
-				// legacy owner relation is migrated to member
-				relSvc.EXPECT().Delete(ctx, groupMemberRelation(schema.OwnerRelationName)).Return(nil)
-				relSvc.EXPECT().Create(ctx, groupMemberRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			roleID:  memberRoleID,
@@ -2020,8 +2017,8 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 			wantErr: membership.ErrLastGroupOwnerRole,
 		},
 		{
-			name: "should succeed promoting member to owner keeping the member relation",
-			setup: func(policySvc *mocks.PolicyService, relSvc *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
+			name: "should succeed promoting member to owner",
+			setup: func(policySvc *mocks.PolicyService, _ *mocks.RelationService, roleSvc *mocks.RoleService, grpSvc *mocks.GroupService, userSvc *mocks.UserService, auditRepo *mocks.AuditRecordRepository) {
 				grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
 				userSvc.EXPECT().GetByID(ctx, userID).Return(enabledUser, nil)
 				roleSvc.EXPECT().Get(ctx, ownerRoleID).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole, Scopes: []string{schema.GroupNamespace}}, nil)
@@ -2029,8 +2026,6 @@ func TestService_SetGroupMemberRole(t *testing.T) {
 				roleSvc.EXPECT().Get(ctx, schema.GroupOwnerRole).Return(role.Role{ID: ownerRoleID, Name: schema.GroupOwnerRole}, nil)
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				policySvc.EXPECT().Create(ctx, mock.Anything).Return(policy.Policy{ID: "new-p"}, nil)
-				relSvc.EXPECT().Delete(ctx, groupMemberRelation(schema.OwnerRelationName)).Return(relation.ErrNotExist)
-				relSvc.EXPECT().Create(ctx, groupMemberRelation(schema.MemberRelationName)).Return(relation.Relation{}, nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			roleID:  ownerRoleID,

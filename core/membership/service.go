@@ -636,37 +636,6 @@ func (s *Service) deletePolicy(ctx context.Context, pol policy.Policy, ownerRole
 	return s.policyService.Delete(ctx, pol.ID)
 }
 
-// replaceRelation deletes the given old relations for the principal on the resource,
-// then creates a new relation with the given name.
-// Only relation.ErrNotExist is ignored on delete — any other error is returned.
-func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType string, oldRelations []string, newRelationName string) error {
-	obj := relation.Object{ID: resourceID, Namespace: resourceType}
-	sub := relation.Subject{ID: principalID, Namespace: principalType}
-
-	for _, name := range oldRelations {
-		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
-		if err != nil && !errors.Is(err, relation.ErrNotExist) {
-			return fmt.Errorf("delete relation %s: %w", name, err)
-		}
-	}
-
-	_, err := s.relationService.Create(ctx, relation.Relation{
-		Object: obj, Subject: sub, RelationName: newRelationName,
-	})
-	if err != nil {
-		s.log.ErrorContext(ctx, "membership state inconsistent: old relations deleted but new relation creation failed, needs manual fix",
-			"resource_id", resourceID,
-			"resource_type", resourceType,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"expected_relation", newRelationName,
-			"error", err,
-		)
-		return fmt.Errorf("create relation: %w", err)
-	}
-	return nil
-}
-
 // validateOrgRole checks that the role is valid for organization scope and returns it.
 // A role is valid if it is either:
 // - a platform-wide role scoped to organizations, or
@@ -1376,18 +1345,6 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 		if errors.Is(err, ErrLastOwnerRole) {
 			return ErrLastGroupOwnerRole
 		}
-		return err
-	}
-
-	oldRelations := []string{schema.OwnerRelationName}
-	if err := s.replaceRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, oldRelations, schema.MemberRelationName); err != nil {
-		s.log.ErrorContext(ctx, "membership state inconsistent: policy replaced but group relation update failed, needs manual fix",
-			"group_id", groupID,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"new_role_id", resolvedRoleID,
-			"error", err,
-		)
 		return err
 	}
 
