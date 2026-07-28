@@ -269,6 +269,10 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			}
 
 			for _, productPrice := range planProduct.Prices {
+				// skip retired prices; they cannot be used for a new checkout
+				if !productPrice.IsActive() {
+					continue
+				}
 				// only work with plan interval prices
 				if productPrice.Interval != plan.Interval {
 					continue
@@ -394,6 +398,10 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 		amountSubtotal := int64(0)
 		for _, productPrice := range chProduct.Prices {
+			// skip retired prices; they cannot be used for a new checkout
+			if !productPrice.IsActive() {
+				continue
+			}
 			itemParams := &stripe.CheckoutSessionLineItemParams{
 				Price: stripe.String(productPrice.ProviderID),
 				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
@@ -896,6 +904,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			}
 
 			for _, productPrice := range planProduct.Prices {
+				// skip retired prices; they cannot be used for a new subscription
+				if !productPrice.IsActive() {
+					continue
+				}
 				// only work with plan interval prices
 				if productPrice.Interval != plan.Interval {
 					continue
