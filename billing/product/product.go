@@ -108,6 +108,21 @@ func (price Price) IsLicensed() bool {
 	return price.UsageType == PriceUsageTypeLicensed
 }
 
+// Price states. A new price is active. A superseded price is retired by marking
+// it inactive rather than deleting it, since provider prices are immutable.
+const (
+	PriceStateActive   = "active"
+	PriceStateInactive = "inactive"
+)
+
+// IsActive reports whether the price can be used for new purchases. A retired
+// price is marked inactive, so an inactive price must be left out of checkout
+// line items, plan matching, and invoicing. An empty state is treated as active,
+// since that is the database default for a newly created price.
+func (price Price) IsActive() bool {
+	return price.State != PriceStateInactive
+}
+
 type BillingScheme string
 
 const (

@@ -439,6 +439,26 @@ func TestService_Update(t *testing.T) {
 	}
 }
 
+func TestPrice_IsActive(t *testing.T) {
+	tests := []struct {
+		name  string
+		state string
+		want  bool
+	}{
+		{name: "explicit active state is active", state: "active", want: true},
+		{name: "empty state is treated as active", state: "", want: true},
+		{name: "inactive state is not active", state: "inactive", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := product.Price{State: tt.state}
+			if got := p.IsActive(); got != tt.want {
+				t.Errorf("IsActive() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestService_CreatePrice(t *testing.T) {
 	ctx := context.Background()
 	type args struct {
