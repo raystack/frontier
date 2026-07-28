@@ -314,7 +314,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				return p.IsActive() && p.Interval == planOb.Interval
 			})
 			if !hasMatchingPrice {
-				return fmt.Errorf("product %s has no prices registered with this interval, plan %s has interval %s",
+				return fmt.Errorf("product %s has no active prices registered with this interval, plan %s has interval %s",
 					productOb.Name, planOb.Name, planOb.Interval)
 			}
 			if err = s.productService.AddPlan(ctx, productOb, planOb.ID); err != nil {
