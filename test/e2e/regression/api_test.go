@@ -1593,7 +1593,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 func (s *APIRegressionTestSuite) TestRelationAPI() {
 	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
-	s.Run("1. creating a new relation between org and user should give access to the org", func() {
+	s.Run("1. an owner relation alone gives no org access; an owner role policy does", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-relation-1",
 		}))
@@ -1614,10 +1614,11 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersResp.Msg.GetUsers()))
 
+		// a raw owner relation grants nothing: permissions come from roles only
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateRelationRequest{Body: &frontierv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
-			Relation: organization.AdminRelation,
+			Relation: schema.OwnerRelationName,
 		}}))
 		s.Assert().NoError(err)
 
@@ -1629,9 +1630,26 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 			Permission: schema.DeletePermission,
 		}))
 		s.Assert().NoError(err)
+		s.Assert().Equal(false, checkPermission.Msg.GetStatus())
+
+		// the owner role policy is what grants access
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleOrganizationOwner,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
+			},
+		}))
+		s.Assert().NoError(err)
+
+		checkPermission, err = s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+			Permission: schema.DeletePermission,
+		}))
+		s.Assert().NoError(err)
 		s.Assert().Equal(true, checkPermission.Msg.GetStatus())
 	})
-	s.Run("2. creating a relation between org and user with editor role should provide view & edit permission in that org", func() {
+	s.Run("2. a policy with the manager role should provide view & edit permission in that org", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-relation-2",
 		}))
@@ -1646,11 +1664,13 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateRelationRequest{Body: &frontierv1beta1.RelationRequestBody{
-			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
-			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
-			Relation: organization.AdminRelation,
-		}}))
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleOrganizationManager,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
+			},
+		}))
 		s.Assert().NoError(err)
 
 		relUser2Cookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
@@ -1663,7 +1683,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(true, checkViewPermResp.Msg.GetStatus())
 
-		checkEditPermResp, err := s.testBench.Client.CheckResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+		checkEditPermResp, err := s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        existingOrg.Msg.GetOrganization().GetId(),
 			ObjectNamespace: schema.OrganizationNamespace,
 			Permission:      schema.UpdatePermission,
@@ -1671,7 +1691,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(true, checkEditPermResp.Msg.GetStatus())
 	})
-	s.Run("3. deleting a relation between user and org should remove user access from that org", func() {
+	s.Run("3. deleting a policy should remove user access from that org", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
 			Id: "org-relation-3",
 		}))
@@ -1686,11 +1706,13 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		}))
 		s.Assert().NoError(err)
 
-		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateRelationRequest{Body: &frontierv1beta1.RelationRequestBody{
-			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
-			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
-			Relation: schema.OwnerRelationName,
-		}}))
+		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleOrganizationOwner,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
+			},
+		}))
 		s.Assert().NoError(err)
 
 		relUser3Cookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, createUserResp.Msg.GetUser().GetEmail())
@@ -1703,10 +1725,8 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(true, checkBeforeDeletePermission.Msg.GetStatus())
 
-		_, err = s.testBench.Client.DeleteRelation(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteRelationRequest{
-			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
-			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
-			Relation: schema.OwnerRelationName,
+		_, err = s.testBench.Client.DeletePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+			Id: createPolicyResp.Msg.GetPolicy().GetId(),
 		}))
 		s.Assert().NoError(err)
 

@@ -19,7 +19,6 @@ const (
 	Disabled State = "disabled"
 
 	AdminPermission = schema.UpdatePermission
-	AdminRelation   = schema.OwnerRelationName
 	AdminRole       = schema.RoleOrganizationOwner
 	MemberRole      = schema.RoleOrganizationViewer
 )
