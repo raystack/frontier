@@ -666,6 +666,9 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		orgIDs, ok := insecureToken.Get("org_ids")
 		s.Assert().True(ok)
 		s.Assert().Equal(existingOrgID, orgIDs)
+		authVia, ok := insecureToken.Get("auth_via")
+		s.Assert().True(ok)
+		s.Assert().Equal("client_credentials", authVia)
 	})
 }
 

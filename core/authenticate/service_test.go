@@ -863,3 +863,80 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 		})
 	}
 }
+
+func TestService_BuildToken(t *testing.T) {
+	userID := uuid.NewString()
+
+	tests := []struct {
+		name       string
+		principal  authenticate.Principal
+		config     authenticate.Config
+		wantClaims map[string]string
+	}{
+		{
+			name: "user via session gets sub_type, auth_via and email claims",
+			principal: authenticate.Principal{
+				ID:      userID,
+				Type:    schema.UserPrincipal,
+				AuthVia: authenticate.SessionClientAssertion,
+				User:    &user.User{ID: userID, Email: "jane@acme.org"},
+			},
+			config: authenticate.Config{Token: authenticate.TokenConfig{
+				Claims: authenticate.TokenClaimConfig{AddUserEmailClaim: true},
+			}},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey:  schema.UserPrincipal,
+				token.AuthViaClaimKey:   authenticate.SessionClientAssertion.String(),
+				token.SubEmailClaimsKey: "jane@acme.org",
+			},
+		},
+		{
+			name: "service user via client credentials gets auth_via claim",
+			principal: authenticate.Principal{
+				ID:      userID,
+				Type:    schema.ServiceUserPrincipal,
+				AuthVia: authenticate.ClientCredentialsClientAssertion,
+			},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey: schema.ServiceUserPrincipal,
+				token.AuthViaClaimKey:  authenticate.ClientCredentialsClientAssertion.String(),
+			},
+		},
+		{
+			name: "pat principal gets auth_via and user_id claims",
+			principal: authenticate.Principal{
+				ID:      "pat-token-id",
+				Type:    schema.PATPrincipal,
+				AuthVia: authenticate.PATClientAssertion,
+				User:    &user.User{ID: userID},
+			},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey: schema.PATPrincipal,
+				token.AuthViaClaimKey:  authenticate.PATClientAssertion.String(),
+				token.UserIDClaimKey:   userID,
+			},
+		},
+		{
+			name: "principal without auth via gets empty auth_via claim",
+			principal: authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+			},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey: schema.UserPrincipal,
+				token.AuthViaClaimKey:  "",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockToken := mocks.NewTokenService(t)
+			mockToken.EXPECT().Build(tt.principal.ID, tt.wantClaims).Return([]byte("signed-token"), nil)
+			s := authenticate.NewService(nil, tt.config, nil, nil, mockToken, nil, nil, nil, nil, nil)
+
+			got, err := s.BuildToken(context.Background(), tt.principal, map[string]string{})
+			assert.NoError(t, err)
+			assert.Equal(t, []byte("signed-token"), got)
+		})
+	}
+}
