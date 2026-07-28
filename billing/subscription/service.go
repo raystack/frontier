@@ -663,7 +663,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 			}
 		}
 		for _, planProductPrice := range planProduct.Prices {
-			// skip retired prices; they cannot be used for a new subscription phase
+			// skip inactive prices; they cannot be used for a new subscription phase
 			if !planProductPrice.IsActive() {
 				continue
 			}

@@ -271,7 +271,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			}
 
 			for _, productPrice := range planProduct.Prices {
-				// skip retired prices; they cannot be used for a new checkout
+				// skip inactive prices; they cannot be used for a new checkout
 				if !productPrice.IsActive() {
 					continue
 				}
@@ -403,7 +403,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 		amountSubtotal := int64(0)
 		for _, productPrice := range chProduct.Prices {
-			// skip retired prices; they cannot be used for a new checkout
+			// skip inactive prices; they cannot be used for a new checkout
 			if !productPrice.IsActive() {
 				continue
 			}
@@ -914,7 +914,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			}
 
 			for _, productPrice := range planProduct.Prices {
-				// skip retired prices; they cannot be used for a new subscription
+				// skip inactive prices; they cannot be used for a new subscription
 				if !productPrice.IsActive() {
 					continue
 				}

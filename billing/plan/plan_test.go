@@ -24,7 +24,7 @@ func TestPlan_IsFree(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "a retired paid price does not make the plan paid",
+			name: "an inactive paid price does not make the plan paid",
 			plan: plan.Plan{Products: []product.Product{{Prices: []product.Price{{Amount: 100, State: product.PriceStateInactive}}}}},
 			want: true,
 		},

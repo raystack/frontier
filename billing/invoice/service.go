@@ -129,7 +129,7 @@ func (s *Service) Init(ctx context.Context) error {
 		if creditProduct.Behavior != product.CreditBehavior {
 			return errors.New("credit overdraft product must have credit behavior")
 		}
-		// use the first active price. A retired price must not set the overdraft rate.
+		// use the first active price. An inactive price must not set the overdraft rate.
 		var creditPrice product.Price
 		foundActivePrice := false
 		for _, p := range creditProduct.Prices {
