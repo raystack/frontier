@@ -1379,7 +1379,6 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 		return err
 	}
 
-	// every group member carries the member relation; replace any owner relation with it
 	oldRelations := []string{schema.OwnerRelationName}
 	if err := s.replaceRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, oldRelations, schema.MemberRelationName); err != nil {
 		s.log.ErrorContext(ctx, "membership state inconsistent: policy replaced but group relation update failed, needs manual fix",
