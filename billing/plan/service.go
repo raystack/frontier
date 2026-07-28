@@ -311,7 +311,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 
 			// ensure plan can be added to product
 			hasMatchingPrice := utils.ContainsFunc(productOb.Prices, func(p product.Price) bool {
-				return p.Interval == planOb.Interval
+				return p.IsActive() && p.Interval == planOb.Interval
 			})
 			if !hasMatchingPrice {
 				return fmt.Errorf("product %s has no prices registered with this interval, plan %s has interval %s",
