@@ -162,7 +162,13 @@ func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Req
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProduct.Update: product_id=%s product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
+		// an invalid price (bad name, duplicate, or a change to an immutable
+		// field) is the caller's fault, so report it as an invalid argument.
+		code := connect.CodeInternal
+		if errors.Is(err, product.ErrInvalidDetail) {
+			code = connect.CodeInvalidArgument
+		}
+		return nil, connect.NewError(code, fmt.Errorf("UpdateProduct.Update: product_id=%s product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
 			request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(),
 			request.Msg.GetBody().GetBehavior(), len(productPrices), len(productFeatures), err))
 	}
