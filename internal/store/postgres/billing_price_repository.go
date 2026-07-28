@@ -185,6 +185,7 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate product
 	}
 	updateRecord := goqu.Record{
 		"name":       toUpdate.Name,
+		"state":      toUpdate.State,
 		"metadata":   marshaledMetadata,
 		"updated_at": goqu.L("now()"),
 	}
