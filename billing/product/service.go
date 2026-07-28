@@ -217,6 +217,14 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		return Product{}, err
 	}
 
+	// converge the product's prices to the desired list. An empty list leaves
+	// prices untouched; a non-empty list is authoritative for the product.
+	if len(product.Prices) > 0 {
+		if err := s.convergePrices(ctx, updatedProduct.ID, product.Prices); err != nil {
+			return Product{}, err
+		}
+	}
+
 	// populate product with price and features
 	updatedProduct, err = s.populateProduct(ctx, updatedProduct)
 	if err != nil {
@@ -224,6 +232,77 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	}
 
 	return updatedProduct, nil
+}
+
+// convergePrices makes a product's prices match the desired list. It is
+// authoritative: the caller passes the full set it wants, and a price is
+// identified by its name within the product. A name not yet on the product is
+// created. Adds are made before any removals.
+func (s *Service) convergePrices(ctx context.Context, productID string, desired []Price) error {
+	current, err := s.GetPriceByProductID(ctx, productID)
+	if err != nil {
+		return err
+	}
+	currentByName := make(map[string]Price, len(current))
+	for _, p := range current {
+		currentByName[strings.ToLower(p.Name)] = p
+	}
+	desiredNames := make(map[string]struct{}, len(desired))
+	for _, want := range desired {
+		desiredNames[strings.ToLower(want.Name)] = struct{}{}
+	}
+
+	// reject an in-place amount change before touching anything. Provider
+	// prices are immutable, so a new amount has to be a new price name.
+	for _, want := range desired {
+		if existing, ok := currentByName[strings.ToLower(want.Name)]; ok && existing.Amount != want.Amount {
+			return fmt.Errorf("%w: price %q amount cannot change from %d to %d; provider prices are immutable, add a new price with a different name",
+				ErrInvalidDetail, strings.ToLower(want.Name), existing.Amount, want.Amount)
+		}
+	}
+
+	// add the prices the product does not have yet, before any removal, so the
+	// product always has the new price in place before an old one is retired.
+	for _, want := range desired {
+		if _, ok := currentByName[strings.ToLower(want.Name)]; ok {
+			continue
+		}
+		want.ProductID = productID
+		if _, err := s.CreatePrice(ctx, want); err != nil {
+			return err
+		}
+	}
+
+	// retire the active prices the desired list no longer names. A price that
+	// is already inactive is left alone, so re-applying the same list is a no-op.
+	for _, p := range current {
+		if _, wanted := desiredNames[strings.ToLower(p.Name)]; wanted {
+			continue
+		}
+		if p.State == PriceStateInactive {
+			continue
+		}
+		if err := s.deactivatePrice(ctx, p); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// deactivatePrice retires a price. Provider prices are immutable and cannot be
+// deleted, so a superseded price is marked inactive in the provider and the
+// repo rather than removed.
+func (s *Service) deactivatePrice(ctx context.Context, price Price) error {
+	_, err := s.stripeClient.Prices.Update(price.ProviderID, &stripe.PriceParams{
+		Params: stripe.Params{Context: ctx},
+		Active: stripe.Bool(false),
+	})
+	if err != nil {
+		return err
+	}
+	price.State = PriceStateInactive
+	_, err = s.priceRepository.UpdateByID(ctx, price)
+	return err
 }
 
 func (s *Service) AddPlan(ctx context.Context, productOb Product, planID string) error {
