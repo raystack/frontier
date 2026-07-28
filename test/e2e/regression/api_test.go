@@ -1632,6 +1632,13 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(false, checkPermission.Msg.GetStatus())
 
+		checkReadPermission, err := s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+			Permission: schema.GetPermission,
+		}))
+		s.Assert().NoError(err)
+		s.Assert().Equal(false, checkReadPermission.Msg.GetStatus())
+
 		// the owner role policy is what grants access
 		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
