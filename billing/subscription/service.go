@@ -648,11 +648,13 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	}
 
 	var nextPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
+	hasBillableProduct := false
 	for _, planProduct := range planObj.Products {
 		// if it's credit, skip
 		if planProduct.Behavior == product.CreditBehavior {
 			continue
 		}
+		hasBillableProduct = true
 
 		// if per seat, check if there is a limit of seats, if it breaches limit, fail
 		if planProduct.Behavior == product.PerSeatBehavior {
@@ -661,6 +663,10 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 			}
 		}
 		for _, planProductPrice := range planProduct.Prices {
+			// skip retired prices; they cannot be used for a new subscription phase
+			if !planProductPrice.IsActive() {
+				continue
+			}
 			// only work with plan interval prices
 			if planProductPrice.Interval != planObj.Interval {
 				continue
@@ -679,6 +685,11 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 				},
 			})
 		}
+	}
+	// a non-credit product with no active price for the interval means the plan
+	// cannot be billed; fail loudly instead of silently dropping the next phase
+	if hasBillableProduct && len(nextPhaseItems) == 0 {
+		return change, fmt.Errorf("plan %s has no active prices for interval %s", planObj.Name, planObj.Interval)
 	}
 
 	// find current phase out of list of phases

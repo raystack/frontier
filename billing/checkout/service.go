@@ -257,11 +257,13 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
 		}
 
+		hasBillableProduct := false
 		for _, planProduct := range plan.Products {
 			// if it's credit, skip
 			if planProduct.Behavior == product.CreditBehavior {
 				continue
 			}
+			hasBillableProduct = true
 
 			// if per seat, check if there is a limit of seats, if it breaches limit, fail
 			if planProduct.IsSeatLimitBreached(userCount) {
@@ -288,6 +290,9 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				}
 				subsItems = append(subsItems, itemParams)
 			}
+		}
+		if hasBillableProduct && len(subsItems) == 0 {
+			return Checkout{}, fmt.Errorf("plan %s has no active prices for interval %s", plan.Name, plan.Interval)
 		}
 
 		var trialDays *int64 = nil
@@ -421,6 +426,9 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			}
 
 			subsItems = append(subsItems, itemParams)
+		}
+		if len(subsItems) == 0 {
+			return Checkout{}, fmt.Errorf("product %s has no active prices", chProduct.Name)
 		}
 
 		// plan payment methods on the basis of amount subtotal
@@ -893,11 +901,13 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		}
 
 		var totalExpectedPrice int64
+		hasBillableProduct := false
 		for _, planProduct := range plan.Products {
 			// if it's credit, skip, they are handled separately
 			if planProduct.Behavior == product.CreditBehavior {
 				continue
 			}
+			hasBillableProduct = true
 			// if per seat, check if there is a limit of seats, if it breaches limit, fail
 			if planProduct.IsSeatLimitBreached(userCount) {
 				return nil, nil, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
@@ -929,6 +939,9 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				subsItems = append(subsItems, itemParams)
 				totalExpectedPrice += productPrice.Amount * quantity
 			}
+		}
+		if hasBillableProduct && len(subsItems) == 0 {
+			return nil, nil, fmt.Errorf("plan %s has no active prices for interval %s", plan.Name, plan.Interval)
 		}
 
 		var trialDays *int64 = nil
