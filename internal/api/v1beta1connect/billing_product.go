@@ -111,13 +111,23 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 
 func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateProductRequest]) (*connect.Response[frontierv1beta1.UpdateProductResponse], error) {
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
-	// parse price
+	// parse price. The full price fields are carried so a price the product
+	// does not have yet can be created by product.Update's price convergence.
 	var productPrices []product.Price
 	for _, v := range request.Msg.GetBody().GetPrices() {
+		var priceMetadata metadata.Metadata
+		if v.GetMetadata() != nil {
+			priceMetadata = metadata.Build(v.GetMetadata().AsMap())
+		}
 		productPrices = append(productPrices, product.Price{
-			ID:       v.GetId(),
-			Name:     v.GetName(),
-			Metadata: metadata.Build(v.GetMetadata().AsMap()),
+			Name:             v.GetName(),
+			Amount:           v.GetAmount(),
+			Currency:         v.GetCurrency(),
+			UsageType:        product.BuildPriceUsageType(v.GetUsageType()),
+			BillingScheme:    product.BuildBillingScheme(v.GetBillingScheme()),
+			MeteredAggregate: v.GetMeteredAggregate(),
+			Interval:         v.GetInterval(),
+			Metadata:         priceMetadata,
 		})
 	}
 	// parse features
