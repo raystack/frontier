@@ -1,18 +1,16 @@
 
 
 definition app/group {
-	permission delete = org->group_delete + granted->app_group_administer + granted->app_group_delete + owner
-	permission get = org->group_get + granted->app_group_administer + granted->app_group_get + member + owner
+	// permissions
+	permission delete = org->group_delete + granted->app_group_administer + granted->app_group_delete
+	permission get = org->group_get + granted->app_group_administer + granted->app_group_get
 	relation granted: app/rolebinding
 	relation member: app/user
-
-	// permissions
-	permission membership = member + owner
 
 	// relations
 	relation org: app/organization
 	relation owner: app/user | app/serviceuser
-	permission update = org->group_update + granted->app_group_administer + granted->app_group_update + owner
+	permission update = org->group_update + granted->app_group_administer + granted->app_group_update
 }
 
 definition app/invitation {
@@ -24,49 +22,48 @@ definition app/invitation {
 }
 
 definition app/organization {
-	permission billingmanage = platform->superuser + granted->app_organization_administer + granted->app_organization_billingmanage + owner
-	permission billingview = platform->superuser + granted->app_organization_administer + granted->app_organization_billingview + owner
-	permission compute_order_create = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_create + pat_granted->app_project_administer + pat_granted->compute_order_create
-	permission compute_order_delete = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_delete + pat_granted->app_project_administer + pat_granted->compute_order_delete
-	permission compute_order_get = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_get + pat_granted->app_project_administer + pat_granted->compute_order_get
-	permission compute_order_update = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_update + pat_granted->app_project_administer + pat_granted->compute_order_update
-	permission compute_receipt_get = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_get + pat_granted->app_project_administer + pat_granted->compute_receipt_get
-	permission compute_receipt_update = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_update + pat_granted->app_project_administer + pat_granted->compute_receipt_update
-	permission delete = platform->superuser + granted->app_organization_administer + granted->app_organization_delete + owner
-	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + granted->app_organization_update + owner + member
-	relation granted: app/rolebinding
-
-	// synthetic permissions - group
-	permission group_delete = platform->superuser + granted->app_organization_administer + granted->app_group_delete + owner
-	permission group_get = platform->superuser + granted->app_organization_administer + granted->app_group_get + owner
-	permission group_update = platform->superuser + granted->app_organization_administer + granted->app_group_update + owner
-	permission groupcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_groupcreate + owner
-	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist + owner
-	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate + owner
-	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist + owner
-	relation member: app/user | app/group#member | app/serviceuser
+	permission billingmanage = platform->superuser + granted->app_organization_administer + granted->app_organization_billingmanage
+	permission billingview = platform->superuser + granted->app_organization_administer + granted->app_organization_billingview
+	permission compute_order_create = platform->superuser + granted->app_organization_administer + granted->compute_order_create + pat_granted->app_project_administer + pat_granted->compute_order_create
+	permission compute_order_delete = platform->superuser + granted->app_organization_administer + granted->compute_order_delete + pat_granted->app_project_administer + pat_granted->compute_order_delete
+	permission compute_order_get = platform->superuser + granted->app_organization_administer + granted->compute_order_get + pat_granted->app_project_administer + pat_granted->compute_order_get
+	permission compute_order_update = platform->superuser + granted->app_organization_administer + granted->compute_order_update + pat_granted->app_project_administer + pat_granted->compute_order_update
+	permission compute_receipt_get = platform->superuser + granted->app_organization_administer + granted->compute_receipt_get + pat_granted->app_project_administer + pat_granted->compute_receipt_get
+	permission compute_receipt_update = platform->superuser + granted->app_organization_administer + granted->compute_receipt_update + pat_granted->app_project_administer + pat_granted->compute_receipt_update
 
 	// permissions
 	// org
-	permission membership = member + owner
+	permission delete = platform->superuser + granted->app_organization_administer + granted->app_organization_delete
+	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + granted->app_organization_update
+	relation granted: app/rolebinding
+
+	// synthetic permissions - group
+	permission group_delete = platform->superuser + granted->app_organization_administer + granted->app_group_delete
+	permission group_get = platform->superuser + granted->app_organization_administer + granted->app_group_get
+	permission group_update = platform->superuser + granted->app_organization_administer + granted->app_group_update
+	permission groupcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_groupcreate
+	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist
+	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate
+	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist
+	relation member: app/user | app/group#member | app/serviceuser
 	relation owner: app/user | app/serviceuser
 	relation pat_granted: app/rolebinding
 
 	// relations
 	relation platform: app/platform
-	permission policymanage = platform->superuser + granted->app_organization_administer + granted->app_organization_policymanage + owner
+	permission policymanage = platform->superuser + granted->app_organization_administer + granted->app_organization_policymanage
 
 	// synthetic permissions - project
-	permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + pat_granted->app_project_administer + pat_granted->app_project_delete + owner
-	permission project_get = platform->superuser + granted->app_organization_administer + granted->app_project_get + pat_granted->app_project_administer + pat_granted->app_project_get + owner
-	permission project_policymanage = platform->superuser + granted->app_organization_administer + granted->app_project_policymanage + pat_granted->app_project_administer + pat_granted->app_project_policymanage + owner
-	permission project_resourcelist = platform->superuser + granted->app_organization_administer + granted->app_project_resourcelist + pat_granted->app_project_administer + pat_granted->app_project_resourcelist + owner
-	permission project_update = platform->superuser + granted->app_organization_administer + granted->app_project_update + pat_granted->app_project_administer + pat_granted->app_project_update + owner
-	permission projectcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_projectcreate + owner
-	permission projectlist = platform->superuser + granted->app_organization_administer + granted->app_organization_projectlist + owner
-	permission rolemanage = platform->superuser + granted->app_organization_administer + granted->app_organization_rolemanage + owner
-	permission serviceusermanage = platform->superuser + granted->app_organization_administer + granted->app_organization_serviceusermanage + owner
-	permission update = platform->superuser + granted->app_organization_administer + granted->app_organization_update + owner
+	permission project_delete = platform->superuser + granted->app_organization_administer + granted->app_project_delete + pat_granted->app_project_administer + pat_granted->app_project_delete
+	permission project_get = platform->superuser + granted->app_organization_administer + granted->app_project_get + pat_granted->app_project_administer + pat_granted->app_project_get
+	permission project_policymanage = platform->superuser + granted->app_organization_administer + granted->app_project_policymanage + pat_granted->app_project_administer + pat_granted->app_project_policymanage
+	permission project_resourcelist = platform->superuser + granted->app_organization_administer + granted->app_project_resourcelist + pat_granted->app_project_administer + pat_granted->app_project_resourcelist
+	permission project_update = platform->superuser + granted->app_organization_administer + granted->app_project_update + pat_granted->app_project_administer + pat_granted->app_project_update
+	permission projectcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_projectcreate
+	permission projectlist = platform->superuser + granted->app_organization_administer + granted->app_organization_projectlist
+	permission rolemanage = platform->superuser + granted->app_organization_administer + granted->app_organization_rolemanage
+	permission serviceusermanage = platform->superuser + granted->app_organization_administer + granted->app_organization_serviceusermanage
+	permission update = platform->superuser + granted->app_organization_administer + granted->app_organization_update
 }
 
 definition app/pat {}
