@@ -566,14 +566,14 @@ func TestService_Update_ConvergesPrices(t *testing.T) {
 		}
 	})
 
-	t.Run("retires an active price the desired list omits", func(t *testing.T) {
+	t.Run("deactivates an active price the desired list omits", func(t *testing.T) {
 		stripeClient, be, pr, priceRepo, fr := mockService(t)
 		expectProductNoise(be, pr, fr)
 		priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).Return([]product.Price{
 			{ID: "price-monthly", Name: "monthly", Amount: 100, Currency: "usd", Interval: "month", State: "active"},
 			{ID: "price-old", ProviderID: "stripe_old", Name: "old_monthly", Amount: 100, State: "active"},
 		}, nil)
-		// the omitted active price is retired in provider and repo
+		// the omitted active price is deactivated in provider and repo
 		be.EXPECT().Call("POST", "/v1/prices/stripe_old", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		priceRepo.EXPECT().UpdateByID(mock.Anything, mock.MatchedBy(func(p product.Price) bool {
 			return p.Name == "old_monthly" && p.State == "inactive"
@@ -603,7 +603,7 @@ func TestService_Update_ConvergesPrices(t *testing.T) {
 		stripeClient, be, pr, priceRepo, fr := mockService(t)
 		expectProductNoise(be, pr, fr)
 		// populateProduct still lists prices for the return value; a product with
-		// an existing price must not have it retired just because none were sent.
+		// an existing price must not have it deactivated just because none were sent.
 		priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).
 			Return([]product.Price{{ID: "price-monthly", Name: "monthly", Amount: 100, State: "active"}}, nil)
 
@@ -613,13 +613,13 @@ func TestService_Update_ConvergesPrices(t *testing.T) {
 		}
 	})
 
-	t.Run("reactivates a retired price the desired list names again", func(t *testing.T) {
+	t.Run("activates an inactive price the desired list names again", func(t *testing.T) {
 		stripeClient, be, pr, priceRepo, fr := mockService(t)
 		expectProductNoise(be, pr, fr)
 		priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).Return([]product.Price{
 			{ID: "price-monthly", ProviderID: "stripe_monthly", Name: "monthly", Amount: 100, Currency: "usd", Interval: "month", State: "inactive"},
 		}, nil)
-		// the retired price is reactivated in provider and repo, not recreated
+		// the inactive price is activated in provider and repo, not recreated
 		be.EXPECT().Call("POST", "/v1/prices/stripe_monthly", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		priceRepo.EXPECT().UpdateByID(mock.Anything, mock.MatchedBy(func(p product.Price) bool {
 			return p.Name == "monthly" && p.State == "active"

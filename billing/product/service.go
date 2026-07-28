@@ -232,8 +232,8 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	}
 
 	// apply the validated price convergence. The desired list is authoritative:
-	// a new name is created, a retired name listed again is reactivated, and an
-	// active price the list no longer names is retired.
+	// a new name is created, an inactive name listed again is activated, and an
+	// active price the list no longer names is deactivated.
 	if len(product.Prices) > 0 {
 		if err := s.applyPriceConvergence(ctx, updatedProduct.ID, currentPrices, product.Prices); err != nil {
 			return Product{}, err
@@ -322,9 +322,9 @@ func normalizePrice(p Price) Price {
 
 // applyPriceConvergence makes the product's prices match the desired list. The
 // list must already have passed validateDesiredPrices. A name the product does
-// not have is created, a retired name listed again is reactivated, and an active
-// price the list no longer names is retired. Adds and reactivations run before
-// retires, so the product always has the new price before an old one goes
+// not have is created, an inactive name listed again is activated, and an active
+// price the list no longer names is deactivated. Adds and activations run before
+// deactivations, so the product always has the new price before an old one goes
 // inactive.
 func (s *Service) applyPriceConvergence(ctx context.Context, productID string, current, desired []Price) error {
 	currentByName := make(map[string]Price, len(current))
@@ -346,7 +346,7 @@ func (s *Service) applyPriceConvergence(ctx context.Context, productID string, c
 			continue
 		}
 		if !existing.IsActive() {
-			if err := s.reactivatePrice(ctx, existing); err != nil {
+			if err := s.activatePrice(ctx, existing); err != nil {
 				return err
 			}
 		}
@@ -366,16 +366,16 @@ func (s *Service) applyPriceConvergence(ctx context.Context, productID string, c
 	return nil
 }
 
-// deactivatePrice retires a price. Provider prices are immutable and cannot be
-// deleted, so a superseded price is marked inactive in the provider and the
-// repo rather than removed.
+// deactivatePrice marks a price inactive. Provider prices are immutable and
+// cannot be deleted, so a price is taken out of use by setting it inactive in
+// the provider and the repo rather than removed.
 func (s *Service) deactivatePrice(ctx context.Context, price Price) error {
 	return s.setPriceActive(ctx, price, false)
 }
 
-// reactivatePrice brings a retired price back into use when the desired list
+// activatePrice brings an inactive price back into use when the desired list
 // names it again.
-func (s *Service) reactivatePrice(ctx context.Context, price Price) error {
+func (s *Service) activatePrice(ctx context.Context, price Price) error {
 	return s.setPriceActive(ctx, price, true)
 }
 
