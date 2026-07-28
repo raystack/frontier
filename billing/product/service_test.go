@@ -448,6 +448,7 @@ func TestPrice_IsActive(t *testing.T) {
 		{name: "explicit active state is active", state: "active", want: true},
 		{name: "empty state is treated as active", state: "", want: true},
 		{name: "inactive state is not active", state: "inactive", want: false},
+		{name: "unknown state is not active", state: "archived", want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

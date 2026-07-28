@@ -117,10 +117,12 @@ const (
 
 // IsActive reports whether the price can be used for new purchases. A retired
 // price is marked inactive, so an inactive price must be left out of checkout
-// line items, plan matching, and invoicing. An empty state is treated as active,
-// since that is the database default for a newly created price.
+// line items, plan matching, and invoicing. Only the active state counts as
+// usable, along with an empty state, which an in-memory price carries before it
+// is stored (the stored default is active). Any other value is treated as not
+// active, so an unexpected state fails closed rather than being billed.
 func (price Price) IsActive() bool {
-	return price.State != PriceStateInactive
+	return price.State == "" || price.State == PriceStateActive
 }
 
 type BillingScheme string
