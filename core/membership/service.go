@@ -69,6 +69,10 @@ type UserPATService interface {
 	GetByID(ctx context.Context, id string) (patmodels.PAT, error)
 }
 
+type ResourceService interface {
+	RemovePrincipalAccess(ctx context.Context, principalID, principalType string, projectIDs []string) error
+}
+
 type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord auditrecord.AuditRecord) (auditrecord.AuditRecord, error)
 }
@@ -84,6 +88,7 @@ type Service struct {
 	groupService          GroupService
 	serviceuserService    ServiceuserService
 	userPATService        UserPATService
+	resourceService       ResourceService
 	auditRecordRepository AuditRecordRepository
 }
 
@@ -117,6 +122,13 @@ func NewService(
 // circular init order between userpat and membership services.
 func (s *Service) SetUserPATService(ups UserPATService) {
 	s.userPATService = ups
+}
+
+// SetResourceService sets the resource dependency after construction. The
+// resource service is built after membership because it reaches membership
+// through the PAT service.
+func (s *Service) SetResourceService(rs ResourceService) {
+	s.resourceService = rs
 }
 
 // AddOrganizationMember adds a principal (user, service user, or PAT) to an organization
@@ -464,8 +476,10 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 	if err != nil {
 		return fmt.Errorf("list org projects: %w", err)
 	}
+	orgProjectIDs := make([]string, 0, len(orgProjects))
 	orgProjectIDSet := make(map[string]struct{}, len(orgProjects))
 	for _, p := range orgProjects {
+		orgProjectIDs = append(orgProjectIDs, p.ID)
 		orgProjectIDSet[p.ID] = struct{}{}
 	}
 
@@ -522,6 +536,9 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 			errs = errors.Join(errs, fmt.Errorf("delete sub-resource policy %s: %w", pol.ID, err))
 		}
 	}
+	if err := s.removeCustomResourceAccess(ctx, principalID, principalType, orgProjectIDs); err != nil {
+		errs = errors.Join(errs, err)
+	}
 	if errs != nil {
 		s.log.Error("partial failure removing member: some policies could not be deleted, manual cleanup may be needed",
 			"org_id", orgID,
@@ -554,6 +571,23 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 		}
 	}
 
+	return nil
+}
+
+// removeCustomResourceAccess deletes the principal's policies on custom
+// resources in the org's projects. A policy only names a resource, so the
+// resource service is needed to tell which project that resource belongs to.
+func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, principalType string, orgProjectIDs []string) error {
+	if s.resourceService == nil {
+		s.log.ErrorContext(ctx, "resource service not set: custom-resource policies left behind",
+			"principal_id", principalID,
+			"principal_type", principalType,
+		)
+		return nil
+	}
+	if err := s.resourceService.RemovePrincipalAccess(ctx, principalID, principalType, orgProjectIDs); err != nil {
+		return fmt.Errorf("remove custom-resource policies: %w", err)
+	}
 	return nil
 }
 
