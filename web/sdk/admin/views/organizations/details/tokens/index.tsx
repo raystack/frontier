@@ -50,7 +50,6 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        className={styles["zero-state"]}
         icon={<CoinIcon />}
         heading="Tokens"
         subHeading="Token transactions for this organization's consumable balance will appear here."

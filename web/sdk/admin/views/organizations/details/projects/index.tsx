@@ -57,7 +57,6 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        className={styles["zero-state"]}
         icon={<FileIcon />}
         heading={t.project({ plural: true, case: "capital" })}
         subHeading={`${t.project({ plural: true, case: "capital" })} group resources and members within this ${t.organization({ case: "lower" })}.`}

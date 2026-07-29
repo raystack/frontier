@@ -62,7 +62,6 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        className={styles["zero-state"]}
         icon={<UsersIcon />}
         heading={t.member({ plural: true, case: "capital" })}
         subHeading={`${t.member({ plural: true, case: "capital" })} are ${t.user({ plural: true, case: "lower" })} who belong to this ${t.organization({ case: "lower" })} and can access its resources.`}

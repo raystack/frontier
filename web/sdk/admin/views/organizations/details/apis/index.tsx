@@ -41,7 +41,6 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        className={styles["zero-state"]}
         icon={<InfoCircledIcon />}
         heading="API Credentials"
         subHeading="Service accounts provide programmatic API access on behalf of this organization."

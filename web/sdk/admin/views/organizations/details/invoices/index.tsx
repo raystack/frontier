@@ -75,7 +75,6 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        className={styles["zero-state"]}
         icon={<FileTextIcon />}
         heading="Invoices"
         subHeading="Invoices generated for this organization's billing activity will appear here."

@@ -8,11 +8,7 @@
 }
 
 .zero-state-container {
-  padding: var(--rs-space-10);
-}
-
-.zero-state {
-  padding-top: var(--rs-space-17);
+  padding: var(--rs-space-17) var(--rs-space-10) var(--rs-space-10);
 }
 
 .table {
