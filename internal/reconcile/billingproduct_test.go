@@ -41,12 +41,9 @@ func TestValidateBillingProductSpec(t *testing.T) {
 		{"valid", func(*BillingProductSpec) {}, ""},
 		{"missing name", func(s *BillingProductSpec) { s.Name = "" }, "name is required"},
 		{"delete is rejected", func(s *BillingProductSpec) { s.Delete = true }, "cannot be deleted"},
-		{"unknown behavior", func(s *BillingProductSpec) { s.Behavior = "weird" }, "unknown behavior"},
 		{"empty price name", func(s *BillingProductSpec) { s.Prices[0].Name = "" }, "price with no name"},
 		{"negative amount", func(s *BillingProductSpec) { s.Prices[0].Amount = -1 }, "negative amount"},
-		{"unknown interval", func(s *BillingProductSpec) { s.Prices[0].Interval = "fortnight" }, "unknown interval"},
-		{"unknown usage type", func(s *BillingProductSpec) { s.Prices[0].UsageType = "weird" }, "unknown usage type"},
-		{"unknown billing scheme", func(s *BillingProductSpec) { s.Prices[0].BillingScheme = "weird" }, "unknown billing scheme"},
+		{"tiered scheme rejected", func(s *BillingProductSpec) { s.Prices[0].BillingScheme = "tiered" }, "does not support"},
 		{"duplicate price name", func(s *BillingProductSpec) {
 			s.Prices = append(s.Prices, BillingPriceSpec{Name: "default", Amount: 200})
 		}, "more than once"},
@@ -135,5 +132,47 @@ func TestDiffBillingProducts(t *testing.T) {
 	t.Run("rejects a product listed more than once", func(t *testing.T) {
 		_, err := diffBillingProducts([]BillingProductSpec{newBillingProduct(), newBillingProduct()}, []currentBillingProduct{curToken()})
 		assert.ErrorContains(t, err, "listed more than once")
+	})
+
+	// The server merges rather than full-writes, so the diff must not plan
+	// changes the server would silently drop, or it would loop forever.
+	t.Run("does not plan a change for an omitted title or zero credit amount", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Title = ""              // server keeps its title when the file omits it
+		s.Config.CreditAmount = 0 // server keeps credit_amount when it is zero
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("does not plan a behavior change", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Behavior = "basic" // differs from server "credits", but behavior is create-only
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("does not plan a price change for an empty price list", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Prices = nil // the server ignores an empty list, so dropping prices is not plannable
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("does not plan a change for a currency case difference", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Prices[0].Currency = "USD" // server stored "usd"
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("fails the plan on an in-place price amount change", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Prices[0].Amount = 200 // same name "default", different amount
+		_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.ErrorContains(t, err, "immutable")
 	})
 }
