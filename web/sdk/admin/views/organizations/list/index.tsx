@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
+import { Button, DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
 import { useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
@@ -14,7 +14,8 @@ import {
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 
-import { PageTitle } from "../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
+import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import { CreateOrganizationPanel } from "./create";
 import {
   getConnectNextPageParam,
@@ -24,7 +25,7 @@ import {
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useDebouncedState } from "@raystack/apsara/hooks";
-import { useTerminology } from "../../../hooks/useTerminology";
+import { useTerminology } from "~/admin/hooks/useTerminology";
 
 const NoOrganizations = () => {
   const t = useTerminology();
@@ -34,10 +35,34 @@ const NoOrganizations = () => {
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading={`No ${t.organization({ case: "capital" })} Found`}
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
+      heading={`No ${t.organization({ case: "lower" })} found`}
+      subHeading="We couldn't find any matches for that keyword. Try alternative terms or check for typos."
       icon={<OrganizationIcon />}
     />
+  );
+};
+
+const ZeroState = ({ openCreatePanel }: { openCreatePanel: () => void }) => {
+  const t = useTerminology();
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        icon={<OrganizationIcon />}
+        heading={t.organization({ case: "capital" })}
+        subHeading="An organization is a shared workspace where teams collaborate, manage resources, and streamline workflows. It provides a structured environment for seamless coordination across teams and projects."
+        primaryAction={
+          <Button
+            data-test-id="admin-zero-state-create-organization-btn"
+            onClick={openCreatePanel}
+            size="small"
+          >
+            Add new {t.organization({ case: "lower" })}
+          </Button>
+        }
+        secondaryAction={<DocumentationButton />}
+      />
+    </div>
   );
 };
 
@@ -222,6 +247,7 @@ export const OrganizationListView = ({
               header: styles["table-header"],
             }}
             emptyState={<NoOrganizations />}
+            zeroState={<ZeroState openCreatePanel={openCreateOrgPanel} />}
             rowHeight={48}
             groupHeaderHeight={48}
           />

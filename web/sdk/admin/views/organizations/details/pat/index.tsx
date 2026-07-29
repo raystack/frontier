@@ -12,6 +12,7 @@ import {
 import { useDebouncedValue } from "~hooks";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
+import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import {
   DEFAULT_PAGE_SIZE,
   getConnectNextPageParam,
@@ -56,10 +57,10 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        className={styles["zero-state"]}
         icon={<LockClosedIcon />}
         heading="PAT"
-        subHeading="Personal access tokens (PATs) provide programmatic access to organization resources via the API on behalf of a user."
+        subHeading="A Personal Access Token (PAT) is a secure credential that allows external applications and scripts to interact with Aurora APIs. It enables authenticated access to resources and workflows without requiring direct user login."
+        secondaryAction={<DocumentationButton />}
       />
     </div>
   );
@@ -158,7 +159,13 @@ export function OrganizationPatView() {
   );
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
-  const hasActiveQuery = Boolean(query.search || query.filters?.length);
+  /*
+   * DataTable seeds its query once at mount, so it never sees the org-context
+   * search. Hence picking the state here instead of via the zeroState prop.
+   */
+  const hasActiveQuery = Boolean(
+    searchQuery?.trim() || tableQuery.filters?.length,
+  );
   const showZeroState =
     !isLoading && !isError && !hasActiveQuery && data.length === 0;
 

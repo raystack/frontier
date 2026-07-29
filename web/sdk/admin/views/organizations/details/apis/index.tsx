@@ -1,10 +1,14 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./apis.module.css";
-import { InfoCircledIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import {
+  CodeIcon,
+  ExclamationTriangleIcon,
+} from "@radix-ui/react-icons";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
-import { PageTitle } from "../../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
+import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import { getColumns } from "./columns";
 import { ServiceUserDetailsDialog } from "./details-dialog";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
@@ -19,7 +23,7 @@ import {
 } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useDebouncedValue } from "~hooks";
-import { useTerminology } from "../../../../hooks/useTerminology";
+import { useTerminology } from "~/admin/hooks/useTerminology";
 
 const NoCredentials = () => {
   return (
@@ -28,10 +32,9 @@ const NoCredentials = () => {
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No API Credentials found"
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
-      // TODO: update icon with raystack icon
-      icon={<InfoCircledIcon />}
+      heading="No service account found"
+      subHeading="We couldn't find any matches for that keyword. Try alternative terms or check for typos."
+      icon={<CodeIcon />}
     />
   );
 };
@@ -41,9 +44,10 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        icon={<InfoCircledIcon />}
-        heading="API Credentials"
-        subHeading="Service accounts provide programmatic API access on behalf of this organization."
+        icon={<CodeIcon />}
+        heading="API"
+        subHeading="An API is a set of protocols that enables Aurora to interact with other applications. It defines request and response structures, allowing seamless data exchange and integration."
+        secondaryAction={<DocumentationButton />}
       />
     </div>
   );
@@ -95,6 +99,7 @@ export function OrganizationApisView() {
   }, [tableQuery, searchQuery]);
 
   const query = useDebouncedValue(computedQuery, 200);
+
 
   const [selectedServiceUser, setSelectedServiceUser] =
     useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(
@@ -156,6 +161,16 @@ export function OrganizationApisView() {
 
   const loading = isLoading || isFetchingNextPage;
 
+  /*
+   * DataTable seeds its query once at mount, so it never sees the org-context
+   * search. Hence picking the state here instead of via the zeroState prop.
+   */
+  const hasActiveQuery = Boolean(
+    searchQuery?.trim() || tableQuery.filters?.length,
+  );
+  const showZeroState =
+    !isLoading && !isError && !hasActiveQuery && data.length === 0;
+
   const onDialogClose = useCallback(() => {
     setSelectedServiceUser(null);
   }, []);
@@ -203,8 +218,7 @@ export function OrganizationApisView() {
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content
-            emptyState={isError ? <ErrorState /> : <NoCredentials />}
-            zeroState={<ZeroState />}
+            emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoCredentials />}
             classNames={{
               root: styles["table-wrapper"],
               table: styles["table"],

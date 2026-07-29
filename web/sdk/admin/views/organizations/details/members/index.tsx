@@ -1,6 +1,6 @@
 import { AlertDialog, DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
-import { PageTitle } from "../../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
 import styles from "./members.module.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { getColumns } from "./columns";
@@ -50,7 +50,7 @@ const NoMembers = () => {
         subHeading: styles["empty-state-subheading"],
       }}
       heading={`No ${t.member({ case: "capital" })} found`}
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
+      subHeading="No results found matching the selected filters. Try adjusting or resetting them to view more results."
       icon={<UsersIcon />}
     />
   );
@@ -145,6 +145,16 @@ export function OrganizationMembersView() {
   const memberCount = data.length;
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
+  /*
+   * DataTable seeds its query once at mount, so it never sees the org-context
+   * search. Hence picking the state here instead of via the zeroState prop.
+   */
+  const hasActiveQuery = Boolean(
+    searchQuery?.trim() || tableQuery.filters?.length,
+  );
+  const showZeroState =
+    !isLoading && !isError && !hasActiveQuery && data.length === 0;
+
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
   };
@@ -234,8 +244,7 @@ export function OrganizationMembersView() {
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content
-              emptyState={isError ? <ErrorState /> : <NoMembers />}
-              zeroState={<ZeroState />}
+              emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoMembers />}
               classNames={{
                 table: styles["table"],
                 root: styles["table-wrapper"],

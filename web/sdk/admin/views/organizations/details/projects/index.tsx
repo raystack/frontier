@@ -5,7 +5,8 @@ import {
   type DataTableQuery,
   type DataTableSort,
 } from "@raystack/apsara";
-import { PageTitle } from "../../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
+import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import styles from "./projects.module.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { getColumns } from "./columns";
@@ -13,7 +14,8 @@ import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@ra
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { OrganizationContext } from "../contexts/organization-context";
-import { FileIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { ProjectsIcon } from "~/admin/assets/icons/ProjectsIcon";
 import { ProjectMembersDialog } from "./members";
 import {
   getConnectNextPageParam,
@@ -21,7 +23,7 @@ import {
 } from '~/utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebouncedValue } from '~hooks';
-import { useTerminology } from "../../../../hooks/useTerminology";
+import { useTerminology } from "~/admin/hooks/useTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -44,9 +46,9 @@ const NoProjects = () => {
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading={`No ${t.project({ plural: true, case: "capital" })} found`}
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
-      icon={<FileIcon />}
+      heading={`No ${t.project({ plural: true, case: "lower" })} found`}
+      subHeading="We couldn't find any matches for that keyword. Try alternative terms or check for typos."
+      icon={<ProjectsIcon />}
     />
   );
 };
@@ -57,9 +59,10 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        icon={<FileIcon />}
-        heading={t.project({ plural: true, case: "capital" })}
-        subHeading={`${t.project({ plural: true, case: "capital" })} group resources and members within this ${t.organization({ case: "lower" })}.`}
+        icon={<ProjectsIcon />}
+        heading={t.project({ case: "capital" })}
+        subHeading="A project is a structured initiative undertaken to achieve a specific outcome. It operates within a defined scope, objectives, and resources, following a process of planning, execution, monitoring, and completion."
+        secondaryAction={<DocumentationButton />}
       />
     </div>
   );
@@ -111,6 +114,7 @@ export function OrganizationProjectsView() {
 
   const query = useDebouncedValue(computedQuery, 200);
 
+
   const {
     data: infiniteData,
     isLoading,
@@ -137,6 +141,16 @@ export function OrganizationProjectsView() {
   const data = infiniteData?.pages?.flatMap(page => page.orgProjects) || [];
   const loading =
     (isLoading || isFetchingNextPage || isOrgMembersMapLoading) && !isError;
+
+  /*
+   * DataTable seeds its query once at mount, so it never sees the org-context
+   * search. Hence picking the state here instead of via the zeroState prop.
+   */
+  const hasActiveQuery = Boolean(
+    searchQuery?.trim() || tableQuery.filters?.length,
+  );
+  const showZeroState =
+    !isLoading && !isError && !hasActiveQuery && data.length === 0;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
@@ -208,8 +222,7 @@ export function OrganizationProjectsView() {
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content
-              emptyState={isError ? <ErrorState /> : <NoProjects />}
-              zeroState={<ZeroState />}
+              emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoProjects />}
               classNames={{
                 table: styles["table"],
                 root: styles["table-wrapper"],

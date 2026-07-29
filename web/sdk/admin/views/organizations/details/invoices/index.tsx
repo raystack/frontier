@@ -1,10 +1,12 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./invoices.module.css";
-import { FileTextIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { BanknotesIcon } from "~/admin/assets/icons/BanknotesIcon";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
-import { PageTitle } from "../../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
+import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import { getColumns } from "./columns";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
@@ -15,7 +17,7 @@ import {
 } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useDebouncedValue } from "~hooks";
-import { useTerminology } from "../../../../hooks/useTerminology";
+import { useTerminology } from "~/admin/hooks/useTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -44,12 +46,12 @@ function convertAmountFiltersToCents(query: DataTableQuery): DataTableQuery {
     filters: query.filters.map(filter =>
       filter.name === "amount"
         ? {
-            ...filter,
-            value: Math.round(Number(filter.value) * 100),
-            ...(filter.numberValue !== undefined && {
-              numberValue: Math.round(filter.numberValue * 100),
-            }),
-          }
+          ...filter,
+          value: Math.round(Number(filter.value) * 100),
+          ...(filter.numberValue !== undefined && {
+            numberValue: Math.round(filter.numberValue * 100),
+          }),
+        }
         : filter,
     ),
   };
@@ -62,10 +64,9 @@ const NoInvoices = () => {
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No Invoice found"
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
-      // TODO: update icon with raystack icon
-      icon={<FileTextIcon />}
+      heading="No invoice found"
+      subHeading="We couldn't find any matches for that keyword. Try alternative terms or check for typos."
+      icon={<BanknotesIcon />}
     />
   );
 };
@@ -75,9 +76,10 @@ const ZeroState = () => {
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
-        icon={<FileTextIcon />}
-        heading="Invoices"
-        subHeading="Invoices generated for this organization's billing activity will appear here."
+        icon={<BanknotesIcon />}
+        heading="Invoice"
+        subHeading="An invoice provides a detailed record of an organization's billing history, including subscription charges, feature usage, and payment transactions."
+        secondaryAction={<DocumentationButton />}
       />
     </div>
   );
@@ -154,6 +156,16 @@ export function OrganizationInvoicesView() {
   const data =
     infiniteData?.pages?.flatMap(page => page.organizationInvoices) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;
+
+  /*
+   * DataTable seeds its query once at mount, so it never sees the org-context
+   * search. Hence picking the state here instead of via the zeroState prop.
+   */
+  const hasActiveQuery = Boolean(
+    searchQuery?.trim() || tableQuery.filters?.length,
+  );
+  const showZeroState =
+    !isLoading && !isError && !hasActiveQuery && data.length === 0;
   const groupCountMap = infiniteData
     ? getGroupCountMapFromFirstPage(infiniteData)
     : {};
@@ -192,8 +204,7 @@ export function OrganizationInvoicesView() {
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content
-            emptyState={isError ? <ErrorState /> : <NoInvoices />}
-            zeroState={<ZeroState />}
+            emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoInvoices />}
             classNames={{
               table: styles["table"],
               root: styles["table-wrapper"],
