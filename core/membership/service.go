@@ -509,12 +509,9 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 
 	// clean up SpiceDB relations
 	for _, g := range orgGroups {
-		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
+		if err := s.removeGroupMemberRelation(ctx, g.ID, principalID, principalType); err != nil {
 			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
 		}
-	}
-	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
-		return fmt.Errorf("remove org relations: %w", err)
 	}
 
 	// remove identity link for service users
@@ -549,15 +546,15 @@ func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, p
 	return nil
 }
 
-// removeRelations deletes owner and member relations for a principal on a resource.
-func (s *Service) removeRelations(ctx context.Context, resourceID, resourceType, principalID, principalType string) error {
-	obj := relation.Object{ID: resourceID, Namespace: resourceType}
-	sub := relation.Subject{ID: principalID, Namespace: principalType}
-	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
-		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
-		if err != nil && !errors.Is(err, relation.ErrNotExist) {
-			return fmt.Errorf("delete relation %s: %w", name, err)
-		}
+// removeGroupMemberRelation deletes the member relation for a principal on a group.
+func (s *Service) removeGroupMemberRelation(ctx context.Context, groupID, principalID, principalType string) error {
+	err := s.relationService.Delete(ctx, relation.Relation{
+		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{ID: principalID, Namespace: principalType},
+		RelationName: schema.MemberRelationName,
+	})
+	if err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return fmt.Errorf("delete relation %s: %w", schema.MemberRelationName, err)
 	}
 	return nil
 }
@@ -1395,7 +1392,7 @@ func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, p
 		}
 	}
 
-	if err := s.removeRelations(ctx, groupID, schema.GroupNamespace, principalID, principalType); err != nil {
+	if err := s.removeGroupMemberRelation(ctx, groupID, principalID, principalType); err != nil {
 		s.log.ErrorContext(ctx, "membership state inconsistent: group policies removed but relation cleanup failed, needs manual fix",
 			"group_id", groupID,
 			"principal_id", principalID,
@@ -1410,7 +1407,7 @@ func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, p
 }
 
 // RemoveAllGroupMembers tears down membership for a group that is being
-// destroyed: deletes every policy on the group and every owner/member
+// destroyed: deletes every policy on the group and every member
 // relation per principal. No min-owner check — the group itself is going
 // away, so the invariant doesn't apply. Errors are joined; partial failures
 // are logged so a retry can complete the cleanup.
@@ -1442,7 +1439,7 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 		if _, hadFailure := failed[key]; hadFailure {
 			continue
 		}
-		if relErr := s.removeRelations(ctx, groupID, schema.GroupNamespace, p.PrincipalID, p.PrincipalType); relErr != nil {
+		if relErr := s.removeGroupMemberRelation(ctx, groupID, p.PrincipalID, p.PrincipalType); relErr != nil {
 			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
 		}
 	}
@@ -1540,26 +1537,14 @@ func (s *Service) linkGroupToOrg(ctx context.Context, groupID, orgID string) err
 	return nil
 }
 
-// unlinkGroupFromOrg removes both hierarchy relations between a group and its
-// org. Used as best-effort cleanup when group-create wiring fails partway.
+// unlinkGroupFromOrg removes the group#org identity link. Used as best-effort
+// cleanup when group-create wiring fails partway.
 // relation.ErrNotExist is ignored; any other error is returned.
 func (s *Service) unlinkGroupFromOrg(ctx context.Context, groupID, orgID string) error {
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
 		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
 		RelationName: schema.OrganizationRelationName,
-	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
-		return err
-	}
-
-	if err := s.relationService.Delete(ctx, relation.Relation{
-		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-		Subject: relation.Subject{
-			ID:              groupID,
-			Namespace:       schema.GroupNamespace,
-			SubRelationName: schema.MemberRelationName,
-		},
-		RelationName: schema.MemberRelationName,
 	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}

@@ -9,7 +9,6 @@ definition app/group {
 
 	// relations
 	relation org: app/organization
-	relation owner: app/user | app/serviceuser
 	permission update = org->group_update + granted->app_group_administer + granted->app_group_update
 }
 
@@ -45,8 +44,6 @@ definition app/organization {
 	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist
 	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate
 	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist
-	relation member: app/user | app/group#member | app/serviceuser
-	relation owner: app/user | app/serviceuser
 	relation pat_granted: app/rolebinding
 
 	// relations
