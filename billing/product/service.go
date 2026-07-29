@@ -323,8 +323,16 @@ func normalizePrice(p Price) Price {
 	if p.Currency == "" {
 		p.Currency = "usd"
 	}
+	p.Currency = strings.ToLower(p.Currency)
 	if p.UsageType == "" {
 		p.UsageType = PriceUsageTypeLicensed
+	}
+	// metered_aggregate defaults to "sum": the create path fills it via
+	// SetDefaults while the add-a-price path leaves it empty, so both sides must
+	// normalize to the same value or the immutability check would falsely reject
+	// one against the other.
+	if p.MeteredAggregate == "" {
+		p.MeteredAggregate = "sum"
 	}
 	p.Interval = strings.ToLower(p.Interval)
 	p.Name = priceKey(p.Name)
@@ -436,8 +444,15 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 	if price.Currency == "" {
 		price.Currency = "usd"
 	}
+	price.Currency = strings.ToLower(price.Currency)
 	if price.UsageType == "" {
 		price.UsageType = PriceUsageTypeLicensed
+	}
+	// store a consistent metered_aggregate so a price added through this path
+	// matches one the create path stored via SetDefaults, and a metered price
+	// sends a valid aggregate to the provider.
+	if price.MeteredAggregate == "" {
+		price.MeteredAggregate = "sum"
 	}
 	price.Interval = strings.ToLower(price.Interval)
 	price.Name = strings.ToLower(price.Name)
