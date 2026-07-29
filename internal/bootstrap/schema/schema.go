@@ -70,9 +70,6 @@ const (
 	PlatformSudoPermission  = "superuser"
 	PlatformCheckPermission = "check"
 
-	// synthetic permission
-	MembershipPermission = "membership"
-
 	// principals
 	UserPrincipal        = "app/user"
 	ServiceUserPrincipal = "app/serviceuser"

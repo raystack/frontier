@@ -666,6 +666,9 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		orgIDs, ok := insecureToken.Get("org_ids")
 		s.Assert().True(ok)
 		s.Assert().Equal(existingOrgID, orgIDs)
+		authVia, ok := insecureToken.Get("auth_via")
+		s.Assert().True(ok)
+		s.Assert().Equal("client_credentials", authVia)
 	})
 }
 
@@ -783,8 +786,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		// check if we have su permissions by listing users
 		listUsersBeforeResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlatformUsersRequest{}))
 		s.Assert().NoError(err)
-		s.Assert().False(utils.ContainsFunc(listUsersBeforeResp.Msg.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
-			return user.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
+		s.Assert().False(utils.ContainsFunc(listUsersBeforeResp.Msg.GetServiceusers(), func(serviceUser *frontierv1beta1.ServiceUser) bool {
+			return serviceUser.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
 		}))
 
 		// make service user platform member
@@ -799,8 +802,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listUsersResp)
 		s.Assert().Len(listUsersResp.Msg.GetUsers(), 1)
-		s.Assert().True(utils.ContainsFunc(listUsersResp.Msg.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
-			return user.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
+		s.Assert().True(utils.ContainsFunc(listUsersResp.Msg.GetServiceusers(), func(serviceUser *frontierv1beta1.ServiceUser) bool {
+			return serviceUser.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
 		}))
 	})
 	s.Run("4. remove a service user in an org which was platform member", func() {
@@ -906,8 +909,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		listUsersResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlatformUsersRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listUsersResp)
-		s.Assert().True(utils.ContainsFunc(listUsersResp.Msg.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
-			return user.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
+		s.Assert().True(utils.ContainsFunc(listUsersResp.Msg.GetServiceusers(), func(serviceUser *frontierv1beta1.ServiceUser) bool {
+			return serviceUser.GetId() == createServiceUserResp.Msg.GetServiceuser().GetId()
 		}))
 
 		// superusers shouldn't be listed in non admin calls even if they have access

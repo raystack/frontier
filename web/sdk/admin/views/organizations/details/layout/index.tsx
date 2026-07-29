@@ -19,7 +19,7 @@ interface OrganizationDetailsLayoutProps {
   onExportProjects?: () => Promise<void>;
   onExportTokens?: () => Promise<void>;
   currentPath: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, state?: { orgId?: string }) => void;
 }
 
 export const OrganizationDetailsLayout = ({

@@ -79,9 +79,6 @@ export const PERMISSIONS = {
   ServiceUserManagePermission: 'serviceusermanage',
   ManagePermission: 'manage',
 
-  // synthetic permission
-  MembershipPermission: 'membership',
-
   // principals
   UserPrincipal: 'app/user',
   ServiceUserPrincipal: 'app/serviceuser',

@@ -24,7 +24,7 @@ const NoAdmins = () => {
 };
 
 export type AdminsViewProps = {
-  onNavigateToOrg?: (orgId: string) => void;
+  onNavigateToOrg?: (slug: string, orgId: string) => void;
   /** Icon rendered in the page header next to the title. */
   icon?: ReactNode;
 };

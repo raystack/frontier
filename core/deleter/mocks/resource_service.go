@@ -71,63 +71,6 @@ func (_c *ResourceService_Delete_Call) RunAndReturn(run func(context.Context, st
 	return _c
 }
 
-// Get provides a mock function with given fields: ctx, id
-func (_m *ResourceService) Get(ctx context.Context, id string) (resource.Resource, error) {
-	ret := _m.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Get")
-	}
-
-	var r0 resource.Resource
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (resource.Resource, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) resource.Resource); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Get(0).(resource.Resource)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ResourceService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type ResourceService_Get_Call struct {
-	*mock.Call
-}
-
-// Get is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *ResourceService_Expecter) Get(ctx interface{}, id interface{}) *ResourceService_Get_Call {
-	return &ResourceService_Get_Call{Call: _e.mock.On("Get", ctx, id)}
-}
-
-func (_c *ResourceService_Get_Call) Run(run func(ctx context.Context, id string)) *ResourceService_Get_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *ResourceService_Get_Call) Return(_a0 resource.Resource, _a1 error) *ResourceService_Get_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *ResourceService_Get_Call) RunAndReturn(run func(context.Context, string) (resource.Resource, error)) *ResourceService_Get_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // List provides a mock function with given fields: ctx, flt
 func (_m *ResourceService) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
 	ret := _m.Called(ctx, flt)

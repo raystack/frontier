@@ -252,23 +252,23 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	}
 
 	suIDs := utils.Map(members, func(m membership.Member) string { return m.PrincipalID })
-	var users []serviceuser.ServiceUser
+	var serviceUsers []serviceuser.ServiceUser
 	if len(suIDs) > 0 {
-		users, err = h.serviceUserService.GetByIDs(ctx, suIDs)
+		serviceUsers, err = h.serviceUserService.GetByIDs(ctx, suIDs)
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectServiceUsers.GetByIDs: project_id=%s: %w", prj.ID, err))
 		}
 	}
 
-	var transformedUsers []*frontierv1beta1.ServiceUser
+	var transformedServiceUsers []*frontierv1beta1.ServiceUser
 	rolePairPBs := []*frontierv1beta1.ListProjectServiceUsersResponse_RolePair{}
-	for _, a := range users {
-		u, err := transformServiceUserToPB(a)
+	for _, su := range serviceUsers {
+		serviceUserPB, err := transformServiceUserToPB(su)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectServiceUsers: entity_id=%s: %w", a.ID, err))
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProjectServiceUsers: entity_id=%s: %w", su.ID, err))
 		}
 
-		transformedUsers = append(transformedUsers, u)
+		transformedServiceUsers = append(transformedServiceUsers, serviceUserPB)
 	}
 
 	for _, m := range members {
@@ -289,7 +289,7 @@ func (h *ConnectHandler) ListProjectServiceUsers(ctx context.Context, request *c
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListProjectServiceUsersResponse{
-		Serviceusers: transformedUsers,
+		Serviceusers: transformedServiceUsers,
 		RolePairs:    rolePairPBs,
 	}), nil
 }

@@ -16,7 +16,12 @@ export default function AuditLogsPage() {
       "audit-logs.csv",
     );
   }, []);
-  const onNavigate = useCallback((path: string) => navigate(path), [navigate]);
+  const onNavigate = useCallback(
+    // Forward router state (e.g. the org id) to the destination page.
+    (path: string, state?: { orgId?: string }) =>
+      navigate(path, state ? { state } : undefined),
+    [navigate],
+  );
 
   return (
     <AuditLogsView onExportCsv={onExportCsv} onNavigate={onNavigate} />

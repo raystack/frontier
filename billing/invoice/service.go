@@ -33,6 +33,9 @@ const (
 	// MonthCreditRangeForInvoice only month is supported for now, could be week or year
 	MonthCreditRangeForInvoice = "month"
 	CreditOverdraftDescription = "Invoice for the underpayment of credit utilization"
+	// DefaultCreditOverdraftItemName is the invoice line item description
+	// used when the overdraft product has no title
+	DefaultCreditOverdraftItemName = "Credit Overdraft"
 )
 
 type Repository interface {
@@ -80,6 +83,7 @@ type Service struct {
 
 	stripeAutoTax                  bool
 	creditOverdraftProduct         string
+	creditOverdraftItemName        string
 	creditOverdraftUnitAmount      int64
 	creditOverdraftInvoiceCurrency string
 	creditOverdraftInvoiceDay      int
@@ -135,9 +139,11 @@ func (s *Service) Init(ctx context.Context) error {
 		}
 		s.creditOverdraftInvoiceCurrency = creditPrice.Currency
 		s.creditOverdraftUnitAmount = int64(float64(creditPrice.Amount) / float64(creditProduct.Config.CreditAmount))
+		s.creditOverdraftItemName = creditProduct.Title
 		s.log.InfoContext(ctx, "credit overdraft product details",
 			"unit_amount", s.creditOverdraftUnitAmount,
-			"currency", s.creditOverdraftInvoiceCurrency)
+			"currency", s.creditOverdraftInvoiceCurrency,
+			"item_name", s.overdraftItemName())
 	}
 	return nil
 }
@@ -529,7 +535,7 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 		items := []Item{
 			{
 				ID:             uuid.New().String(),
-				Name:           "Credit Overdraft",
+				Name:           s.overdraftItemName(),
 				Type:           CreditItemType,
 				UnitAmount:     s.creditOverdraftUnitAmount,
 				Quantity:       abs(balance),
@@ -578,6 +584,15 @@ func computeOverdraftWindow(startRange time.Time, endRange time.Time, lastOverdr
 		}
 	}
 	return startRange, alreadyInvoiced
+}
+
+// overdraftItemName returns the description used on the credit overdraft
+// invoice line item, the overdraft product title when available
+func (s *Service) overdraftItemName() string {
+	if s.creditOverdraftItemName != "" {
+		return s.creditOverdraftItemName
+	}
+	return DefaultCreditOverdraftItemName
 }
 
 // getCreditOverdraftEndDate get range start and end, end date will be the current date with time set to 00:00:00

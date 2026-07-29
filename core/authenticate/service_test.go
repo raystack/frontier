@@ -4,17 +4,19 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"io"
+	"log/slog"
 	"math/rand"
+	"reflect"
 	"testing"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/raystack/frontier/core/authenticate/strategy"
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/stretchr/testify/assert"
-
-	"io"
-	"log/slog"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -281,6 +283,10 @@ func TestService_GetPrincipal(t *testing.T) {
 }
 
 func TestService_StartFlow(t *testing.T) {
+	defaultHashCost := authenticate.OTPHashCost
+	authenticate.OTPHashCost = bcrypt.MinCost
+	t.Cleanup(func() { authenticate.OTPHashCost = defaultHashCost })
+
 	// Since, 'Flow' contains a call to UUID.New(), it will return a new UUID on each call.
 	// We manipulate the seed so that fixed UUID is returned. This is done in setup.
 	id := uuid.MustParse("52fdfc07-2182-454f-963f-5f0f9a621d72") // fixed UUID returned for first call of UUID.New()
@@ -298,6 +304,17 @@ func TestService_StartFlow(t *testing.T) {
 			"callback_url": "",
 		},
 	}
+
+	// Set receives the flow with a bcrypt hash in Nonce; verify the hash
+	// against the fixed OTP and compare the remaining fields to the fixture
+	flowWithHashedNonce := mock.MatchedBy(func(got *authenticate.Flow) bool {
+		if bcrypt.CompareHashAndPassword([]byte(got.Nonce), []byte(flow.Nonce)) != nil {
+			return false
+		}
+		cp := *got
+		cp.Nonce = flow.Nonce
+		return reflect.DeepEqual(&cp, flow)
+	})
 
 	type args struct {
 		ctx     context.Context
@@ -343,7 +360,7 @@ func TestService_StartFlow(t *testing.T) {
 				mockFlowRepo, _, _, _, _ := createMocks(t)
 				ctx := context.Background()
 				_ = strategy.NewMailOTP(mockDialer, "test-subject", "test-body")
-				mockFlowRepo.EXPECT().Set(ctx, flow).Return(nil)
+				mockFlowRepo.EXPECT().Set(ctx, flowWithHashedNonce).Return(nil)
 				srv := authenticate.NewService(
 					nil,
 					authenticate.Config{
@@ -375,7 +392,7 @@ func TestService_StartFlow(t *testing.T) {
 				mockFlowRepo, _, _, _, _ := createMocks(t)
 				ctx := context.Background()
 				_ = strategy.NewMailOTP(mockDialer, "test-subject", "test-body")
-				mockFlowRepo.EXPECT().Set(ctx, flow).Return(sampleErr)
+				mockFlowRepo.EXPECT().Set(ctx, flowWithHashedNonce).Return(sampleErr)
 				srv := authenticate.NewService(
 					nil,
 					authenticate.Config{
@@ -432,9 +449,212 @@ func TestService_StartFlow(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+			if tt.want != nil && got != nil {
+				// nonce is a bcrypt hash; the Set matcher already verified it
+				got.Flow.Nonce = tt.want.Flow.Nonce
+			}
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func mailOTPFlow(id uuid.UUID, now time.Time, nonce string, md pkgMetadata.Metadata) *authenticate.Flow {
+	return &authenticate.Flow{
+		ID:        id,
+		Method:    authenticate.MailOTPAuthMethod.String(),
+		CreatedAt: now,
+		ExpiresAt: now.Add(10 * time.Minute),
+		Email:     "test@example.com",
+		Nonce:     nonce,
+		Metadata:  md,
+	}
+}
+
+func TestService_FinishFlow(t *testing.T) {
+	flowID := uuid.New()
+	timeNow := time.Now()
+	otpHash, err := bcrypt.GenerateFromPassword([]byte("111111"), bcrypt.MinCost)
+	require.NoError(t, err)
+	sampleUser := user.User{ID: "user-id", Email: "test@example.com"}
+
+	type args struct {
+		ctx     context.Context
+		request authenticate.RegistrationFinishRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *authenticate.RegistrationFinishResponse
+		wantErr error
+		setup   func() *authenticate.Service
+	}{
+		{
+			name: "return the user and consume the flow if the code is valid",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationFinishRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					State:  flowID.String(),
+					Code:   "111111",
+				},
+			},
+			want: &authenticate.RegistrationFinishResponse{
+				User: sampleUser,
+				Flow: mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": ""}),
+			},
+			wantErr: nil,
+			setup: func() *authenticate.Service {
+				mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+				ctx := context.Background()
+				mockFlowRepo.EXPECT().Get(ctx, flowID).
+					Return(mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": ""}), nil)
+				mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
+				mockUserService.EXPECT().GetByID(ctx, "test@example.com").Return(sampleUser, nil)
+				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+					nil, nil, mockUserService, nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+		{
+			name: "return ErrInvalidMailOTP and record the attempt if the code is wrong",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationFinishRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					State:  flowID.String(),
+					Code:   "222222",
+				},
+			},
+			want:    nil,
+			wantErr: authenticate.ErrInvalidMailOTP,
+			setup: func() *authenticate.Service {
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				ctx := context.Background()
+				mockFlowRepo.EXPECT().Get(ctx, flowID).
+					Return(mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": ""}), nil)
+				mockFlowRepo.EXPECT().Set(ctx, mock.MatchedBy(func(f *authenticate.Flow) bool {
+					return f.Metadata["attempt"] == 1 && f.Nonce == string(otpHash)
+				})).Return(nil)
+				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+					nil, nil, nil, nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+		{
+			name: "reject the correct code if the stored nonce is not hashed",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationFinishRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					State:  flowID.String(),
+					Code:   "111111",
+				},
+			},
+			want:    nil,
+			wantErr: authenticate.ErrInvalidMailOTP,
+			setup: func() *authenticate.Service {
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				ctx := context.Background()
+				mockFlowRepo.EXPECT().Get(ctx, flowID).
+					Return(mailOTPFlow(flowID, timeNow, "111111", pkgMetadata.Metadata{"callback_url": ""}), nil)
+				mockFlowRepo.EXPECT().Set(ctx, mock.MatchedBy(func(f *authenticate.Flow) bool {
+					return f.Metadata["attempt"] == 1 && f.Nonce == "111111"
+				})).Return(nil)
+				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+					nil, nil, nil, nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+		{
+			name: "destroy the flow if the code is wrong past the attempt cap",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationFinishRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					State:  flowID.String(),
+					Code:   "222222",
+				},
+			},
+			want:    nil,
+			wantErr: authenticate.ErrInvalidMailOTP,
+			setup: func() *authenticate.Service {
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				ctx := context.Background()
+				mockFlowRepo.EXPECT().Get(ctx, flowID).
+					Return(mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": "", "attempt": 3}), nil)
+				mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
+				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+					nil, nil, nil, nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			got, err := s.FinishFlow(tt.args.ctx, tt.args.request)
+			if tt.wantErr != nil {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestService_FinishFlow_WrongThenRightOTP(t *testing.T) {
+	flowID := uuid.New()
+	timeNow := time.Now()
+	otpHash, err := bcrypt.GenerateFromPassword([]byte("111111"), bcrypt.MinCost)
+	require.NoError(t, err)
+	sampleUser := user.User{ID: "user-id", Email: "test@example.com"}
+
+	ctx := context.Background()
+	mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+	flow := mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": ""})
+
+	mockFlowRepo.EXPECT().Get(ctx, flowID).Return(flow, nil).Twice()
+	mockFlowRepo.EXPECT().Set(ctx, flow).Return(nil).Once()
+	mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil).Once()
+	mockUserService.EXPECT().GetByID(ctx, "test@example.com").Return(sampleUser, nil).Once()
+
+	srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+		nil, nil, mockUserService, nil, nil, nil)
+	srv.Now = func() time.Time {
+		return timeNow
+	}
+
+	request := func(code string) authenticate.RegistrationFinishRequest {
+		return authenticate.RegistrationFinishRequest{
+			Method: authenticate.MailOTPAuthMethod.String(),
+			State:  flowID.String(),
+			Code:   code,
+		}
+	}
+
+	got, err := srv.FinishFlow(ctx, request("222222"))
+	assert.ErrorIs(t, err, authenticate.ErrInvalidMailOTP)
+	assert.Nil(t, got)
+	assert.Equal(t, 1, flow.Metadata["attempt"])
+
+	got, err = srv.FinishFlow(ctx, request("111111"))
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, sampleUser, got.User)
 }
 
 func TestService_GetPrincipal_JWTGrantSkipsNonGrantToken(t *testing.T) {
@@ -640,6 +860,83 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("GetPrincipal() mismatch (-want +got):\n%s", diff)
 			}
+		})
+	}
+}
+
+func TestService_BuildToken(t *testing.T) {
+	userID := uuid.NewString()
+
+	tests := []struct {
+		name       string
+		principal  authenticate.Principal
+		config     authenticate.Config
+		wantClaims map[string]string
+	}{
+		{
+			name: "user via session gets sub_type, auth_via and email claims",
+			principal: authenticate.Principal{
+				ID:      userID,
+				Type:    schema.UserPrincipal,
+				AuthVia: authenticate.SessionClientAssertion,
+				User:    &user.User{ID: userID, Email: "jane@acme.org"},
+			},
+			config: authenticate.Config{Token: authenticate.TokenConfig{
+				Claims: authenticate.TokenClaimConfig{AddUserEmailClaim: true},
+			}},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey:  schema.UserPrincipal,
+				token.AuthViaClaimKey:   authenticate.SessionClientAssertion.String(),
+				token.SubEmailClaimsKey: "jane@acme.org",
+			},
+		},
+		{
+			name: "service user via client credentials gets auth_via claim",
+			principal: authenticate.Principal{
+				ID:      userID,
+				Type:    schema.ServiceUserPrincipal,
+				AuthVia: authenticate.ClientCredentialsClientAssertion,
+			},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey: schema.ServiceUserPrincipal,
+				token.AuthViaClaimKey:  authenticate.ClientCredentialsClientAssertion.String(),
+			},
+		},
+		{
+			name: "pat principal gets auth_via and user_id claims",
+			principal: authenticate.Principal{
+				ID:      "pat-token-id",
+				Type:    schema.PATPrincipal,
+				AuthVia: authenticate.PATClientAssertion,
+				User:    &user.User{ID: userID},
+			},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey: schema.PATPrincipal,
+				token.AuthViaClaimKey:  authenticate.PATClientAssertion.String(),
+				token.UserIDClaimKey:   userID,
+			},
+		},
+		{
+			name: "principal without auth via gets empty auth_via claim",
+			principal: authenticate.Principal{
+				ID:   userID,
+				Type: schema.UserPrincipal,
+			},
+			wantClaims: map[string]string{
+				token.SubTypeClaimsKey: schema.UserPrincipal,
+				token.AuthViaClaimKey:  "",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockToken := mocks.NewTokenService(t)
+			mockToken.EXPECT().Build(tt.principal.ID, tt.wantClaims).Return([]byte("signed-token"), nil)
+			s := authenticate.NewService(nil, tt.config, nil, nil, mockToken, nil, nil, nil, nil, nil)
+
+			got, err := s.BuildToken(context.Background(), tt.principal, map[string]string{})
+			assert.NoError(t, err)
+			assert.Equal(t, []byte("signed-token"), got)
 		})
 	}
 }

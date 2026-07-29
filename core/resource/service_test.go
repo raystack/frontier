@@ -9,6 +9,7 @@ import (
 	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/resource"
@@ -20,7 +21,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func newTestService(t *testing.T) (*mocks.Repository, *mocks.RelationService, *mocks.AuthnService, *mocks.ProjectService, *mocks.OrgService, *mocks.PATService, *mocks.AuditRecordRepository, *resource.Service) {
+func newTestService(t *testing.T) (*mocks.Repository, *mocks.RelationService, *mocks.AuthnService, *mocks.ProjectService, *mocks.OrgService, *mocks.PATService, *mocks.AuditRecordRepository, *mocks.PolicyService, *resource.Service) {
 	t.Helper()
 	repo := mocks.NewRepository(t)
 	relationSvc := mocks.NewRelationService(t)
@@ -29,13 +30,14 @@ func newTestService(t *testing.T) (*mocks.Repository, *mocks.RelationService, *m
 	orgSvc := mocks.NewOrgService(t)
 	patSvc := mocks.NewPATService(t)
 	auditRepo := mocks.NewAuditRecordRepository(t)
-	svc := resource.NewService(repo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo)
-	return repo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo, svc
+	policySvc := mocks.NewPolicyService(t)
+	svc := resource.NewService(repo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, policySvc, auditRepo)
+	return repo, relationSvc, authnSvc, projectSvc, orgSvc, patSvc, auditRepo, policySvc, svc
 }
 
 func TestCheckAuthz_NonPAT(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, _, svc := newTestService(t)
 
 	userID := uuid.New().String()
 	orgID := uuid.New().String()
@@ -61,7 +63,7 @@ func TestCheckAuthz_NonPAT(t *testing.T) {
 
 func TestCheckAuthz_PATScopeAllowed(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -97,7 +99,7 @@ func TestCheckAuthz_PATScopeAllowed(t *testing.T) {
 
 func TestCheckAuthz_PATScopeDenied(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -127,7 +129,7 @@ func TestCheckAuthz_PATScopeDenied(t *testing.T) {
 
 func TestCheckAuthz_PATScopeAllowed_UserDenied(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -163,7 +165,7 @@ func TestCheckAuthz_PATScopeAllowed_UserDenied(t *testing.T) {
 
 func TestCheckAuthz_ExplicitPATSubject_ScopeAllowed(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, patSvc, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, patSvc, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -206,7 +208,7 @@ func TestCheckAuthz_ExplicitPATSubject_ScopeAllowed(t *testing.T) {
 
 func TestCheckAuthz_ExplicitPATSubject_ScopeDenied(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	orgID := uuid.New().String()
@@ -236,7 +238,7 @@ func TestCheckAuthz_ExplicitPATSubject_ScopeDenied(t *testing.T) {
 
 func TestBatchCheck_PATScopeAllowed(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -281,7 +283,7 @@ func TestBatchCheck_PATScopeAllowed(t *testing.T) {
 
 func TestBatchCheck_PATScopeDenied(t *testing.T) {
 	ctx := context.Background()
-	_, relationSvc, authnSvc, _, _, _, _, svc := newTestService(t)
+	_, relationSvc, authnSvc, _, _, _, _, _, svc := newTestService(t)
 
 	patID := uuid.New().String()
 	userID := uuid.New().String()
@@ -313,7 +315,7 @@ func TestBatchCheck_PATScopeDenied(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	t.Run("get by UUID calls GetByID", func(t *testing.T) {
-		repo, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, _, svc := newTestService(t)
 		id := uuid.New().String()
 		expected := resource.Resource{ID: id, Name: "test"}
 		repo.EXPECT().GetByID(mock.Anything, id).Return(expected, nil)
@@ -324,7 +326,7 @@ func TestGet(t *testing.T) {
 	})
 
 	t.Run("get by URN calls GetByURN", func(t *testing.T) {
-		repo, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, _, svc := newTestService(t)
 		urn := "frn:myproject:resource/item:myresource"
 		expected := resource.Resource{URN: urn, Name: "myresource"}
 		repo.EXPECT().GetByURN(mock.Anything, urn).Return(expected, nil)
@@ -347,7 +349,7 @@ func TestCreate(t *testing.T) {
 	}
 
 	t.Run("creates resource with user principal", func(t *testing.T) {
-		repo, relationSvc, authnSvc, projectSvc, _, _, auditRepo, svc := newTestService(t)
+		repo, relationSvc, authnSvc, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
 
 		userID := uuid.New().String()
 		authnSvc.EXPECT().GetPrincipal(mock.Anything, mock.Anything).Return(authenticate.Principal{
@@ -380,7 +382,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("PAT principal resolves to user", func(t *testing.T) {
-		repo, relationSvc, authnSvc, projectSvc, _, patSvc, auditRepo, svc := newTestService(t)
+		repo, relationSvc, authnSvc, projectSvc, _, patSvc, auditRepo, _, svc := newTestService(t)
 
 		patID := uuid.New().String()
 		userID := uuid.New().String()
@@ -419,7 +421,7 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("explicit principal skips authn lookup", func(t *testing.T) {
-		repo, relationSvc, _, projectSvc, _, _, auditRepo, svc := newTestService(t)
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
 		userID := uuid.New().String()
 
 		projectSvc.EXPECT().Get(mock.Anything, testProject.ID).Return(testProject, nil)
@@ -447,7 +449,7 @@ func TestCreate(t *testing.T) {
 
 func TestList(t *testing.T) {
 	t.Run("delegates to repository", func(t *testing.T) {
-		repo, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, _, svc := newTestService(t)
 		flt := resource.Filter{ProjectID: "proj-1"}
 		expected := []resource.Resource{{ID: "r1"}, {ID: "r2"}}
 		repo.EXPECT().List(mock.Anything, flt).Return(expected, nil)
@@ -458,7 +460,7 @@ func TestList(t *testing.T) {
 	})
 
 	t.Run("returns error from repository", func(t *testing.T) {
-		repo, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, _, svc := newTestService(t)
 		repo.EXPECT().List(mock.Anything, mock.Anything).Return(nil, errors.New("db error"))
 
 		_, err := svc.List(context.Background(), resource.Filter{})
@@ -468,7 +470,7 @@ func TestList(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("delegates to repository", func(t *testing.T) {
-		repo, _, _, _, _, _, _, svc := newTestService(t)
+		repo, _, _, _, _, _, _, _, svc := newTestService(t)
 		res := resource.Resource{ID: "r1", Title: "updated"}
 		repo.EXPECT().Update(mock.Anything, res).Return(res, nil)
 
@@ -480,7 +482,7 @@ func TestUpdate(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("deletes relations then resource", func(t *testing.T) {
-		repo, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		repo, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Delete(mock.Anything, relation.Relation{
 			Object: relation.Object{ID: "r1", Namespace: "resource/item"},
@@ -492,7 +494,7 @@ func TestDelete(t *testing.T) {
 	})
 
 	t.Run("ignores relation not exist error", func(t *testing.T) {
-		repo, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		repo, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(relation.ErrNotExist)
 		repo.EXPECT().Delete(mock.Anything, "r1").Return(nil)
@@ -502,7 +504,7 @@ func TestDelete(t *testing.T) {
 	})
 
 	t.Run("returns relation delete error", func(t *testing.T) {
-		_, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		_, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(errors.New("spicedb down"))
 
@@ -513,7 +515,7 @@ func TestDelete(t *testing.T) {
 
 func TestAddProjectToResource(t *testing.T) {
 	t.Run("creates project relation", func(t *testing.T) {
-		_, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		_, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Create(mock.Anything, relation.Relation{
 			Object:       relation.Object{ID: "r1", Namespace: "resource/item"},
@@ -530,7 +532,7 @@ func TestAddProjectToResource(t *testing.T) {
 
 func TestAddResourceOwner(t *testing.T) {
 	t.Run("creates owner relation with user principal", func(t *testing.T) {
-		_, relationSvc, _, _, _, _, _, svc := newTestService(t)
+		_, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
 
 		relationSvc.EXPECT().Create(mock.Anything, relation.Relation{
 			Object:       relation.Object{ID: "r1", Namespace: "resource/item"},
@@ -543,5 +545,74 @@ func TestAddResourceOwner(t *testing.T) {
 			PrincipalID: "user-1", PrincipalType: schema.UserPrincipal,
 		})
 		assert.NoError(t, err)
+	})
+}
+
+func TestRemovePrincipalAccess(t *testing.T) {
+	const userID = "user-1"
+
+	t.Run("no projects: no-op", func(t *testing.T) {
+		_, _, _, _, _, _, _, _, svc := newTestService(t)
+
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, nil)
+		assert.NoError(t, err)
+	})
+
+	t.Run("deletes only policies on resources owned by the given projects", func(t *testing.T) {
+		repo, _, _, _, _, _, _, policySvc, svc := newTestService(t)
+
+		policySvc.EXPECT().List(mock.Anything, policy.Filter{
+			PrincipalID:   userID,
+			PrincipalType: schema.UserPrincipal,
+		}).Return([]policy.Policy{
+			{ID: "res-p1", ResourceType: "compute/instance", ResourceID: "res-1"},
+			{ID: "res-p2", ResourceType: "compute/instance", ResourceID: "res-2"},
+			{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: "org-1"},
+		}, nil)
+
+		// resources owned by proj-1: res-1 only. res-2 lives elsewhere.
+		repo.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{{ID: "res-1"}}, nil)
+
+		// only the policy on res-1 is deleted; res-2 and the org policy are untouched.
+		policySvc.EXPECT().Delete(mock.Anything, "res-p1").Return(nil)
+
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		assert.NoError(t, err)
+	})
+
+	t.Run("no policies: skips resource lookup", func(t *testing.T) {
+		_, _, _, _, _, _, _, policySvc, svc := newTestService(t)
+
+		policySvc.EXPECT().List(mock.Anything, mock.Anything).Return([]policy.Policy{}, nil)
+
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		assert.NoError(t, err)
+	})
+
+	t.Run("aggregates delete errors and keeps going", func(t *testing.T) {
+		repo, _, _, _, _, _, _, policySvc, svc := newTestService(t)
+
+		policySvc.EXPECT().List(mock.Anything, mock.Anything).Return([]policy.Policy{
+			{ID: "res-p1", ResourceType: "compute/instance", ResourceID: "res-1"},
+			{ID: "res-p2", ResourceType: "compute/instance", ResourceID: "res-2"},
+		}, nil)
+		repo.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{{ID: "res-1"}, {ID: "res-2"}}, nil)
+
+		policySvc.EXPECT().Delete(mock.Anything, "res-p1").Return(errors.New("delete boom"))
+		policySvc.EXPECT().Delete(mock.Anything, "res-p2").Return(nil)
+
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		assert.ErrorContains(t, err, "delete boom")
+	})
+
+	t.Run("returns error when policy list fails", func(t *testing.T) {
+		_, _, _, _, _, _, _, policySvc, svc := newTestService(t)
+
+		policySvc.EXPECT().List(mock.Anything, mock.Anything).Return(nil, errors.New("list boom"))
+
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		assert.ErrorContains(t, err, "list boom")
 	})
 }

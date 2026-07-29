@@ -66,8 +66,8 @@ export type AuditLogsViewProps = {
   appName?: string;
   /** Callback to export audit logs as CSV with the current query filters applied. */
   onExportCsv?: (query: RQLRequest) => Promise<void>;
-  /** Navigation callback for links within audit log entries (e.g. to org/user pages). */
-  onNavigate?: (path: string) => void;
+  /** Navigate to a link in an audit entry (e.g. org/user page). `state` carries the org id. */
+  onNavigate?: (path: string, state?: { orgId?: string }) => void;
 };
 
 export default function AuditLogsView({ appName, onExportCsv, onNavigate }: AuditLogsViewProps = {}) {

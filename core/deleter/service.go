@@ -15,7 +15,6 @@ import (
 	"github.com/raystack/frontier/billing/customer"
 
 	"github.com/raystack/frontier/core/organization"
-	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -60,7 +59,6 @@ type PolicyService interface {
 type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Delete(ctx context.Context, namespaceID, id string) error
-	Get(ctx context.Context, id string) (resource.Resource, error)
 }
 
 type GroupService interface {
@@ -310,57 +308,14 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	return nil
 }
 
-// RemoveUsersFromOrg removes users from an organization as members. The
-// org/project/group policy and relation cleanup is delegated to
-// membership.ForceRemoveOrganizationMember — the force variant because a
-// deletion cascade must succeed even when the user is the org's last owner.
-// Custom-resource policies are outside the membership cascade's scope, so
-// they are cleaned up here first.
+// RemoveUsersFromOrg removes users from an organization as members. The policy
+// and relation cleanup — org, project, group, and custom resource — is
+// delegated to membership.ForceRemoveOrganizationMember. It uses the force
+// variant because a deletion cascade must succeed even when the user is the
+// org's last owner.
 func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error {
-	orgProjects, err := d.projService.List(ctx, project.Filter{
-		OrgID: orgID,
-	})
-	if err != nil && !errors.Is(err, project.ErrNotExist) {
-		return err
-	}
-	orgProjectIDs := utils.Map(orgProjects, func(p project.Project) string {
-		return p.ID
-	})
-
 	var errs error
 	for _, userID := range userIDs {
-		userPolicies, policyErr := d.policyService.List(ctx, policy.Filter{
-			PrincipalID:   userID,
-			PrincipalType: schema.UserPrincipal,
-		})
-		if policyErr != nil && !errors.Is(policyErr, policy.ErrNotExist) {
-			errs = errors.Join(errs, policyErr)
-			continue
-		}
-
-		for _, pol := range userPolicies {
-			switch pol.ResourceType {
-			case schema.OrganizationNamespace, schema.ProjectNamespace, schema.GroupNamespace, schema.PlatformNamespace:
-				// org/project/group policies are handled by the membership
-				// cascade below; platform policies are out of scope here
-			default:
-				// delete custom-resource policies for resources owned by org projects
-				userResource, resErr := d.resService.Get(ctx, pol.ResourceID)
-				if errors.Is(resErr, resource.ErrNotExist) {
-					continue
-				}
-				if resErr != nil {
-					errs = errors.Join(errs, resErr)
-					continue
-				}
-				if userResource.ProjectID != "" && utils.Contains(orgProjectIDs, userResource.ProjectID) {
-					if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
-						errs = errors.Join(errs, policyErr)
-					}
-				}
-			}
-		}
-
 		if memberErr := d.membershipService.ForceRemoveOrganizationMember(ctx, orgID, userID, schema.UserPrincipal); memberErr != nil {
 			errs = errors.Join(errs, memberErr)
 		}
