@@ -185,9 +185,13 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate product
 	}
 	updateRecord := goqu.Record{
 		"name":       toUpdate.Name,
-		"state":      toUpdate.State,
 		"metadata":   marshaledMetadata,
 		"updated_at": goqu.L("now()"),
+	}
+	// only write state when set, so a caller that builds a sparse Price (no
+	// state) cannot blank the column and wrongly reactivate an inactive price.
+	if toUpdate.State != "" {
+		updateRecord["state"] = toUpdate.State
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_PRICES).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
