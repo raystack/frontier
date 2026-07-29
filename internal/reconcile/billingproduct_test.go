@@ -40,6 +40,7 @@ func TestValidateBillingProductSpec(t *testing.T) {
 	}{
 		{"valid", func(*BillingProductSpec) {}, ""},
 		{"missing name", func(s *BillingProductSpec) { s.Name = "" }, "name is required"},
+		{"name too short", func(s *BillingProductSpec) { s.Name = "ab" }, "at least three characters"},
 		{"delete is rejected", func(s *BillingProductSpec) { s.Delete = true }, "cannot be deleted"},
 		{"empty price name", func(s *BillingProductSpec) { s.Prices[0].Name = "" }, "price with no name"},
 		{"negative amount", func(s *BillingProductSpec) { s.Prices[0].Amount = -1 }, "negative amount"},
@@ -167,6 +168,36 @@ func TestDiffBillingProducts(t *testing.T) {
 		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
+	})
+
+	t.Run("does not plan a change for an interval or usage-type case difference", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Prices[0].Interval = "Month"     // server stored "month"
+		s.Prices[0].UsageType = "Licensed" // server stored "licensed"
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("fails the plan when a retired price name is reused with different fields", func(t *testing.T) {
+		cur := curToken()
+		cur.RetiredPrices = []BillingPriceSpec{{Name: "promo", Amount: 50, Currency: "usd", Interval: "month", UsageType: "licensed", BillingScheme: "flat"}}
+		s := newBillingProduct()
+		s.Prices = append(s.Prices, BillingPriceSpec{Name: "promo", Amount: 99, Currency: "usd", Interval: "month"})
+		_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{cur})
+		assert.ErrorContains(t, err, "retired")
+	})
+
+	t.Run("plans a reactivation when a retired price name is reused with the same fields", func(t *testing.T) {
+		cur := curToken()
+		cur.RetiredPrices = []BillingPriceSpec{{Name: "promo", Amount: 50, Currency: "usd", Interval: "month", UsageType: "licensed", BillingScheme: "flat"}}
+		s := newBillingProduct()
+		s.Prices = append(s.Prices, BillingPriceSpec{Name: "promo", Amount: 50, Currency: "usd", Interval: "month"})
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{cur})
+		assert.NoError(t, err)
+		if assert.Len(t, ops, 1) {
+			assert.Contains(t, ops[0].detail, "prices")
+		}
 	})
 
 	t.Run("fails the plan on an in-place price amount change", func(t *testing.T) {

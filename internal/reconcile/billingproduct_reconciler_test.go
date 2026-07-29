@@ -94,6 +94,35 @@ func TestBillingProductReconciler(t *testing.T) {
 		assert.ErrorContains(t, err, "not in the file")
 	})
 
+	t.Run("sends metadata on create but not on update", func(t *testing.T) {
+		api := &fakeBillingProductAPI{products: []*frontierv1beta1.Product{
+			billingProductPB("p1", "token", "Tokens", "credits", []*frontierv1beta1.Price{pricePB("default", 100, "usd", "month", "active")}, "f1"),
+		}}
+		spec := []byte(`
+- name: token
+  title: Renamed tokens
+  behavior: credits
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+  features:
+    - {name: f1}
+  metadata: {tier: gold}
+- name: seat
+  behavior: per_seat
+  prices:
+    - {name: monthly, amount: 15000, currency: usd, interval: month}
+  metadata: {tier: silver}
+`)
+		_, err := NewBillingProductReconciler(api, "").Reconcile(ctx, spec, false)
+		assert.NoError(t, err)
+		if assert.Len(t, api.created, 1) {
+			assert.NotNil(t, api.created[0].GetMetadata(), "metadata is sent on create")
+		}
+		if body := api.updated["p1"]; assert.NotNil(t, body) {
+			assert.Nil(t, body.GetMetadata(), "metadata is not sent on update, since the diff does not track it")
+		}
+	})
+
 	t.Run("export round-trips to no changes and drops inactive prices", func(t *testing.T) {
 		api := &fakeBillingProductAPI{products: []*frontierv1beta1.Product{
 			billingProductPB("p1", "token", "Tokens", "credits", []*frontierv1beta1.Price{
@@ -212,19 +241,22 @@ func (f *mergeFakeBillingProductAPI) UpdateProduct(_ context.Context, req *conne
 }
 
 func (f *mergeFakeBillingProductAPI) convergePrices(p *frontierv1beta1.Product, desired []*frontierv1beta1.Price) {
-	want := map[string]bool{}
-	have := map[string]bool{}
+	byName := map[string]*frontierv1beta1.Price{}
 	for _, pr := range p.GetPrices() {
-		if pr.GetState() != "inactive" {
-			have[strings.ToLower(pr.GetName())] = true
-		}
+		byName[strings.ToLower(pr.GetName())] = pr
 	}
+	want := map[string]bool{}
 	for _, pr := range desired {
 		name := strings.ToLower(pr.GetName())
 		want[name] = true
-		if !have[name] {
-			p.Prices = append(p.Prices, createdPrice(pr, false)) // update path leaves metered_aggregate empty
+		existing, ok := byName[name]
+		if !ok {
+			np := createdPrice(pr, false) // a new name is created; update path leaves metered_aggregate empty
+			p.Prices = append(p.Prices, np)
+			byName[name] = np
+			continue
 		}
+		existing.State = "active" // a retired name listed again is reactivated in place, not duplicated
 	}
 	for _, pr := range p.GetPrices() {
 		if pr.GetState() != "inactive" && !want[strings.ToLower(pr.GetName())] {
@@ -315,5 +347,92 @@ func TestBillingProductReconciler_Converges(t *testing.T) {
 		rep, err := r.Reconcile(context.Background(), changed, true)
 		assert.NoError(t, err)
 		assert.Empty(t, rep.Planned, "reconciling the applied spec again must plan no changes")
+	})
+
+	t.Run("a one-time price with no interval converges", func(t *testing.T) {
+		reconcileTwice(t, newMergeFake(), []byte(`
+- name: onetime
+  title: One time pack
+  prices:
+    - {name: pack, amount: 5000, currency: usd}
+`))
+	})
+
+	twoPrices := []byte(`
+- name: tokens
+  title: Tokens
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+    - {name: bonus, amount: 200, currency: usd, interval: month}
+`)
+	onePrice := []byte(`
+- name: tokens
+  title: Tokens
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+`)
+
+	t.Run("dropping a price retires it and converges", func(t *testing.T) {
+		api := newMergeFake()
+		r := NewBillingProductReconciler(api, "")
+		if _, err := r.Reconcile(context.Background(), twoPrices, false); err != nil {
+			t.Fatalf("create with two prices: %v", err)
+		}
+		if _, err := r.Reconcile(context.Background(), onePrice, false); err != nil {
+			t.Fatalf("drop a price: %v", err)
+		}
+		rep, err := r.Reconcile(context.Background(), onePrice, true)
+		assert.NoError(t, err)
+		assert.Empty(t, rep.Planned, "after a price is dropped, re-planning the same spec is a no-op")
+	})
+
+	t.Run("a retired price listed again with the same fields is reactivated and converges", func(t *testing.T) {
+		api := newMergeFake()
+		r := NewBillingProductReconciler(api, "")
+		if _, err := r.Reconcile(context.Background(), twoPrices, false); err != nil {
+			t.Fatalf("create with two prices: %v", err)
+		}
+		if _, err := r.Reconcile(context.Background(), onePrice, false); err != nil {
+			t.Fatalf("drop bonus: %v", err)
+		}
+		// list bonus again with identical fields; the server reactivates it rather
+		// than rejecting the reused name, and the plan must reflect that.
+		if _, err := r.Reconcile(context.Background(), twoPrices, false); err != nil {
+			t.Fatalf("reactivate bonus: %v", err)
+		}
+		rep, err := r.Reconcile(context.Background(), twoPrices, true)
+		assert.NoError(t, err)
+		assert.Empty(t, rep.Planned, "after a retired price is reactivated, re-planning the same spec is a no-op")
+	})
+
+	t.Run("removing a feature converges", func(t *testing.T) {
+		api := newMergeFake()
+		r := NewBillingProductReconciler(api, "")
+		withTwo := []byte(`
+- name: tokens
+  title: Tokens
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+  features:
+    - {name: f1}
+    - {name: f2}
+`)
+		withOne := []byte(`
+- name: tokens
+  title: Tokens
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+  features:
+    - {name: f1}
+`)
+		if _, err := r.Reconcile(context.Background(), withTwo, false); err != nil {
+			t.Fatalf("create with two features: %v", err)
+		}
+		if _, err := r.Reconcile(context.Background(), withOne, false); err != nil {
+			t.Fatalf("remove a feature: %v", err)
+		}
+		rep, err := r.Reconcile(context.Background(), withOne, true)
+		assert.NoError(t, err)
+		assert.Empty(t, rep.Planned, "after a feature is removed, re-planning the same spec is a no-op")
 	})
 }

@@ -63,19 +63,22 @@ type BillingFeatureRef struct {
 	Name string `yaml:"name"`
 }
 
-// currentBillingProduct is one product as returned by ListProducts. Prices are
-// the active ones only, since an inactive price is retired and must not be
-// treated as part of the current desired state.
+// currentBillingProduct is one product as returned by ListProducts. Prices holds
+// the active prices, which make up the current desired state. RetiredPrices holds
+// the inactive ones: they are not part of the desired state, but the server still
+// validates a reused name against them, so the diff needs them to tell a safe
+// reactivation from a change the server would reject.
 type currentBillingProduct struct {
-	ID          string
-	Name        string
-	Title       string
-	Description string
-	Behavior    string
-	Config      BillingProductConfig
-	Prices      []BillingPriceSpec
-	Features    []string
-	Metadata    map[string]any
+	ID            string
+	Name          string
+	Title         string
+	Description   string
+	Behavior      string
+	Config        BillingProductConfig
+	Prices        []BillingPriceSpec
+	RetiredPrices []BillingPriceSpec
+	Features      []string
+	Metadata      map[string]any
 }
 
 // billingProductOp is a single planned change. spec carries the whole desired
@@ -103,12 +106,20 @@ func (o billingProductOp) String() string {
 }
 
 // validateBillingProductSpec rejects entries the flow cannot manage without
-// touching the server: a missing name, a delete flag (products cannot be
-// removed through the API), an unknown behavior, and any malformed price or
-// feature. Names must be unique within their scope.
+// touching the server: a missing or too-short name, a delete flag (products
+// cannot be removed through the API), and any malformed price or feature. It
+// does not re-list the valid behaviors, intervals, or schemes; the server
+// rejects a bad value through its validate interceptor. Names must be unique
+// within their scope.
 func validateBillingProductSpec(s BillingProductSpec) error {
-	if strings.TrimSpace(s.Name) == "" {
+	name := strings.TrimSpace(s.Name)
+	if name == "" {
 		return fmt.Errorf("product name is required")
+	}
+	// the server requires a product name of at least three characters, so a
+	// shorter one would fail at apply; reject it here instead.
+	if len(name) < 3 {
+		return fmt.Errorf("product name %q must be at least three characters", name)
 	}
 	if s.Delete {
 		return fmt.Errorf("product %q cannot be deleted: there is no product delete or deactivate API; remove the entry and archive the product by hand", s.Name)
@@ -251,7 +262,7 @@ func billingProductChanges(s BillingProductSpec, cur currentBillingProduct) ([]s
 	if !billingFeatureSetsEqual(s.Features, cur.Features) {
 		changes = append(changes, "features")
 	}
-	priceChanged, err := billingPriceChange(s.Prices, cur.Prices)
+	priceChanged, err := billingPriceChange(s.Prices, cur.Prices, cur.RetiredPrices)
 	if err != nil {
 		return nil, fmt.Errorf("product %q: %w", s.Name, err)
 	}
@@ -288,14 +299,18 @@ func billingFeatureSetsEqual(desired []BillingFeatureRef, current []string) bool
 }
 
 // billingPriceChange reports whether the desired prices need a converging update
-// against the current active prices, and fails when the file asks for a change
-// the server cannot apply. Prices converge only when the desired list is
-// non-empty, because the server ignores an empty price list, so an empty desired
-// list is treated as keep (this kind cannot drop the last price). A desired name
-// that is new, or an active name the list no longer includes, needs an update. A
-// desired name that already exists but changes an immutable field is rejected:
-// a provider price cannot change in place, so it must be a new price name.
-func billingPriceChange(desired, current []BillingPriceSpec) (bool, error) {
+// against the current prices, and fails when the file asks for a change the
+// server cannot apply. Prices converge only when the desired list is non-empty,
+// because the server ignores an empty price list, so an empty desired list is
+// treated as keep (this kind cannot drop the last price).
+//
+// The server validates a reused name against every price of the product, active
+// or retired, so both are checked here. A desired name that matches an active or
+// a retired price but changes an immutable field is rejected, since a provider
+// price cannot change in place. A desired name that is new, or that matches a
+// retired price with the same fields (a reactivation), or an active name the list
+// no longer includes (a deactivation), needs a converging update.
+func billingPriceChange(desired, active, retired []BillingPriceSpec) (bool, error) {
 	if len(desired) == 0 {
 		return false, nil
 	}
@@ -306,23 +321,32 @@ func billingPriceChange(desired, current []BillingPriceSpec) (bool, error) {
 		}
 		return m
 	}
-	dm, cm := index(desired), index(current)
-	// first reject any immutable-field change on an existing price name. This
-	// pass runs over every matched name before adds or retires are considered,
-	// so the outcome never depends on map iteration order.
+	dm, am, rm := index(desired), index(active), index(retired)
+	// first reject any immutable-field change on a name that already exists,
+	// whether it is active or retired. This pass runs over every matched name
+	// before adds, reactivations, or deactivations are considered, so the
+	// outcome never depends on map iteration order.
 	for name, d := range dm {
-		if c, ok := cm[name]; ok && d != c {
-			return false, fmt.Errorf("price %q cannot change its amount, currency, interval, scheme, usage type, or aggregate; provider prices are immutable, so add a new price under a new name", name)
+		if c, ok := am[name]; ok {
+			if d != c {
+				return false, fmt.Errorf("price %q cannot change its amount, currency, interval, scheme, usage type, or aggregate; provider prices are immutable, so add a new price under a new name", name)
+			}
+			continue
+		}
+		if c, ok := rm[name]; ok && d != c {
+			return false, fmt.Errorf("price %q was retired earlier with different fields, so it cannot be reused with these values; provider prices are immutable, so add a new price under a new name", name)
 		}
 	}
-	// then a new price name, or an active name the list no longer includes,
-	// needs a converging update.
+	// then a new price name, or a retired name listed again (a reactivation),
+	// needs a converging update. A name already active with the same fields does
+	// not.
 	for name := range dm {
-		if _, ok := cm[name]; !ok {
+		if _, ok := am[name]; !ok {
 			return true, nil
 		}
 	}
-	for name := range cm {
+	// an active price the desired list no longer names is deactivated.
+	for name := range am {
 		if _, ok := dm[name]; !ok {
 			return true, nil
 		}
@@ -344,12 +368,15 @@ func normalizeBillingPrice(p BillingPriceSpec) BillingPriceSpec {
 	if p.MeteredAggregate == "" {
 		p.MeteredAggregate = "sum"
 	}
+	p.MeteredAggregate = strings.ToLower(p.MeteredAggregate)
 	if p.UsageType == "" {
 		p.UsageType = "licensed"
 	}
+	p.UsageType = strings.ToLower(p.UsageType)
 	if p.BillingScheme == "" {
 		p.BillingScheme = "flat"
 	}
+	p.BillingScheme = strings.ToLower(p.BillingScheme)
 	p.Name = ""
 	p.Interval = strings.ToLower(p.Interval)
 	return p
