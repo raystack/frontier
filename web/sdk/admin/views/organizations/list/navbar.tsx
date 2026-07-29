@@ -8,7 +8,7 @@ import {
   Spinner,
 } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
-import styles from "./list.module.css";
+import styles from "../../../components/navbar.module.css";
 import {
   DownloadIcon,
   MagnifyingGlassIcon,

@@ -6,7 +6,7 @@ import {
   IconButton,
   Spinner,
 } from "@raystack/apsara";
-import styles from "./list.module.css";
+import styles from "../../../components/navbar.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import UserIcon from "../../../assets/icons/UsersIcon";
 import React, { useState } from "react";
