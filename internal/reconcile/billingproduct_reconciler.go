@@ -160,7 +160,7 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 }
 
 func (r *BillingProductReconciler) apply(ctx context.Context, op billingProductOp) error {
-	body, err := billingProductBody(op.spec)
+	body, err := billingProductBody(op.spec, op.action == opAdd)
 	if err != nil {
 		return err
 	}
@@ -179,9 +179,12 @@ func (r *BillingProductReconciler) apply(ctx context.Context, op billingProductO
 // billingProductBody builds the request body for a create or update. The whole
 // desired product is sent: UpdateProduct converges the prices and features on
 // the server, so the reconciler does not compute per-price calls itself.
-func billingProductBody(s BillingProductSpec) (*frontierv1beta1.ProductRequestBody, error) {
+// Metadata is sent only on create; the server merges it (keep-if-empty) and this
+// kind does not diff it, so sending it on update would apply it out of step with
+// the plan.
+func billingProductBody(s BillingProductSpec, includeMetadata bool) (*frontierv1beta1.ProductRequestBody, error) {
 	var md *structpb.Struct
-	if len(s.Metadata) > 0 {
+	if includeMetadata && len(s.Metadata) > 0 {
 		var err error
 		md, err = structpb.NewStruct(s.Metadata)
 		if err != nil {
