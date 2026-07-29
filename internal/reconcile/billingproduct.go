@@ -307,18 +307,24 @@ func billingPriceChange(desired, current []BillingPriceSpec) (bool, error) {
 		return m
 	}
 	dm, cm := index(desired), index(current)
+	// first reject any immutable-field change on an existing price name. This
+	// pass runs over every matched name before adds or retires are considered,
+	// so the outcome never depends on map iteration order.
 	for name, d := range dm {
-		c, ok := cm[name]
-		if !ok {
-			return true, nil // a new price name to add
-		}
-		if d != c {
+		if c, ok := cm[name]; ok && d != c {
 			return false, fmt.Errorf("price %q cannot change its amount, currency, interval, scheme, usage type, or aggregate; provider prices are immutable, so add a new price under a new name", name)
+		}
+	}
+	// then a new price name, or an active name the list no longer includes,
+	// needs a converging update.
+	for name := range dm {
+		if _, ok := cm[name]; !ok {
+			return true, nil
 		}
 	}
 	for name := range cm {
 		if _, ok := dm[name]; !ok {
-			return true, nil // an active price to retire
+			return true, nil
 		}
 	}
 	return false, nil

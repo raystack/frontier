@@ -175,4 +175,16 @@ func TestDiffBillingProducts(t *testing.T) {
 		_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
 		assert.ErrorContains(t, err, "immutable")
 	})
+
+	t.Run("fails the plan deterministically when an add and an immutable change coexist", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Prices[0].Amount = 200 // an immutable change on the existing "default"
+		s.Prices = append(s.Prices, BillingPriceSpec{Name: "yearly", Amount: 1000, Currency: "usd", Interval: "year"})
+		// map iteration order must not change the outcome: the immutable check
+		// runs over every name before any add is considered, so this always fails.
+		for i := 0; i < 25; i++ {
+			_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+			assert.ErrorContains(t, err, "immutable")
+		}
+	})
 }
