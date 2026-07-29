@@ -63,7 +63,7 @@ pnpm build --filter=@raystack/frontier      # build the SDK package
 pnpm dev --filter=admin                      # admin dev server → :5173
 ```
 
-> Confirmed working: `pnpm build --filter=@raystack/frontier` builds the full SDK (`@raystack/frontier@0.32.1` — root `dist` + `client/dist` + `admin/dist` + `hooks/dist`), and `pnpm dev --filter=admin` starts Vite `4.5.14` on <http://localhost:5173>. (Admin runs Vite 4; client-demo runs Vite 7.)
+> Confirmed working: `pnpm build --filter=@raystack/frontier` builds the full SDK (`@raystack/frontier@0.32.1` — root `dist` + `client/dist` + `admin/dist` + `hooks/dist`), and `pnpm dev --filter=admin` starts Vite `4.5.14` on [http://localhost:5173](http://localhost:5173). (Admin runs Vite 4; client-demo runs Vite 7.)
 
 Set the endpoint in `frontier/web/apps/admin/.env` (see [§5](#5-env-file-reference) for the full file):
 
@@ -106,7 +106,7 @@ pnpm build --filter=@raystack/frontier      # build the SDK client/dist once
 pnpm dev --filter=client-demo               # demo on :3000
 ```
 
-Then open <http://localhost:3000> → **Settings → Members**. (Confirmed working.)
+Then open [http://localhost:3000](http://localhost:3000) → **Settings → Members**. (Confirmed working.)
 
 **Mode B — editing SDK source (live rebuild)** — two processes:
 
