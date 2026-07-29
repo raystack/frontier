@@ -146,8 +146,7 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 		return err
 	}
 
-	fetchedRole, err := s.validateOrgRole(ctx, roleID, orgID)
-	if err != nil {
+	if _, err := s.validateOrgRole(ctx, roleID, orgID); err != nil {
 		return err
 	}
 
@@ -167,26 +166,6 @@ func (s *Service) AddOrganizationMember(ctx context.Context, orgID, principalID,
 
 	createdPolicy, err := s.createPolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, roleID)
 	if err != nil {
-		return err
-	}
-
-	// PATs don't get relations.
-	if principalType == schema.PATPrincipal {
-		s.auditOrgMemberAdded(ctx, org, principal, roleID)
-		return nil
-	}
-
-	relationName := orgRoleToRelation(fetchedRole)
-	if err := s.createRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, relationName); err != nil {
-		// best-effort cleanup to avoid orphaned policy
-		if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
-			s.log.WarnContext(ctx, "orphaned policy: relation creation failed and policy cleanup also failed",
-				"policy_id", createdPolicy.ID,
-				"org_id", orgID,
-				"principal_id", principalID,
-				"policy_delete_error", deleteErr,
-			)
-		}
 		return err
 	}
 
@@ -263,27 +242,6 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	}
 
 	if err := s.replacePolicy(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, resolvedRoleID, existing, ownerRoleID); err != nil {
-		return err
-	}
-
-	// PATs don't get relations.
-	if principalType == schema.PATPrincipal {
-		s.auditOrgMemberRoleChanged(ctx, org, principal, resolvedRoleID)
-		return nil
-	}
-
-	newRelation := orgRoleToRelation(fetchedRole)
-	oldRelations := []string{schema.OwnerRelationName, schema.MemberRelationName}
-	err = s.replaceRelation(ctx, orgID, schema.OrganizationNamespace, principalID, principalType, oldRelations, newRelation)
-	if err != nil {
-		s.log.ErrorContext(ctx, "membership state inconsistent: policy replaced but relation update failed, needs manual fix",
-			"org_id", orgID,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"new_role_id", resolvedRoleID,
-			"expected_relation", newRelation,
-			"error", err,
-		)
 		return err
 	}
 
@@ -551,12 +509,9 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 
 	// clean up SpiceDB relations
 	for _, g := range orgGroups {
-		if err := s.removeRelations(ctx, g.ID, schema.GroupNamespace, principalID, principalType); err != nil {
+		if err := s.removeGroupMemberRelation(ctx, g.ID, principalID, principalType); err != nil {
 			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
 		}
-	}
-	if err := s.removeRelations(ctx, orgID, schema.OrganizationNamespace, principalID, principalType); err != nil {
-		return fmt.Errorf("remove org relations: %w", err)
 	}
 
 	// remove identity link for service users
@@ -591,15 +546,15 @@ func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, p
 	return nil
 }
 
-// removeRelations deletes owner and member relations for a principal on a resource.
-func (s *Service) removeRelations(ctx context.Context, resourceID, resourceType, principalID, principalType string) error {
-	obj := relation.Object{ID: resourceID, Namespace: resourceType}
-	sub := relation.Subject{ID: principalID, Namespace: principalType}
-	for _, name := range []string{schema.OwnerRelationName, schema.MemberRelationName} {
-		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
-		if err != nil && !errors.Is(err, relation.ErrNotExist) {
-			return fmt.Errorf("delete relation %s: %w", name, err)
-		}
+// removeGroupMemberRelation deletes the member relation for a principal on a group.
+func (s *Service) removeGroupMemberRelation(ctx context.Context, groupID, principalID, principalType string) error {
+	err := s.relationService.Delete(ctx, relation.Relation{
+		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+		Subject:      relation.Subject{ID: principalID, Namespace: principalType},
+		RelationName: schema.MemberRelationName,
+	})
+	if err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return fmt.Errorf("delete relation %s: %w", schema.MemberRelationName, err)
 	}
 	return nil
 }
@@ -676,37 +631,6 @@ func (s *Service) deletePolicy(ctx context.Context, pol policy.Policy, ownerRole
 		return s.policyService.DeleteWithMinRoleGuard(ctx, pol.ID, ownerRoleID)
 	}
 	return s.policyService.Delete(ctx, pol.ID)
-}
-
-// replaceRelation deletes the given old relations for the principal on the resource,
-// then creates a new relation with the given name.
-// Only relation.ErrNotExist is ignored on delete — any other error is returned.
-func (s *Service) replaceRelation(ctx context.Context, resourceID, resourceType, principalID, principalType string, oldRelations []string, newRelationName string) error {
-	obj := relation.Object{ID: resourceID, Namespace: resourceType}
-	sub := relation.Subject{ID: principalID, Namespace: principalType}
-
-	for _, name := range oldRelations {
-		err := s.relationService.Delete(ctx, relation.Relation{Object: obj, Subject: sub, RelationName: name})
-		if err != nil && !errors.Is(err, relation.ErrNotExist) {
-			return fmt.Errorf("delete relation %s: %w", name, err)
-		}
-	}
-
-	_, err := s.relationService.Create(ctx, relation.Relation{
-		Object: obj, Subject: sub, RelationName: newRelationName,
-	})
-	if err != nil {
-		s.log.ErrorContext(ctx, "membership state inconsistent: old relations deleted but new relation creation failed, needs manual fix",
-			"resource_id", resourceID,
-			"resource_type", resourceType,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"expected_relation", newRelationName,
-			"error", err,
-		)
-		return fmt.Errorf("create relation: %w", err)
-	}
-	return nil
 }
 
 // validateOrgRole checks that the role is valid for organization scope and returns it.
@@ -802,15 +726,6 @@ func (s *Service) validatePrincipal(ctx context.Context, orgID, principalID, pri
 	default:
 		return principalInfo{}, ErrInvalidPrincipal
 	}
-}
-
-// orgRoleToRelation maps an org role to the corresponding SpiceDB relation name.
-// Owner role gets "owner" relation, everything else gets "member" relation.
-func orgRoleToRelation(r role.Role) string {
-	if r.Name == schema.RoleOrganizationOwner {
-		return schema.OwnerRelationName
-	}
-	return schema.MemberRelationName
 }
 
 func (s *Service) createPolicy(ctx context.Context, resourceID, resourceType, principalID, principalType, roleID string) (policy.Policy, error) {
@@ -1396,7 +1311,7 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 		if err != nil {
 			return err
 		}
-		if err := s.createRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, groupRoleToRelation(fetchedRole)); err != nil {
+		if err := s.createRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, schema.MemberRelationName); err != nil {
 			if deleteErr := s.policyService.Delete(ctx, createdPolicy.ID); deleteErr != nil {
 				s.log.WarnContext(ctx, "orphaned policy: relation creation failed and policy cleanup also failed",
 					"policy_id", createdPolicy.ID,
@@ -1427,20 +1342,6 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 		if errors.Is(err, ErrLastOwnerRole) {
 			return ErrLastGroupOwnerRole
 		}
-		return err
-	}
-
-	newRelation := groupRoleToRelation(fetchedRole)
-	oldRelations := []string{schema.OwnerRelationName, schema.MemberRelationName}
-	if err := s.replaceRelation(ctx, groupID, schema.GroupNamespace, principalID, principalType, oldRelations, newRelation); err != nil {
-		s.log.ErrorContext(ctx, "membership state inconsistent: policy replaced but group relation update failed, needs manual fix",
-			"group_id", groupID,
-			"principal_id", principalID,
-			"principal_type", principalType,
-			"new_role_id", resolvedRoleID,
-			"expected_relation", newRelation,
-			"error", err,
-		)
 		return err
 	}
 
@@ -1491,7 +1392,7 @@ func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, p
 		}
 	}
 
-	if err := s.removeRelations(ctx, groupID, schema.GroupNamespace, principalID, principalType); err != nil {
+	if err := s.removeGroupMemberRelation(ctx, groupID, principalID, principalType); err != nil {
 		s.log.ErrorContext(ctx, "membership state inconsistent: group policies removed but relation cleanup failed, needs manual fix",
 			"group_id", groupID,
 			"principal_id", principalID,
@@ -1506,7 +1407,7 @@ func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, p
 }
 
 // RemoveAllGroupMembers tears down membership for a group that is being
-// destroyed: deletes every policy on the group and every owner/member
+// destroyed: deletes every policy on the group and every member
 // relation per principal. No min-owner check — the group itself is going
 // away, so the invariant doesn't apply. Errors are joined; partial failures
 // are logged so a retry can complete the cleanup.
@@ -1538,7 +1439,7 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 		if _, hadFailure := failed[key]; hadFailure {
 			continue
 		}
-		if relErr := s.removeRelations(ctx, groupID, schema.GroupNamespace, p.PrincipalID, p.PrincipalType); relErr != nil {
+		if relErr := s.removeGroupMemberRelation(ctx, groupID, p.PrincipalID, p.PrincipalType); relErr != nil {
 			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
 		}
 	}
@@ -1623,64 +1524,27 @@ func (s *Service) OnGroupCreated(ctx context.Context, groupID, orgID, creatorID,
 	return nil
 }
 
-// linkGroupToOrg creates the two hierarchy relations between a group and its org:
-//   - group#org@organization      (identity link from group to org)
-//   - organization#member@group#member (lets org#member traverse to group members)
-//
-// If the second relation fails, the first is best-effort rolled back so we
-// don't leave a one-way link.
+// linkGroupToOrg creates the group#org@organization identity link. It is what
+// resolves org-level synthetic group permissions (e.g. group delete = org->group_delete).
 func (s *Service) linkGroupToOrg(ctx context.Context, groupID, orgID string) error {
-	groupOrg := relation.Relation{
+	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
 		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
 		RelationName: schema.OrganizationRelationName,
-	}
-	if _, err := s.relationService.Create(ctx, groupOrg); err != nil {
+	}); err != nil {
 		return fmt.Errorf("link group to org: %w", err)
 	}
-
-	if _, err := s.relationService.Create(ctx, relation.Relation{
-		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-		Subject: relation.Subject{
-			ID:              groupID,
-			Namespace:       schema.GroupNamespace,
-			SubRelationName: schema.MemberRelationName,
-		},
-		RelationName: schema.MemberRelationName,
-	}); err != nil {
-		if delErr := s.relationService.Delete(ctx, groupOrg); delErr != nil && !errors.Is(delErr, relation.ErrNotExist) {
-			s.log.WarnContext(ctx, "group->org rollback failed after org member relation failure",
-				"group_id", groupID,
-				"org_id", orgID,
-				"error", delErr,
-			)
-		}
-		return fmt.Errorf("add group as org member: %w", err)
-	}
-
 	return nil
 }
 
-// unlinkGroupFromOrg removes both hierarchy relations between a group and its
-// org. Used as best-effort cleanup when group-create wiring fails partway.
+// unlinkGroupFromOrg removes the group#org identity link. Used as best-effort
+// cleanup when group-create wiring fails partway.
 // relation.ErrNotExist is ignored; any other error is returned.
 func (s *Service) unlinkGroupFromOrg(ctx context.Context, groupID, orgID string) error {
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
 		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
 		RelationName: schema.OrganizationRelationName,
-	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
-		return err
-	}
-
-	if err := s.relationService.Delete(ctx, relation.Relation{
-		Object: relation.Object{ID: orgID, Namespace: schema.OrganizationNamespace},
-		Subject: relation.Subject{
-			ID:              groupID,
-			Namespace:       schema.GroupNamespace,
-			SubRelationName: schema.MemberRelationName,
-		},
-		RelationName: schema.MemberRelationName,
 	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}
@@ -1767,14 +1631,6 @@ func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, 
 		return "", ErrLastGroupOwnerRole
 	}
 	return ownerRole.ID, nil
-}
-
-// groupRoleToRelation maps a group role to the matching SpiceDB relation name.
-func groupRoleToRelation(r role.Role) string {
-	if r.Name == schema.GroupOwnerRole {
-		return schema.OwnerRelationName
-	}
-	return schema.MemberRelationName
 }
 
 func (s *Service) auditGroupMemberAdded(ctx context.Context, grp group.Group, p principalInfo, roleID string) {

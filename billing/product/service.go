@@ -164,6 +164,20 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		return Product{}, err
 	}
 
+	// read and validate the desired prices before mutating anything, so an
+	// invalid price fails the whole update rather than leaving the product
+	// half-changed. An empty list leaves the prices untouched.
+	var currentPrices []Price
+	if len(product.Prices) > 0 {
+		currentPrices, err = s.GetPriceByProductID(ctx, existingProduct.ID)
+		if err != nil {
+			return Product{}, err
+		}
+		if err := validateDesiredPrices(currentPrices, product.Prices); err != nil {
+			return Product{}, err
+		}
+	}
+
 	// only following fields will be updated
 	if len(product.Title) > 0 {
 		existingProduct.Title = product.Title
@@ -217,6 +231,15 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		return Product{}, err
 	}
 
+	// apply the validated price convergence. The desired list is authoritative:
+	// a new name is created, an inactive name listed again is activated, and an
+	// active price the list no longer names is deactivated.
+	if len(product.Prices) > 0 {
+		if err := s.applyPriceConvergence(ctx, updatedProduct.ID, currentPrices, product.Prices); err != nil {
+			return Product{}, err
+		}
+	}
+
 	// populate product with price and features
 	updatedProduct, err = s.populateProduct(ctx, updatedProduct)
 	if err != nil {
@@ -226,10 +249,177 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	return updatedProduct, nil
 }
 
+// priceKey is the canonical lookup name for a price. Names are matched
+// case-insensitively and ignoring surrounding whitespace. Validation,
+// convergence, and the stored name all use this key, so the three never
+// disagree on what counts as the same price.
+func priceKey(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
+// validateDesiredPrices checks the desired price list against the product's
+// current prices without touching anything, so an invalid list fails the update
+// before it mutates the product. Names must be present and unique, and a name
+// that already exists must keep its immutable fields, since provider prices
+// cannot be changed in place.
+func validateDesiredPrices(current, desired []Price) error {
+	currentByName := make(map[string]Price, len(current))
+	for _, p := range current {
+		currentByName[priceKey(p.Name)] = p
+	}
+	seen := make(map[string]struct{}, len(desired))
+	for _, want := range desired {
+		name := priceKey(want.Name)
+		if name == "" {
+			return fmt.Errorf("%w: a price must have a name", ErrInvalidDetail)
+		}
+		if _, dup := seen[name]; dup {
+			return fmt.Errorf("%w: price %q is listed more than once", ErrInvalidDetail, name)
+		}
+		seen[name] = struct{}{}
+		if existing, ok := currentByName[name]; ok {
+			if err := checkImmutablePriceFields(existing, want); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// checkImmutablePriceFields rejects a change to a field a provider price cannot
+// change in place. A new amount, currency, interval, billing scheme, or usage
+// type has to be a new price under a new name. Both sides are normalized first,
+// so a field that only differs because of a default does not read as a change.
+func checkImmutablePriceFields(existing, want Price) error {
+	e := normalizePrice(existing)
+	w := normalizePrice(want)
+	switch {
+	case e.Amount != w.Amount:
+		return fmt.Errorf("%w: price %q amount cannot change from %d to %d; provider prices are immutable, add a new price with a different name",
+			ErrInvalidDetail, w.Name, e.Amount, w.Amount)
+	case e.Currency != w.Currency:
+		return fmt.Errorf("%w: price %q currency cannot change from %q to %q; add a new price with a different name",
+			ErrInvalidDetail, w.Name, e.Currency, w.Currency)
+	case e.Interval != w.Interval:
+		return fmt.Errorf("%w: price %q interval cannot change from %q to %q; add a new price with a different name",
+			ErrInvalidDetail, w.Name, e.Interval, w.Interval)
+	case e.BillingScheme != w.BillingScheme:
+		return fmt.Errorf("%w: price %q billing scheme cannot change; add a new price with a different name", ErrInvalidDetail, w.Name)
+	case e.UsageType != w.UsageType:
+		return fmt.Errorf("%w: price %q usage type cannot change; add a new price with a different name", ErrInvalidDetail, w.Name)
+	case e.UsageType == PriceUsageTypeMetered && e.MeteredAggregate != w.MeteredAggregate:
+		return fmt.Errorf("%w: price %q metered aggregate cannot change; add a new price with a different name", ErrInvalidDetail, w.Name)
+	}
+	return nil
+}
+
+// normalizePrice fills the defaults CreatePrice would apply, trims and
+// lowercases the name, and lowercases the interval, so two prices compare the
+// way they are stored.
+func normalizePrice(p Price) Price {
+	if p.BillingScheme == "" {
+		p.BillingScheme = BillingSchemeFlat
+	}
+	if p.Currency == "" {
+		p.Currency = "usd"
+	}
+	if p.UsageType == "" {
+		p.UsageType = PriceUsageTypeLicensed
+	}
+	p.Interval = strings.ToLower(p.Interval)
+	p.Name = priceKey(p.Name)
+	return p
+}
+
+// applyPriceConvergence makes the product's prices match the desired list. The
+// list must already have passed validateDesiredPrices. A name the product does
+// not have is created, an inactive name listed again is activated, and an active
+// price the list no longer names is deactivated. Adds and activations run before
+// deactivations, so the product always has the new price before an old one goes
+// inactive.
+func (s *Service) applyPriceConvergence(ctx context.Context, productID string, current, desired []Price) error {
+	currentByName := make(map[string]Price, len(current))
+	for _, p := range current {
+		currentByName[priceKey(p.Name)] = p
+	}
+	desiredNames := make(map[string]struct{}, len(desired))
+	for _, want := range desired {
+		desiredNames[priceKey(want.Name)] = struct{}{}
+	}
+
+	for _, want := range desired {
+		existing, ok := currentByName[priceKey(want.Name)]
+		if !ok {
+			want.ProductID = productID
+			want.Name = priceKey(want.Name)
+			if _, err := s.CreatePrice(ctx, want); err != nil {
+				return err
+			}
+			continue
+		}
+		if !existing.IsActive() {
+			if err := s.activatePrice(ctx, existing); err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, p := range current {
+		if _, wanted := desiredNames[priceKey(p.Name)]; wanted {
+			continue
+		}
+		if !p.IsActive() {
+			continue
+		}
+		if err := s.deactivatePrice(ctx, p); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// deactivatePrice marks a price inactive. Provider prices are immutable and
+// cannot be deleted, so a price is taken out of use by setting it inactive in
+// the provider and the repo rather than removed.
+func (s *Service) deactivatePrice(ctx context.Context, price Price) error {
+	return s.setPriceActive(ctx, price, false)
+}
+
+// activatePrice brings an inactive price back into use when the desired list
+// names it again.
+func (s *Service) activatePrice(ctx context.Context, price Price) error {
+	return s.setPriceActive(ctx, price, true)
+}
+
+// setPriceActive flips a price's active flag in the provider and its state in
+// the repo. A price with no provider id (nothing was created upstream) skips the
+// provider call.
+func (s *Service) setPriceActive(ctx context.Context, price Price, active bool) error {
+	if price.ProviderID != "" {
+		if _, err := s.stripeClient.Prices.Update(price.ProviderID, &stripe.PriceParams{
+			Params: stripe.Params{Context: ctx},
+			Active: stripe.Bool(active),
+		}); err != nil {
+			return err
+		}
+	}
+	if active {
+		price.State = PriceStateActive
+	} else {
+		price.State = PriceStateInactive
+	}
+	_, err := s.priceRepository.UpdateByID(ctx, price)
+	return err
+}
+
 func (s *Service) AddPlan(ctx context.Context, productOb Product, planID string) error {
 	var err error
 	if !slices.Contains(productOb.PlanIDs, planID) {
 		productOb.PlanIDs = append(productOb.PlanIDs, planID)
+		// AddPlan only links a plan to the product. Clear the populated price
+		// list so Update leaves the product's prices untouched instead of
+		// re-converging them.
+		productOb.Prices = nil
 		_, err = s.Update(ctx, productOb)
 		if err != nil {
 			return err
