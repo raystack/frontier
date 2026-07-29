@@ -12,9 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c" //nolint:staticcheck
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/salt/server/spa"
 
@@ -220,21 +217,23 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 	})
 
 	// Configure and create the server
-	h2s := &http2.Server{}
-	handler := h2c.NewHandler(mux, h2s) //nolint:staticcheck
-	handler = connectinterceptors.WithConnectCORS(handler, cfg.ConnectCors)
+	handler := connectinterceptors.WithConnectCORS(mux, cfg.ConnectCors)
+
+	// Serve HTTP/1.1 and unencrypted HTTP/2. Unlike the x/net h2c wrapper
+	// this replaces, the server tracks these HTTP/2 connections itself, so
+	// Shutdown drains them like HTTP/1.1 ones. Unencrypted HTTP/2 is
+	// negotiated by prior knowledge only; the HTTP/1.1 Upgrade path is not
+	// supported. HTTP2 keeps HTTP/2 available over TLS should a TLS listener
+	// ever front this handler.
+	protocols := new(http.Protocols)
+	protocols.SetHTTP1(true)
+	protocols.SetUnencryptedHTTP2(true)
+	protocols.SetHTTP2(true)
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.Connect.Port),
-		Handler: handler,
-	}
-
-	// Shutdown cannot reach h2c connections on its own: h2c hijacks them out
-	// of the server's connection tracking. This hook makes Shutdown send
-	// GOAWAY on them so clients finish up and reconnect elsewhere
-	// (golang/go#26682).
-	if err := http2.ConfigureServer(server, h2s); err != nil {
-		return fmt.Errorf("configure http2 server: %w", err)
+		Addr:      fmt.Sprintf(":%d", cfg.Connect.Port),
+		Handler:   handler,
+		Protocols: protocols,
 	}
 
 	// counts shutdown goroutines still draining their servers
@@ -280,10 +279,8 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		return fmt.Errorf("connect server failed: %w", err)
 	}
 
-	// Wait for Shutdown to finish draining HTTP/1.1 requests before returning,
-	// so callers don't tear down the database under them. Hijacked h2c
-	// connections are not tracked by Shutdown and are not waited on; they get
-	// GOAWAY through the http2.ConfigureServer hook instead.
+	// Wait for Shutdown to finish draining requests before returning, so
+	// callers don't tear down the database under them.
 	shutdownWG.Wait()
 	return nil
 }
