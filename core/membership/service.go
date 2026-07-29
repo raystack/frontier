@@ -509,7 +509,7 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 
 	// clean up SpiceDB relations
 	for _, g := range orgGroups {
-		if err := s.removeMemberRelation(ctx, g.ID, principalID, principalType); err != nil {
+		if err := s.removeGroupMemberRelation(ctx, g.ID, principalID, principalType); err != nil {
 			return fmt.Errorf("remove group %s relations: %w", g.ID, err)
 		}
 	}
@@ -546,8 +546,8 @@ func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, p
 	return nil
 }
 
-// removeMemberRelation deletes the member relation for a principal on a group.
-func (s *Service) removeMemberRelation(ctx context.Context, groupID, principalID, principalType string) error {
+// removeGroupMemberRelation deletes the member relation for a principal on a group.
+func (s *Service) removeGroupMemberRelation(ctx context.Context, groupID, principalID, principalType string) error {
 	err := s.relationService.Delete(ctx, relation.Relation{
 		Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
 		Subject:      relation.Subject{ID: principalID, Namespace: principalType},
@@ -1392,7 +1392,7 @@ func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, p
 		}
 	}
 
-	if err := s.removeMemberRelation(ctx, groupID, principalID, principalType); err != nil {
+	if err := s.removeGroupMemberRelation(ctx, groupID, principalID, principalType); err != nil {
 		s.log.ErrorContext(ctx, "membership state inconsistent: group policies removed but relation cleanup failed, needs manual fix",
 			"group_id", groupID,
 			"principal_id", principalID,
@@ -1439,7 +1439,7 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 		if _, hadFailure := failed[key]; hadFailure {
 			continue
 		}
-		if relErr := s.removeMemberRelation(ctx, groupID, p.PrincipalID, p.PrincipalType); relErr != nil {
+		if relErr := s.removeGroupMemberRelation(ctx, groupID, p.PrincipalID, p.PrincipalType); relErr != nil {
 			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
 		}
 	}
