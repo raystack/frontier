@@ -269,8 +269,8 @@ spec:
         currency: usd
 ```
 
-- The product name is the identity. `title`, `description`, `config`, `prices`, and
-  `features` are the managed fields.
+- The product name is the identity and must be at least three characters. `title`,
+  `description`, `config`, `prices`, and `features` are the managed fields.
 - The update API merges rather than overwrites, so a field you leave out keeps its current
   value: `title`, `description`, and metadata are kept when empty, and `credit_amount` and
   `seat_limit` are kept when zero. This kind can set those fields but cannot clear them
@@ -278,7 +278,9 @@ spec:
   afterward.
 - Prices are keyed by their name within the product. A new price name is added, and an active
   price the file no longer lists is retired (marked inactive, not deleted, because a provider
-  price cannot be removed). Amount, currency, interval, and the other pricing fields cannot
+  price cannot be removed). Listing a retired name again brings it back, as long as its fields
+  match. Reusing a retired name with different fields fails the plan, because the old price
+  still exists on the server. Amount, currency, interval, and the other pricing fields cannot
   change once a price exists: to change an amount, add a new price under a new name and drop
   the old one. Changing a field on an existing price name fails the plan with that advice. A
   tiered billing scheme is not supported. An empty price list is left alone, so a product's
@@ -287,9 +289,9 @@ spec:
 - Every product on the server must appear in the file. A product that is missing fails the
   plan. There is no API to remove a product, so `delete: true` is rejected; archive a product
   by hand.
-- Export writes the active prices of each product, sorted by name, so reconciling an export
-  plans nothing. Metadata is written only when a product is created. Provider ids, timestamps,
-  and price state are server-owned and never written.
+- Export writes each product sorted by name, and each product's active prices sorted by name,
+  so reconciling an export plans nothing. Metadata is written only when a product is created.
+  Provider ids, timestamps, and price state are server-owned and never written.
 
 ## Running it
 
