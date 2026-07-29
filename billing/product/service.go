@@ -249,6 +249,14 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	return updatedProduct, nil
 }
 
+// priceKey is the canonical lookup name for a price. Names are matched
+// case-insensitively and ignoring surrounding whitespace. Validation,
+// convergence, and the stored name all use this key, so the three never
+// disagree on what counts as the same price.
+func priceKey(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
 // validateDesiredPrices checks the desired price list against the product's
 // current prices without touching anything, so an invalid list fails the update
 // before it mutates the product. Names must be present and unique, and a name
@@ -257,11 +265,11 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 func validateDesiredPrices(current, desired []Price) error {
 	currentByName := make(map[string]Price, len(current))
 	for _, p := range current {
-		currentByName[strings.ToLower(p.Name)] = p
+		currentByName[priceKey(p.Name)] = p
 	}
 	seen := make(map[string]struct{}, len(desired))
 	for _, want := range desired {
-		name := strings.ToLower(strings.TrimSpace(want.Name))
+		name := priceKey(want.Name)
 		if name == "" {
 			return fmt.Errorf("%w: a price must have a name", ErrInvalidDetail)
 		}
@@ -299,12 +307,15 @@ func checkImmutablePriceFields(existing, want Price) error {
 		return fmt.Errorf("%w: price %q billing scheme cannot change; add a new price with a different name", ErrInvalidDetail, w.Name)
 	case e.UsageType != w.UsageType:
 		return fmt.Errorf("%w: price %q usage type cannot change; add a new price with a different name", ErrInvalidDetail, w.Name)
+	case e.UsageType == PriceUsageTypeMetered && e.MeteredAggregate != w.MeteredAggregate:
+		return fmt.Errorf("%w: price %q metered aggregate cannot change; add a new price with a different name", ErrInvalidDetail, w.Name)
 	}
 	return nil
 }
 
-// normalizePrice fills the defaults CreatePrice would apply and lowercases the
-// name and interval, so two prices compare the way they are stored.
+// normalizePrice fills the defaults CreatePrice would apply, trims and
+// lowercases the name, and lowercases the interval, so two prices compare the
+// way they are stored.
 func normalizePrice(p Price) Price {
 	if p.BillingScheme == "" {
 		p.BillingScheme = BillingSchemeFlat
@@ -316,7 +327,7 @@ func normalizePrice(p Price) Price {
 		p.UsageType = PriceUsageTypeLicensed
 	}
 	p.Interval = strings.ToLower(p.Interval)
-	p.Name = strings.ToLower(p.Name)
+	p.Name = priceKey(p.Name)
 	return p
 }
 
@@ -329,17 +340,18 @@ func normalizePrice(p Price) Price {
 func (s *Service) applyPriceConvergence(ctx context.Context, productID string, current, desired []Price) error {
 	currentByName := make(map[string]Price, len(current))
 	for _, p := range current {
-		currentByName[strings.ToLower(p.Name)] = p
+		currentByName[priceKey(p.Name)] = p
 	}
 	desiredNames := make(map[string]struct{}, len(desired))
 	for _, want := range desired {
-		desiredNames[strings.ToLower(want.Name)] = struct{}{}
+		desiredNames[priceKey(want.Name)] = struct{}{}
 	}
 
 	for _, want := range desired {
-		existing, ok := currentByName[strings.ToLower(want.Name)]
+		existing, ok := currentByName[priceKey(want.Name)]
 		if !ok {
 			want.ProductID = productID
+			want.Name = priceKey(want.Name)
 			if _, err := s.CreatePrice(ctx, want); err != nil {
 				return err
 			}
@@ -353,7 +365,7 @@ func (s *Service) applyPriceConvergence(ctx context.Context, productID string, c
 	}
 
 	for _, p := range current {
-		if _, wanted := desiredNames[strings.ToLower(p.Name)]; wanted {
+		if _, wanted := desiredNames[priceKey(p.Name)]; wanted {
 			continue
 		}
 		if !p.IsActive() {

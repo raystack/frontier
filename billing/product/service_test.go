@@ -630,6 +630,65 @@ func TestService_Update_ConvergesPrices(t *testing.T) {
 			t.Fatalf("Update() unexpected error = %v", err)
 		}
 	})
+
+	t.Run("a name with surrounding whitespace matches the existing price", func(t *testing.T) {
+		stripeClient, be, pr, priceRepo, fr := mockService(t)
+		expectProductNoise(be, pr, fr)
+		priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).
+			Return([]product.Price{{ID: "price-monthly", Name: "monthly", Amount: 100, Currency: "usd", Interval: "month", State: "active"}}, nil)
+
+		// No Create/UpdateByID or Stripe price calls: "  monthly  " must resolve to
+		// the existing "monthly", not a new price plus a deactivation of the real one.
+		svc := product.NewService(stripeClient, pr, priceRepo, fr)
+		spaced := monthly
+		spaced.Name = "  monthly  "
+		if _, err := svc.Update(ctx, desired(spaced)); err != nil {
+			t.Fatalf("Update() unexpected error = %v", err)
+		}
+	})
+
+	t.Run("rejects a metered aggregate change on an existing price name", func(t *testing.T) {
+		stripeClient, _, pr, priceRepo, fr := mockService(t)
+		expectPriceRead(pr, priceRepo, []product.Price{
+			{Name: "usage", Currency: "usd", Interval: "month", UsageType: product.PriceUsageTypeMetered, MeteredAggregate: "sum"},
+		})
+
+		svc := product.NewService(stripeClient, pr, priceRepo, fr)
+		changed := product.Price{
+			Name: "usage", Currency: "usd", Interval: "month",
+			UsageType: product.PriceUsageTypeMetered, MeteredAggregate: "max",
+		}
+		if _, err := svc.Update(ctx, desired(changed)); err == nil {
+			t.Fatalf("Update() expected an error for a metered aggregate change, got nil")
+		}
+	})
+
+	t.Run("adds a price before it deactivates an omitted one", func(t *testing.T) {
+		stripeClient, be, pr, priceRepo, fr := mockService(t)
+		expectProductNoise(be, pr, fr)
+		priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).Return([]product.Price{
+			{ID: "price-old", ProviderID: "stripe_old", Name: "old", Amount: 100, Currency: "usd", Interval: "month", State: "active"},
+		}, nil)
+
+		var order []string
+		be.EXPECT().Call("POST", "/v1/prices", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		priceRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(p product.Price) bool { return p.Name == "new" })).
+			Run(func(_ context.Context, _ product.Price) { order = append(order, "add") }).
+			Return(product.Price{Name: "new"}, nil)
+		be.EXPECT().Call("POST", "/v1/prices/stripe_old", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		priceRepo.EXPECT().UpdateByID(mock.Anything, mock.MatchedBy(func(p product.Price) bool { return p.Name == "old" && p.State == "inactive" })).
+			Run(func(_ context.Context, _ product.Price) { order = append(order, "deactivate") }).
+			Return(product.Price{}, nil)
+
+		svc := product.NewService(stripeClient, pr, priceRepo, fr)
+		newPrice := product.Price{Name: "new", Amount: 200, Currency: "usd", BillingScheme: product.BillingSchemeFlat, UsageType: product.PriceUsageTypeLicensed, Interval: "month"}
+		if _, err := svc.Update(ctx, desired(newPrice)); err != nil {
+			t.Fatalf("Update() unexpected error = %v", err)
+		}
+		if len(order) != 2 || order[0] != "add" || order[1] != "deactivate" {
+			t.Fatalf("expected add before deactivate, got %v", order)
+		}
+	})
 }
 
 func TestService_CreatePrice(t *testing.T) {
