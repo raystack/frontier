@@ -30,8 +30,6 @@ definition app/organization {
 	relation platform: app/platform
 	relation granted: app/rolebinding
 	relation pat_granted: app/rolebinding
-	relation member: app/user | app/group#member | app/serviceuser
-	relation owner: app/user | app/serviceuser
 
 	// permissions
     // org
@@ -68,7 +66,6 @@ definition app/group {
 	relation org: app/organization
 	relation granted: app/rolebinding
 	relation member: app/user
-	relation owner: app/user | app/serviceuser
 
 	// permissions
     permission delete = org->group_delete + granted->app_group_administer + granted->app_group_delete
