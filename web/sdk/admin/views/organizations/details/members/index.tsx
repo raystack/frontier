@@ -23,6 +23,7 @@ import {
 } from '~/utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebouncedValue } from '~hooks';
+import { useTerminology } from "~/admin/hooks/useTerminology";
 
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
@@ -41,13 +42,14 @@ const TRANSFORM_OPTIONS = {
 };
 
 const NoMembers = () => {
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No Member found"
+      heading={`No ${t.member({ case: "capital" })} found`}
       subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
       icon={<UsersIcon />}
     />
@@ -55,34 +57,37 @@ const NoMembers = () => {
 };
 
 const ZeroState = () => {
+  const t = useTerminology();
   return (
     <div className={styles["zero-state-container"]}>
       <EmptyState
         variant="empty2"
         className={styles["zero-state"]}
         icon={<UsersIcon />}
-        heading="Members"
-        subHeading="Members are users who belong to this organization and can access its resources."
+        heading={t.member({ plural: true, case: "capital" })}
+        subHeading={`${t.member({ plural: true, case: "capital" })} are ${t.user({ plural: true, case: "lower" })} who belong to this ${t.organization({ case: "lower" })} and can access its resources.`}
       />
     </div>
   );
 };
 
 const ErrorState = () => {
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="Error Loading Members"
-      subHeading="Something went wrong while loading organization members. Please try refreshing the page."
+      heading={`Error Loading ${t.member({ plural: true, case: "capital" })}`}
+      subHeading={`Something went wrong while loading ${t.organization({ case: "lower" })} ${t.member({ plural: true, case: "lower" })}. Please try refreshing the page.`}
       icon={<ExclamationTriangleIcon />}
     />
   );
 };
 
 export function OrganizationMembersView() {
+  const t = useTerminology();
   const { roles = [], organization, search } = useContext(OrganizationContext);
   const {
     onChange: onSearchChange,
@@ -99,7 +104,7 @@ export function OrganizationMembersView() {
     user: SearchOrganizationUsersResponse_OrganizationUser | null;
   }>({ isOpen: false, user: null });
 
-  const title = `Members | ${organization?.title} | Organizations`;
+  const title = `${t.member({ plural: true, case: "capital" })} | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
