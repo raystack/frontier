@@ -236,6 +236,53 @@ spec:
   empty, so reconciling an export plans nothing, and headers and metadata set through other
   tools are carried through an update untouched.
 
+## The BillingProduct kind
+
+`BillingProduct` manages billing products: the thing a customer buys, its prices, and the
+features attached to it. The product name is the identity and never changes.
+
+```yaml
+apiVersion: v1
+kind: BillingProduct
+spec:
+  - name: standard_plan_product
+    title: Standard Plan
+    behavior: basic
+    features:
+      - name: order_archive_images
+      - name: open_source_data
+    prices:
+      - name: monthly
+        amount: 15000
+        currency: usd
+        interval: month
+  - name: tokens
+    title: Tokens
+    behavior: credits
+    config:
+      credit_amount: 1
+      min_quantity: 1
+      max_quantity: 100000
+    prices:
+      - name: default
+        amount: 100
+        currency: usd
+```
+
+- The product name is the identity. `title`, `description`, `behavior`, `config`, `prices`,
+  and `features` are the managed fields.
+- Prices are keyed by their name within the product. A price name the product does not have
+  yet is created, and an active price the file no longer lists is retired (marked inactive,
+  not deleted, because a provider price cannot be removed). Amount, currency, and interval
+  cannot change once a price exists: to change an amount, add a new price under a new name,
+  and the old one is retired when you drop it from the file.
+- Features are attached by name. A feature that does not exist yet is created.
+- Every product on the server must appear in the file. A product that is missing fails the
+  plan. There is no API to remove a product, so `delete: true` is rejected; archive a product
+  by hand.
+- Export writes the active prices of each product, sorted by name, so reconciling an export
+  plans nothing. Provider ids, timestamps, and price state are server-owned and never written.
+
 ## Running it
 
 Log in as a superuser. The bootstrap service user exists for exactly this; its client id
@@ -278,7 +325,8 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 
 ## More kinds
 
-This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, and `Webhook`. The design and
+This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, `Webhook`, and
+`BillingProduct`. The design and
 the rules every kind follows live in
 [RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
 which also lists the kinds proposed next. The flag reference for both commands is in the
