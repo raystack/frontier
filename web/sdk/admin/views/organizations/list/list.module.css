@@ -15,6 +15,10 @@
   text-wrap: auto;
 }
 
+.zero-state-container {
+  padding: var(--rs-space-17) var(--rs-space-10) var(--rs-space-10);
+}
+
 .name-column {
   padding-left: var(--rs-space-7);
   min-width: 300px;
