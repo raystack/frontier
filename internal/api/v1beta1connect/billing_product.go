@@ -82,8 +82,14 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 			MaxQuantity:  request.Msg.GetBody().GetBehaviorConfig().GetMaxQuantity(),
 		}
 	}
+	// only link a plan when one is given; an empty plan id would persist a junk
+	// [""] entry that later breaks plan lookup by id.
+	var planIDs []string
+	if planID := request.Msg.GetBody().GetPlanId(); planID != "" {
+		planIDs = []string{planID}
+	}
 	newProduct, err := h.productService.Create(ctx, product.Product{
-		PlanIDs:     []string{request.Msg.GetBody().GetPlanId()},
+		PlanIDs:     planIDs,
 		Name:        request.Msg.GetBody().GetName(),
 		Title:       request.Msg.GetBody().GetTitle(),
 		Description: request.Msg.GetBody().GetDescription(),
