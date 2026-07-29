@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"connectrpc.com/connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -78,10 +79,11 @@ func (r *BillingProductReconciler) Reconcile(ctx context.Context, spec []byte, d
 	return rep, nil
 }
 
-// Export returns the current products as a desired-state spec, sorted by name.
-// Only active prices are written, so reconciling an export leaves the already
-// inactive ones alone and plans no changes. Provider ids, timestamps, and price
-// state are server-owned and never written.
+// Export returns the current products as a desired-state spec, sorted by name,
+// with each product's prices sorted by name too, so the output is stable. Only
+// active prices are written, so reconciling an export leaves the already inactive
+// ones alone and plans no changes. Provider ids, timestamps, and price state are
+// server-owned and never written.
 func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
 	current, err := r.fetchCurrent(ctx)
 	if err != nil {
@@ -100,6 +102,7 @@ func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
 			Metadata:    c.Metadata,
 		}
 		entry.Prices = append(entry.Prices, c.Prices...)
+		sort.Slice(entry.Prices, func(i, j int) bool { return entry.Prices[i].Name < entry.Prices[j].Name })
 		for _, name := range uniqueSorted(c.Features) {
 			entry.Features = append(entry.Features, BillingFeatureRef{Name: name})
 		}
@@ -136,12 +139,7 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 			}
 		}
 		for _, price := range p.GetPrices() {
-			// an inactive price is retired; it is not part of the current
-			// desired state, so it is left out of the diff and the export.
-			if !billingPriceStateActive(price.GetState()) {
-				continue
-			}
-			cur.Prices = append(cur.Prices, BillingPriceSpec{
+			ps := BillingPriceSpec{
 				Name:             price.GetName(),
 				Amount:           price.GetAmount(),
 				Currency:         price.GetCurrency(),
@@ -149,7 +147,16 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 				UsageType:        price.GetUsageType(),
 				BillingScheme:    price.GetBillingScheme(),
 				MeteredAggregate: price.GetMeteredAggregate(),
-			})
+			}
+			// an active price is part of the current desired state; an inactive
+			// one is retired. The diff keeps the retired prices apart so a reused
+			// name can be told from a change the server would reject, and the
+			// export writes only the active ones.
+			if billingPriceStateActive(price.GetState()) {
+				cur.Prices = append(cur.Prices, ps)
+			} else {
+				cur.RetiredPrices = append(cur.RetiredPrices, ps)
+			}
 		}
 		for _, f := range p.GetFeatures() {
 			cur.Features = append(cur.Features, f.GetName())
@@ -193,14 +200,17 @@ func billingProductBody(s BillingProductSpec, includeMetadata bool) (*frontierv1
 	}
 	prices := make([]*frontierv1beta1.Price, 0, len(s.Prices))
 	for _, p := range s.Prices {
+		// lowercase the case-insensitive fields so a value written in another
+		// case, like an interval of "Month", passes the server's validation and
+		// matches what the diff compared against.
 		prices = append(prices, &frontierv1beta1.Price{
 			Name:             p.Name,
 			Amount:           p.Amount,
-			Currency:         p.Currency,
-			Interval:         p.Interval,
-			UsageType:        p.UsageType,
-			BillingScheme:    p.BillingScheme,
-			MeteredAggregate: p.MeteredAggregate,
+			Currency:         strings.ToLower(p.Currency),
+			Interval:         strings.ToLower(p.Interval),
+			UsageType:        strings.ToLower(p.UsageType),
+			BillingScheme:    strings.ToLower(p.BillingScheme),
+			MeteredAggregate: strings.ToLower(p.MeteredAggregate),
 		})
 	}
 	features := make([]*frontierv1beta1.Feature, 0, len(s.Features))
