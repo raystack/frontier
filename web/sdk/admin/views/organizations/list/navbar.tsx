@@ -64,7 +64,14 @@ export const OrganizationsNavabar = ({
         </Text>
       </Flex>
       <Flex align="center" gap={4}>
-        {!showSearch ? (
+        {showSearch ? (
+          <DataTable.Search
+            showClearButton={true}
+            size="small"
+            onBlur={onSearchBlur}
+            autoFocus
+          />
+        ) : (
           <>
             <Button
               variant="text"
@@ -76,24 +83,15 @@ export const OrganizationsNavabar = ({
               New {t.organization({ case: "capital" })}
             </Button>
             <Separator orientation="vertical" size="small" />
+            <IconButton
+              size={3}
+              aria-label="Search"
+              data-test-id="admin-search-organization-btn"
+              onClick={toggleSearch}
+            >
+              <MagnifyingGlassIcon />
+            </IconButton>
           </>
-        ) : null}
-        {showSearch ? (
-          <DataTable.Search
-            showClearButton={true}
-            size="small"
-            onBlur={onSearchBlur}
-            autoFocus
-          />
-        ) : (
-          <IconButton
-            size={3}
-            aria-label="Search"
-            data-test-id="admin-search-organization-btn"
-            onClick={toggleSearch}
-          >
-            <MagnifyingGlassIcon />
-          </IconButton>
         )}
         {onExportCsv ? (
           <IconButton
