@@ -155,6 +155,70 @@ func TestBillingProductReconciler(t *testing.T) {
 	})
 }
 
+// TestBillingProductReconciler_ValidatesRequestAgainstProto proves the plan
+// reuses the proto's own buf.validate rules, so a bad enum value the kind does
+// not re-list is still caught at plan time (dry-run), not left for the apply.
+func TestBillingProductReconciler_ValidatesRequestAgainstProto(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("rejects an unknown behavior at plan time", func(t *testing.T) {
+		api := &fakeBillingProductAPI{}
+		spec := []byte(`
+- name: token
+  title: Tokens
+  behavior: fancy
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+`)
+		_, err := NewBillingProductReconciler(api, "").Reconcile(ctx, spec, true)
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), "behavior")
+		}
+	})
+
+	t.Run("rejects an unknown interval at plan time", func(t *testing.T) {
+		api := &fakeBillingProductAPI{}
+		spec := []byte(`
+- name: token
+  title: Tokens
+  behavior: credits
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: fortnight}
+`)
+		_, err := NewBillingProductReconciler(api, "").Reconcile(ctx, spec, true)
+		if assert.Error(t, err) {
+			assert.Contains(t, err.Error(), "interval")
+		}
+	})
+
+	t.Run("a valid product passes plan-time proto validation", func(t *testing.T) {
+		api := &fakeBillingProductAPI{}
+		spec := []byte(`
+- name: token
+  title: Tokens
+  behavior: credits
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+`)
+		rep, err := NewBillingProductReconciler(api, "").Reconcile(ctx, spec, true)
+		assert.NoError(t, err)
+		assert.Len(t, rep.Planned, 1)
+	})
+
+	t.Run("a one-time price with no interval passes plan-time proto validation", func(t *testing.T) {
+		api := &fakeBillingProductAPI{}
+		spec := []byte(`
+- name: onetime
+  title: One time pack
+  prices:
+    - {name: pack, amount: 5000, currency: usd}
+`)
+		rep, err := NewBillingProductReconciler(api, "").Reconcile(ctx, spec, true)
+		assert.NoError(t, err)
+		assert.Len(t, rep.Planned, 1)
+	})
+}
+
 // mergeFakeBillingProductAPI models the server's create and merge-update
 // semantics closely enough to prove the reconciler converges against them:
 // Create rewrites behavior for credit products and defaults each price's
@@ -206,30 +270,20 @@ func (f *mergeFakeBillingProductAPI) CreateProduct(_ context.Context, req *conne
 func (f *mergeFakeBillingProductAPI) UpdateProduct(_ context.Context, req *connect.Request[frontierv1beta1.UpdateProductRequest]) (*connect.Response[frontierv1beta1.UpdateProductResponse], error) {
 	p := f.byID[req.Msg.GetId()]
 	b := req.Msg.GetBody()
-	if b.GetTitle() != "" {
-		p.Title = b.GetTitle()
-	}
-	if b.GetDescription() != "" {
-		p.Description = b.GetDescription()
-	}
+	// title, description, and config are written as given (a reset when omitted);
+	// metadata is kept when empty; behavior is never changed on update.
+	p.Title = b.GetTitle()
+	p.Description = b.GetDescription()
 	if b.GetMetadata() != nil {
 		p.Metadata = b.GetMetadata()
 	}
-	// behavior is never changed on update
-	cfg := p.GetBehaviorConfig()
-	if cfg == nil {
-		cfg = &frontierv1beta1.Product_BehaviorConfig{}
-	}
 	nb := b.GetBehaviorConfig()
-	if nb.GetCreditAmount() > 0 {
-		cfg.CreditAmount = nb.GetCreditAmount()
+	p.BehaviorConfig = &frontierv1beta1.Product_BehaviorConfig{
+		CreditAmount: nb.GetCreditAmount(),
+		SeatLimit:    nb.GetSeatLimit(),
+		MinQuantity:  nb.GetMinQuantity(),
+		MaxQuantity:  nb.GetMaxQuantity(),
 	}
-	if nb.GetSeatLimit() > 0 {
-		cfg.SeatLimit = nb.GetSeatLimit()
-	}
-	cfg.MinQuantity = nb.GetMinQuantity()
-	cfg.MaxQuantity = nb.GetMaxQuantity()
-	p.BehaviorConfig = cfg
 	p.Features = nil
 	for _, ft := range b.GetFeatures() {
 		p.Features = append(p.Features, &frontierv1beta1.Feature{Name: ft.GetName()})
