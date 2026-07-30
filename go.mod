@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20260209202127-80ab13bee0bf.1
+	buf.build/go/protovalidate v1.0.0
 	connectrpc.com/connect v1.19.0
 	connectrpc.com/cors v0.1.0
 	connectrpc.com/grpchealth v1.4.0
@@ -17,7 +18,6 @@ require (
 	github.com/cespare/xxhash v1.1.0
 	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/doug-martin/goqu/v9 v9.18.0
-	github.com/ghodss/yaml v1.0.0
 	github.com/go-resty/resty/v2 v2.1.1-0.20191201195748-d7b97669fe48
 	github.com/go-webauthn/webauthn v0.8.6
 	github.com/golang-migrate/migrate/v4 v4.16.0
@@ -63,7 +63,6 @@ require (
 )
 
 require (
-	buf.build/go/protovalidate v1.0.0 // indirect
 	cel.dev/expr v0.24.0 // indirect
 	cloud.google.com/go/auth v0.3.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
@@ -242,7 +241,7 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.42.0
-	golang.org/x/exp v0.0.0-20250911091902-df9299821621
+	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/term v0.35.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
