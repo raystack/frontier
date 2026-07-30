@@ -39,25 +39,14 @@ type Member struct {
 	Roles         []role.Role
 }
 
-// resourcePolicyFilter builds the policy filter that scopes a listing to the
-// given resource. Returns ErrInvalidResourceType for unsupported namespaces.
-func resourcePolicyFilter(resourceID, resourceType string, filter MemberFilter) (policy.Filter, error) {
-	flt := policy.Filter{
-		PrincipalType: filter.PrincipalType,
-		RoleIDs:       filter.RoleIDs,
-		ResourceType:  resourceType,
-	}
-	switch resourceType {
-	case schema.OrganizationNamespace:
-		flt.OrgID = resourceID
-	case schema.ProjectNamespace:
-		flt.ProjectID = resourceID
-	case schema.GroupNamespace:
-		flt.GroupID = resourceID
-	default:
-		return policy.Filter{}, ErrInvalidResourceType
-	}
-	return flt, nil
+// principalKey identifies a principal across policy rows.
+type principalKey struct {
+	Type string
+	ID   string
+}
+
+func policyPrincipalKey(pol policy.Policy) principalKey {
+	return principalKey{Type: pol.PrincipalType, ID: pol.PrincipalID}
 }
 
 // ListPrincipalsByResource returns the principals (users, service users, groups)
@@ -65,10 +54,12 @@ func resourcePolicyFilter(resourceID, resourceType string, filter MemberFilter) 
 // principal type and/or role, and optionally enriched with the full list of
 // roles each principal holds on the resource.
 func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter MemberFilter) ([]Member, error) {
-	flt, err := resourcePolicyFilter(resourceID, resourceType, filter)
+	flt, err := resourcePolicyFilter(resourceID, resourceType)
 	if err != nil {
 		return nil, err
 	}
+	flt.PrincipalType = filter.PrincipalType
+	flt.RoleIDs = filter.RoleIDs
 
 	policies, err := s.policyService.List(ctx, flt)
 	if err != nil {
@@ -77,10 +68,10 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 	policies = excludePATAllProjects(policies, resourceType)
 
 	// deduplicate by (principalID, principalType) preserving order
-	memberIndex := make(map[string]int, len(policies))
+	memberIndex := make(map[principalKey]int, len(policies))
 	members := make([]Member, 0, len(policies))
 	for _, pol := range policies {
-		key := pol.PrincipalType + "\x00" + pol.PrincipalID
+		key := policyPrincipalKey(pol)
 		if _, ok := memberIndex[key]; ok {
 			continue
 		}
@@ -91,24 +82,34 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 		})
 	}
 
+	if err := s.enrichMemberRoles(ctx, flt, resourceType, memberIndex, members); err != nil {
+		return nil, err
+	}
+	return members, nil
+}
+
+// enrichMemberRoles fills each member's Roles with every role the principal
+// holds on the resource, ignoring the role filter used to select the members.
+// flt is the resource-scoped filter the members were listed with (taken by
+// value — the role filter is stripped on the local copy).
+func (s *Service) enrichMemberRoles(ctx context.Context, flt policy.Filter, resourceType string, memberIndex map[principalKey]int, members []Member) error {
 	// fetch all policies for the resource (without role filtering) to get
 	// the complete set of roles per principal in a single query
-	roleFlt := flt
-	roleFlt.RoleIDs = nil
-	allPolicies, err := s.policyService.List(ctx, roleFlt)
+	flt.RoleIDs = nil
+	allPolicies, err := s.policyService.List(ctx, flt)
 	if err != nil {
-		return nil, fmt.Errorf("list policies for role enrichment: %w", err)
+		return fmt.Errorf("list policies for role enrichment: %w", err)
 	}
 	allPolicies = excludePATAllProjects(allPolicies, resourceType)
 
-	principalRoleIDs := make(map[string][]string, len(members))
-	roleSeen := make(map[string]map[string]struct{}, len(members))
+	principalRoleIDs := make(map[principalKey][]string, len(members))
+	roleSeen := make(map[principalKey]map[string]struct{}, len(members))
 	uniqueRoleIDs := make(map[string]struct{})
 	for _, pol := range allPolicies {
 		if pol.RoleID == "" {
 			continue
 		}
-		key := pol.PrincipalType + "\x00" + pol.PrincipalID
+		key := policyPrincipalKey(pol)
 		if _, ok := memberIndex[key]; !ok {
 			continue
 		}
@@ -122,32 +123,32 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 		principalRoleIDs[key] = append(principalRoleIDs[key], pol.RoleID)
 		uniqueRoleIDs[pol.RoleID] = struct{}{}
 	}
-
-	if len(uniqueRoleIDs) > 0 {
-		ids := make([]string, 0, len(uniqueRoleIDs))
-		for id := range uniqueRoleIDs {
-			ids = append(ids, id)
-		}
-		roles, err := s.roleService.List(ctx, role.Filter{IDs: ids})
-		if err != nil {
-			return nil, fmt.Errorf("list roles: %w", err)
-		}
-		roleByID := make(map[string]role.Role, len(roles))
-		for _, r := range roles {
-			roleByID[r.ID] = r
-		}
-		for key, idx := range memberIndex {
-			memberRoles := make([]role.Role, 0, len(principalRoleIDs[key]))
-			for _, rid := range principalRoleIDs[key] {
-				if r, ok := roleByID[rid]; ok {
-					memberRoles = append(memberRoles, r)
-				}
-			}
-			members[idx].Roles = memberRoles
-		}
+	if len(uniqueRoleIDs) == 0 {
+		return nil
 	}
 
-	return members, nil
+	ids := make([]string, 0, len(uniqueRoleIDs))
+	for id := range uniqueRoleIDs {
+		ids = append(ids, id)
+	}
+	roles, err := s.roleService.List(ctx, role.Filter{IDs: ids})
+	if err != nil {
+		return fmt.Errorf("list roles: %w", err)
+	}
+	roleByID := make(map[string]role.Role, len(roles))
+	for _, r := range roles {
+		roleByID[r.ID] = r
+	}
+	for key, idx := range memberIndex {
+		memberRoles := make([]role.Role, 0, len(principalRoleIDs[key]))
+		for _, rid := range principalRoleIDs[key] {
+			if r, ok := roleByID[rid]; ok {
+				memberRoles = append(memberRoles, r)
+			}
+		}
+		members[idx].Roles = memberRoles
+	}
+	return nil
 }
 
 // ListPrincipalIDsByResource returns the IDs of principals of the given type
@@ -157,10 +158,11 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 // cannot import membership types without creating an import cycle
 // (e.g. core/serviceuser, which this package itself imports).
 func (s *Service) ListPrincipalIDsByResource(ctx context.Context, resourceID, resourceType, principalType string) ([]string, error) {
-	flt, err := resourcePolicyFilter(resourceID, resourceType, MemberFilter{PrincipalType: principalType})
+	flt, err := resourcePolicyFilter(resourceID, resourceType)
 	if err != nil {
 		return nil, err
 	}
+	flt.PrincipalType = principalType
 
 	policies, err := s.policyService.List(ctx, flt)
 	if err != nil {
@@ -257,11 +259,7 @@ func (s *Service) listOrgsForPrincipal(ctx context.Context, principalID, princip
 	if err != nil {
 		return nil, fmt.Errorf("list org policies: %w", err)
 	}
-	ids := make([]string, 0, len(policies))
-	for _, pol := range policies {
-		ids = append(ids, pol.ResourceID)
-	}
-	return utils.Deduplicate(ids), nil
+	return policyResourceIDs(policies), nil
 }
 
 // listGroupsForPrincipal returns every group the principal has a policy on.
@@ -275,11 +273,7 @@ func (s *Service) listGroupsForPrincipal(ctx context.Context, principalID, princ
 	if err != nil {
 		return nil, fmt.Errorf("list group policies: %w", err)
 	}
-	ids := make([]string, 0, len(policies))
-	for _, pol := range policies {
-		ids = append(ids, pol.ResourceID)
-	}
-	ids = utils.Deduplicate(ids)
+	ids := policyResourceIDs(policies)
 
 	if filter.OrgID != "" && len(ids) > 0 {
 		ids, err = s.narrowGroupsByOrg(ctx, ids, filter.OrgID)
