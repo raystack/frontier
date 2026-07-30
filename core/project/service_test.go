@@ -114,6 +114,17 @@ func TestService_Create(t *testing.T) {
 		setup   func() *project.Service
 	}{
 		{
+			name:    "fail to create project when membership service is not set",
+			prj:     testProj,
+			wantErr: true,
+			setup: func() *project.Service {
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
+				// Intentionally skip SetMembershipService.
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+			},
+		},
+		{
 			name:    "fail to create project if no principal found",
 			prj:     testProj,
 			wantErr: true,
@@ -121,11 +132,13 @@ func TestService_Create(t *testing.T) {
 				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
 				_ = roleService
 				authnService.EXPECT().GetPrincipal(ctx).Return(authenticate.Principal{}, errors.New("not found"))
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+				svc := project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+				svc.SetMembershipService(mocks.NewMembershipService(t))
+				return svc
 			},
 		},
 		{
-			name:    "create project successfully with it's respective policies",
+			name:    "create project successfully and add creator as owner via membership",
 			prj:     testProj,
 			wantErr: false,
 			want: project.Project{
@@ -151,26 +164,41 @@ func TestService_Create(t *testing.T) {
 					},
 				}, nil)
 
-				relationService.EXPECT().Create(ctx, relation.Relation{
-					Object: relation.Object{
-						ID:        "project-id",
-						Namespace: schema.ProjectNamespace,
-					},
-					Subject: relation.Subject{
-						ID:        "org-id",
-						Namespace: schema.OrganizationNamespace,
-					},
-					RelationName: schema.OrganizationRelationName,
-				}).Return(relation.Relation{}, nil)
+				membershipService := mocks.NewMembershipService(t)
+				membershipService.EXPECT().OnProjectCreated(ctx, "project-id", "org-id", "test-user", schema.UserPrincipal).Return(nil)
 
-				policyService.EXPECT().Create(ctx, policy.Policy{
-					RoleID:        project.OwnerRole,
-					ResourceID:    "project-id",
-					ResourceType:  schema.ProjectNamespace,
-					PrincipalID:   "test-user",
-					PrincipalType: schema.UserPrincipal,
-				}).Return(policy.Policy{}, nil)
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+				svc := project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+				svc.SetMembershipService(membershipService)
+				return svc
+			},
+		},
+		{
+			name:    "delete the project row when membership setup fails",
+			prj:     testProj,
+			wantErr: true,
+			setup: func() *project.Service {
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
+				authnService.EXPECT().GetPrincipal(ctx).Return(authenticate.Principal{
+					ID:   "test-user",
+					Type: schema.UserPrincipal,
+				}, nil)
+
+				repo.EXPECT().Create(ctx, testProj).Return(project.Project{
+					ID:   "project-id",
+					Name: "test",
+					Organization: organization.Organization{
+						ID: "org-id",
+					},
+				}, nil)
+
+				membershipService := mocks.NewMembershipService(t)
+				membershipService.EXPECT().OnProjectCreated(ctx, "project-id", "org-id", "test-user", schema.UserPrincipal).Return(errors.New("spicedb unavailable"))
+				repo.EXPECT().Delete(ctx, "project-id").Return(nil)
+
+				svc := project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+				svc.SetMembershipService(membershipService)
+				return svc
 			},
 		},
 	}

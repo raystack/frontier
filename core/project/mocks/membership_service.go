@@ -6,7 +6,6 @@ import (
 	context "context"
 
 	authenticate "github.com/raystack/frontier/core/authenticate"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -80,6 +79,56 @@ func (_c *MembershipService_ListProjectsByPrincipal_Call) Return(_a0 []string, _
 }
 
 func (_c *MembershipService_ListProjectsByPrincipal_Call) RunAndReturn(run func(context.Context, authenticate.Principal, string, bool) ([]string, error)) *MembershipService_ListProjectsByPrincipal_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// OnProjectCreated provides a mock function with given fields: ctx, projectID, orgID, creatorID, creatorType
+func (_m *MembershipService) OnProjectCreated(ctx context.Context, projectID string, orgID string, creatorID string, creatorType string) error {
+	ret := _m.Called(ctx, projectID, orgID, creatorID, creatorType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for OnProjectCreated")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = rf(ctx, projectID, orgID, creatorID, creatorType)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MembershipService_OnProjectCreated_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnProjectCreated'
+type MembershipService_OnProjectCreated_Call struct {
+	*mock.Call
+}
+
+// OnProjectCreated is a helper method to define mock.On call
+//   - ctx context.Context
+//   - projectID string
+//   - orgID string
+//   - creatorID string
+//   - creatorType string
+func (_e *MembershipService_Expecter) OnProjectCreated(ctx interface{}, projectID interface{}, orgID interface{}, creatorID interface{}, creatorType interface{}) *MembershipService_OnProjectCreated_Call {
+	return &MembershipService_OnProjectCreated_Call{Call: _e.mock.On("OnProjectCreated", ctx, projectID, orgID, creatorID, creatorType)}
+}
+
+func (_c *MembershipService_OnProjectCreated_Call) Run(run func(ctx context.Context, projectID string, orgID string, creatorID string, creatorType string)) *MembershipService_OnProjectCreated_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
+	})
+	return _c
+}
+
+func (_c *MembershipService_OnProjectCreated_Call) Return(_a0 error) *MembershipService_OnProjectCreated_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MembershipService_OnProjectCreated_Call) RunAndReturn(run func(context.Context, string, string, string, string) error) *MembershipService_OnProjectCreated_Call {
 	_c.Call.Return(run)
 	return _c
 }
