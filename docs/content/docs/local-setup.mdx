@@ -150,25 +150,22 @@ Now editing `frontier/web/sdk/client/...` rebuilds `dist` and Vite HMR reloads.
 
 ### Backend (optional)
 
-Switched by env only in `frontier/web/apps/client-demo/.env`. It ships pointing at remote dev, so it runs with nothing else started; swap the comments to use a local backend on `:8002`. Note the **different var names** than the admin app (`FRONTIER_ENDPOINT` / `FRONTIER_CONNECT_ENDPOINT`).
+Switched by env only in `frontier/web/apps/client-demo/.env`. It ships pointing at remote dev, so it runs with nothing else started; swap the comments to use a local backend on `:8002`. Note the **different var name** than the admin app (`FRONTIER_CONNECT_ENDPOINT`, not `FRONTIER_CONNECTRPC_URL`).
 
 ```bash
 # Remote dev (DEFAULT — no local backend needed)
-FRONTIER_ENDPOINT=https://<remote-frontier-host>/frontier
 FRONTIER_CONNECT_ENDPOINT=https://<remote-frontier-host>/frontier-connect
 
 # Local backend (swap the comments to use :8002)
-# FRONTIER_ENDPOINT=http://localhost:8002/frontier
 # FRONTIER_CONNECT_ENDPOINT=http://localhost:8002/
 ```
 
 ### How it works
 
 - **Why SDK source edits don't show up:** the demo imports the SDK's **built** output (`frontier/web/sdk/client/dist`) via a pnpm workspace symlink — not the source `.tsx` files, and there's no source alias in its `vite.config.ts`. So editing `frontier/web/sdk/client/...` does nothing until `client/dist` is rebuilt (hence Mode B).
-- **Endpoint proxy** (`vite.config.ts`) — the app calls `/api` (see `src/config/frontier.ts`) and `/frontier-connect`:
-  - `/api` → `FRONTIER_ENDPOINT` (strips `/api`)
-  - `/frontier-connect` → `FRONTIER_CONNECT_ENDPOINT` (strips prefix)
+- **Endpoint proxy** (`vite.config.ts`) — all SDK traffic goes over Connect-RPC to `/frontier-connect`, which proxies to `FRONTIER_CONNECT_ENDPOINT` (strips the prefix).
   - Proxied requests are **same-origin** (`:3000` → backend), so CORS isn't hit — `cors.allowed_origins` (`:5173`) needn't include `:3000`.
+  - `vite.config.ts` also defines a `/api` → `FRONTIER_ENDPOINT` proxy, and `src/config/frontier.ts` sets `endpoint: '/api'`. Both are dead: `endpoint` is not a field on `FrontierClientOptions` (only `connectEndpoint` is), and the built SDK contains no `/api` request. Neither needs to be set.
 - `.env` is read only at **startup** (same as admin) — restart after edits.
 - The component mounts only when its page/dialog is open, so a `console.log` in it won't fire until you navigate there.
 
