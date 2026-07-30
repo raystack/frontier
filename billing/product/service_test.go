@@ -440,6 +440,45 @@ func TestService_Update(t *testing.T) {
 	}
 }
 
+func TestService_Update_ResetsOmittedFields(t *testing.T) {
+	ctx := context.Background()
+	stripeClient, be, pr, priceRepo, fr := mockService(t)
+
+	// the product on the server carries a title, description, and a full config
+	existing := product.Product{
+		ID:          "prod-1",
+		Name:        "product1",
+		Title:       "Old title",
+		Description: "old description",
+		Behavior:    product.BasicBehavior,
+		Config:      product.BehaviorConfig{CreditAmount: 5, SeatLimit: 3, MinQuantity: 2, MaxQuantity: 9},
+	}
+	pr.EXPECT().GetByID(mock.Anything, "prod-1").Return(existing, nil)
+
+	// the update omits the title, description, and every config field, so each is
+	// written back as its zero value rather than kept from the server.
+	reset := existing
+	reset.Title = ""
+	reset.Description = ""
+	reset.Config = product.BehaviorConfig{}
+	pr.EXPECT().UpdateByName(mock.Anything, mock.MatchedBy(func(p product.Product) bool {
+		return p.Title == "" && p.Description == "" && p.Config == (product.BehaviorConfig{})
+	})).Return(reset, nil)
+
+	be.EXPECT().Call("POST", "/v1/products/", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).Return([]product.Price{}, nil)
+	fr.EXPECT().List(mock.Anything, mock.Anything).Return([]product.Feature{}, nil)
+
+	svc := product.NewService(stripeClient, pr, priceRepo, fr)
+	if _, err := svc.Update(ctx, product.Product{
+		ID:       "prod-1",
+		Name:     "product1",
+		Behavior: product.BasicBehavior,
+	}); err != nil {
+		t.Fatalf("Update() unexpected error = %v", err)
+	}
+}
+
 func TestPrice_IsActive(t *testing.T) {
 	tests := []struct {
 		name  string
