@@ -1369,6 +1369,65 @@ func TestService_RemoveProjectMember(t *testing.T) {
 	}
 }
 
+func TestService_OnProjectCreated(t *testing.T) {
+	ctx := context.Background()
+	orgID := uuid.New().String()
+	projectID := uuid.New().String()
+	creatorID := uuid.New().String()
+
+	projectOrgRelation := relation.Relation{
+		Object:       relation.Object{ID: projectID, Namespace: schema.ProjectNamespace},
+		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+		RelationName: schema.OrganizationRelationName,
+	}
+	ownerPolicy := policy.Policy{
+		RoleID:        schema.RoleProjectOwner,
+		ResourceID:    projectID,
+		ResourceType:  schema.ProjectNamespace,
+		PrincipalID:   creatorID,
+		PrincipalType: schema.UserPrincipal,
+	}
+
+	t.Run("should link project to org and add creator as owner", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+
+		mockRelSvc.EXPECT().Create(ctx, projectOrgRelation).Return(relation.Relation{}, nil)
+		mockPolicySvc.EXPECT().Create(ctx, ownerPolicy).Return(policy.Policy{ID: "new-p"}, nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+		err := svc.OnProjectCreated(ctx, projectID, orgID, creatorID, schema.UserPrincipal)
+		assert.NoError(t, err)
+	})
+
+	t.Run("should return error if hierarchy relation creation fails", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+
+		mockRelSvc.EXPECT().Create(ctx, projectOrgRelation).Return(relation.Relation{}, errors.New("spicedb unavailable"))
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+		err := svc.OnProjectCreated(ctx, projectID, orgID, creatorID, schema.UserPrincipal)
+		assert.ErrorContains(t, err, "link project to org")
+	})
+
+	t.Run("should remove the org link if owner policy creation fails", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+		mockRelSvc := mocks.NewRelationService(t)
+
+		mockRelSvc.EXPECT().Create(ctx, projectOrgRelation).Return(relation.Relation{}, nil)
+		mockPolicySvc.EXPECT().Create(ctx, ownerPolicy).Return(policy.Policy{}, errors.New("db down"))
+		mockRelSvc.EXPECT().Delete(ctx, projectOrgRelation).Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mockRelSvc, mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+
+		err := svc.OnProjectCreated(ctx, projectID, orgID, creatorID, schema.UserPrincipal)
+		assert.ErrorContains(t, err, "db down")
+	})
+}
+
 func TestService_SetPATAllProjectsRole(t *testing.T) {
 	ctx := context.Background()
 	orgID := uuid.New().String()

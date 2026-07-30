@@ -954,6 +954,53 @@ func (s *Service) RemoveProjectMember(ctx context.Context, projectID, principalI
 	return nil
 }
 
+// OnProjectCreated runs right after a project is created. It links the project
+// to its parent org in SpiceDB and gives the creator the project owner role.
+// There is no org-membership check on the creator here: platform superusers
+// can create projects in orgs they are not members of.
+func (s *Service) OnProjectCreated(ctx context.Context, projectID, orgID, creatorID, creatorType string) error {
+	if err := s.linkProjectToOrg(ctx, projectID, orgID); err != nil {
+		return err
+	}
+	if _, err := s.createPolicy(ctx, projectID, schema.ProjectNamespace, creatorID, creatorType, schema.RoleProjectOwner); err != nil {
+		if cleanupErr := s.unlinkProjectFromOrg(ctx, projectID, orgID); cleanupErr != nil {
+			s.log.WarnContext(ctx, "project hierarchy cleanup failed after owner add failure",
+				"project_id", projectID,
+				"org_id", orgID,
+				"error", cleanupErr,
+			)
+		}
+		return err
+	}
+	return nil
+}
+
+// linkProjectToOrg creates the project->org relation in SpiceDB. Org-level
+// project permissions (e.g. project delete via the org) resolve through it.
+func (s *Service) linkProjectToOrg(ctx context.Context, projectID, orgID string) error {
+	if _, err := s.relationService.Create(ctx, relation.Relation{
+		Object:       relation.Object{ID: projectID, Namespace: schema.ProjectNamespace},
+		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+		RelationName: schema.OrganizationRelationName,
+	}); err != nil {
+		return fmt.Errorf("link project to org: %w", err)
+	}
+	return nil
+}
+
+// unlinkProjectFromOrg removes the project->org relation. Used to clean up
+// when project creation fails partway.
+func (s *Service) unlinkProjectFromOrg(ctx context.Context, projectID, orgID string) error {
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object:       relation.Object{ID: projectID, Namespace: schema.ProjectNamespace},
+		Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+		RelationName: schema.OrganizationRelationName,
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
 // removeAllPolicies finds and deletes all policies for a principal on a resource.
 // Returns the number of policies deleted.
 func (s *Service) removeAllPolicies(ctx context.Context, resourceID, resourceType, principalID, principalType string) (int, error) {

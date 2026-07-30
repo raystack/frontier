@@ -22,7 +22,6 @@ import (
 )
 
 type RelationService interface {
-	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
@@ -59,6 +58,7 @@ type GroupService interface {
 
 type MembershipService interface {
 	ListProjectsByPrincipal(ctx context.Context, principal authenticate.Principal, orgID string, nonInherited bool) ([]string, error)
+	OnProjectCreated(ctx context.Context, projectID, orgID, creatorID, creatorType string) error
 }
 
 type Service struct {
@@ -112,21 +112,13 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	if err = s.addProjectToOrg(ctx, newProject, prj.Organization.ID); err != nil {
-		return Project{}, err
-	}
-
-	// make user administrator of the project
 	// PAT → resolve to underlying user so ownership is on the user, not the token
 	subjectID, subjectType := currentPrincipal.ResolveSubject()
-	if _, err = s.policyService.Create(ctx, policy.Policy{
-		RoleID:        OwnerRole,
-		ResourceID:    newProject.ID,
-		ResourceType:  schema.ProjectNamespace,
-		PrincipalID:   subjectID,
-		PrincipalType: subjectType,
-	}); err != nil {
-		return Project{}, fmt.Errorf("failed to create owner policy for project %s: %w", newProject.ID, err)
+	if err = s.membershipService.OnProjectCreated(ctx, newProject.ID, prj.Organization.ID, subjectID, subjectType); err != nil {
+		if cleanupErr := s.repository.Delete(ctx, newProject.ID); cleanupErr != nil {
+			return Project{}, errors.Join(err, fmt.Errorf("rollback project create: %w", cleanupErr))
+		}
+		return Project{}, err
 	}
 	return newProject, nil
 }
@@ -186,25 +178,6 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 		return s.repository.UpdateByID(ctx, prj)
 	}
 	return s.repository.UpdateByName(ctx, prj)
-}
-
-func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string) error {
-	rel := relation.Relation{
-		Object: relation.Object{
-			ID:        prj.ID,
-			Namespace: schema.ProjectNamespace,
-		},
-		Subject: relation.Subject{
-			ID:        orgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		RelationName: schema.OrganizationRelationName,
-	}
-
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {
