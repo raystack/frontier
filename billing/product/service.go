@@ -178,24 +178,21 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		}
 	}
 
-	// only following fields will be updated
-	if len(product.Title) > 0 {
-		existingProduct.Title = product.Title
-	}
-	if len(product.Description) > 0 {
-		existingProduct.Description = product.Description
-	}
+	// title, description, and the behavior config state the whole desired value,
+	// so they are written as given: omitting a title or zeroing a config field
+	// resets it rather than keeping the server's value. Behavior is never changed
+	// on update. Plan links and metadata are still merged (kept when empty),
+	// because they are managed through other calls (AddPlan) or set once on create
+	// rather than restated on every update.
+	existingProduct.Title = product.Title
+	existingProduct.Description = product.Description
+	existingProduct.Config.CreditAmount = product.Config.CreditAmount
+	existingProduct.Config.SeatLimit = product.Config.SeatLimit
+	existingProduct.Config.MinQuantity = product.Config.MinQuantity
+	existingProduct.Config.MaxQuantity = product.Config.MaxQuantity
 	if len(product.PlanIDs) > 0 {
 		existingProduct.PlanIDs = product.PlanIDs
 	}
-	if product.Config.CreditAmount > 0 {
-		existingProduct.Config.CreditAmount = product.Config.CreditAmount
-	}
-	if product.Config.SeatLimit > 0 {
-		existingProduct.Config.SeatLimit = product.Config.SeatLimit
-	}
-	existingProduct.Config.MinQuantity = product.Config.MinQuantity
-	existingProduct.Config.MaxQuantity = product.Config.MaxQuantity
 	if len(product.Metadata) > 0 {
 		existingProduct.Metadata = product.Metadata
 	}
