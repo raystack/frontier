@@ -517,14 +517,13 @@ func TestConnectHandler_CreateProduct(t *testing.T) {
 					Name:        "Test Product",
 					Title:       "Test Product Title",
 					Description: "Test product description",
-					PlanId:      "plan-1",
 					Behavior:    product.BasicBehavior.String(),
 				},
 			}),
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  errors.New("CreateProduct.Create: product_name=Test Product product_title=Test Product Title plan_id=plan-1 behavior=basic price_count=0 feature_count=0: service error"),
+			wantErrMsg:  errors.New("CreateProduct.Create: product_name=Test Product product_title=Test Product Title behavior=basic price_count=0 feature_count=0: service error"),
 		},
 		{
 			name: "should create product successfully with minimal data",
@@ -557,7 +556,6 @@ func TestConnectHandler_CreateProduct(t *testing.T) {
 					Name:        "Basic Product",
 					Title:       "Basic Product Title",
 					Description: "Basic product description",
-					PlanId:      "plan-1",
 					Behavior:    product.BasicBehavior.String(),
 					BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
 						SeatLimit:    10,
@@ -605,7 +603,7 @@ func TestConnectHandler_CreateProduct(t *testing.T) {
 			want:        nil,
 			wantErr:     true,
 			wantErrCode: connect.CodeInternal,
-			wantErrMsg:  errors.New("CreateProduct.Create: product_name= product_title= plan_id= behavior= price_count=0 feature_count=0: validation error"),
+			wantErrMsg:  errors.New("CreateProduct.Create: product_name= product_title= behavior= price_count=0 feature_count=0: validation error"),
 		},
 	}
 

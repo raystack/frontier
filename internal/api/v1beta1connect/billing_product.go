@@ -82,14 +82,7 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 			MaxQuantity:  request.Msg.GetBody().GetBehaviorConfig().GetMaxQuantity(),
 		}
 	}
-	// only link a plan when one is given; an empty plan id would persist a junk
-	// [""] entry that later breaks plan lookup by id.
-	var planIDs []string
-	if planID := request.Msg.GetBody().GetPlanId(); planID != "" {
-		planIDs = []string{planID}
-	}
 	newProduct, err := h.productService.Create(ctx, product.Product{
-		PlanIDs:     planIDs,
 		Name:        request.Msg.GetBody().GetName(),
 		Title:       request.Msg.GetBody().GetTitle(),
 		Description: request.Msg.GetBody().GetDescription(),
@@ -100,8 +93,8 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProduct.Create: product_name=%s product_title=%s plan_id=%s behavior=%s price_count=%d feature_count=%d: %w",
-			request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetPlanId(),
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProduct.Create: product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
+			request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(),
 			request.Msg.GetBody().GetBehavior(), len(productPrices), len(productFeatures), err))
 	}
 
