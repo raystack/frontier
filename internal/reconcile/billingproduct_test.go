@@ -41,6 +41,7 @@ func TestValidateBillingProductSpec(t *testing.T) {
 		{"valid", func(*BillingProductSpec) {}, ""},
 		{"missing name", func(s *BillingProductSpec) { s.Name = "" }, "name is required"},
 		{"name too short", func(s *BillingProductSpec) { s.Name = "ab" }, "at least three characters"},
+		{"empty title", func(s *BillingProductSpec) { s.Title = "" }, "must have a title"},
 		{"delete is rejected", func(s *BillingProductSpec) { s.Delete = true }, "cannot be deleted"},
 		{"empty price name", func(s *BillingProductSpec) { s.Prices[0].Name = "" }, "price with no name"},
 		{"negative amount", func(s *BillingProductSpec) { s.Prices[0].Amount = -1 }, "negative amount"},
@@ -70,7 +71,7 @@ func TestDiffBillingProducts(t *testing.T) {
 	t.Run("adds a product the server does not have", func(t *testing.T) {
 		desired := []BillingProductSpec{
 			newBillingProduct(),
-			{Name: "seat", Behavior: "per_seat", Prices: []BillingPriceSpec{{Name: "monthly", Amount: 15000, Currency: "usd", Interval: "month"}}},
+			{Name: "seat", Title: "Seat", Behavior: "per_seat", Prices: []BillingPriceSpec{{Name: "monthly", Amount: 15000, Currency: "usd", Interval: "month"}}},
 		}
 		ops, err := diffBillingProducts(desired, []currentBillingProduct{curToken()})
 		assert.NoError(t, err)
@@ -137,17 +138,6 @@ func TestDiffBillingProducts(t *testing.T) {
 
 	// title, description, and config are full-write: the server writes them as
 	// given, so a reset toward empty or zero is a plannable change.
-	t.Run("plans a reset when the file omits a title the server has", func(t *testing.T) {
-		s := newBillingProduct()
-		s.Title = "" // an omitted title resets the server's title
-		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
-		assert.NoError(t, err)
-		if assert.Len(t, ops, 1) {
-			assert.Equal(t, opUpdate, ops[0].action)
-			assert.Contains(t, ops[0].detail, "title")
-		}
-	})
-
 	t.Run("plans a reset when the file zeroes a credit amount the server has", func(t *testing.T) {
 		s := newBillingProduct()
 		s.Config.CreditAmount = 0 // a zeroed config field resets it
