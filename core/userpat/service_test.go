@@ -2,6 +2,7 @@ package userpat_test
 
 import (
 	"context"
+	"crypto/sha3"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -25,7 +26,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"golang.org/x/crypto/sha3"
 )
 
 var defaultConfig = userpat.Config{

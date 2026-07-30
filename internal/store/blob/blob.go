@@ -68,7 +68,7 @@ func NewStore(ctx context.Context, storagePath, storageSecret string) (Bucket, e
 		if strings.TrimSpace(storageSecret) == "" {
 			return nil, errors.Errorf("%s secret not configured for fs", storagePath)
 		}
-		creds, err := google.CredentialsFromJSON(ctx, storageSecretValue, "https://www.googleapis.com/auth/cloud-platform")
+		creds, err := google.CredentialsFromJSON(ctx, storageSecretValue, "https://www.googleapis.com/auth/cloud-platform") //nolint:staticcheck // credentials come from operator-configured server secret, not an untrusted source
 		if err != nil {
 			return nil, err
 		}
