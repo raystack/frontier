@@ -32,7 +32,6 @@ type BillingProductSpec struct {
 	Config      BillingProductConfig `yaml:"config,omitempty"`
 	Prices      []BillingPriceSpec   `yaml:"prices,omitempty"`
 	Features    []BillingFeatureRef  `yaml:"features,omitempty"`
-	Metadata    map[string]any       `yaml:"metadata,omitempty"`
 	Delete      bool                 `yaml:"delete,omitempty"`
 }
 
@@ -243,10 +242,10 @@ func diffBillingProducts(desired []BillingProductSpec, current []currentBillingP
 // desired product and its current state, in a way that matches what the server's
 // UpdateProduct will actually apply. The server writes title, description, and
 // the behavior config as given, so a difference in any of them, including toward
-// an empty or zero value, is a plannable change. It still merges metadata (kept
-// when empty) and never changes a product's behavior, so neither is diffed. An
-// immutable price change is a hard error, not a plannable update. An empty result
-// means the product already matches and needs no update.
+// an empty or zero value, is a plannable change. Behavior is create-only, so a
+// change to it fails the plan rather than being applied. An immutable price change
+// is a hard error too. An empty result means the product already matches and needs
+// no update.
 func billingProductChanges(s BillingProductSpec, cur currentBillingProduct) ([]string, error) {
 	var changes []string
 	// title and description state the whole desired value, so any difference is a
@@ -257,9 +256,19 @@ func billingProductChanges(s BillingProductSpec, cur currentBillingProduct) ([]s
 	if s.Description != cur.Description {
 		changes = append(changes, "description")
 	}
-	// behavior is create-only: the server never changes it on update, and it may
-	// rewrite it on create (credit_amount > 0 becomes "credits"), so a difference
-	// is not plannable and is left out.
+	// behavior is create-only: the server sets it at create (rewriting it to
+	// "credits" when credit_amount > 0) and never changes it on update. A file
+	// that asks to change it to something the product is not cannot apply, so fail
+	// the plan rather than skip it in silence. A credit product's behavior is
+	// always "credits", so fold that in to avoid a false failure when the file
+	// still names a behavior alongside a credit amount.
+	expectedBehavior := s.Behavior
+	if s.Config.CreditAmount > 0 {
+		expectedBehavior = "credits"
+	}
+	if expectedBehavior != "" && expectedBehavior != cur.Behavior {
+		return nil, fmt.Errorf("product %q behavior cannot change from %q to %q after creation; create a new product to change behavior", s.Name, cur.Behavior, expectedBehavior)
+	}
 	if billingConfigChanged(s.Config, cur.Config) {
 		changes = append(changes, "config")
 	}

@@ -95,34 +95,33 @@ func TestBillingProductReconciler(t *testing.T) {
 		assert.ErrorContains(t, err, "not in the file")
 	})
 
-	t.Run("sends metadata on create but not on update", func(t *testing.T) {
+	t.Run("skips a product the kind cannot represent (tiered price or short name)", func(t *testing.T) {
 		api := &fakeBillingProductAPI{products: []*frontierv1beta1.Product{
 			billingProductPB("p1", "token", "Tokens", "credits", []*frontierv1beta1.Price{pricePB("default", 100, "usd", "month", "active")}, "f1"),
+			billingProductPB("p2", "ab", "Short", "basic", []*frontierv1beta1.Price{pricePB("m", 1, "usd", "month", "active")}),
+			billingProductPB("p3", "tieredprod", "Tiered", "basic", []*frontierv1beta1.Price{
+				{Name: "graduated", Amount: 1, Currency: "usd", Interval: "month", UsageType: "licensed", BillingScheme: "tiered", State: "active"},
+			}),
 		}}
-		spec := []byte(`
-- name: token
-  title: Renamed tokens
-  behavior: credits
-  prices:
-    - {name: default, amount: 100, currency: usd, interval: month}
-  features:
-    - {name: f1}
-  metadata: {tier: gold}
-- name: seat
-  title: Seat
-  behavior: per_seat
-  prices:
-    - {name: monthly, amount: 15000, currency: usd, interval: month}
-  metadata: {tier: silver}
-`)
-		_, err := NewBillingProductReconciler(api, "").Reconcile(ctx, spec, false)
+		r := NewBillingProductReconciler(api, "")
+
+		// export writes only the representable product, so the short-name and
+		// tiered products do not appear and cannot fail their own re-validation.
+		exported, err := r.Export(ctx)
 		assert.NoError(t, err)
-		if assert.Len(t, api.created, 1) {
-			assert.NotNil(t, api.created[0].GetMetadata(), "metadata is sent on create")
+		specs, ok := exported.([]BillingProductSpec)
+		if assert.True(t, ok) {
+			assert.Len(t, specs, 1)
+			assert.Equal(t, "token", specs[0].Name)
 		}
-		if body := api.updated["p1"]; assert.NotNil(t, body) {
-			assert.Nil(t, body.GetMetadata(), "metadata is not sent on update, since the diff does not track it")
-		}
+
+		// the out-of-scope products are invisible to the diff too, so listing only
+		// the representable product in the file plans no changes (not "unaccounted").
+		specBytes, err := yaml.Marshal(exported)
+		assert.NoError(t, err)
+		rep, err := r.Reconcile(ctx, specBytes, true)
+		assert.NoError(t, err)
+		assert.Empty(t, rep.Planned)
 	})
 
 	t.Run("export round-trips to no changes and drops inactive prices", func(t *testing.T) {

@@ -10,7 +10,6 @@ import (
 	"connectrpc.com/connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // BillingProductAPI is the API subset the billing product reconciler needs.
@@ -139,8 +138,14 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 	}
 	var current []currentBillingProduct
 	for _, p := range resp.Msg.GetProducts() {
-		// metadata is not read back: it is out of scope for an update (set only on
-		// create) and is not exported, so the diff never needs it.
+		// skip a product the kind cannot represent, so it is neither diffed nor
+		// exported: a name shorter than three characters, or any tiered-scheme
+		// price. The kind rejects such entries in a file too, so these products are
+		// out of scope and left untouched. (Metadata is likewise out of scope and
+		// is never read back.)
+		if len(p.GetName()) < 3 || hasTieredPrice(p) {
+			continue
+		}
 		cur := currentBillingProduct{
 			ID:          p.GetId(),
 			Name:        p.GetName(),
@@ -191,7 +196,7 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 // the check cannot drift from the server's, since both come from the same
 // generated descriptors.
 func validateBillingProductRequest(op billingProductOp) error {
-	body, err := billingProductBody(op.spec, op.action == opAdd)
+	body, err := billingProductBody(op.spec)
 	if err != nil {
 		return err
 	}
@@ -211,7 +216,7 @@ func validateBillingProductRequest(op billingProductOp) error {
 }
 
 func (r *BillingProductReconciler) apply(ctx context.Context, op billingProductOp) error {
-	body, err := billingProductBody(op.spec, op.action == opAdd)
+	body, err := billingProductBody(op.spec)
 	if err != nil {
 		return err
 	}
@@ -228,20 +233,10 @@ func (r *BillingProductReconciler) apply(ctx context.Context, op billingProductO
 }
 
 // billingProductBody builds the request body for a create or update. The whole
-// desired product is sent: UpdateProduct converges the prices and features on
-// the server, so the reconciler does not compute per-price calls itself.
-// Metadata is sent only on create; the server merges it (keep-if-empty) and this
-// kind does not diff it, so sending it on update would apply it out of step with
-// the plan.
-func billingProductBody(s BillingProductSpec, includeMetadata bool) (*frontierv1beta1.ProductRequestBody, error) {
-	var md *structpb.Struct
-	if includeMetadata && len(s.Metadata) > 0 {
-		var err error
-		md, err = structpb.NewStruct(s.Metadata)
-		if err != nil {
-			return nil, fmt.Errorf("build product %q metadata: %w", s.Name, err)
-		}
-	}
+// desired product is sent: UpdateProduct converges the prices and features on the
+// server, so the reconciler does not compute per-price calls itself. Metadata is
+// out of scope for this kind, so it is never sent, read, or exported.
+func billingProductBody(s BillingProductSpec) (*frontierv1beta1.ProductRequestBody, error) {
 	prices := make([]*frontierv1beta1.Price, 0, len(s.Prices))
 	for _, p := range s.Prices {
 		// lowercase the case-insensitive fields so a value written in another
@@ -274,7 +269,6 @@ func billingProductBody(s BillingProductSpec, includeMetadata bool) (*frontierv1
 			MinQuantity:  s.Config.MinQuantity,
 			MaxQuantity:  s.Config.MaxQuantity,
 		},
-		Metadata: md,
 	}, nil
 }
 
@@ -282,4 +276,15 @@ func billingProductBody(s BillingProductSpec, includeMetadata bool) (*frontierv1
 // counts as active. An empty state is active, matching the database default.
 func billingPriceStateActive(state string) bool {
 	return state == "" || state == "active"
+}
+
+// hasTieredPrice reports whether a product carries a tiered-scheme price, which
+// this kind cannot represent, so the product is treated as out of scope.
+func hasTieredPrice(p *frontierv1beta1.Product) bool {
+	for _, price := range p.GetPrices() {
+		if strings.ToLower(price.GetBillingScheme()) == billingSchemeTiered {
+			return true
+		}
+	}
+	return false
 }
