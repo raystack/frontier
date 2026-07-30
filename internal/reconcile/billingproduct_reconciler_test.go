@@ -70,6 +70,7 @@ func TestBillingProductReconciler(t *testing.T) {
   features:
     - {name: f1}
 - name: seat
+  title: Seat
   behavior: per_seat
   prices:
     - {name: monthly, amount: 15000, currency: usd, interval: month}
@@ -108,6 +109,7 @@ func TestBillingProductReconciler(t *testing.T) {
     - {name: f1}
   metadata: {tier: gold}
 - name: seat
+  title: Seat
   behavior: per_seat
   prices:
     - {name: monthly, amount: 15000, currency: usd, interval: month}
@@ -217,6 +219,43 @@ func TestBillingProductReconciler_ValidatesRequestAgainstProto(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, rep.Planned, 1)
 	})
+}
+
+// TestBillingProductReconciler_ValidateChecksEnumsPerEntry proves Validate() runs
+// server-free over every entry, so a bad enum or a missing title fails the whole
+// file up front, not only when an op is planned for that entry.
+func TestBillingProductReconciler_ValidateChecksEnumsPerEntry(t *testing.T) {
+	r := NewBillingProductReconciler(nil, "")
+
+	badBehavior := []byte(`
+- name: token
+  title: Tokens
+  behavior: fancy
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+`)
+	if err := r.Validate(badBehavior); assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "behavior")
+	}
+
+	missingTitle := []byte(`
+- name: token
+  behavior: credits
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+`)
+	if err := r.Validate(missingTitle); assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "must have a title")
+	}
+
+	good := []byte(`
+- name: token
+  title: Tokens
+  behavior: credits
+  prices:
+    - {name: default, amount: 100, currency: usd, interval: month}
+`)
+	assert.NoError(t, r.Validate(good))
 }
 
 // mergeFakeBillingProductAPI models the server's create and merge-update

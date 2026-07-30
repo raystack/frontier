@@ -45,8 +45,20 @@ func (r *BillingProductReconciler) Validate(spec []byte) error {
 	if err := decodeSpec(spec, &specs); err != nil {
 		return fmt.Errorf("parse %s spec: %w", KindBillingProduct, err)
 	}
-	_, err := normalizeBillingProductSpecs(specs)
-	return err
+	normalized, err := normalizeBillingProductSpecs(specs)
+	if err != nil {
+		return err
+	}
+	// check every entry's values against the proto's own rules (the enums and
+	// lengths in buf.validate), server-free, so a bad behavior, interval, usage
+	// type, or scheme fails the whole file up front rather than only when an op
+	// happens to be planned for that entry.
+	for _, s := range normalized {
+		if err := validateBillingProductRequest(billingProductOp{action: opAdd, spec: s}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *BillingProductReconciler) Reconcile(ctx context.Context, spec []byte, dryRun bool) (Report, error) {
@@ -90,8 +102,10 @@ func (r *BillingProductReconciler) Reconcile(ctx context.Context, spec []byte, d
 // Export returns the current products as a desired-state spec, sorted by name,
 // with each product's prices sorted by name too, so the output is stable. Only
 // active prices are written, so reconciling an export leaves the already inactive
-// ones alone and plans no changes. Provider ids, timestamps, and price state are
-// server-owned and never written.
+// ones alone and plans no changes. Provider ids, timestamps, price state, and
+// metadata are not written: the first three are server-owned, and metadata is
+// out of scope for a product update (set only on create), so exporting it would
+// emit a field the diff never converges.
 func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
 	current, err := r.fetchCurrent(ctx)
 	if err != nil {
@@ -107,7 +121,6 @@ func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
 			Description: c.Description,
 			Behavior:    c.Behavior,
 			Config:      c.Config,
-			Metadata:    c.Metadata,
 		}
 		entry.Prices = append(entry.Prices, c.Prices...)
 		sort.Slice(entry.Prices, func(i, j int) bool { return entry.Prices[i].Name < entry.Prices[j].Name })
@@ -126,17 +139,14 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 	}
 	var current []currentBillingProduct
 	for _, p := range resp.Msg.GetProducts() {
-		var md map[string]any
-		if m := p.GetMetadata(); m != nil {
-			md = m.AsMap()
-		}
+		// metadata is not read back: it is out of scope for an update (set only on
+		// create) and is not exported, so the diff never needs it.
 		cur := currentBillingProduct{
 			ID:          p.GetId(),
 			Name:        p.GetName(),
 			Title:       p.GetTitle(),
 			Description: p.GetDescription(),
 			Behavior:    p.GetBehavior(),
-			Metadata:    md,
 		}
 		if cfg := p.GetBehaviorConfig(); cfg != nil {
 			cur.Config = BillingProductConfig{

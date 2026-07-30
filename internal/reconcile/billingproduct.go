@@ -78,7 +78,6 @@ type currentBillingProduct struct {
 	Prices        []BillingPriceSpec
 	RetiredPrices []BillingPriceSpec
 	Features      []string
-	Metadata      map[string]any
 }
 
 // billingProductOp is a single planned change. spec carries the whole desired
@@ -106,11 +105,11 @@ func (o billingProductOp) String() string {
 }
 
 // validateBillingProductSpec rejects entries the flow cannot manage without
-// touching the server: a missing or too-short name, a delete flag (products
-// cannot be removed through the API), and any malformed price or feature. It
-// does not re-list the valid behaviors, intervals, or schemes; the server
-// rejects a bad value through its validate interceptor. Names must be unique
-// within their scope.
+// touching the server: a missing or too-short name, a missing title, a delete
+// flag (products cannot be removed through the API), and any malformed price or
+// feature. It does not re-list the valid behaviors, intervals, or schemes; the
+// server rejects a bad value through its validate interceptor. Names must be
+// unique within their scope.
 func validateBillingProductSpec(s BillingProductSpec) error {
 	name := strings.TrimSpace(s.Name)
 	if name == "" {
@@ -120,6 +119,12 @@ func validateBillingProductSpec(s BillingProductSpec) error {
 	// shorter one would fail at apply; reject it here instead.
 	if len(name) < 3 {
 		return fmt.Errorf("product name %q must be at least three characters", name)
+	}
+	// the billing provider uses the title as the product name and requires it to
+	// be non-empty. Since title is written in full, an omitted or empty one would
+	// plan a reset the provider rejects, so require it up front.
+	if strings.TrimSpace(s.Title) == "" {
+		return fmt.Errorf("product %q must have a title", name)
 	}
 	if s.Delete {
 		return fmt.Errorf("product %q cannot be deleted: there is no product delete or deactivate API; remove the entry and archive the product by hand", s.Name)
