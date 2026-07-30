@@ -15,7 +15,6 @@ import {
 import { create } from "@bufbuild/protobuf";
 
 import { PageTitle } from "~/admin/components/PageTitle";
-import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import { CreateOrganizationPanel } from "./create";
 import {
   getConnectNextPageParam,
@@ -60,7 +59,6 @@ const ZeroState = ({ openCreatePanel }: { openCreatePanel: () => void }) => {
             Add new {t.organization({ case: "lower" })}
           </Button>
         }
-        secondaryAction={<DocumentationButton />}
       />
     </div>
   );

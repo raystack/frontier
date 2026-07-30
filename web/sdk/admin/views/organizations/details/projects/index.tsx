@@ -6,7 +6,6 @@ import {
   type DataTableSort,
 } from "@raystack/apsara";
 import { PageTitle } from "~/admin/components/PageTitle";
-import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import styles from "./projects.module.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { getColumns } from "./columns";
@@ -62,7 +61,6 @@ const ZeroState = () => {
         icon={<ProjectsIcon />}
         heading={t.project({ case: "capital" })}
         subHeading="A project is a structured initiative undertaken to achieve a specific outcome. It operates within a defined scope, objectives, and resources, following a process of planning, execution, monitoring, and completion."
-        secondaryAction={<DocumentationButton />}
       />
     </div>
   );

@@ -8,7 +8,6 @@ import {
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
-import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import { getColumns } from "./columns";
 import { ServiceUserDetailsDialog } from "./details-dialog";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
@@ -47,7 +46,6 @@ const ZeroState = () => {
         icon={<CodeIcon />}
         heading="API"
         subHeading="An API is a set of protocols that enables Aurora to interact with other applications. It defines request and response structures, allowing seamless data exchange and integration."
-        secondaryAction={<DocumentationButton />}
       />
     </div>
   );

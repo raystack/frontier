@@ -6,7 +6,6 @@ import { BanknotesIcon } from "~/admin/assets/icons/BanknotesIcon";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
-import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import { getColumns } from "./columns";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
@@ -79,7 +78,6 @@ const ZeroState = () => {
         icon={<BanknotesIcon />}
         heading="Invoice"
         subHeading="An invoice provides a detailed record of an organization's billing history, including subscription charges, feature usage, and payment transactions."
-        secondaryAction={<DocumentationButton />}
       />
     </div>
   );

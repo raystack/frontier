@@ -6,7 +6,6 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
-import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "~/utils/connect-pagination";
@@ -54,7 +53,6 @@ const ZeroState = () => {
         icon={<CoinIcon />}
         heading="Tokens"
         subHeading="Tokens serve as a flexible currency, allowing organizations to access services like satellite imagery orders and advanced analytics. They provide a scalable way to manage resources and adapt to evolving needs."
-        secondaryAction={<DocumentationButton />}
       />
     </div>
   );

@@ -12,7 +12,6 @@ import {
 import { useDebouncedValue } from "~hooks";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
-import { DocumentationButton } from "~/admin/components/DocumentationButton";
 import {
   DEFAULT_PAGE_SIZE,
   getConnectNextPageParam,
@@ -60,7 +59,6 @@ const ZeroState = () => {
         icon={<LockClosedIcon />}
         heading="PAT"
         subHeading="A Personal Access Token (PAT) is a secure credential that allows external applications and scripts to interact with Aurora APIs. It enables authenticated access to resources and workflows without requiring direct user login."
-        secondaryAction={<DocumentationButton />}
       />
     </div>
   );
