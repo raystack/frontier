@@ -82,8 +82,6 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 			MaxQuantity:  request.Msg.GetBody().GetBehaviorConfig().GetMaxQuantity(),
 		}
 	}
-	// a product is not linked to a plan here; plan membership is managed from the
-	// plan side (UpsertPlans, which links products through AddPlan).
 	newProduct, err := h.productService.Create(ctx, product.Product{
 		Name:        request.Msg.GetBody().GetName(),
 		Title:       request.Msg.GetBody().GetTitle(),
