@@ -114,6 +114,17 @@ func TestService_Create(t *testing.T) {
 		setup   func() *project.Service
 	}{
 		{
+			name:    "fail to create project when membership service is not set",
+			prj:     testProj,
+			wantErr: true,
+			setup: func() *project.Service {
+				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
+				_ = roleService
+				// Intentionally skip SetMembershipService.
+				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+			},
+		},
+		{
 			name:    "fail to create project if no principal found",
 			prj:     testProj,
 			wantErr: true,
@@ -121,7 +132,9 @@ func TestService_Create(t *testing.T) {
 				repo, userService, suserService, relationService, policyService, authnService, groupService, roleService := mockService(t)
 				_ = roleService
 				authnService.EXPECT().GetPrincipal(ctx).Return(authenticate.Principal{}, errors.New("not found"))
-				return project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+				svc := project.NewService(repo, relationService, userService, policyService, authnService, suserService, groupService, roleService)
+				svc.SetMembershipService(mocks.NewMembershipService(t))
+				return svc
 			},
 		},
 		{

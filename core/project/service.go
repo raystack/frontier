@@ -102,6 +102,10 @@ func (s Service) Get(ctx context.Context, idOrName string) (Project, error) {
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
+	if s.membershipService == nil {
+		return Project{}, fmt.Errorf("project: membership service is not set")
+	}
+
 	currentPrincipal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return Project{}, err
@@ -132,7 +136,7 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 			return nil, ErrInvalidPrincipalType
 		}
 		if s.membershipService == nil {
-			return nil, fmt.Errorf("project: membership service not wired")
+			return nil, fmt.Errorf("project: membership service is not set")
 		}
 		ids, err := s.membershipService.ListProjectsByPrincipal(ctx, *f.Principal, f.OrgID, f.NonInherited)
 		if err != nil {
