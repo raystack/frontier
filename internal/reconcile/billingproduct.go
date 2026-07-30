@@ -236,21 +236,20 @@ func diffBillingProducts(desired []BillingProductSpec, current []currentBillingP
 
 // billingProductChanges lists the managed-field categories that differ between a
 // desired product and its current state, in a way that matches what the server's
-// UpdateProduct will actually apply. That server merges rather than full-writes:
-// it keeps title, description, and metadata when empty and keeps credit_amount
-// and seat_limit when zero, and it never changes a product's behavior. So a
-// change toward one of those unsettable values is not planned, since planning it
-// would loop forever against a merge that drops it. An immutable price change is
-// a hard error, not a plannable update. An empty result means the product
-// already matches and needs no update.
+// UpdateProduct will actually apply. The server writes title, description, and
+// the behavior config as given, so a difference in any of them, including toward
+// an empty or zero value, is a plannable change. It still merges metadata (kept
+// when empty) and never changes a product's behavior, so neither is diffed. An
+// immutable price change is a hard error, not a plannable update. An empty result
+// means the product already matches and needs no update.
 func billingProductChanges(s BillingProductSpec, cur currentBillingProduct) ([]string, error) {
 	var changes []string
-	// title and description are keep-if-empty on the server, so a change is only
-	// plannable when the desired value is non-empty and differs.
-	if s.Title != "" && s.Title != cur.Title {
+	// title and description state the whole desired value, so any difference is a
+	// change, including clearing a field the server currently has.
+	if s.Title != cur.Title {
 		changes = append(changes, "title")
 	}
-	if s.Description != "" && s.Description != cur.Description {
+	if s.Description != cur.Description {
 		changes = append(changes, "description")
 	}
 	// behavior is create-only: the server never changes it on update, and it may
@@ -272,18 +271,14 @@ func billingProductChanges(s BillingProductSpec, cur currentBillingProduct) ([]s
 	return changes, nil
 }
 
-// billingConfigChanged reports whether a config change is both wanted and
-// applicable. credit_amount and seat_limit are keep-if-zero on the server, so a
-// change to them is only plannable when the desired value is non-zero. min and
-// max quantity are written unconditionally, so any difference is a change.
+// billingConfigChanged reports whether the desired behavior config differs from
+// the current one. The server writes all four fields as given, so any difference,
+// including a reset to zero, is a change.
 func billingConfigChanged(desired, cur BillingProductConfig) bool {
-	if desired.CreditAmount > 0 && desired.CreditAmount != cur.CreditAmount {
-		return true
-	}
-	if desired.SeatLimit > 0 && desired.SeatLimit != cur.SeatLimit {
-		return true
-	}
-	return desired.MinQuantity != cur.MinQuantity || desired.MaxQuantity != cur.MaxQuantity
+	return desired.CreditAmount != cur.CreditAmount ||
+		desired.SeatLimit != cur.SeatLimit ||
+		desired.MinQuantity != cur.MinQuantity ||
+		desired.MaxQuantity != cur.MaxQuantity
 }
 
 func billingFeatureSetsEqual(desired []BillingFeatureRef, current []string) bool {
