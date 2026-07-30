@@ -148,12 +148,23 @@ func TestDiffBillingProducts(t *testing.T) {
 		}
 	})
 
-	t.Run("does not plan a behavior change", func(t *testing.T) {
+	t.Run("does not fail on a behavior a credit amount forces", func(t *testing.T) {
 		s := newBillingProduct()
-		s.Behavior = "basic" // differs from server "credits", but behavior is create-only
+		s.Behavior = "basic" // the file names basic, but credit_amount > 0 forces "credits"
 		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
+	})
+
+	t.Run("fails the plan on a behavior change the server cannot apply", func(t *testing.T) {
+		cur := curToken()
+		cur.Behavior = "basic"
+		cur.Config.CreditAmount = 0
+		s := newBillingProduct()
+		s.Behavior = "per_seat"
+		s.Config.CreditAmount = 0 // no credit rewrite, so the change is a real one
+		_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{cur})
+		assert.ErrorContains(t, err, "behavior cannot change")
 	})
 
 	t.Run("does not plan a price change for an empty price list", func(t *testing.T) {
