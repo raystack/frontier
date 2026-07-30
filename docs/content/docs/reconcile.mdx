@@ -271,11 +271,15 @@ spec:
 
 - The product name is the identity and must be at least three characters. `title`,
   `description`, `config`, `prices`, and `features` are the managed fields.
-- The update API merges rather than overwrites, so a field you leave out keeps its current
-  value: `title`, `description`, and metadata are kept when empty, and `credit_amount` and
-  `seat_limit` are kept when zero. This kind can set those fields but cannot clear them
-  through the file. `behavior` is set only when the product is created and is not changed
-  afterward.
+- `title`, `description`, and `config` state the whole desired value. The file writes them
+  as given, so leaving one out resets it (an empty title, an empty description, a zero
+  `credit_amount`). Keep a `title` set, since the payment provider needs a product name.
+  `behavior` is set only when the product is created and is not changed afterward. Metadata is
+  written only when a product is created and is otherwise left as is.
+- The valid values for `behavior`, `interval`, `usage_type`, and `billing_scheme` are checked
+  against the API's own rules during the dry run, so a wrong value fails the plan rather than
+  the apply. This kind does not keep its own copy of those lists, so it stays in step with the
+  server as the lists change.
 - Prices are keyed by their name within the product. A new price name is added, and an active
   price the file no longer lists is retired (marked inactive, not deleted, because a provider
   price cannot be removed). Listing a retired name again brings it back, as long as its fields
