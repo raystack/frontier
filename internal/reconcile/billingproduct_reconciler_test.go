@@ -122,6 +122,17 @@ func TestBillingProductReconciler(t *testing.T) {
 		rep, err := r.Reconcile(ctx, specBytes, true)
 		assert.NoError(t, err)
 		assert.Empty(t, rep.Planned)
+
+		// naming an out-of-scope product in the file fails the plan up front, rather
+		// than planning a create the apply would reject on the unique name.
+		named := []byte(`
+- name: tieredprod
+  title: Tiered
+  prices:
+    - {name: flat, amount: 1, currency: usd, interval: month}
+`)
+		_, err = r.Reconcile(ctx, named, true)
+		assert.ErrorContains(t, err, "out of scope")
 	})
 
 	t.Run("export round-trips to no changes and drops inactive prices", func(t *testing.T) {

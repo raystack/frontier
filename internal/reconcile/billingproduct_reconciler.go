@@ -66,8 +66,11 @@ func (r *BillingProductReconciler) Reconcile(ctx context.Context, spec []byte, d
 		return Report{}, fmt.Errorf("parse %s spec: %w", KindBillingProduct, err)
 	}
 
-	current, err := r.fetchCurrent(ctx)
+	current, outOfScope, err := r.fetchCurrent(ctx)
 	if err != nil {
+		return Report{}, err
+	}
+	if err := checkOutOfScope(specs, outOfScope); err != nil {
 		return Report{}, err
 	}
 
@@ -106,7 +109,7 @@ func (r *BillingProductReconciler) Reconcile(ctx context.Context, spec []byte, d
 // out of scope for a product update (set only on create), so exporting it would
 // emit a field the diff never converges.
 func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
-	current, err := r.fetchCurrent(ctx)
+	current, _, err := r.fetchCurrent(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -131,19 +134,21 @@ func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
 	return specs, nil
 }
 
-func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentBillingProduct, error) {
+func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentBillingProduct, []string, error) {
 	resp, err := r.client.ListProducts(ctx, authReq(&frontierv1beta1.ListProductsRequest{}, r.header))
 	if err != nil {
-		return nil, fmt.Errorf("list products: %w", err)
+		return nil, nil, fmt.Errorf("list products: %w", err)
 	}
 	var current []currentBillingProduct
+	var outOfScope []string
 	for _, p := range resp.Msg.GetProducts() {
-		// skip a product the kind cannot represent, so it is neither diffed nor
-		// exported: a name shorter than three characters, or any tiered-scheme
-		// price. The kind rejects such entries in a file too, so these products are
-		// out of scope and left untouched. (Metadata is likewise out of scope and
-		// is never read back.)
-		if len(p.GetName()) < 3 || hasTieredPrice(p) {
+		// a product the kind cannot represent is out of scope: it is neither diffed
+		// nor exported, and a file that names it fails the plan (see Reconcile). The
+		// cases are a name shorter than three characters, an empty title (the kind
+		// requires one), or any tiered-scheme price. (Metadata is likewise out of
+		// scope and is never read back.)
+		if len(p.GetName()) < 3 || p.GetTitle() == "" || hasTieredPrice(p) {
+			outOfScope = append(outOfScope, p.GetName())
 			continue
 		}
 		cur := currentBillingProduct{
@@ -186,7 +191,28 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 		}
 		current = append(current, cur)
 	}
-	return current, nil
+	return current, outOfScope, nil
+}
+
+// checkOutOfScope fails the plan when the file names a product the server holds
+// but this kind cannot represent (a tiered price, an empty title, or a name
+// shorter than three characters). Such a product is skipped in fetchCurrent, so
+// without this check the diff would see the file entry as new and plan a create
+// the apply would reject on the unique name; failing here keeps the plan honest.
+func checkOutOfScope(specs []BillingProductSpec, outOfScope []string) error {
+	if len(outOfScope) == 0 {
+		return nil
+	}
+	set := make(map[string]struct{}, len(outOfScope))
+	for _, n := range outOfScope {
+		set[strings.ToLower(strings.TrimSpace(n))] = struct{}{}
+	}
+	for _, s := range specs {
+		if _, ok := set[strings.ToLower(strings.TrimSpace(s.Name))]; ok {
+			return fmt.Errorf("product %q is out of scope for this kind: the server holds it with a tiered price, an empty title, or a name shorter than three characters, so it cannot be managed from the file; remove the entry and manage it by hand", s.Name)
+		}
+	}
+	return nil
 }
 
 // validateBillingProductRequest builds the request the apply would send and
