@@ -6,8 +6,10 @@ import (
 	"sort"
 	"strings"
 
+	"buf.build/go/protovalidate"
 	"connectrpc.com/connect"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -65,6 +67,12 @@ func (r *BillingProductReconciler) Reconcile(ctx context.Context, spec []byte, d
 
 	rep := Report{Kind: KindBillingProduct, DryRun: dryRun}
 	for _, op := range ops {
+		// validate the request the apply would send against the proto's own rules,
+		// so a value the server would reject, like an unknown behavior or interval,
+		// fails the plan instead of the apply.
+		if err := validateBillingProductRequest(op); err != nil {
+			return Report{}, fmt.Errorf("plan %s: %w", op, err)
+		}
 		rep.Planned = append(rep.Planned, op.String())
 	}
 	if dryRun {
@@ -164,6 +172,32 @@ func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentB
 		current = append(current, cur)
 	}
 	return current, nil
+}
+
+// validateBillingProductRequest builds the request the apply would send and
+// checks it against the proto's buf.validate rules. Reusing the proto's own rules
+// means a bad enum value (behavior, interval, usage type, scheme) or a malformed
+// field is caught at plan time without this kind re-listing the valid values, and
+// the check cannot drift from the server's, since both come from the same
+// generated descriptors.
+func validateBillingProductRequest(op billingProductOp) error {
+	body, err := billingProductBody(op.spec, op.action == opAdd)
+	if err != nil {
+		return err
+	}
+	var msg proto.Message
+	switch op.action {
+	case opAdd:
+		msg = &frontierv1beta1.CreateProductRequest{Body: body}
+	case opUpdate:
+		msg = &frontierv1beta1.UpdateProductRequest{Id: op.id, Body: body}
+	default:
+		return fmt.Errorf("unknown op action %q", op.action)
+	}
+	if err := protovalidate.Validate(msg); err != nil {
+		return fmt.Errorf("product %q: %w", op.spec.Name, err)
+	}
+	return nil
 }
 
 func (r *BillingProductReconciler) apply(ctx context.Context, op billingProductOp) error {
