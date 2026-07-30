@@ -294,8 +294,9 @@ spec:
 - Every product on the server must appear in the file. A product that is missing fails the
   plan. There is no API to remove a product, so `delete: true` is rejected; archive a product
   by hand. The one exception is a product this kind cannot represent — one that uses a tiered
-  price, or has a name shorter than three characters. That product is out of scope: it is left
-  untouched, is not required in the file, and is not exported.
+  price, has an empty title, or has a name shorter than three characters. That product is out
+  of scope: it is left untouched, not required in the file, and not exported, and a file that
+  names it fails the plan instead of trying to recreate it.
 - Export writes each product sorted by name, and each product's active prices sorted by name,
   so reconciling an export plans nothing. Provider ids, timestamps, and price state are
   server-owned and not written; metadata and out-of-scope products are left out too.
