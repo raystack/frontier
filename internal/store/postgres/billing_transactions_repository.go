@@ -14,7 +14,7 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/jmoiron/sqlx"
 
