@@ -4,6 +4,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "start": "turbo run start",
+    "start:admin": "turbo run start --filter=admin",
+    "start:client": "turbo run start --filter=client-demo",
     "preview": "turbo run preview",
     "lint": "turbo run lint",
     "clean": "turbo run clean",

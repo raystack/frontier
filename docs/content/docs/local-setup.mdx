@@ -59,11 +59,29 @@ The admin app talks to **either** backend. Switching is **only** an env change i
 ```bash
 cd frontier/web
 pnpm install
+pnpm start:admin                             # build the SDK, then admin dev server → :5173
+```
+
+`start:admin` does both steps in one command: it builds the SDK first and only
+then starts Vite, so it is the safe default on a fresh clone or after changing
+SDK code. Turbo caches the SDK build, so repeat runs skip it when nothing under
+`sdk/` changed.
+
+The explicit two-step form still works and is equivalent — use it when you want
+to run the two halves separately:
+
+```bash
+cd frontier/web
+pnpm install
 pnpm build --filter=@raystack/frontier      # build the SDK package
 pnpm dev --filter=admin                      # admin dev server → :5173
 ```
 
-> Confirmed working: `pnpm build --filter=@raystack/frontier` builds the full SDK (`@raystack/frontier@0.32.1` — root `dist` + `client/dist` + `admin/dist` + `hooks/dist`), and `pnpm dev --filter=admin` starts Vite `4.5.14` on [http://localhost:5173](http://localhost:5173). (Admin runs Vite 4; client-demo runs Vite 7.)
+Because `dev` skips the build, it serves whatever is currently in `sdk/*/dist` —
+handy for a fast restart when the SDK is already built. To bring up the admin app
+and client-demo together, `pnpm start` runs both in parallel (`:5173` and `:3000`).
+
+> Confirmed working: both forms build the full SDK (`@raystack/frontier@0.32.1` — root `dist` + `client/dist` + `admin/dist` + `hooks/dist`) and start Vite `4.5.14` on [http://localhost:5173](http://localhost:5173). (Admin runs Vite 4; client-demo runs Vite 7.)
 
 Set the endpoint in `frontier/web/apps/admin/.env` (see [§5](#5-env-file-reference) for the full file):
 
@@ -98,6 +116,14 @@ The **client SDK** (`@raystack/frontier/client`) is separate from the admin app.
 Pick a mode based on whether you're editing the SDK.
 
 **Mode A — run only (not editing the SDK)** — build once, then start:
+
+```bash
+cd frontier/web
+pnpm install
+pnpm start:client                            # build the SDK, then demo → :3000
+```
+
+Or the same two steps run explicitly:
 
 ```bash
 cd frontier/web
