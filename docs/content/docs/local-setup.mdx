@@ -88,20 +88,18 @@ Set the endpoint in `frontier/web/apps/admin/.env` (see [§5](#5-env-file-refere
 - **Case A — no local backend (remote dev):** shared backend, real data, nothing else to run.
 
   ```bash
-  FRONTIER_API_URL=https://<remote-frontier-host>/frontier
   FRONTIER_CONNECTRPC_URL=https://<remote-frontier-host>/frontier-connect
   ```
 
 - **Case B — with local backend:** points at `:8002`; requires the backend running first (§1); isolated local data.
 
   ```bash
-  FRONTIER_API_URL=http://localhost:8002/frontier
   FRONTIER_CONNECTRPC_URL=http://localhost:8002/
   ```
 
 **Important**
 
-- Only these two vars change between cases.
+- This is the only var that changes between cases.
 - `.env` is read **only at startup** — after editing, fully stop and restart Vite (hot-reload won't pick it up).
 - The SDK does **not** need rebuilding for an endpoint change — the endpoint lives in `vite.config.ts` (proxy) + `src/connect/transport.tsx`, not the SDK.
 
@@ -190,22 +188,23 @@ FRONTIER_CONNECT_ENDPOINT=https://<remote-frontier-host>/frontier-connect
 
 ## 5. Env file reference
 
-**File:** `frontier/web/apps/admin/.env` — both pairs live in the file; comment out one, uncomment the other to switch (then restart the dev server). Shown pointing at the **local** backend:
+**File:** `frontier/web/apps/admin/.env` — both lines live in the file; comment out one, uncomment the other to switch (then restart the dev server). Shown pointing at the **local** backend:
 
 ```bash
 # Remote dev
-# FRONTIER_API_URL=https://<remote-frontier-host>/frontier
 # FRONTIER_CONNECTRPC_URL=https://<remote-frontier-host>/frontier-connect
 
 # Local backend
-FRONTIER_API_URL=http://localhost:8002/frontier
 FRONTIER_CONNECTRPC_URL=http://localhost:8002/
 ```
 
 | Variable | Meaning |
 |---|---|
-| `FRONTIER_API_URL` | Base REST API URL used by the app. |
 | `FRONTIER_CONNECTRPC_URL` | Connect-RPC target; in dev the Vite proxy forwards `/frontier-connect` → this URL (`frontier/web/apps/admin/vite.config.ts`). |
+
+The admin app talks to the backend over Connect-RPC only, so this is the single
+variable it needs. `apps/admin/.env.example` also lists a commented-out
+`FRONTIER_API_URL` — nothing in the app reads it, and it can be ignored.
 
 ---
 
