@@ -475,8 +475,7 @@ func buildAPIDependencies(
 		authnService, policyService, preferenceService, roleService)
 	authnService.SetOrgService(organizationService)
 	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService, policyService,
-		authnService, serviceUserService, groupService, roleService)
+	projectService := project.NewService(projectRepository, relationService, policyService, authnService)
 
 	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, serviceUserService, auditRecordRepository)
 	// Setter injection: org/group/project → membership is circular (membership
