@@ -356,7 +356,6 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 				Name:        "test-product",
 				Title:       "Test Product",
 				Description: "Test Product",
-				PlanId:      "",
 				Prices: []*frontierv1beta1.Price{
 					{
 						Currency: "usd",
@@ -396,7 +395,6 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 				Name:        "test-product-2",
 				Title:       "Test Product-2",
 				Description: "Test Product-2",
-				PlanId:      "",
 				Prices: []*frontierv1beta1.Price{
 					{
 						Currency: "usd",
@@ -425,7 +423,6 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 				Name:        "test-product-2",
 				Title:       "Test Product-2",
 				Description: "Test Product-2",
-				PlanId:      "",
 				Features: []*frontierv1beta1.Feature{
 					{
 						Name: "test-feature-2",
@@ -452,7 +449,6 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 				Name:        "test-product-3",
 				Title:       "Test Product-3",
 				Description: "Test Product-3",
-				PlanId:      "",
 				Prices: []*frontierv1beta1.Price{
 					{
 						Currency: "usd",
@@ -528,7 +524,6 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 				Name:        "store-credits",
 				Title:       "Store Credits",
 				Description: "Store Credits",
-				PlanId:      "",
 				Prices: []*frontierv1beta1.Price{
 					{
 						Currency: "usd",
@@ -663,7 +658,6 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 			Name:        "store-credits-usage",
 			Title:       "Store Credits",
 			Description: "Store Credits",
-			PlanId:      "",
 			Prices: []*frontierv1beta1.Price{
 				{
 					Currency: "usd",
