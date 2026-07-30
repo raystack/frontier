@@ -135,15 +135,27 @@ func TestDiffBillingProducts(t *testing.T) {
 		assert.ErrorContains(t, err, "listed more than once")
 	})
 
-	// The server merges rather than full-writes, so the diff must not plan
-	// changes the server would silently drop, or it would loop forever.
-	t.Run("does not plan a change for an omitted title or zero credit amount", func(t *testing.T) {
+	// title, description, and config are full-write: the server writes them as
+	// given, so a reset toward empty or zero is a plannable change.
+	t.Run("plans a reset when the file omits a title the server has", func(t *testing.T) {
 		s := newBillingProduct()
-		s.Title = ""              // server keeps its title when the file omits it
-		s.Config.CreditAmount = 0 // server keeps credit_amount when it is zero
+		s.Title = "" // an omitted title resets the server's title
 		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
 		assert.NoError(t, err)
-		assert.Empty(t, ops)
+		if assert.Len(t, ops, 1) {
+			assert.Equal(t, opUpdate, ops[0].action)
+			assert.Contains(t, ops[0].detail, "title")
+		}
+	})
+
+	t.Run("plans a reset when the file zeroes a credit amount the server has", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Config.CreditAmount = 0 // a zeroed config field resets it
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.NoError(t, err)
+		if assert.Len(t, ops, 1) {
+			assert.Contains(t, ops[0].detail, "config")
+		}
 	})
 
 	t.Run("does not plan a behavior change", func(t *testing.T) {
