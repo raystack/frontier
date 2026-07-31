@@ -14,16 +14,6 @@
   transition: width 0.3s ease;
 }
 
-.navbar {
-  padding: var(--rs-space-4) var(--rs-space-7);
-  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
-  background: var(--rs-color-background-base-primary);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: var(--rs-space-11);
-}
-
 .navbar-action-menu-content {
   min-width: 160px;
 }
@@ -72,8 +62,4 @@
 /* For Firefox */
 .add-token-dialog-tokens-field {
   -moz-appearance: textfield;
-}
-
-.nav-chip {
-  cursor: pointer;
 }

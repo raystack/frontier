@@ -47,9 +47,11 @@ const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 export const ProjectMembersDialog = ({
   projectId,
   onClose,
+  canAddMember,
 }: {
   projectId: string;
   onClose: () => void;
+  canAddMember: boolean;
 }) => {
   const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;
@@ -229,6 +231,7 @@ export const ProjectMembersDialog = ({
                   <AddMembersDropdown
                     projectId={projectId}
                     refetchMembers={refetchMembers}
+                    disabled={!canAddMember}
                   />
                 </Flex>
                 <DataTable.Content

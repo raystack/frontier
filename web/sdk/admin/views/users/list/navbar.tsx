@@ -6,7 +6,7 @@ import {
   IconButton,
   Spinner,
 } from "@raystack/apsara";
-import styles from "./list.module.css";
+import styles from "../../../components/navbar.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import UserIcon from "../../../assets/icons/UsersIcon";
 import React, { useState } from "react";
@@ -53,8 +53,6 @@ const Navbar = ({ searchQuery, onExportUsers }: NavbarProps) => {
         </Text>
       </Flex>
       <Flex align="center" gap={4}>
-        <InviteUser />
-        <Separator orientation="vertical" size="small" />
         {showSearch ? (
           <DataTable.Search
             autoFocus
@@ -63,14 +61,18 @@ const Navbar = ({ searchQuery, onExportUsers }: NavbarProps) => {
             onBlur={onSearchBlur}
           />
         ) : (
-          <IconButton
-            size={3}
-            aria-label="Search"
-            data-test-id="admin-search-users-btn"
-            onClick={toggleSearch}
-          >
-            <MagnifyingGlassIcon />
-          </IconButton>
+          <>
+            <InviteUser />
+            <Separator orientation="vertical" size="small" />
+            <IconButton
+              size={3}
+              aria-label="Search"
+              data-test-id="admin-search-users-btn"
+              onClick={toggleSearch}
+            >
+              <MagnifyingGlassIcon />
+            </IconButton>
+          </>
         )}
         <IconButton
           size={3}

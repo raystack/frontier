@@ -1,5 +1,5 @@
 import { DataTable, Flex, IconButton, Text } from "@raystack/apsara";
-import styles from "./invoices.module.css";
+import styles from "../../components/navbar.module.css";
 import { InvoicesIcon } from "../../assets/icons/InvoicesIcon";
 import { FocusEvent, useState } from "react";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";

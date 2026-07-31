@@ -10,6 +10,7 @@ import {
   getAvatarColor,
   Text,
   AlertDialog,
+  IconButton,
 } from "@raystack/apsara";
 import type { DataTableColumnDef } from "@raystack/apsara";
 import { DotsHorizontalIcon, UpdateIcon } from "@radix-ui/react-icons";
@@ -98,7 +99,16 @@ export const getColumns = ({
         );
         return (
           <Menu>
-            <Menu.Trigger render={<DotsHorizontalIcon />} />
+            <Menu.Trigger
+              render={
+                <IconButton
+                  size={3}
+                  data-test-id="admin-project-member-action-menu"
+                >
+                  <DotsHorizontalIcon />
+                </IconButton>
+              }
+            />
             <Menu.Content
               side="bottom"
               align="end"

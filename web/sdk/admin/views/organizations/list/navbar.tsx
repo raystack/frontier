@@ -8,7 +8,7 @@ import {
   Spinner,
 } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
-import styles from "./list.module.css";
+import styles from "../../../components/navbar.module.css";
 import {
   DownloadIcon,
   MagnifyingGlassIcon,
@@ -64,16 +64,6 @@ export const OrganizationsNavabar = ({
         </Text>
       </Flex>
       <Flex align="center" gap={4}>
-        <Button
-          variant="text"
-          color="neutral"
-          leadingIcon={<PlusIcon />}
-          data-test-id="admin-create-organization-btn"
-          onClick={openCreatePanel}
-        >
-          New {t.organization({ case: "capital" })}
-        </Button>
-        <Separator orientation="vertical" size="small" />
         {showSearch ? (
           <DataTable.Search
             showClearButton={true}
@@ -82,14 +72,26 @@ export const OrganizationsNavabar = ({
             autoFocus
           />
         ) : (
-          <IconButton
-            size={3}
-            aria-label="Search"
-            data-test-id="admin-search-organization-btn"
-            onClick={toggleSearch}
-          >
-            <MagnifyingGlassIcon />
-          </IconButton>
+          <>
+            <Button
+              variant="text"
+              color="neutral"
+              leadingIcon={<PlusIcon />}
+              data-test-id="admin-create-organization-btn"
+              onClick={openCreatePanel}
+            >
+              New {t.organization({ case: "capital" })}
+            </Button>
+            <Separator orientation="vertical" size="small" />
+            <IconButton
+              size={3}
+              aria-label="Search"
+              data-test-id="admin-search-organization-btn"
+              onClick={toggleSearch}
+            >
+              <MagnifyingGlassIcon />
+            </IconButton>
+          </>
         )}
         {onExportCsv ? (
           <IconButton
