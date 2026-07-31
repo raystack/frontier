@@ -195,6 +195,63 @@ func (_c *PlanService_List_Call) RunAndReturn(run func(context.Context, plan.Fil
 	return _c
 }
 
+// UpdatePlan provides a mock function with given fields: ctx, _a1
+func (_m *PlanService) UpdatePlan(ctx context.Context, _a1 plan.Plan) (plan.Plan, error) {
+	ret := _m.Called(ctx, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePlan")
+	}
+
+	var r0 plan.Plan
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, plan.Plan) (plan.Plan, error)); ok {
+		return rf(ctx, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, plan.Plan) plan.Plan); ok {
+		r0 = rf(ctx, _a1)
+	} else {
+		r0 = ret.Get(0).(plan.Plan)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, plan.Plan) error); ok {
+		r1 = rf(ctx, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PlanService_UpdatePlan_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdatePlan'
+type PlanService_UpdatePlan_Call struct {
+	*mock.Call
+}
+
+// UpdatePlan is a helper method to define mock.On call
+//   - ctx context.Context
+//   - _a1 plan.Plan
+func (_e *PlanService_Expecter) UpdatePlan(ctx interface{}, _a1 interface{}) *PlanService_UpdatePlan_Call {
+	return &PlanService_UpdatePlan_Call{Call: _e.mock.On("UpdatePlan", ctx, _a1)}
+}
+
+func (_c *PlanService_UpdatePlan_Call) Run(run func(ctx context.Context, _a1 plan.Plan)) *PlanService_UpdatePlan_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(plan.Plan))
+	})
+	return _c
+}
+
+func (_c *PlanService_UpdatePlan_Call) Return(_a0 plan.Plan, _a1 error) *PlanService_UpdatePlan_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *PlanService_UpdatePlan_Call) RunAndReturn(run func(context.Context, plan.Plan) (plan.Plan, error)) *PlanService_UpdatePlan_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpsertPlans provides a mock function with given fields: ctx, planFile
 func (_m *PlanService) UpsertPlans(ctx context.Context, planFile plan.File) error {
 	ret := _m.Called(ctx, planFile)

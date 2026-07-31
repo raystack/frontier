@@ -73,6 +73,26 @@ func (s Service) Create(ctx context.Context, p Plan) (Plan, error) {
 	return s.planRepository.Create(ctx, p)
 }
 
+// UpdatePlan updates a plan's own fields: title, description, credits, trial
+// days, state, and metadata. A plan's products are managed through UpsertPlans,
+// so they are left untouched here. The plan is looked up by id or name.
+func (s Service) UpdatePlan(ctx context.Context, p Plan) (Plan, error) {
+	existing, err := s.GetByID(ctx, p.ID)
+	if err != nil {
+		return Plan{}, err
+	}
+	existing.Title = p.Title
+	existing.Description = p.Description
+	existing.OnStartCredits = p.OnStartCredits
+	existing.TrialDays = p.TrialDays
+	existing.State = p.State
+	existing.Metadata = p.Metadata
+	if _, err := s.planRepository.UpdateByName(ctx, existing); err != nil {
+		return Plan{}, err
+	}
+	return s.GetByID(ctx, existing.ID)
+}
+
 func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
 	var fetchedPlan Plan
 	var err error
