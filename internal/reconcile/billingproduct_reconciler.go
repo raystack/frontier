@@ -8,6 +8,7 @@ import (
 
 	"buf.build/go/protovalidate"
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/product"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/proto"
 )
@@ -124,7 +125,15 @@ func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
 			Behavior:    c.Behavior,
 			Config:      c.Config,
 		}
-		entry.Prices = append(entry.Prices, c.Prices...)
+		for _, pr := range c.Prices {
+			// metered_aggregate only applies to a metered price; drop it for the
+			// rest so a licensed price does not read like a metered one. The diff
+			// fills the default back in, so the round trip still plans nothing.
+			if !strings.EqualFold(pr.UsageType, string(product.PriceUsageTypeMetered)) {
+				pr.MeteredAggregate = ""
+			}
+			entry.Prices = append(entry.Prices, pr)
+		}
 		sort.Slice(entry.Prices, func(i, j int) bool { return entry.Prices[i].Name < entry.Prices[j].Name })
 		for _, name := range uniqueSorted(c.Features) {
 			entry.Features = append(entry.Features, BillingFeatureRef{Name: name})
@@ -135,6 +144,11 @@ func (r *BillingProductReconciler) Export(ctx context.Context) (any, error) {
 }
 
 func (r *BillingProductReconciler) fetchCurrent(ctx context.Context) ([]currentBillingProduct, []string, error) {
+	// ListProducts returns every product in one response; it does not paginate.
+	// The "every product must appear in the file" rule in diffBillingProducts
+	// relies on that: if the API ever paginates, a product past the first page
+	// would look missing here and the plan would try to recreate it, failing on
+	// the unique name.
 	resp, err := r.client.ListProducts(ctx, authReq(&frontierv1beta1.ListProductsRequest{}, r.header))
 	if err != nil {
 		return nil, nil, fmt.Errorf("list products: %w", err)
@@ -222,10 +236,7 @@ func checkOutOfScope(specs []BillingProductSpec, outOfScope []string) error {
 // the check cannot drift from the server's, since both come from the same
 // generated descriptors.
 func validateBillingProductRequest(op billingProductOp) error {
-	body, err := billingProductBody(op.spec)
-	if err != nil {
-		return err
-	}
+	body := billingProductBody(op.spec)
 	var msg proto.Message
 	switch op.action {
 	case opAdd:
@@ -242,16 +253,13 @@ func validateBillingProductRequest(op billingProductOp) error {
 }
 
 func (r *BillingProductReconciler) apply(ctx context.Context, op billingProductOp) error {
-	body, err := billingProductBody(op.spec)
-	if err != nil {
-		return err
-	}
+	body := billingProductBody(op.spec)
 	switch op.action {
 	case opAdd:
-		_, err = r.client.CreateProduct(ctx, authReq(&frontierv1beta1.CreateProductRequest{Body: body}, r.header))
+		_, err := r.client.CreateProduct(ctx, authReq(&frontierv1beta1.CreateProductRequest{Body: body}, r.header))
 		return err
 	case opUpdate:
-		_, err = r.client.UpdateProduct(ctx, authReq(&frontierv1beta1.UpdateProductRequest{Id: op.id, Body: body}, r.header))
+		_, err := r.client.UpdateProduct(ctx, authReq(&frontierv1beta1.UpdateProductRequest{Id: op.id, Body: body}, r.header))
 		return err
 	default:
 		return fmt.Errorf("unknown op action %q", op.action)
@@ -262,7 +270,7 @@ func (r *BillingProductReconciler) apply(ctx context.Context, op billingProductO
 // desired product is sent: UpdateProduct converges the prices and features on the
 // server, so the reconciler does not compute per-price calls itself. Metadata is
 // out of scope for this kind, so it is never sent, read, or exported.
-func billingProductBody(s BillingProductSpec) (*frontierv1beta1.ProductRequestBody, error) {
+func billingProductBody(s BillingProductSpec) *frontierv1beta1.ProductRequestBody {
 	prices := make([]*frontierv1beta1.Price, 0, len(s.Prices))
 	for _, p := range s.Prices {
 		// lowercase the case-insensitive fields so a value written in another
@@ -295,7 +303,7 @@ func billingProductBody(s BillingProductSpec) (*frontierv1beta1.ProductRequestBo
 			MinQuantity:  s.Config.MinQuantity,
 			MaxQuantity:  s.Config.MaxQuantity,
 		},
-	}, nil
+	}
 }
 
 // billingPriceStateActive reports whether a price state read from the server
