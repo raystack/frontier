@@ -44,6 +44,7 @@ func TestValidateBillingProductSpec(t *testing.T) {
 		{"empty title", func(s *BillingProductSpec) { s.Title = "" }, "must have a title"},
 		{"delete is rejected", func(s *BillingProductSpec) { s.Delete = true }, "cannot be deleted"},
 		{"empty price name", func(s *BillingProductSpec) { s.Prices[0].Name = "" }, "price with no name"},
+		{"empty feature name", func(s *BillingProductSpec) { s.Features[0].Name = "" }, "feature with no name"},
 		{"negative amount", func(s *BillingProductSpec) { s.Prices[0].Amount = -1 }, "negative amount"},
 		{"tiered scheme rejected", func(s *BillingProductSpec) { s.Prices[0].BillingScheme = "tiered" }, "does not support"},
 		{"duplicate price name", func(s *BillingProductSpec) {
@@ -226,9 +227,30 @@ func TestDiffBillingProducts(t *testing.T) {
 		s.Prices = append(s.Prices, BillingPriceSpec{Name: "yearly", Amount: 1000, Currency: "usd", Interval: "year"})
 		// map iteration order must not change the outcome: the immutable check
 		// runs over every name before any add is considered, so this always fails.
-		for i := 0; i < 25; i++ {
+		for range 25 {
 			_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
 			assert.ErrorContains(t, err, "immutable")
 		}
+	})
+
+	t.Run("does not plan a change when a metered price omits its aggregate", func(t *testing.T) {
+		cur := curToken()
+		cur.Prices = []BillingPriceSpec{{
+			Name: "default", Amount: 100, Currency: "usd", Interval: "month",
+			UsageType: "metered", BillingScheme: "flat", MeteredAggregate: "sum",
+		}}
+		s := newBillingProduct()
+		s.Prices[0].UsageType = "metered" // aggregate omitted; "sum" is the default for metered
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{cur})
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	t.Run("does not plan a change for a licensed price carrying a stray aggregate", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Prices[0].MeteredAggregate = "max" // ignored for a licensed price, so no change
+		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
 	})
 }
