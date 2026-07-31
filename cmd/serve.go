@@ -34,7 +34,7 @@ import (
 	"github.com/raystack/frontier/core/userpat"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"github.com/stripe/stripe-go/v79"
 
 	prometheusmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
@@ -86,7 +86,7 @@ import (
 	"github.com/raystack/frontier/core/deleter"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/metaschema"
@@ -475,8 +475,7 @@ func buildAPIDependencies(
 		authnService, policyService, preferenceService, roleService)
 	authnService.SetOrgService(organizationService)
 	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService, policyService,
-		authnService, serviceUserService, groupService, roleService)
+	projectService := project.NewService(projectRepository, relationService, policyService, authnService)
 
 	membershipService := membership.NewService(logger, policyService, relationService, roleService, organizationService, userService, projectService, groupService, serviceUserService, auditRecordRepository)
 	// Setter injection: org/group/project → membership is circular (membership

@@ -23,18 +23,29 @@ Frontend monorepo for [Frontier](https://github.com/raystack/frontier). Managed 
 pnpm install
 ```
 
-### Run a dev server
+### Run an app
 
-Run everything in parallel:
+`start` builds the SDK first, then boots the app's dev server — use it when you
+have a clean checkout or have just changed SDK code:
 
 ```sh
-pnpm dev
+# from frontier/web
+pnpm start:admin    # SDK build → admin  on :5173
+pnpm start:client   # SDK build → client-demo on :3000
+pnpm start          # both apps in parallel
 ```
 
-Or target a single app with a Turbo filter:
+The SDK build is cached by Turbo, so repeat runs skip it when nothing under
+`sdk/` changed.
+
+### Run a dev server
+
+`dev` skips the SDK build and starts the app straight away — faster, but it
+serves whatever is already in `sdk/*/dist`:
 
 ```sh
-pnpm dev --filter=admin
+pnpm dev                      # everything in parallel
+pnpm dev --filter=admin       # or target one app with a Turbo filter
 pnpm dev --filter=client-demo
 ```
 

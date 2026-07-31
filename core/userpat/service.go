@@ -3,6 +3,7 @@ package userpat
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha3"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -24,7 +25,6 @@ import (
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	pkgUtils "github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
-	"golang.org/x/crypto/sha3"
 )
 
 // supportedPATResourceTypes defines resource types allowed for PAT scopes.

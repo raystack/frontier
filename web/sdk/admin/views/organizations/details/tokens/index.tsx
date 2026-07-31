@@ -5,14 +5,14 @@ import { CoinIcon } from "@raystack/apsara/icons";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
-import { PageTitle } from "../../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "~/utils/connect-pagination";
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { getColumns } from "./columns";
 import { useDebouncedValue } from "~hooks";
-import { useTerminology } from "../../../../hooks/useTerminology";
+import { useTerminology } from "~/admin/hooks/useTerminology";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -38,10 +38,23 @@ const NoTokens = () => {
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No tokens present"
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
+      heading="No token present"
+      subHeading="We couldn't find any matches for that keyword. Try alternative terms or check for typos."
       icon={<CoinIcon />}
     />
+  );
+};
+
+const ZeroState = () => {
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        icon={<CoinIcon />}
+        heading="Tokens"
+        subHeading="Tokens serve as a flexible currency, allowing organizations to access services like satellite imagery orders and advanced analytics. They provide a scalable way to manage resources and adapt to evolving needs."
+      />
+    </div>
   );
 };
 
@@ -114,6 +127,16 @@ export function OrganizationTokensView() {
     infiniteData?.pages?.flatMap(page => page.organizationTokens) || [];
   const loading = (isLoading || isFetchingNextPage) && !isError;
 
+  /*
+   * DataTable seeds its query once at mount, so it never sees the org-context
+   * search. Hence picking the state here instead of via the zeroState prop.
+   */
+  const hasActiveQuery = Boolean(
+    searchQuery?.trim() || tableQuery.filters?.length,
+  );
+  const showZeroState =
+    !isLoading && !isError && !hasActiveQuery && data.length === 0;
+
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
   };
@@ -149,7 +172,7 @@ export function OrganizationTokensView() {
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
           <DataTable.Content
-            emptyState={isError ? <ErrorState /> : <NoTokens />}
+            emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoTokens />}
             classNames={{
               table: styles["table"],
               root: styles["table-wrapper"],

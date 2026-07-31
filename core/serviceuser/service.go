@@ -3,6 +3,7 @@ package serviceuser
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha3"
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
@@ -11,8 +12,6 @@ import (
 	"io"
 	"log/slog"
 	"time"
-
-	"golang.org/x/crypto/sha3"
 
 	"golang.org/x/crypto/bcrypt"
 

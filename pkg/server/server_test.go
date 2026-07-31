@@ -77,6 +77,81 @@ func TestGracefulShutdownDrainsInflightRequests(t *testing.T) {
 	}
 }
 
+func TestGracefulShutdownDrainsInflightHTTP2Requests(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	entered := make(chan struct{})
+	requestDone := make(chan struct{})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/slow", func(w http.ResponseWriter, r *http.Request) {
+		close(entered)
+		time.Sleep(300 * time.Millisecond)
+		close(requestDone)
+		w.WriteHeader(http.StatusOK)
+	})
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	protocols := new(http.Protocols)
+	protocols.SetHTTP1(true)
+	protocols.SetUnencryptedHTTP2(true)
+	srv := &http.Server{Handler: mux, Protocols: protocols}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go gracefulShutdown(ctx, logger, &wg, srv, "test server", 5*time.Second, make(chan struct{}))
+
+	serveReturned := make(chan struct{})
+	go func() {
+		defer close(serveReturned)
+		if err := srv.Serve(l); err != nil && err != http.ErrServerClosed {
+			t.Errorf("serve failed: %v", err)
+		}
+	}()
+
+	requestErr := make(chan error, 1)
+	go func() {
+		resp, err := unencryptedHTTP2Client().Get(fmt.Sprintf("http://%s/slow", l.Addr()))
+		if err == nil {
+			resp.Body.Close()
+			if resp.Proto != "HTTP/2.0" {
+				err = fmt.Errorf("expected HTTP/2.0, got %s", resp.Proto)
+			} else if resp.StatusCode != http.StatusOK {
+				err = fmt.Errorf("unexpected status %d", resp.StatusCode)
+			}
+		}
+		requestErr <- err
+	}()
+
+	<-entered
+	cancel()
+
+	<-serveReturned
+	wg.Wait()
+
+	select {
+	case <-requestDone:
+	default:
+		t.Fatal("shutdown wait released before the in-flight request finished")
+	}
+	if err := <-requestErr; err != nil {
+		t.Fatalf("in-flight request failed: %v", err)
+	}
+}
+
+// unencryptedHTTP2Client speaks HTTP/2 by prior knowledge on plain TCP, the
+// way gRPC and ConnectRPC clients reach the connect port.
+func unencryptedHTTP2Client() *http.Client {
+	protocols := new(http.Protocols)
+	protocols.SetUnencryptedHTTP2(true)
+	return &http.Client{Transport: &http.Transport{Protocols: protocols}}
+}
+
 func TestGracefulShutdownCutsOffRequestsAfterGracePeriod(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
@@ -154,6 +229,53 @@ func waitForHTTP(t *testing.T, url string) {
 		time.Sleep(50 * time.Millisecond)
 	}
 	t.Fatalf("server did not respond at %s in time", url)
+}
+
+func TestServeConnectServesBothProtocols(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	var cfg Config
+	cfg.Connect.Port = freePort(t)
+	cfg.ShutdownGracePeriod = 5 * time.Second
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	served := make(chan error, 1)
+	go func() {
+		served <- ServeConnect(ctx, logger, cfg, api.Deps{}, prometheus.NewRegistry())
+	}()
+
+	pingURL := fmt.Sprintf("http://127.0.0.1:%d/ping", cfg.Connect.Port)
+	waitForHTTP(t, pingURL)
+
+	resp, err := http.Get(pingURL)
+	if err != nil {
+		t.Fatalf("http/1.1 request failed: %v", err)
+	}
+	resp.Body.Close()
+	if resp.Proto != "HTTP/1.1" || resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected HTTP/1.1 200, got %s %d", resp.Proto, resp.StatusCode)
+	}
+
+	resp, err = unencryptedHTTP2Client().Get(pingURL)
+	if err != nil {
+		t.Fatalf("http/2 prior-knowledge request failed: %v", err)
+	}
+	resp.Body.Close()
+	if resp.Proto != "HTTP/2.0" || resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected HTTP/2.0 200, got %s %d", resp.Proto, resp.StatusCode)
+	}
+
+	cancel()
+	select {
+	case err := <-served:
+		if err != nil {
+			t.Fatalf("ServeConnect returned error: %v", err)
+		}
+	case <-time.After(15 * time.Second):
+		t.Fatal("ServeConnect did not return after context cancel")
+	}
 }
 
 func TestServeConnectReturnsAfterShutdownOnContextCancel(t *testing.T) {

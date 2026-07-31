@@ -5,6 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: var(--rs-space-11);
 }
 
 .nav-chip {

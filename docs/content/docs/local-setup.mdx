@@ -1,0 +1,237 @@
+---
+title: Local Setup
+order: 9
+---
+
+# Frontier — Frontend & Local Setup
+
+Local dev guide for running **Frontier** (backend + frontend) on macOS.
+
+**Before you start**
+
+- **Prerequisite:** Docker Desktop installed and running (the deps run in Docker).
+- **Paths:** `frontier/` (repo root) and `frontier/web` (frontend workspace root) are fixed routes — adjust to your clone location.
+- **Endpoints:** remote-dev URLs use `<remote-frontier-host>` as a placeholder — replace it with your deployment's Frontier host.
+
+**Contents**
+
+1. [Run the backend](#1-run-the-backend)
+2. [Run the frontend (admin app)](#2-run-the-frontend-admin-app)
+3. [Run the client SDK (client-demo app)](#3-run-the-client-sdk-client-demo-app)
+4. [Gotchas](#4-gotchas)
+5. [Env file reference](#5-env-file-reference)
+6. [Ports & config reference](#6-ports--config-reference)
+
+---
+
+## 1. Run the backend
+
+Bring up the dependency containers, then run the backend against them (`config.yaml` already points at the `localhost` ports). `compose-up-dev` and `server start` each stay running — use separate terminals.
+
+```bash
+# Terminal 1 — deps (leave running)
+cd frontier
+open -a Docker                             # Docker Desktop must be running
+make compose-up-dev                        # docker-compose up --build pg pg2 spicedb-migration spicedb
+
+# Terminal 2 — backend (leave running)
+cd frontier
+go run . server migrate -c config.yaml     # create/update the app DB schema
+go run . server start -c config.yaml       # backend API on :8002
+```
+
+**First run only:** `compose-up-dev` pulls `postgres:15` + `spicedb:v1.34.0` and runs the SpiceDB migration. The `pg` container starts **empty**, so the `migrate` step is what creates the Frontier app schema — `compose-up-dev` migrates SpiceDB but **not** the app DB.
+
+**Health checks** (another terminal):
+
+- `docker ps` — `frontier-pg-1`, `frontier-pg2-1`, `frontier-spicedb-1` all `(healthy)`.
+- `lsof -nP -iTCP:8002 -sTCP:LISTEN` — backend listening.
+- `docker exec frontier-pg-1 psql -U frontier -d frontier -c '\dt' | head` — app tables exist.
+
+---
+
+## 2. Run the frontend (admin app)
+
+The admin app talks to **either** backend. Switching is **only** an env change in `frontier/web/apps/admin/.env`, then a dev-server restart.
+
+**Run steps (same for both cases)** — pnpm `10.19.0`, workspace root `frontier/web`:
+
+```bash
+cd frontier/web
+pnpm install
+pnpm start:admin                             # build the SDK, then admin dev server → :5173
+```
+
+`start:admin` does both steps in one command: it builds the SDK first and only
+then starts Vite, so it is the safe default on a fresh clone or after changing
+SDK code. Turbo caches the SDK build, so repeat runs skip it when nothing under
+`sdk/` changed.
+
+The explicit two-step form still works and is equivalent — use it when you want
+to run the two halves separately:
+
+```bash
+cd frontier/web
+pnpm install
+pnpm build --filter=@raystack/frontier      # build the SDK package
+pnpm dev --filter=admin                      # admin dev server → :5173
+```
+
+Because `dev` skips the build, it serves whatever is currently in `sdk/*/dist` —
+handy for a fast restart when the SDK is already built. To bring up the admin app
+and client-demo together, `pnpm start` runs both in parallel (`:5173` and `:3000`).
+
+> Confirmed working: both forms build the full SDK (`@raystack/frontier@0.32.1` — root `dist` + `client/dist` + `admin/dist` + `hooks/dist`) and start Vite `4.5.14` on [http://localhost:5173](http://localhost:5173). (Admin runs Vite 4; client-demo runs Vite 7.)
+
+Set the endpoint in `frontier/web/apps/admin/.env` (see [§5](#5-env-file-reference) for the full file):
+
+- **Case A — no local backend (remote dev):** shared backend, real data, nothing else to run.
+
+  ```bash
+  FRONTIER_CONNECTRPC_URL=https://<remote-frontier-host>/frontier-connect
+  ```
+
+- **Case B — with local backend:** points at `:8002`; requires the backend running first (§1); isolated local data.
+
+  ```bash
+  FRONTIER_CONNECTRPC_URL=http://localhost:8002/
+  ```
+
+**Important**
+
+- This is the only var that changes between cases.
+- `.env` is read **only at startup** — after editing, fully stop and restart Vite (hot-reload won't pick it up).
+- The SDK does **not** need rebuilding for an endpoint change — the endpoint lives in `vite.config.ts` (proxy) + `src/connect/transport.tsx`, not the SDK.
+
+---
+
+## 3. Run the client SDK (client-demo app)
+
+The **client SDK** (`@raystack/frontier/client`) is separate from the admin app. It is exercised by the client-demo app at `frontier/web/apps/client-demo`, which renders `MembersView` (invite-member dialog, roles, teams, etc.). The admin app has its own views and does **not** use these.
+
+### Run it
+
+Pick a mode based on whether you're editing the SDK.
+
+**Mode A — run only (not editing the SDK)** — build once, then start:
+
+```bash
+cd frontier/web
+pnpm install
+pnpm start:client                            # build the SDK, then demo → :3000
+```
+
+Or the same two steps run explicitly:
+
+```bash
+cd frontier/web
+pnpm install
+pnpm build --filter=@raystack/frontier      # build the SDK client/dist once
+pnpm dev --filter=client-demo               # demo on :3000
+```
+
+Then open [http://localhost:3000](http://localhost:3000) → **Settings → Members**. (Confirmed working.)
+
+**Mode B — editing SDK source (live rebuild)** — two processes:
+
+```bash
+# Terminal 1 — watch-rebuild the SDK into client/dist
+cd frontier/web
+pnpm dev --filter=@raystack/frontier         # tsup client/index.ts --watch
+```
+
+```bash
+# Terminal 2 — run the demo
+cd frontier/web
+pnpm dev --filter=client-demo                # demo on :3000
+```
+
+Now editing `frontier/web/sdk/client/...` rebuilds `dist` and Vite HMR reloads.
+
+### Backend (optional)
+
+Switched by env only in `frontier/web/apps/client-demo/.env`. It ships pointing at remote dev, so it runs with nothing else started; swap the comments to use a local backend on `:8002`. Note the **different var name** than the admin app (`FRONTIER_CONNECT_ENDPOINT`, not `FRONTIER_CONNECTRPC_URL`).
+
+```bash
+# Remote dev (DEFAULT — no local backend needed)
+FRONTIER_CONNECT_ENDPOINT=https://<remote-frontier-host>/frontier-connect
+
+# Local backend (swap the comments to use :8002)
+# FRONTIER_CONNECT_ENDPOINT=http://localhost:8002/
+```
+
+### How it works
+
+- **Why SDK source edits don't show up:** the demo imports the SDK's **built** output (`frontier/web/sdk/client/dist`) via a pnpm workspace symlink — not the source `.tsx` files, and there's no source alias in its `vite.config.ts`. So editing `frontier/web/sdk/client/...` does nothing until `client/dist` is rebuilt (hence Mode B).
+- **Endpoint proxy** (`vite.config.ts`) — all SDK traffic goes over Connect-RPC to `/frontier-connect`, which proxies to `FRONTIER_CONNECT_ENDPOINT` (strips the prefix).
+  - Proxied requests are **same-origin** (`:3000` → backend), so CORS isn't hit — `cors.allowed_origins` (`:5173`) needn't include `:3000`.
+  - `vite.config.ts` also defines a `/api` → `FRONTIER_ENDPOINT` proxy, and `src/config/frontier.ts` sets `endpoint: '/api'`. Both are dead: `endpoint` is not a field on `FrontierClientOptions` (only `connectEndpoint` is), and the built SDK contains no `/api` request. Neither needs to be set.
+- `.env` is read only at **startup** (same as admin) — restart after edits.
+- The component mounts only when its page/dialog is open, so a `console.log` in it won't fire until you navigate there.
+
+---
+
+## 4. Gotchas
+
+| Symptom | Cause / fix |
+|---|---|
+| `:5173` "connection refused" | Frontend dev server isn't running (separate from the backend). |
+| Frontend still hitting remote after editing `.env` | Vite was started **before** the edit — `Ctrl+C` and restart. |
+| `401 unauthenticated` after switching to local | Browser still holds a **remote** session cookie — log in fresh against local. |
+| Local DB is empty | Freshly-migrated local DB has no orgs/data — seed or create locally. |
+| `zsh: unknown file attribute: i` when pasting a command | Interactive zsh parses `(...)` in a trailing `#` comment as a glob qualifier. Paste **without** the inline comment, or run `setopt interactive_comments` first. |
+
+---
+
+## 5. Env file reference
+
+**File:** `frontier/web/apps/admin/.env` — both lines live in the file; comment out one, uncomment the other to switch (then restart the dev server). Shown pointing at the **local** backend:
+
+```bash
+# Remote dev
+# FRONTIER_CONNECTRPC_URL=https://<remote-frontier-host>/frontier-connect
+
+# Local backend
+FRONTIER_CONNECTRPC_URL=http://localhost:8002/
+```
+
+| Variable | Meaning |
+|---|---|
+| `FRONTIER_CONNECTRPC_URL` | Connect-RPC target; in dev the Vite proxy forwards `/frontier-connect` → this URL (`frontier/web/apps/admin/vite.config.ts`). |
+
+The admin app talks to the backend over Connect-RPC only, so this is the single
+variable it needs. `apps/admin/.env.example` also lists a commented-out
+`FRONTIER_API_URL` — nothing in the app reads it, and it can be ignored.
+
+---
+
+## 6. Ports & config reference
+
+**Ports at a glance:**
+
+| Port | Service |
+|---|---|
+| `8002` | Backend API — Connect / REST + gRPC (`app.connect.port`) |
+| `8100` | Backend admin UI (`ui.port`) |
+| `9000` | Backend metrics (`app.metrics_port`) |
+| `5432` | Postgres — frontier (`pg`) |
+| `5431` | Postgres — SpiceDB's backing DB (`pg2`) |
+| `50051` | SpiceDB — gRPC |
+| `7443` | SpiceDB — HTTP |
+| `5173` | Admin app dev server (Vite) |
+| `3000` | Client-demo app dev server (Vite) |
+
+**`config.yaml`** (repo root) — key values:
+
+| Key | Value |
+|---|---|
+| `ui.port` | `8100` |
+| `app.host` | `127.0.0.1` |
+| `app.connect.port` | `8002` |
+| `app.metrics_port` | `9000` |
+| `db.driver` | `postgres` |
+| `db.url` | `postgres://frontier:@localhost:5432/frontier?sslmode=disable` |
+| `spicedb.host` | `localhost` |
+| `spicedb.port` | `50051` |
+| `spicedb.pre_shared_key` | `frontier` |
+| `cors.allowed_origins` | `http://localhost:5173` |

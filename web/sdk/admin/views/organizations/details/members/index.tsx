@@ -1,6 +1,6 @@
 import { AlertDialog, DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
-import { PageTitle } from "../../../../components/PageTitle";
+import { PageTitle } from "~/admin/components/PageTitle";
 import styles from "./members.module.css";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { getColumns } from "./columns";
@@ -23,6 +23,7 @@ import {
 } from '~/utils/connect-pagination';
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebouncedValue } from '~hooks';
+import { useTerminology } from "~/admin/hooks/useTerminology";
 
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
@@ -41,34 +42,51 @@ const TRANSFORM_OPTIONS = {
 };
 
 const NoMembers = () => {
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="No Member found"
-      subHeading="We couldn't find any matches for that keyword or filter. Try alternative terms or check for typos."
+      heading={`No ${t.member({ case: "capital" })} found`}
+      subHeading="No results found matching the selected filters. Try adjusting or resetting them to view more results."
       icon={<UsersIcon />}
     />
   );
 };
 
+const ZeroState = () => {
+  const t = useTerminology();
+  return (
+    <div className={styles["zero-state-container"]}>
+      <EmptyState
+        variant="empty2"
+        icon={<UsersIcon />}
+        heading={t.member({ plural: true, case: "capital" })}
+        subHeading={`${t.member({ plural: true, case: "capital" })} are ${t.user({ plural: true, case: "lower" })} who belong to this ${t.organization({ case: "lower" })} and can access its resources.`}
+      />
+    </div>
+  );
+};
+
 const ErrorState = () => {
+  const t = useTerminology();
   return (
     <EmptyState
       classNames={{
         container: styles["empty-state"],
         subHeading: styles["empty-state-subheading"],
       }}
-      heading="Error Loading Members"
-      subHeading="Something went wrong while loading organization members. Please try refreshing the page."
+      heading={`Error Loading ${t.member({ plural: true, case: "capital" })}`}
+      subHeading={`Something went wrong while loading ${t.organization({ case: "lower" })} ${t.member({ plural: true, case: "lower" })}. Please try refreshing the page.`}
       icon={<ExclamationTriangleIcon />}
     />
   );
 };
 
 export function OrganizationMembersView() {
+  const t = useTerminology();
   const { roles = [], organization, search } = useContext(OrganizationContext);
   const {
     onChange: onSearchChange,
@@ -85,7 +103,7 @@ export function OrganizationMembersView() {
     user: SearchOrganizationUsersResponse_OrganizationUser | null;
   }>({ isOpen: false, user: null });
 
-  const title = `Members | ${organization?.title} | Organizations`;
+  const title = `${t.member({ plural: true, case: "capital" })} | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
@@ -126,6 +144,16 @@ export function OrganizationMembersView() {
   // only used to prevent removing the last remaining member.
   const memberCount = data.length;
   const loading = (isLoading || isFetchingNextPage) && !isError;
+
+  /*
+   * DataTable seeds its query once at mount, so it never sees the org-context
+   * search. Hence picking the state here instead of via the zeroState prop.
+   */
+  const hasActiveQuery = Boolean(
+    searchQuery?.trim() || tableQuery.filters?.length,
+  );
+  const showZeroState =
+    !isLoading && !isError && !hasActiveQuery && data.length === 0;
 
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
@@ -216,7 +244,7 @@ export function OrganizationMembersView() {
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content
-              emptyState={isError ? <ErrorState /> : <NoMembers />}
+              emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoMembers />}
               classNames={{
                 table: styles["table"],
                 root: styles["table-wrapper"],

@@ -2,7 +2,6 @@ import {
   Avatar,
   Button,
   Menu,
-  Flex,
   getAvatarColor,
   Text,
 } from "@raystack/apsara";
@@ -14,6 +13,7 @@ import { useAddProjectMembers } from "../use-add-project-members";
 interface AddMembersDropdownProps {
   projectId: string;
   refetchMembers: () => Promise<void>;
+  disabled?: boolean;
 }
 
 function Loader() {
@@ -31,6 +31,7 @@ function Loader() {
 export function AddMembersDropdown({
   projectId,
   refetchMembers,
+  disabled,
 }: AddMembersDropdownProps) {
   const { eligibleMembers, isLoading, addMember, setSearchQuery } =
     useAddProjectMembers({
@@ -52,7 +53,11 @@ export function AddMembersDropdown({
       autocompleteMode="manual"
     >
       <Menu.Trigger
-        render={<Button data-test-id="add-project-member-btn">Add member</Button>}
+        render={
+          <Button disabled={disabled} data-test-id="add-project-member-btn">
+            Add member
+          </Button>
+        }
       />
       <Menu.Content
         side="bottom"

@@ -8,7 +8,7 @@ import {
 } from "@raystack/apsara";
 import { SidebarIcon } from "@raystack/apsara/icons";
 import UserIcon from "../../../../assets/icons/UsersIcon";
-import styles from "./navbar.module.css";
+import styles from "../../../../components/navbar.module.css";
 import { getUserName } from "../../util";
 import { useUser } from "../user-context";
 import { useTerminology } from "../../../../hooks/useTerminology";

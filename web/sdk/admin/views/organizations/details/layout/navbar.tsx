@@ -15,6 +15,7 @@ import {
 } from "@raystack/apsara";
 
 import styles from "./layout.module.css";
+import navbarStyles from "../../../../components/navbar.module.css";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { InviteUsersDialog } from "./invite-users-dialog";
 import { AddTokensDialog } from "./add-tokens-dialog";
@@ -267,7 +268,7 @@ const NavLinks = ({
             key={link.path + i}
             data-state={isActive ? "active" : undefined}
             variant={"filled"}
-            className={styles["nav-chip"]}
+            className={navbarStyles["nav-chip"]}
             onClick={() => onNavigate(link.path)}
             data-test-id={`admin-nav-link-${link.name}`}
           >
@@ -314,7 +315,7 @@ export const OrganizationsDetailsNavabar = ({
   }
 
   return (
-    <nav className={styles.navbar}>
+    <nav className={navbarStyles.navbar}>
       <Flex gap={4} align="center">
         <Breadcrumb size="small">
           <Breadcrumb.Item

@@ -1,6 +1,6 @@
 import { DataTable, Flex, Text, IconButton, Spinner } from "@raystack/apsara";
 import { CpuChipIcon } from "../../assets/icons/CpuChipIcon";
-import styles from "./audit-logs.module.css";
+import styles from "../../components/navbar.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import React, { useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
