@@ -6,20 +6,13 @@ order: 16
 # Frontier Admin Console — Deployment Guide
 
 How a [raystack/frontier](https://github.com/raystack/frontier) admin console deployment is built,
-configured, deployed, verified, and rolled back.
+configured, deployed, verified, and rolled back. Applies to any Helm-on-Kubernetes deployment.
 
-**About this doc**
-
-| | |
-|---|---|
-| **Documents** | A deployment of [raystack/frontier](https://github.com/raystack/frontier) — the console itself is open source |
-| **Maintained in** | The deployment repo (referred to below as the **deploy repo**) |
-| **Config lives in** | A separate **configs repo** → `frontier/` — **not** in the deploy repo |
-| **Endpoints & values** | Examples use `frontier-admin.<env>.example.com` / `frontier-connect.<env>.example.com`; substitute the deployment's actual hosts. Hosts behind an internal load balancer require a VPN connection |
-| **Local setup** | See the deployment's local-setup doc (referenced below as *local setup*) |
-
-> **Read [How it works](#1-how-it-works) first** — every procedure follows from those four facts.
-> Verified against `raystack/frontier` `v0.112.1`; re-verify paths against the deployed tag.
+> **Everything here is illustrative except the `raystack/frontier` paths.** Hosts (`<admin-host>`,
+> `<connect-host>`), ports, filenames, pipeline details, and secrets tooling are placeholders —
+> substitute your deployment's actual values. Ports shown are the upstream defaults from
+> [`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml).
+> Verified against `v0.112.1`; re-verify paths against the deployed tag.
 
 **Contents**
 
@@ -31,107 +24,91 @@ configured, deployed, verified, and rolled back.
 6. [Roll back](#6-roll-back)
 7. [Cut a release (upstream `frontier`)](#7-cut-a-release-upstream-frontier)
 8. [Gotchas](#8-gotchas)
-9. [Ports & config reference](#9-ports--config-reference)
 
 ---
 
 ## 1. How it works
 
-1. **The console is embedded in the backend.** A React 19 / Vite SPA, compiled to static assets and
-   baked into the Go binary at build time (`//go:embed all:dist`, `web/apps/admin/embed.go`). No
-   Node.js in production.
+Every procedure below follows from four facts:
+
+1. **The console is embedded in the backend.** A React/Vite SPA, compiled to static assets and baked
+   into the Go binary at build time (`//go:embed all:dist`, `web/apps/admin/embed.go`). No Node.js
+   in production.
 2. **One image serves every environment.** The SPA fetches its config at runtime from `GET /configs`;
    nothing environment-specific is compiled in.
-3. **Three repos, three jobs.** `raystack/frontier` builds and publishes the image; the **configs
-   repo** holds each environment's config (e.g. as consul-template files rendered from a secrets
-   backend such as Vault); the **deploy repo** holds the base Helm values and the workflows that
-   render config and deploy.
+3. **Everything environment-specific lives outside the image** — each environment's Frontier config
+   (the `ui:` block, `app.admin.bootstrap`, ingress, etc.), typically rendered at deploy time from a
+   secrets backend and mounted into the pod as a ConfigMap.
 4. **Backend and console are one artifact** — they version, deploy, and roll back together. The
    console cannot roll back alone.
 
 ```
-raystack/frontier                configs repo                  deploy repo
-─────────────────                ────────────                  ───────────
-web/apps/admin                   frontier/<env>_config.*       frontier/values.yaml
-   │ vite build → dist/admin        │ (ui:, app.admin.bootstrap)   │ (base k8s resources)
-   │ //go:embed                     │                              │
-   ▼                                ▼                              ▼
-frontier binary               config renderer + secrets     deploy workflow
-   │                                └──────────┬───────────────────┘
-   ▼                                           ▼
-docker.io/raystack/frontier:{tag} ────► helm upgrade → Kubernetes (target namespace)
-                                                 │
-                                                 ▼
-                    running pod: SPA + /configs + /frontier-connect proxy + API
+raystack/frontier                        environment config
+─────────────────                        ──────────────────
+web/apps/admin                           frontier config (ui:, app.admin.bootstrap)
+   │ vite build → dist/admin                │ rendered from secrets at deploy time
+   │ //go:embed                             │
+   ▼                                        ▼
+docker.io/raystack/frontier:{tag} ──► helm upgrade → Kubernetes
+                                            │
+                                            ▼
+                       running pod: SPA + /configs + /frontier-connect proxy + API
 ```
 
-One binary runs two HTTP servers (`cmd/serve.go`), both exposed through the ingress /
-load balancer:
+One binary runs two HTTP servers (`cmd/serve.go`), both exposed through the ingress:
 
-| Server | Config key | Example deployed port | Serves | Example ingress host (dev) |
+| Server | Config key | Default port | Serves | Ingress host |
 |---|---|---|---|---|
-| UI | `ui.port` | `3000` | SPA, `GET /configs`, `/frontier-connect/` proxy | `frontier-admin.dev.example.com` |
-| Connect/API | `app.connect.port` | `8082` | ConnectRPC/gRPC, gRPC health, `GET /ping` | `frontier-connect.dev.example.com` |
+| UI | `ui.port` | `8100` | SPA, `GET /configs`, `/frontier-connect/` proxy | `<admin-host>` |
+| Connect/API | `app.connect.port` | `8002` | ConnectRPC/gRPC, gRPC health, `GET /ping` | `<connect-host>` |
 
-> Both ports are **deliberately** exposed: browsers use the admin host, while automation (e.g. a
-> reconcile workflow) and API clients use the Connect host directly (`FRONTIER_API_HOST`). Ingress
-> definitions live in the configs repo → `frontier/k8s_<env>.*`.
+Both are deliberately exposed: browsers use the admin host; API clients and automation use the
+Connect host directly.
 
 UI server routing (`pkg/server/server.go`): `/configs` returns the config JSON; `/frontier-connect/`
 reverse-proxies to `{app.host}:{app.connect.port}` with the prefix stripped; everything else serves
 the SPA with an `index.html` fallback.
 
 > **Local dev differs** — Vite serves `/configs` (from `configs.dev.json`) and proxies
-> `/frontier-connect`, with the SPA unbundled on `:5173`. Don't carry local ports or behaviour into an
-> environment; see *local setup*.
+> `/frontier-connect`, with the SPA unbundled on `:5173`. Don't carry local ports or behaviour into
+> an environment; see the local-setup doc.
+
+**Key paths upstream:**
+
+| Path | Purpose |
+|---|---|
+| `web/apps/admin` | Admin SPA (Vite `outDir: dist/admin`, `base: /`) |
+| `web/apps/admin/embed.go` | `//go:embed all:dist` → `var Assets embed.FS` |
+| `web/apps/admin/configs.dev.json` | Dev `/configs` payload |
+| `pkg/server/server.go` | `ServeUI` / `ServeConnect`, `/configs`, proxy, `/ping`, health |
+| `pkg/server/config.go` | `UIConfig`, `TerminologyConfig`, `ConnectConfig` |
+| `internal/bootstrap/bootstrapuser.go` | Superuser bootstrap |
+| [`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml) | Annotated reference for every config key |
 
 ---
 
 ## 2. Deploy to an environment
 
-Helm-on-Kubernetes via a deploy workflow (e.g. `.github/workflows/frontier_deploy.yaml`): it renders
-every config file from the secrets backend, then runs `helm upgrade`.
+A deploy renders the environment's config from the secrets backend, then runs `helm upgrade` with an
+explicitly chosen image tag. The contract, regardless of pipeline tooling:
 
-### Triggers (example scheme)
+- **Each environment pins an image version** — an immutable `vX.Y.Z` tag. A pre-production
+  environment may instead track a mutable tag rebuilt from upstream `main` (see
+  [Roll back](#6-roll-back) for the consequence).
+- **The tag chosen at deploy time always wins.** The Helm values file may also carry an `image.tag`,
+  but the deploy sets the tag explicitly — never read the values file as the deployed version. Keep
+  it pinned to a real version anyway: it's the fallback for a manual `helm upgrade`, and the chart's
+  own default would be `latest`.
+- **Config is re-rendered on every deploy**, reaching the pod as a mounted ConfigMap (e.g. at
+  `/etc/frontier/configs/config.yaml`) that the binary is pointed at with `-c`. Individual keys can
+  also be overridden by env vars using the `FRONTIER_SERVICE_` prefix (`config/config.go`).
 
-| Environment | Trigger | Cluster |
-|---|---|---|
-| **dev** | Push to `main`, **or** any non-draft PR against `main` | the dev cluster |
-| **staging** | Push of a tag (runs after dev succeeds/skips) | the staging cluster |
-| **production** | A GitHub **release** being created (runs after staging) | the production cluster |
-| **any one env** | `workflow_dispatch` — pick `environment`, optionally `tag` | — |
+Chart `raystack/frontier` from `https://raystack.github.io/charts/` (pin a chart version), release
+name `frontier`, in the target namespace.
 
-Adapt tag and release conventions to the repo's release process.
-
-### Which image version gets deployed
-
-`values: frontier-app.image.tag=${{ github.event.inputs.tag || vars.FRONTIER_IMAGE_VERSION }}`
-
-- The `tag` input is **optional**; blank means the environment's `FRONTIER_IMAGE_VERSION` variable
-  (Settings → Environments → *env* → Variables).
-- `frontier/values.yaml` may also carry an `image.tag`, but the line above **always overrides** it —
-  never read it as the deployed version. Keep it pinned to a real version anyway: it's the fallback
-  for a manual `helm upgrade`, and the chart's own default would be `latest`, so the key shouldn't
-  simply be dropped.
-
-Example variable values (always re-check the actual values before relying on them):
-
-| Environment | `FRONTIER_IMAGE_VERSION` |
-|---|---|
-| dev | `dev` — a **mutable** tag rebuilt from upstream `main`; see [Roll back](#6-roll-back) |
-| staging | `vX.Y.Z` (a pinned, immutable tag) |
-| production | `vX.Y.Z` (typically one behind staging) |
-
-### Steps
-
-1. Actions → the deploy workflow → *Run workflow* (or let a trigger above fire).
-2. Pick the **environment**. Set **tag** only to pin something other than the environment variable.
-3. Watch the `helm upgrade` step; a chat notification (e.g. Slack) can be wired to post either way.
-4. [Verify a deployment](#5-verify-a-deployment).
-
-> Chart `raystack/frontier` from `https://raystack.github.io/charts/` (pin a chart version, e.g.
-> `0.3.1`), release name `frontier`, in the chosen namespace. Config reaches the pod as a ConfigMap
-> mounted at `/etc/frontier/configs/config.yaml` (`FRONTIER_CONFIG_FILE`).
+**Steps:** run the deploy pipeline for the target environment (overriding the tag only to pin
+something other than the environment's configured version), watch the `helm upgrade`, then
+[verify](#5-verify-a-deployment).
 
 ---
 
@@ -139,125 +116,101 @@ Example variable values (always re-check the actual values before relying on the
 
 ### 3.1 Change an existing setting
 
-Console settings live in the **configs repo**, not the deploy repo:
-`frontier/<development|staging|production>_config.*` → the `ui:` block.
+Console settings live in the environment's Frontier config → the `ui:` block — not in the Helm
+values.
 
-1. Edit the `ui:` block in that file and merge it.
-2. Re-run the deploy workflow ([Deploy to an environment](#2-deploy-to-an-environment)) for that
-   environment on the **same** image version. No rebuild — config is read at runtime, and the
-   ConfigMap is re-rendered on every deploy.
+1. Edit the `ui:` block and merge it.
+2. Redeploy the **same** image version. No rebuild — config is read at runtime.
 
-Available settings (`UIConfig`, `pkg/server/config.go`), with example values:
+Available settings (`UIConfig`, `pkg/server/config.go`):
 
 ```yaml
 ui:
-  port: 3000                     # example deployed value; 8100 is the upstream sample
-  title: "Admin Console"
+  port: 8100
+  title: "Frontier Admin"
   logo: "data:image/png;base64,…"
-  app_url: app.example.com       # per environment, e.g. app.staging.example.com
+  app_url: app.example.com       # per environment
   token_product_id: ""           # product id used when adding credits
   organization_types: []         # industry list shown in the org form
   webhooks:
     enable_delete: false
   terminology:                   # optional per-entity rename; no server-side defaults
     app_name: ""                 # serialized to JSON as appName
-    organization: { singular: Workspace, plural: Workspaces }   # example rename
-    project:      { singular: Project,   plural: Projects }
-    team:         { singular: Team,      plural: Teams }
-    member:       { singular: Member,    plural: Members }
-    user:         { singular: User,      plural: Users }
+    organization: { singular: "", plural: "" }   # likewise project, team, member, user
 ```
 
-Everything except `port` is returned by `GET /configs` (`UIConfigApiResponse`, `pkg/server/server.go`).
-
-> Every key is documented inline in the `ui:` block of
-> [`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml)
-> — but **its values are upstream samples, not necessarily yours** (it shows `port: 8100`,
-> `title: "Frontier Admin"`), and a key on `main` may not exist in an older tag.
+Everything except `port` is returned by `GET /configs` (`UIConfigApiResponse`,
+`pkg/server/server.go`). Most keys are also documented inline in
+[`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml),
+but that file lags the code — `webhooks` and `terminology.app_name` are missing from it — so `UIConfig`
+is the authority. A key on `main` may not exist in an older tag.
 
 ### 3.2 Add a new setting
 
 A field the backend doesn't know about will not reach the SPA. Change the code upstream first:
 
 1. Add the field to `UIConfig` (`pkg/server/config.go`) and document it in the `ui:` block of
-   [`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml)
-   — that file is upstream's reference for the config surface, so an undocumented key is invisible.
+   `config/sample.config.yaml` — an undocumented key is invisible.
 2. Add it to `UIConfigApiResponse` and the `/configs` handler (`pkg/server/server.go`).
 3. Consume it in the SPA (`contexts/App.tsx` / the `Config` type).
 4. Test the whole path locally: put the value in `web/apps/admin/configs.dev.json` and run against a
-   local backend (see *local setup* — run the backend, then the frontend admin app). Vite re-reads
-   that file per request, so no restart between edits.
+   local backend (see the local-setup doc). Vite re-reads that file per request.
 5. Release upstream ([Cut a release](#7-cut-a-release-upstream-frontier)), set the value in the
-   configs repo, bump `FRONTIER_IMAGE_VERSION`, and deploy.
+   environment config, bump the environment's image version, and deploy.
 
-For dev-only values, `configs.dev.json` alone is enough — no backend change. API URLs go in `.env`
-instead — see the env-file reference in *local setup*.
+For dev-only values, `configs.dev.json` alone is enough — no backend change.
 
 ---
 
 ## 4. Admin login (bootstrap superuser)
 
-A superuser service account seeded from config at boot, so automation always has a way in. This is
-typically what an automated reconcile workflow authenticates as.
+A superuser service account seeded from config at boot, so automation always has a way in.
+**Requires image `v0.108.0`+** (`raystack/frontier` PR #1719).
 
-**Requires image `v0.108.0`+** — the feature doesn't exist in earlier tags (`raystack/frontier`
-PR #1719).
-
-### Where it's configured
-
-Wire it once per environment; nothing to do for a normal deploy afterwards:
+Wire it once per environment, with both values stored in the secrets backend:
 
 ```yaml
-# configs repo → frontier/<env>_config.*
 app:
   admin:
     bootstrap:
-      client_id: "<rendered from the secrets backend>"
-      client_secret: "<rendered from the secrets backend>"
+      client_id: "<from secrets backend>"      # a UUID
+      client_secret: "<from secrets backend>"
 ```
 
-Store both in the secrets backend (e.g. Vault at a per-environment path). If automation needs the
-same credentials, render them as an env file for that workflow too.
+Log in with `Authorization: Basic base64(client_id:client_secret)`.
 
-> Setting up a **new** environment or a local instance? The `app.admin.bootstrap` block in
-> [`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml)
-> documents the UUID requirement, `uuidgen`, rotation, and the cost of disabling it.
-
-### Logging in
-
-`Authorization: Basic base64(client_id:client_secret)`.
-
-### Behaviour (`internal/bootstrap/bootstrapuser.go`)
+Behaviour (`internal/bootstrap/bootstrapuser.go`):
 
 - Re-seeded on **every** boot — idempotent, so redeploys never cause a lockout.
-- Rotate the password by changing `client_secret` in the secrets backend and redeploying. **Never
-  change `client_id`** — it's the service-account credential id, and must be a UUID.
-- Setting only one field is a **hard boot failure** (`client_id and client_secret must be set
-  together`), not a silent skip. Emptying **both** disables seeding — and since granting superuser
-  requires a superuser, none can then be created via the API.
-- If the `client_id` already belongs to another principal, boot fails loudly rather than rotating the
-  wrong account.
+- Rotate by changing `client_secret` and redeploying. **Never change `client_id`** — it's the
+  service-account credential id.
+- Setting only one field is a hard boot failure (`client_id and client_secret must be set
+  together`). Emptying **both** disables seeding — and since granting superuser requires a
+  superuser, none can then be created via the API.
+- If the `client_id` already belongs to another principal, boot fails loudly rather than rotating
+  the wrong account.
 
-Platform admins and members beyond this account are best managed via a GitOps reconcile flow
-(permissions, roles, users declared in the repo and applied by a workflow).
+The `app.admin.bootstrap` block in
+[`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml)
+documents the UUID requirement, `uuidgen`, rotation, and the cost of disabling it.
 
 ---
 
 ## 5. Verify a deployment
 
-Swap the host per environment. If the hosts are internal, connect to the VPN first.
+If the hosts are behind an internal load balancer, connect to the VPN first.
 
 1. **Liveness**
 
    ```bash
-   curl http://frontier-connect.dev.example.com/ping
+   curl http://<connect-host>/ping
    # → {"status":"SERVING"}
    ```
 
 2. **gRPC health**
 
    ```bash
-   curl -X POST http://frontier-connect.dev.example.com/grpc.health.v1.Health/Check \
+   curl -X POST http://<connect-host>/grpc.health.v1.Health/Check \
      -H 'Content-Type: application/json' \
      -d '{"service":"raystack.frontier.v1beta1.AdminService"}'
    # also valid: raystack.frontier.v1beta1.FrontierService
@@ -266,11 +219,11 @@ Swap the host per environment. If the hosts are internal, connect to the VPN fir
 3. **Configuration** — the real test that the right env config was applied:
 
    ```bash
-   curl http://frontier-admin.dev.example.com/configs
+   curl http://<admin-host>/configs
    # → this environment's title, app_url, terminology, organization_types
    ```
 
-4. **SPA** — open `http://frontier-admin.dev.example.com/` and log in.
+4. **SPA** — open `http://<admin-host>/` and log in.
 
 5. **Version** — no HTTP endpoint exposes it. The running image is most reliable:
 
@@ -278,9 +231,8 @@ Swap the host per environment. If the hosts are internal, connect to the VPN fir
    kubectl -n <namespace> get deploy -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.template.spec.containers[*].image}{"\n"}{end}'
    ```
 
-   Alternatives: the startup log line `frontier starting version=<tag>`, or `frontier version` in the
-   pod (prints Version, Build date, Commit). If dev tracks a mutable tag like `dev`, remember it's a
-   moving target.
+   Alternatives: the startup log line `frontier starting version=<tag>`, or `frontier version` in
+   the pod. A mutable tag is a moving target.
 
 ---
 
@@ -289,50 +241,39 @@ Swap the host per environment. If the hosts are internal, connect to the VPN fir
 **Rollback = redeploy the previous image version.** Versioned tags are immutable and the SPA is
 embedded, so backend and console roll back together.
 
-1. Actions → the deploy workflow → *Run workflow*.
-2. Select the environment and set **tag** to the last known-good version explicitly —
-   `FRONTIER_IMAGE_VERSION` still points at the bad version until someone edits it.
-3. Update that variable to match, so the next trigger-driven deploy doesn't roll forward again.
-4. [Verify a deployment](#5-verify-a-deployment).
+1. Deploy with the tag set explicitly to the last known-good `vX.Y.Z`.
+2. Update the environment's pinned image version to match, so the next deploy doesn't roll forward
+   again.
+3. [Verify](#5-verify-a-deployment).
 
 **Caveats**
 
-- **If dev tracks a mutable tag** (e.g. `dev`), it has no previous version to return to — roll dev
-  back by pinning a real `vX.Y.Z` in the `tag` input.
+- An environment tracking a **mutable tag** has no previous version to return to — roll it back by
+  pinning a real `vX.Y.Z`.
 - The bootstrap superuser is re-seeded on boot, so rollback never causes a lockout — but going below
-  `v0.108.0` removes the feature and breaks any automation that authenticates with it
-  ([Admin login](#4-admin-login-bootstrap-superuser)).
-- **If only config was wrong, don't roll the image back** — fix the `ui:` block in the configs repo
-  and redeploy the same version ([Change an existing setting](#31-change-an-existing-setting)).
+  `v0.108.0` removes the feature and breaks anything that authenticates with it.
+- **If only config was wrong, don't roll the image back** — fix the `ui:` block and redeploy the
+  same version ([§3.1](#31-change-an-existing-setting)).
 
 ---
 
 ## 7. Cut a release (upstream `frontier`)
 
-Only for shipping backend or console code, and only in `raystack/frontier`. The versioned image is
-the sole artifact the deploy repo consumes.
+Only for shipping backend or console code, and only in `raystack/frontier`. The versioned image
+published to `docker.io/raystack/frontier` is the sole artifact a deployment consumes.
 
-1. Push a tag matching `v*.*.*` (or run `release.yml` via `workflow_dispatch`).
-2. GoReleaser's `before` hook runs `make admin-app` → `web/Makefile build-admin`
-   (`pnpm install && pnpm exec turbo run build --filter=admin`) → `dist/admin`.
-3. `go build` embeds the SPA and injects `Version`, `BuildCommit`, `BuildDate` via ldflags.
-   (A local `make build` injects `Version` only.)
-4. `Dockerfile` packages the binary on Alpine as the non-root `frontier` user.
-5. Two jobs publish to `docker.io/raystack/frontier`:
-   - `release-fast` (`.goreleaser-fast.yml`) — linux/amd64: tags `latest`, `{tag}`, `{tag}-amd64`
-   - `release-full` (`.goreleaser.yml`, `mode: append`) — `{tag}-arm64` plus darwin/windows binaries
-
-Then bump `FRONTIER_IMAGE_VERSION` for the target environment and deploy —
-[Deploy to an environment](#2-deploy-to-an-environment).
+Push a tag matching `v*.*.*` (or dispatch `release.yml`). The release pipeline builds the SPA
+(`make admin-app` → `dist/admin`), embeds it into the Go binary with version ldflags, and publishes
+`{tag}`, `latest`, and `{tag}-amd64` for linux/amd64, plus `{tag}-arm64` from a second job. There's no
+combined manifest list, so arm64 must be pulled by its own tag. Then bump the target environment's
+image version and [deploy](#2-deploy-to-an-environment).
 
 > **Test console changes locally before tagging** — a release is the only route into an environment,
-> so a bad build costs a full cycle. See *local setup* (run the frontend admin app, or the client
-> SDK demo if the change touches the `web/sdk` client).
+> so a bad build costs a full cycle.
 
-> **Building locally?** `dist/admin` must exist before `go build` or the binary ships without a UI
-> ([Gotchas](#8-gotchas)) — run `make admin-app` first. `Dockerfile.dev` (used by `main.yml` for the
-> `:dev` / `:{sha}` tags) reproduces the full embed in one multi-stage build. The npm SDK in
-> `web/sdk` ships separately via `web-sdk.yml`.
+> **Building locally?** `dist/admin` must exist before `go build` or the binary ships without a UI —
+> run `make admin-app` first. `Dockerfile.dev` reproduces the full embed in one multi-stage build.
+> The npm SDK in `web/sdk` ships separately via `web-sdk.yml`.
 
 ---
 
@@ -342,55 +283,9 @@ Then bump `FRONTIER_IMAGE_VERSION` for the target environment and deploy —
 |---|---|
 | API works but no UI; log says `ui server disabled: no port specified` | `ui.port` is `0` or unset — set it in the environment config and redeploy. |
 | API works but no UI; log says `failed to load ui` | Binary built without `dist/admin`. Rebuild via the release pipeline, or `make admin-app` before `go build`. |
-| SPA loads but shows wrong title/terminology | Wrong or stale env config. Check `GET /configs`, fix the `ui:` block in the **configs repo**, redeploy the same image. |
-| New config field never appears in `/configs` | Field exists only in YAML, not in code — complete every step in [Add a new setting](#32-add-a-new-setting). |
-| Deployed version isn't what `values.yaml` says | Expected. `values.yaml`'s `image.tag` is always overridden by `FRONTIER_IMAGE_VERSION` (or the `tag` input). |
-| Dev "rolled back" but nothing changed | Dev tracks a mutable tag. Pin an explicit `vX.Y.Z` in the `tag` input. |
-| Cannot log in as superuser | Secret changed without a redeploy, bootstrap disabled (both fields empty), or image older than `v0.108.0`. |
-| Boot fails: `client_id and client_secret must be set together` | Only one bootstrap field is populated — set both, or clear both. |
-| Boot fails mentioning the bootstrap credential | `client_id` collides with a different principal. Restore the original UUID; never reuse another account's. |
-| Automation can't authenticate | Bootstrap creds in the secrets backend don't match the deployed config, or the image predates `v0.108.0`. |
+| SPA loads but shows wrong title/terminology | Wrong or stale env config. Check `GET /configs`, fix the `ui:` block, redeploy the same image. |
+| New config field never appears in `/configs` | Field exists only in YAML, not in code — complete every step in [§3.2](#32-add-a-new-setting). |
+| Deployed version isn't what the values file says | Expected — the deploy-time tag always overrides it ([§2](#2-deploy-to-an-environment)). |
+| "Rolled back" a mutable tag but nothing changed | Mutable tags have no previous version — pin an explicit `vX.Y.Z`. |
+| Boot fails or superuser login fails | Bootstrap misconfigured: fields set without a redeploy, only one of the two fields populated, `client_id` colliding with another principal, or image older than `v0.108.0` ([§4](#4-admin-login-bootstrap-superuser)). |
 | Browser API calls fail | The SPA proxies `/frontier-connect/` to `{app.host}:{app.connect.port}` inside the pod. Confirm the ingress routes the admin host to the UI port and the connect host to the Connect port. |
-| Any host unreachable | If the ingress hosts are on an internal load balancer, connect to the VPN. |
-
----
-
-## 9. Ports & config reference
-
-**Example deployed ports** (set in the environment config and `frontier/values.yaml`):
-
-| Port | Purpose | Config key |
-|---|---|---|
-| `3000` | Admin console / SPA + `/configs` | `ui.port` |
-| `8082` | ConnectRPC / gRPC + `/ping` + health | `app.connect.port` |
-| `9000` | Metrics (Prometheus scrape) | `app.metrics_port` — code default if not set in config |
-| `50051` | SpiceDB gRPC | `spicedb.port` |
-
-> Upstream's defaults differ (`8100` UI from
-> [`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml),
-> `8002` Connect from the `ConnectConfig` default) — when copying a snippet from that file into an
-> environment config, change the ports to the deployed values.
-
-**Where each file lives:**
-
-| File | Repo | Purpose |
-|---|---|---|
-| `frontier/values.yaml` | deploy repo | Base K8s resources — container ports, volumes, service, autoscaling |
-| `frontier/<env>_config.*` | configs repo | Frontier app config, incl. `ui:` and `app.admin.bootstrap` |
-| `frontier/k8s_<env>.*` | configs repo | Env K8s overrides — replicas, PDB, **ingress** |
-| `frontier/<env>_bootstrap_credentials.*` | configs repo | Bootstrap creds as an env file for automation |
-| `.github/workflows/frontier_deploy.yaml` | deploy repo | Render config + `helm upgrade` per environment |
-| `.github/workflows/frontier_reconcile.yaml` | deploy repo | GitOps reconcile (permissions, roles, users, …) |
-
-**Key paths upstream in `raystack/frontier`:**
-
-| Path | Purpose |
-|---|---|
-| `web/apps/admin` | Admin SPA (Vite `outDir: dist/admin`, `base: /`) |
-| `web/apps/admin/embed.go` | `//go:embed all:dist` → `var Assets embed.FS` |
-| `web/apps/admin/configs.dev.json` | Dev `/configs` payload |
-| `web/sdk` | npm SDK package (admin surface under `web/sdk/admin`) |
-| `pkg/server/server.go` | `ServeUI` / `ServeConnect`, `/configs`, proxy, `/ping`, health |
-| `pkg/server/config.go` | `UIConfig`, `TerminologyConfig`, `ConnectConfig` |
-| `internal/bootstrap/bootstrapuser.go` | Superuser bootstrap |
-| [`config/sample.config.yaml`](https://github.com/raystack/frontier/blob/main/config/sample.config.yaml) | Annotated reference for every config key, incl. `ui:` and `app.admin.bootstrap`. **Sample values, not deployed ones** — compare against the running tag |
