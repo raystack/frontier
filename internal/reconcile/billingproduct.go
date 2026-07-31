@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/raystack/frontier/billing/product"
 )
 
 // KindBillingProduct is the desired-state document kind for billing products.
@@ -14,8 +16,9 @@ const KindBillingProduct = "BillingProduct"
 // bad values through its validate interceptor. This kind does not re-list them,
 // so a new value does not need a change here. The one value it must know is the
 // tiered scheme, which it cannot represent (there is no tiers field), so it is
-// rejected up front.
-const billingSchemeTiered = "tiered"
+// rejected up front; its value comes from the product package so the two cannot
+// drift.
+const billingSchemeTiered = string(product.BillingSchemeTiered)
 
 // BillingProductSpec is one desired product. The name is the identity and never
 // changes. A product is managed in full: its title, description, behavior,
@@ -131,32 +134,32 @@ func validateBillingProductSpec(s BillingProductSpec) error {
 
 	seenPrice := map[string]struct{}{}
 	for _, p := range s.Prices {
-		name := strings.ToLower(strings.TrimSpace(p.Name))
-		if name == "" {
+		priceName := strings.ToLower(strings.TrimSpace(p.Name))
+		if priceName == "" {
 			return fmt.Errorf("product %q has a price with no name", s.Name)
 		}
-		if _, dup := seenPrice[name]; dup {
-			return fmt.Errorf("product %q lists price %q more than once", s.Name, name)
+		if _, dup := seenPrice[priceName]; dup {
+			return fmt.Errorf("product %q lists price %q more than once", s.Name, priceName)
 		}
-		seenPrice[name] = struct{}{}
+		seenPrice[priceName] = struct{}{}
 		if p.Amount < 0 {
-			return fmt.Errorf("product %q price %q has a negative amount", s.Name, name)
+			return fmt.Errorf("product %q price %q has a negative amount", s.Name, priceName)
 		}
 		if strings.ToLower(p.BillingScheme) == billingSchemeTiered {
-			return fmt.Errorf("product %q price %q uses a tiered billing scheme, which this kind does not support", s.Name, name)
+			return fmt.Errorf("product %q price %q uses a tiered billing scheme, which this kind does not support", s.Name, priceName)
 		}
 	}
 
 	seenFeature := map[string]struct{}{}
 	for _, f := range s.Features {
-		name := strings.ToLower(strings.TrimSpace(f.Name))
-		if name == "" {
+		featureName := strings.ToLower(strings.TrimSpace(f.Name))
+		if featureName == "" {
 			return fmt.Errorf("product %q has a feature with no name", s.Name)
 		}
-		if _, dup := seenFeature[name]; dup {
-			return fmt.Errorf("product %q lists feature %q more than once", s.Name, name)
+		if _, dup := seenFeature[featureName]; dup {
+			return fmt.Errorf("product %q lists feature %q more than once", s.Name, featureName)
 		}
-		seenFeature[name] = struct{}{}
+		seenFeature[featureName] = struct{}{}
 	}
 	return nil
 }
@@ -374,14 +377,22 @@ func normalizeBillingPrice(p BillingPriceSpec) BillingPriceSpec {
 		p.Currency = "usd"
 	}
 	p.Currency = strings.ToLower(p.Currency)
-	if p.MeteredAggregate == "" {
-		p.MeteredAggregate = "sum"
-	}
-	p.MeteredAggregate = strings.ToLower(p.MeteredAggregate)
 	if p.UsageType == "" {
 		p.UsageType = "licensed"
 	}
 	p.UsageType = strings.ToLower(p.UsageType)
+	// metered_aggregate only means something for a metered price, and the server
+	// only checks it then. Default it to "sum" for a metered price and blank it
+	// for the rest, so a licensed price carrying a stray aggregate does not
+	// false-reject against a stored one.
+	if p.UsageType == string(product.PriceUsageTypeMetered) {
+		if p.MeteredAggregate == "" {
+			p.MeteredAggregate = "sum"
+		}
+		p.MeteredAggregate = strings.ToLower(p.MeteredAggregate)
+	} else {
+		p.MeteredAggregate = ""
+	}
 	if p.BillingScheme == "" {
 		p.BillingScheme = "flat"
 	}
