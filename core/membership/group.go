@@ -174,12 +174,12 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 	// First pass: delete every policy. Track which principals had any
 	// delete failure so we don't strip their SpiceDB relations while a
 	// surviving policy still references them.
-	principals := make(map[principalKey]policy.Policy, len(policies))
+	principals := make(map[principalKey]struct{}, len(policies))
 	failed := make(map[principalKey]struct{}, len(policies))
 	var errs error
 	for _, p := range policies {
 		key := policyPrincipalKey(p)
-		principals[key] = p
+		principals[key] = struct{}{}
 		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
 			failed[key] = struct{}{}
 			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
@@ -189,12 +189,12 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 	// Second pass: clean up direct relations only for principals whose
 	// policies were all deleted successfully. The rest get retried on the
 	// next attempt once their lingering policies are removed.
-	for key, p := range principals {
+	for key := range principals {
 		if _, hadFailure := failed[key]; hadFailure {
 			continue
 		}
-		if relErr := s.removeGroupMemberRelation(ctx, groupID, p.PrincipalID, p.PrincipalType); relErr != nil {
-			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
+		if relErr := s.removeGroupMemberRelation(ctx, groupID, key.ID, key.Type); relErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", key.Type, key.ID, relErr))
 		}
 	}
 

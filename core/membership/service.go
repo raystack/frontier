@@ -281,7 +281,7 @@ func (s *Service) validateRoleForScope(ctx context.Context, roleID, orgID, names
 func (s *Service) validateMinRoleConstraint(ctx context.Context, guardRoleName string, resourceFilter policy.Filter, newRoleID string, existing []policy.Policy, errLast error) (string, error) {
 	guardRole, err := s.roleService.Get(ctx, guardRoleName)
 	if err != nil {
-		return "", fmt.Errorf("get owner role: %w", err)
+		return "", fmt.Errorf("get role %s: %w", guardRoleName, err)
 	}
 
 	// no constraint if promoting to the guarded role
@@ -302,7 +302,7 @@ func (s *Service) validateMinRoleConstraint(ctx context.Context, guardRoleName s
 	resourceFilter.RoleID = guardRole.ID
 	holderPolicies, err := s.policyService.List(ctx, resourceFilter)
 	if err != nil {
-		return "", fmt.Errorf("list owner policies: %w", err)
+		return "", fmt.Errorf("list policies for role %s: %w", guardRoleName, err)
 	}
 	if len(holderPolicies) <= 1 {
 		return "", errLast
