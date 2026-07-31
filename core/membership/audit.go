@@ -49,82 +49,78 @@ func (s *Service) createAuditRecord(ctx context.Context, record auditrecord.Audi
 	}
 }
 
-func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
+// auditMemberChange writes a membership change to both audit stores: an audit
+// record against the resource and a legacy auditor log with the given attrs.
+// The role ID and the principal's email go into the record's target metadata
+// when present.
+func (s *Service) auditMemberChange(ctx context.Context, event pkgAuditRecord.Event, legacyEvent audit.EventName, res auditrecord.Resource, orgID string, p principalInfo, roleID string, legacyAttrs map[string]string) {
 	targetType, _ := principalTypeToAuditType(p.Type)
-	meta := map[string]any{"role_id": roleID}
+	meta := map[string]any{}
+	if roleID != "" {
+		meta["role_id"] = roleID
+	}
 	if p.Email != "" {
 		meta["email"] = p.Email
 	}
 
 	s.createAuditRecord(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.OrganizationMemberRoleChangedEvent,
-		Resource: auditrecord.Resource{
-			ID:   org.ID,
-			Type: pkgAuditRecord.OrganizationType,
-			Name: org.Title,
-		},
+		Event:    event,
+		Resource: res,
 		Target: &auditrecord.Target{
 			ID:       p.ID,
 			Type:     targetType,
 			Name:     p.Name,
 			Metadata: meta,
 		},
-		OrgID:      org.ID,
+		OrgID:      orgID,
 		OccurredAt: time.Now(),
 	})
 
-	if err := audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberRoleChangedEvent, audit.Target{
+	if err := audit.GetAuditor(ctx, orgID).LogWithAttrs(legacyEvent, audit.Target{
 		ID:   p.ID,
 		Type: p.Type,
-	}, map[string]string{
-		"role_id": roleID,
-	}); err != nil {
-		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgMemberRoleChangedEvent)
+	}, legacyAttrs); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", legacyEvent)
 	}
 }
 
+func orgAuditResource(org organization.Organization) auditrecord.Resource {
+	return auditrecord.Resource{ID: org.ID, Type: pkgAuditRecord.OrganizationType, Name: org.Title}
+}
+
+func groupAuditResource(grp group.Group) auditrecord.Resource {
+	return auditrecord.Resource{ID: grp.ID, Type: pkgAuditRecord.GroupType, Name: grp.Title}
+}
+
 func (s *Service) auditOrgMemberAdded(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
-	targetType, _ := principalTypeToAuditType(p.Type)
-	meta := map[string]any{"role_id": roleID}
-	if p.Email != "" {
-		meta["email"] = p.Email
-	}
+	s.auditMemberChange(ctx, pkgAuditRecord.OrganizationMemberAddedEvent, audit.OrgMemberCreatedEvent,
+		orgAuditResource(org), org.ID, p, roleID, map[string]string{"role_id": roleID})
+}
 
-	s.createAuditRecord(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.OrganizationMemberAddedEvent,
-		Resource: auditrecord.Resource{
-			ID:   org.ID,
-			Type: pkgAuditRecord.OrganizationType,
-			Name: org.Title,
-		},
-		Target: &auditrecord.Target{
-			ID:       p.ID,
-			Type:     targetType,
-			Name:     p.Name,
-			Metadata: meta,
-		},
-		OrgID:      org.ID,
-		OccurredAt: time.Now(),
-	})
+func (s *Service) auditOrgMemberRoleChanged(ctx context.Context, org organization.Organization, p principalInfo, roleID string) {
+	s.auditMemberChange(ctx, pkgAuditRecord.OrganizationMemberRoleChangedEvent, audit.OrgMemberRoleChangedEvent,
+		orgAuditResource(org), org.ID, p, roleID, map[string]string{"role_id": roleID})
+}
 
-	if err := audit.GetAuditor(ctx, org.ID).LogWithAttrs(audit.OrgMemberCreatedEvent, audit.Target{
-		ID:   p.ID,
-		Type: p.Type,
-	}, map[string]string{
-		"role_id": roleID,
-	}); err != nil {
-		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgMemberCreatedEvent)
-	}
+func (s *Service) auditGroupMemberAdded(ctx context.Context, grp group.Group, p principalInfo, roleID string) {
+	s.auditMemberChange(ctx, pkgAuditRecord.GroupMemberAddedEvent, audit.GroupMemberCreatedEvent,
+		groupAuditResource(grp), grp.OrganizationID, p, roleID, map[string]string{"role_id": roleID, "group_id": grp.ID})
+}
+
+func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Group, p principalInfo, roleID string) {
+	s.auditMemberChange(ctx, pkgAuditRecord.GroupMemberRoleChangedEvent, audit.GroupMemberRoleChangedEvent,
+		groupAuditResource(grp), grp.OrganizationID, p, roleID, map[string]string{"role_id": roleID, "group_id": grp.ID})
+}
+
+func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, p principalInfo) {
+	s.auditMemberChange(ctx, pkgAuditRecord.GroupMemberRemovedEvent, audit.GroupMemberRemovedEvent,
+		groupAuditResource(grp), grp.OrganizationID, p, "", map[string]string{"group_id": grp.ID})
 }
 
 func (s *Service) auditOrgMemberRemoved(ctx context.Context, org organization.Organization, targetID string, targetType pkgAuditRecord.EntityType) {
 	s.createAuditRecord(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.OrganizationMemberRemovedEvent,
-		Resource: auditrecord.Resource{
-			ID:   org.ID,
-			Type: pkgAuditRecord.OrganizationType,
-			Name: org.Title,
-		},
+		Event:    pkgAuditRecord.OrganizationMemberRemovedEvent,
+		Resource: orgAuditResource(org),
 		Target: &auditrecord.Target{
 			ID:   targetID,
 			Type: targetType,
@@ -132,21 +128,6 @@ func (s *Service) auditOrgMemberRemoved(ctx context.Context, org organization.Or
 		OrgID:      org.ID,
 		OccurredAt: time.Now(),
 	})
-}
-
-func principalTypeToAuditType(principalType string) (pkgAuditRecord.EntityType, error) {
-	switch principalType {
-	case schema.ServiceUserPrincipal:
-		return pkgAuditRecord.ServiceUserType, nil
-	case schema.UserPrincipal:
-		return pkgAuditRecord.UserType, nil
-	case schema.GroupPrincipal:
-		return pkgAuditRecord.GroupType, nil
-	case schema.PATPrincipal:
-		return pkgAuditRecord.PATType, nil
-	default:
-		return "", ErrInvalidPrincipalType
-	}
 }
 
 func (s *Service) auditProjectMember(ctx context.Context, event pkgAuditRecord.Event, prj project.Project, principalID, principalType string, meta map[string]any) {
@@ -172,106 +153,17 @@ func (s *Service) auditProjectMember(ctx context.Context, event pkgAuditRecord.E
 	})
 }
 
-func (s *Service) auditGroupMemberAdded(ctx context.Context, grp group.Group, p principalInfo, roleID string) {
-	targetType, _ := principalTypeToAuditType(p.Type)
-	meta := map[string]any{"role_id": roleID}
-	if p.Email != "" {
-		meta["email"] = p.Email
-	}
-
-	s.createAuditRecord(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.GroupMemberAddedEvent,
-		Resource: auditrecord.Resource{
-			ID:   grp.ID,
-			Type: pkgAuditRecord.GroupType,
-			Name: grp.Title,
-		},
-		Target: &auditrecord.Target{
-			ID:       p.ID,
-			Type:     targetType,
-			Name:     p.Name,
-			Metadata: meta,
-		},
-		OrgID:      grp.OrganizationID,
-		OccurredAt: time.Now(),
-	})
-
-	if err := audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberCreatedEvent, audit.Target{
-		ID:   p.ID,
-		Type: p.Type,
-	}, map[string]string{
-		"role_id":  roleID,
-		"group_id": grp.ID,
-	}); err != nil {
-		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.GroupMemberCreatedEvent)
-	}
-}
-
-func (s *Service) auditGroupMemberRoleChanged(ctx context.Context, grp group.Group, p principalInfo, roleID string) {
-	targetType, _ := principalTypeToAuditType(p.Type)
-	meta := map[string]any{"role_id": roleID}
-	if p.Email != "" {
-		meta["email"] = p.Email
-	}
-
-	s.createAuditRecord(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.GroupMemberRoleChangedEvent,
-		Resource: auditrecord.Resource{
-			ID:   grp.ID,
-			Type: pkgAuditRecord.GroupType,
-			Name: grp.Title,
-		},
-		Target: &auditrecord.Target{
-			ID:       p.ID,
-			Type:     targetType,
-			Name:     p.Name,
-			Metadata: meta,
-		},
-		OrgID:      grp.OrganizationID,
-		OccurredAt: time.Now(),
-	})
-
-	if err := audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRoleChangedEvent, audit.Target{
-		ID:   p.ID,
-		Type: p.Type,
-	}, map[string]string{
-		"role_id":  roleID,
-		"group_id": grp.ID,
-	}); err != nil {
-		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.GroupMemberRoleChangedEvent)
-	}
-}
-
-func (s *Service) auditGroupMemberRemoved(ctx context.Context, grp group.Group, p principalInfo) {
-	targetType, _ := principalTypeToAuditType(p.Type)
-	meta := map[string]any{}
-	if p.Email != "" {
-		meta["email"] = p.Email
-	}
-
-	s.createAuditRecord(ctx, auditrecord.AuditRecord{
-		Event: pkgAuditRecord.GroupMemberRemovedEvent,
-		Resource: auditrecord.Resource{
-			ID:   grp.ID,
-			Type: pkgAuditRecord.GroupType,
-			Name: grp.Title,
-		},
-		Target: &auditrecord.Target{
-			ID:       p.ID,
-			Type:     targetType,
-			Name:     p.Name,
-			Metadata: meta,
-		},
-		OrgID:      grp.OrganizationID,
-		OccurredAt: time.Now(),
-	})
-
-	if err := audit.GetAuditor(ctx, grp.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.Target{
-		ID:   p.ID,
-		Type: p.Type,
-	}, map[string]string{
-		"group_id": grp.ID,
-	}); err != nil {
-		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.GroupMemberRemovedEvent)
+func principalTypeToAuditType(principalType string) (pkgAuditRecord.EntityType, error) {
+	switch principalType {
+	case schema.ServiceUserPrincipal:
+		return pkgAuditRecord.ServiceUserType, nil
+	case schema.UserPrincipal:
+		return pkgAuditRecord.UserType, nil
+	case schema.GroupPrincipal:
+		return pkgAuditRecord.GroupType, nil
+	case schema.PATPrincipal:
+		return pkgAuditRecord.PATType, nil
+	default:
+		return "", ErrInvalidPrincipalType
 	}
 }

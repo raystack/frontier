@@ -105,7 +105,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 					OrgID:         orgID,
 					PrincipalType: schema.UserPrincipal,
 					ResourceType:  schema.OrganizationNamespace,
-				}).Return(orgPolicies, nil).Times(2)
+				}).Return(orgPolicies, nil).Once()
 				rs.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
 					return len(f.IDs) == 2
 				})).Return([]role.Role{viewerRole, ownerRole}, nil)
@@ -159,7 +159,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 					ProjectID:     projectID,
 					PrincipalType: schema.UserPrincipal,
 					ResourceType:  schema.ProjectNamespace,
-				}).Return(projectPolicies, nil).Times(2)
+				}).Return(projectPolicies, nil).Once()
 				rs.EXPECT().List(ctx, mock.MatchedBy(func(f role.Filter) bool {
 					return len(f.IDs) == 2
 				})).Return([]role.Role{viewerRole, ownerRole}, nil)
@@ -181,7 +181,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 					ProjectID:     projectID,
 					PrincipalType: schema.ServiceUserPrincipal,
 					ResourceType:  schema.ProjectNamespace,
-				}).Return(suPolicies, nil).Times(2)
+				}).Return(suPolicies, nil).Once()
 				rs.EXPECT().List(ctx, role.Filter{IDs: []string{roleViewerID}}).Return([]role.Role{viewerRole}, nil)
 			},
 			want: []membership.Member{
@@ -201,7 +201,7 @@ func TestService_ListPrincipalsByResource(t *testing.T) {
 					GroupID:       groupID,
 					PrincipalType: schema.UserPrincipal,
 					ResourceType:  schema.GroupNamespace,
-				}).Return(groupPolicies, nil).Times(2)
+				}).Return(groupPolicies, nil).Once()
 				rs.EXPECT().List(ctx, role.Filter{IDs: []string{roleViewerID}}).Return([]role.Role{viewerRole}, nil)
 			},
 			want: []membership.Member{

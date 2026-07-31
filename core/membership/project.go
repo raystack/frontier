@@ -4,14 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
-	"github.com/raystack/frontier/pkg/utils"
 )
 
 // SetProjectMemberRole sets or changes a principal's role in a project (upsert).
@@ -43,7 +41,7 @@ func (s *Service) SetProjectMemberRole(ctx context.Context, projectID, principal
 	}
 
 	// skip if the principal already has exactly this role
-	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
+	if hasExactlyRole(existing, resolvedRoleID) {
 		return nil
 	}
 
@@ -131,23 +129,5 @@ func (s *Service) unlinkProjectFromOrg(ctx context.Context, projectID, orgID str
 // - a platform-wide role scoped to projects, or
 // - a custom role created for the project's parent organization.
 func (s *Service) validateProjectRole(ctx context.Context, roleID, orgID string) (role.Role, error) {
-	fetchedRole, err := s.roleService.Get(ctx, roleID)
-	if err != nil {
-		return role.Role{}, err
-	}
-	if !slices.Contains(fetchedRole.Scopes, schema.ProjectNamespace) {
-		return role.Role{}, ErrInvalidProjectRole
-	}
-
-	// custom role belonging to the project's parent org
-	if fetchedRole.OrgID == orgID {
-		return fetchedRole, nil
-	}
-
-	// platform-wide role (no org ownership)
-	if utils.IsNullUUID(fetchedRole.OrgID) {
-		return fetchedRole, nil
-	}
-
-	return role.Role{}, ErrInvalidProjectRole
+	return s.validateRoleForScope(ctx, roleID, orgID, schema.ProjectNamespace, ErrInvalidProjectRole)
 }

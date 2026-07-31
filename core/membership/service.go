@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/group"
@@ -17,6 +18,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/utils"
 )
 
 type PolicyService interface {
@@ -210,34 +212,102 @@ func (s *Service) createRelation(ctx context.Context, resourceID, resourceType, 
 // removeAllPolicies finds and deletes all policies for a principal on a resource.
 // Returns the number of policies deleted.
 func (s *Service) removeAllPolicies(ctx context.Context, resourceID, resourceType, principalID, principalType string) (int, error) {
-	f := policyFilterForResource(resourceID, resourceType, principalID, principalType)
-	existing, err := s.policyService.List(ctx, f)
+	flt, err := resourcePolicyFilter(resourceID, resourceType)
 	if err != nil {
-		return 0, fmt.Errorf("list policies: %w", err)
+		return 0, err
 	}
-	for _, pol := range existing {
-		if err := s.policyService.Delete(ctx, pol.ID); err != nil {
-			return 0, fmt.Errorf("delete policy %s: %w", pol.ID, err)
-		}
-	}
-	return len(existing), nil
+	flt.PrincipalID = principalID
+	flt.PrincipalType = principalType
+	return s.removePoliciesByFilter(ctx, flt)
 }
 
-// policyFilterForResource builds a policy.Filter with the correct resource-type field set.
-func policyFilterForResource(resourceID, resourceType, principalID, principalType string) policy.Filter {
-	f := policy.Filter{
-		PrincipalID:   principalID,
-		PrincipalType: principalType,
-	}
+// resourcePolicyFilter builds a policy.Filter scoped to the given resource,
+// with the correct per-type ID field set. Returns ErrInvalidResourceType for
+// unsupported namespaces. Callers add principal or role fields on top.
+func resourcePolicyFilter(resourceID, resourceType string) (policy.Filter, error) {
+	flt := policy.Filter{ResourceType: resourceType}
 	switch resourceType {
 	case schema.OrganizationNamespace:
-		f.OrgID = resourceID
+		flt.OrgID = resourceID
 	case schema.ProjectNamespace:
-		f.ProjectID = resourceID
+		flt.ProjectID = resourceID
 	case schema.GroupNamespace:
-		f.GroupID = resourceID
+		flt.GroupID = resourceID
+	default:
+		return policy.Filter{}, ErrInvalidResourceType
 	}
-	return f
+	return flt, nil
+}
+
+// hasExactlyRole reports whether the existing policies are a single policy
+// holding the given role — the "nothing to change" case for role upserts.
+func hasExactlyRole(existing []policy.Policy, roleID string) bool {
+	return len(existing) == 1 && existing[0].RoleID == roleID
+}
+
+// validateRoleForScope checks that the role can be assigned on the given
+// namespace and returns it. A role qualifies if it is either:
+//   - a platform-wide role (no org ownership) scoped to the namespace, or
+//   - a custom role created for the given organization.
+//
+// errInvalid is returned for any role that doesn't qualify.
+func (s *Service) validateRoleForScope(ctx context.Context, roleID, orgID, namespace string, errInvalid error) (role.Role, error) {
+	fetchedRole, err := s.roleService.Get(ctx, roleID)
+	if err != nil {
+		return role.Role{}, err
+	}
+	if !slices.Contains(fetchedRole.Scopes, namespace) {
+		return role.Role{}, errInvalid
+	}
+
+	// custom role belonging to this org
+	if fetchedRole.OrgID == orgID {
+		return fetchedRole, nil
+	}
+
+	// platform-wide role (no org ownership)
+	if utils.IsNullUUID(fetchedRole.OrgID) {
+		return fetchedRole, nil
+	}
+
+	return role.Role{}, errInvalid
+}
+
+// validateMinRoleConstraint ensures at least one holder of guardRoleName
+// remains on the resource after demoting or removing one. resourceFilter
+// scopes the holder count to the resource (the role ID is filled in here);
+// errLast is returned when the principal is the last holder. Returns the
+// resolved guard role ID for reuse as an atomic delete guard.
+func (s *Service) validateMinRoleConstraint(ctx context.Context, guardRoleName string, resourceFilter policy.Filter, newRoleID string, existing []policy.Policy, errLast error) (string, error) {
+	guardRole, err := s.roleService.Get(ctx, guardRoleName)
+	if err != nil {
+		return "", fmt.Errorf("get role %s: %w", guardRoleName, err)
+	}
+
+	// no constraint if promoting to the guarded role
+	if newRoleID == guardRole.ID {
+		return guardRole.ID, nil
+	}
+
+	// no constraint if the principal doesn't currently hold it
+	holdsGuardRole := slices.ContainsFunc(existing, func(p policy.Policy) bool {
+		return p.RoleID == guardRole.ID
+	})
+	if !holdsGuardRole {
+		return guardRole.ID, nil
+	}
+
+	// principal holds the guarded role and is losing it — make sure at least
+	// one other holder remains
+	resourceFilter.RoleID = guardRole.ID
+	holderPolicies, err := s.policyService.List(ctx, resourceFilter)
+	if err != nil {
+		return "", fmt.Errorf("list policies for role %s: %w", guardRoleName, err)
+	}
+	if len(holderPolicies) <= 1 {
+		return "", errLast
+	}
+	return guardRole.ID, nil
 }
 
 // excludePATAllProjects hides a PAT's all-projects grant from org member

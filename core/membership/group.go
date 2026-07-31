@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/pkg/utils"
 )
 
 // removeGroupMemberRelation deletes the member relation for a principal on a group.
@@ -83,7 +81,7 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 	}
 
 	// change path: skip if the principal already has exactly this role
-	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
+	if hasExactlyRole(existing, resolvedRoleID) {
 		return nil
 	}
 
@@ -176,12 +174,12 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 	// First pass: delete every policy. Track which principals had any
 	// delete failure so we don't strip their SpiceDB relations while a
 	// surviving policy still references them.
-	principals := make(map[string]policy.Policy, len(policies))
-	failed := make(map[string]struct{}, len(policies))
+	principals := make(map[principalKey]struct{}, len(policies))
+	failed := make(map[principalKey]struct{}, len(policies))
 	var errs error
 	for _, p := range policies {
-		key := p.PrincipalType + "\x00" + p.PrincipalID
-		principals[key] = p
+		key := policyPrincipalKey(p)
+		principals[key] = struct{}{}
 		if delErr := s.policyService.Delete(ctx, p.ID); delErr != nil {
 			failed[key] = struct{}{}
 			errs = errors.Join(errs, fmt.Errorf("delete policy %s: %w", p.ID, delErr))
@@ -191,12 +189,12 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 	// Second pass: clean up direct relations only for principals whose
 	// policies were all deleted successfully. The rest get retried on the
 	// next attempt once their lingering policies are removed.
-	for key, p := range principals {
+	for key := range principals {
 		if _, hadFailure := failed[key]; hadFailure {
 			continue
 		}
-		if relErr := s.removeGroupMemberRelation(ctx, groupID, p.PrincipalID, p.PrincipalType); relErr != nil {
-			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", p.PrincipalType, p.PrincipalID, relErr))
+		if relErr := s.removeGroupMemberRelation(ctx, groupID, key.ID, key.Type); relErr != nil {
+			errs = errors.Join(errs, fmt.Errorf("remove relations for %s:%s: %w", key.Type, key.ID, relErr))
 		}
 	}
 
@@ -311,20 +309,7 @@ func (s *Service) unlinkGroupFromOrg(ctx context.Context, groupID, orgID string)
 //   - a platform-wide role scoped to groups, or
 //   - a custom role created for the group's parent organization.
 func (s *Service) validateGroupRole(ctx context.Context, roleID, orgID string) (role.Role, error) {
-	fetchedRole, err := s.roleService.Get(ctx, roleID)
-	if err != nil {
-		return role.Role{}, err
-	}
-	if !slices.Contains(fetchedRole.Scopes, schema.GroupNamespace) {
-		return role.Role{}, ErrInvalidGroupRole
-	}
-	if fetchedRole.OrgID == orgID {
-		return fetchedRole, nil
-	}
-	if utils.IsNullUUID(fetchedRole.OrgID) {
-		return fetchedRole, nil
-	}
-	return role.Role{}, ErrInvalidGroupRole
+	return s.validateRoleForScope(ctx, roleID, orgID, schema.GroupNamespace, ErrInvalidGroupRole)
 }
 
 // validateMinGroupOwnerConstraint ensures the group keeps at least one owner
@@ -332,35 +317,5 @@ func (s *Service) validateGroupRole(ctx context.Context, roleID, orgID string) (
 // caller can hand it to replacePolicy as a min-role guard, closing the TOCTOU
 // race between this pre-check and the policy delete.
 func (s *Service) validateMinGroupOwnerConstraint(ctx context.Context, groupID, newRoleID string, existing []policy.Policy) (string, error) {
-	ownerRole, err := s.roleService.Get(ctx, schema.GroupOwnerRole)
-	if err != nil {
-		return "", fmt.Errorf("get group owner role: %w", err)
-	}
-
-	if newRoleID == ownerRole.ID {
-		return ownerRole.ID, nil
-	}
-
-	isCurrentlyOwner := false
-	for _, p := range existing {
-		if p.RoleID == ownerRole.ID {
-			isCurrentlyOwner = true
-			break
-		}
-	}
-	if !isCurrentlyOwner {
-		return ownerRole.ID, nil
-	}
-
-	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
-		GroupID: groupID,
-		RoleID:  ownerRole.ID,
-	})
-	if err != nil {
-		return "", fmt.Errorf("list group owner policies: %w", err)
-	}
-	if len(ownerPolicies) <= 1 {
-		return "", ErrLastGroupOwnerRole
-	}
-	return ownerRole.ID, nil
+	return s.validateMinRoleConstraint(ctx, schema.GroupOwnerRole, policy.Filter{GroupID: groupID}, newRoleID, existing, ErrLastGroupOwnerRole)
 }

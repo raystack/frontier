@@ -188,7 +188,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 			name: "should return error if not a member",
 			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, _ *mocks.AuditRecordRepository) {
 				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
-				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal, ResourceType: schema.ProjectNamespace}).Return([]policy.Policy{}, nil)
 			},
 			principalID:   userID,
 			principalType: schema.UserPrincipal,
@@ -198,7 +198,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 			name: "should succeed removing a user",
 			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, auditRepo *mocks.AuditRecordRepository) {
 				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
-				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.UserPrincipal, ResourceType: schema.ProjectNamespace}).Return([]policy.Policy{{ID: "p1"}}, nil)
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
@@ -209,7 +209,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 			name: "should succeed removing a service user",
 			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, auditRepo *mocks.AuditRecordRepository) {
 				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
-				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: suID, PrincipalType: schema.ServiceUserPrincipal, ResourceType: schema.ProjectNamespace}).Return([]policy.Policy{{ID: "p1"}}, nil)
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
@@ -220,7 +220,7 @@ func TestService_RemoveProjectMember(t *testing.T) {
 			name: "should succeed removing a PAT",
 			setup: func(policySvc *mocks.PolicyService, prjSvc *mocks.ProjectService, auditRepo *mocks.AuditRecordRepository) {
 				prjSvc.EXPECT().Get(ctx, projectID).Return(prj, nil)
-				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{{ID: "p1"}}, nil)
+				policySvc.EXPECT().List(ctx, policy.Filter{ProjectID: projectID, PrincipalID: userID, PrincipalType: schema.PATPrincipal, ResourceType: schema.ProjectNamespace}).Return([]policy.Policy{{ID: "p1"}}, nil)
 				policySvc.EXPECT().Delete(ctx, "p1").Return(nil)
 				auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},

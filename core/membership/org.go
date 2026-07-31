@@ -1,11 +1,9 @@
 package membership
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"slices"
-
-	"context"
 
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/group"
@@ -15,7 +13,6 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/pkg/utils"
 )
 
 // AddOrganizationMember adds a principal (user, service user, or PAT) to an organization
@@ -115,7 +112,7 @@ func (s *Service) SetOrganizationMemberRole(ctx context.Context, orgID, principa
 	}
 
 	// skip if the user already has exactly this role
-	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
+	if hasExactlyRole(existing, resolvedRoleID) {
 		return nil
 	}
 
@@ -172,7 +169,7 @@ func (s *Service) SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleI
 		}
 	}
 
-	if len(existing) == 1 && existing[0].RoleID == resolvedRoleID {
+	if hasExactlyRole(existing, resolvedRoleID) {
 		return nil
 	}
 
@@ -405,40 +402,7 @@ func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, p
 // validateMinOwnerConstraint ensures the org always has at least one owner after a role change.
 // Returns the resolved owner role ID for reuse by callers.
 func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRoleID string, existing []policy.Policy) (string, error) {
-	ownerRole, err := s.roleService.Get(ctx, schema.RoleOrganizationOwner)
-	if err != nil {
-		return "", fmt.Errorf("get owner role: %w", err)
-	}
-
-	// no constraint if promoting to owner
-	if newRoleID == ownerRole.ID {
-		return ownerRole.ID, nil
-	}
-
-	// no constraint if user is not currently an owner
-	isCurrentlyOwner := false
-	for _, p := range existing {
-		if p.RoleID == ownerRole.ID {
-			isCurrentlyOwner = true
-			break
-		}
-	}
-	if !isCurrentlyOwner {
-		return ownerRole.ID, nil
-	}
-
-	// user is owner, being demoted — make sure at least one other owner remains
-	ownerPolicies, err := s.policyService.List(ctx, policy.Filter{
-		OrgID:  orgID,
-		RoleID: ownerRole.ID,
-	})
-	if err != nil {
-		return "", fmt.Errorf("list owner policies: %w", err)
-	}
-	if len(ownerPolicies) <= 1 {
-		return "", ErrLastOwnerRole
-	}
-	return ownerRole.ID, nil
+	return s.validateMinRoleConstraint(ctx, schema.RoleOrganizationOwner, policy.Filter{OrgID: orgID}, newRoleID, existing, ErrLastOwnerRole)
 }
 
 // validateOrgRole checks that the role is valid for organization scope and returns it.
@@ -446,25 +410,5 @@ func (s *Service) validateMinOwnerConstraint(ctx context.Context, orgID, newRole
 // - a platform-wide role scoped to organizations, or
 // - a custom role created for this specific organization.
 func (s *Service) validateOrgRole(ctx context.Context, roleID, orgID string) (role.Role, error) {
-	fetchedRole, err := s.roleService.Get(ctx, roleID)
-	if err != nil {
-		return role.Role{}, err
-	}
-
-	// role must be scoped to organization regardless of whether it's platform-wide or org-specific
-	if !slices.Contains(fetchedRole.Scopes, schema.OrganizationNamespace) {
-		return role.Role{}, ErrInvalidOrgRole
-	}
-
-	// custom role belonging to this org
-	if fetchedRole.OrgID == orgID {
-		return fetchedRole, nil
-	}
-
-	// platform-wide role (no org ownership)
-	if utils.IsNullUUID(fetchedRole.OrgID) {
-		return fetchedRole, nil
-	}
-
-	return role.Role{}, ErrInvalidOrgRole
+	return s.validateRoleForScope(ctx, roleID, orgID, schema.OrganizationNamespace, ErrInvalidOrgRole)
 }
