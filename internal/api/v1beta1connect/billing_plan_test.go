@@ -594,3 +594,210 @@ func TestConnectHandler_GetPlan(t *testing.T) {
 		})
 	}
 }
+
+func TestConnectHandler_UpdatePlan(t *testing.T) {
+	testMetadata := &structpb.Struct{
+		Fields: map[string]*structpb.Value{
+			"key1": {Kind: &structpb.Value_StringValue{StringValue: "value1"}},
+		},
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.PlanService)
+		request *connect.Request[frontierv1beta1.UpdatePlanRequest]
+		want    *connect.Response[frontierv1beta1.UpdatePlanResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name: "should return internal server error when the plan service fails",
+			request: connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+				Id:   "plan-1",
+				Body: &frontierv1beta1.PlanRequestBody{Title: "Renamed"},
+			}),
+			setup: func(ps *mocks.PlanService) {
+				ps.On("UpdatePlan", mock.Anything, mock.Anything).Return(plan.Plan{}, errors.New("update failed"))
+			},
+			wantErr: errors.New("update failed"),
+			errCode: connect.CodeInternal,
+		},
+		{
+			name: "should carry the full-write fields including state through to the service",
+			request: connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+				Id: "plan-1",
+				Body: &frontierv1beta1.PlanRequestBody{
+					Title:          "Renamed Plan",
+					Description:    "updated",
+					OnStartCredits: 500,
+					TrialDays:      14,
+					State:          "disabled",
+					Metadata:       testMetadata,
+				},
+			}),
+			setup: func(ps *mocks.PlanService) {
+				ps.On("UpdatePlan", mock.Anything, plan.Plan{
+					ID:             "plan-1",
+					Title:          "Renamed Plan",
+					Description:    "updated",
+					OnStartCredits: 500,
+					TrialDays:      14,
+					State:          "disabled",
+					Metadata:       metadata.Metadata{"key1": "value1"},
+				}).Return(plan.Plan{
+					ID:             "plan-1",
+					Name:           "basic-plan",
+					Title:          "Renamed Plan",
+					Description:    "updated",
+					OnStartCredits: 500,
+					TrialDays:      14,
+					State:          "disabled",
+					CreatedAt:      time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+					UpdatedAt:      time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC),
+				}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.UpdatePlanResponse{
+				Plan: &frontierv1beta1.Plan{
+					Id:             "plan-1",
+					Name:           "basic-plan",
+					Title:          "Renamed Plan",
+					Description:    "updated",
+					OnStartCredits: 500,
+					TrialDays:      14,
+					State:          "disabled",
+					CreatedAt:      timestamppb.New(time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)),
+					UpdatedAt:      timestamppb.New(time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC)),
+				},
+			}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPlanService := mocks.NewPlanService(t)
+			if tt.setup != nil {
+				tt.setup(mockPlanService)
+			}
+
+			handler := &ConnectHandler{
+				planService: mockPlanService,
+			}
+
+			got, err := handler.UpdatePlan(context.Background(), tt.request)
+
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+				connectErr := err.(*connect.Error)
+				assert.Equal(t, tt.errCode, connectErr.Code())
+				assert.Contains(t, connectErr.Message(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want.Msg, got.Msg)
+			}
+		})
+	}
+}
+
+func TestConnectHandler_ListAllPlans(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(ps *mocks.PlanService)
+		request *connect.Request[frontierv1beta1.ListAllPlansRequest]
+		want    *connect.Response[frontierv1beta1.ListAllPlansResponse]
+		wantErr error
+		errCode connect.Code
+	}{
+		{
+			name:    "should default an empty state to all plans and carry state through",
+			request: connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{}),
+			setup: func(ps *mocks.PlanService) {
+				ps.On("List", mock.Anything, plan.Filter{State: plan.StateAll}).Return([]plan.Plan{
+					{
+						ID:        "plan-1",
+						Name:      "basic-plan",
+						Title:     "Basic Plan",
+						State:     "active",
+						Products:  []product.Product{},
+						Metadata:  metadata.Metadata{},
+						CreatedAt: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
+					},
+					{
+						ID:        "plan-2",
+						Name:      "old-plan",
+						Title:     "Old Plan",
+						State:     "disabled",
+						Products:  []product.Product{},
+						Metadata:  metadata.Metadata{},
+						CreatedAt: time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2023, 2, 2, 0, 0, 0, 0, time.UTC),
+					},
+				}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.ListAllPlansResponse{
+				Plans: []*frontierv1beta1.Plan{
+					{
+						Id:        "plan-1",
+						Name:      "basic-plan",
+						Title:     "Basic Plan",
+						State:     "active",
+						CreatedAt: timestamppb.New(time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)),
+						UpdatedAt: timestamppb.New(time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC)),
+					},
+					{
+						Id:        "plan-2",
+						Name:      "old-plan",
+						Title:     "Old Plan",
+						State:     "disabled",
+						CreatedAt: timestamppb.New(time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC)),
+						UpdatedAt: timestamppb.New(time.Date(2023, 2, 2, 0, 0, 0, 0, time.UTC)),
+					},
+				},
+			}),
+		},
+		{
+			name:    "should pass a set state through as a filter",
+			request: connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{State: "disabled"}),
+			setup: func(ps *mocks.PlanService) {
+				ps.On("List", mock.Anything, plan.Filter{State: "disabled"}).Return([]plan.Plan{}, nil)
+			},
+			want: connect.NewResponse(&frontierv1beta1.ListAllPlansResponse{Plans: nil}),
+		},
+		{
+			name:    "should return internal server error when the plan service fails",
+			request: connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{}),
+			setup: func(ps *mocks.PlanService) {
+				ps.On("List", mock.Anything, plan.Filter{State: plan.StateAll}).Return([]plan.Plan{}, errors.New("service failed"))
+			},
+			wantErr: errors.New("service failed"),
+			errCode: connect.CodeInternal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockPlanService := mocks.NewPlanService(t)
+			if tt.setup != nil {
+				tt.setup(mockPlanService)
+			}
+
+			handler := &ConnectHandler{
+				planService: mockPlanService,
+			}
+
+			got, err := handler.ListAllPlans(context.Background(), tt.request)
+
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Nil(t, got)
+				connectErr := err.(*connect.Error)
+				assert.Equal(t, tt.errCode, connectErr.Code())
+				assert.Contains(t, connectErr.Message(), tt.wantErr.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.want.Msg, got.Msg)
+			}
+		})
+	}
+}

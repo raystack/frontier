@@ -71,6 +71,7 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 		Products:       products,
 		OnStartCredits: request.Msg.GetBody().GetOnStartCredits(),
 		TrialDays:      request.Msg.GetBody().GetTrialDays(),
+		State:          request.Msg.GetBody().GetState(),
 		Metadata:       metaDataMap,
 	}
 
@@ -95,6 +96,32 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.CreatePlanResponse{Plan: planPB}), nil
 }
 
+func (h *ConnectHandler) UpdatePlan(ctx context.Context, request *connect.Request[frontierv1beta1.UpdatePlanRequest]) (*connect.Response[frontierv1beta1.UpdatePlanResponse], error) {
+	body := request.Msg.GetBody()
+	// UpdatePlan changes a plan's own fields (title, description, credits, trial
+	// days, state, metadata). A plan's products are managed through CreatePlan's
+	// upsert, not here, so they are not read from the request.
+	updatedPlan, err := h.planService.UpdatePlan(ctx, plan.Plan{
+		ID:             request.Msg.GetId(),
+		Title:          body.GetTitle(),
+		Description:    body.GetDescription(),
+		OnStartCredits: body.GetOnStartCredits(),
+		TrialDays:      body.GetTrialDays(),
+		State:          body.GetState(),
+		Metadata:       metadata.Build(body.GetMetadata().AsMap()),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePlan.UpdatePlan: plan_id=%s: %w", request.Msg.GetId(), err))
+	}
+
+	planPB, err := transformPlanToPB(updatedPlan)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePlan: plan_id=%s: %w", updatedPlan.ID, err))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.UpdatePlanResponse{Plan: planPB}), nil
+}
+
 func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListPlansRequest]) (*connect.Response[frontierv1beta1.ListPlansResponse], error) {
 	var plans []*frontierv1beta1.Plan
 	planList, err := h.planService.List(ctx, plan.Filter{})
@@ -110,6 +137,29 @@ func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request
 	}
 
 	return connect.NewResponse(&frontierv1beta1.ListPlansResponse{Plans: plans}), nil
+}
+
+func (h *ConnectHandler) ListAllPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllPlansRequest]) (*connect.Response[frontierv1beta1.ListAllPlansResponse], error) {
+	// ListPlans lists active plans only. ListAllPlans lists every plan: an empty
+	// state means all states, and a set state filters to that state.
+	state := request.Msg.GetState()
+	if state == "" {
+		state = plan.StateAll
+	}
+	var plans []*frontierv1beta1.Plan
+	planList, err := h.planService.List(ctx, plan.Filter{State: state})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllPlans.List: %w", err))
+	}
+	for _, v := range planList {
+		planPB, err := transformPlanToPB(v)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllPlans: plan_id=%s: %w", v.ID, err))
+		}
+		plans = append(plans, planPB)
+	}
+
+	return connect.NewResponse(&frontierv1beta1.ListAllPlansResponse{Plans: plans}), nil
 }
 
 func (h *ConnectHandler) GetPlan(ctx context.Context, request *connect.Request[frontierv1beta1.GetPlanRequest]) (*connect.Response[frontierv1beta1.GetPlanResponse], error) {
@@ -153,6 +203,7 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 		OnStartCredits: p.OnStartCredits,
 		Products:       products,
 		TrialDays:      p.TrialDays,
+		State:          p.State,
 		Metadata:       metaData,
 		CreatedAt:      timestamppb.New(p.CreatedAt),
 		UpdatedAt:      timestamppb.New(p.UpdatedAt),
