@@ -82,26 +82,29 @@ func (s *Service) ListPrincipalsByResource(ctx context.Context, resourceID, reso
 		})
 	}
 
-	if err := s.enrichMemberRoles(ctx, flt, resourceType, memberIndex, members); err != nil {
+	// role enrichment needs every policy on the resource, not just the ones
+	// matching the role filter. Without a role filter the first query already
+	// returned exactly that set — reuse it instead of querying again.
+	allPolicies := policies
+	if len(filter.RoleIDs) > 0 {
+		flt.RoleIDs = nil
+		allPolicies, err = s.policyService.List(ctx, flt)
+		if err != nil {
+			return nil, fmt.Errorf("list policies for role enrichment: %w", err)
+		}
+		allPolicies = excludePATAllProjects(allPolicies, resourceType)
+	}
+
+	if err := s.enrichMemberRoles(ctx, allPolicies, memberIndex, members); err != nil {
 		return nil, err
 	}
 	return members, nil
 }
 
 // enrichMemberRoles fills each member's Roles with every role the principal
-// holds on the resource, ignoring the role filter used to select the members.
-// flt is the resource-scoped filter the members were listed with (taken by
-// value — the role filter is stripped on the local copy).
-func (s *Service) enrichMemberRoles(ctx context.Context, flt policy.Filter, resourceType string, memberIndex map[principalKey]int, members []Member) error {
-	// fetch all policies for the resource (without role filtering) to get
-	// the complete set of roles per principal in a single query
-	flt.RoleIDs = nil
-	allPolicies, err := s.policyService.List(ctx, flt)
-	if err != nil {
-		return fmt.Errorf("list policies for role enrichment: %w", err)
-	}
-	allPolicies = excludePATAllProjects(allPolicies, resourceType)
-
+// holds on the resource. allPolicies must be the resource's full policy set
+// (no role filter), already cleaned of PAT all-projects grants.
+func (s *Service) enrichMemberRoles(ctx context.Context, allPolicies []policy.Policy, memberIndex map[principalKey]int, members []Member) error {
 	principalRoleIDs := make(map[principalKey][]string, len(members))
 	roleSeen := make(map[principalKey]map[string]struct{}, len(members))
 	uniqueRoleIDs := make(map[string]struct{})
