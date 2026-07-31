@@ -24,11 +24,13 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 
 			Kinds: PlatformUser (platform admins and members), Permission (custom
 			permissions), Role (platform-level roles), Preference (platform
-			settings), and Webhook (webhook endpoints). Deleting a permission, a
-			custom role, or a webhook needs an explicit 'delete: true' on its entry;
-			nothing is deleted by omission, and a predefined role cannot be deleted. A
-			preference left out of the file resets to its default. Log in as a superuser
-			(for example the bootstrap service account) with --header.
+			settings), Webhook (webhook endpoints), and BillingProduct (billing
+			products and their prices). Deleting a permission, a custom role, or a
+			webhook needs an explicit 'delete: true' on its entry; nothing is deleted
+			by omission, a predefined role cannot be deleted, and a product cannot be
+			deleted through the API. A preference left out of the file resets to its
+			default. Log in as a superuser (for example the bootstrap service account)
+			with --header.
 
 			Use "frontier export <kind>" to print the current state in this file format.
 		`),
@@ -84,11 +86,12 @@ func buildReconcileRegistry(host, header string) (map[string]reconcile.Reconcile
 	}
 	api := reconcileAPI{AdminServiceClient: adminClient, FrontierServiceClient: frontierClient}
 	return map[string]reconcile.Reconciler{
-		reconcile.KindPlatformUser: reconcile.NewPlatformUserReconciler(adminClient, header),
-		reconcile.KindPermission:   reconcile.NewPermissionReconciler(api, header),
-		reconcile.KindRole:         reconcile.NewRoleReconciler(api, header),
-		reconcile.KindPreference:   reconcile.NewPreferenceReconciler(api, header),
-		reconcile.KindWebhook:      reconcile.NewWebhookReconciler(adminClient, header),
+		reconcile.KindPlatformUser:   reconcile.NewPlatformUserReconciler(adminClient, header),
+		reconcile.KindPermission:     reconcile.NewPermissionReconciler(api, header),
+		reconcile.KindRole:           reconcile.NewRoleReconciler(api, header),
+		reconcile.KindPreference:     reconcile.NewPreferenceReconciler(api, header),
+		reconcile.KindWebhook:        reconcile.NewWebhookReconciler(adminClient, header),
+		reconcile.KindBillingProduct: reconcile.NewBillingProductReconciler(api, header),
 	}, nil
 }
 

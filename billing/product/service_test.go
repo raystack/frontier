@@ -638,6 +638,35 @@ func TestService_Update_ConvergesPrices(t *testing.T) {
 		}
 	})
 
+	t.Run("does not reject a metered price whose desired aggregate is omitted", func(t *testing.T) {
+		stripeClient, be, pr, priceRepo, fr := mockService(t)
+		expectProductNoise(be, pr, fr)
+		priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).
+			Return([]product.Price{{ID: "price-metered", Name: "metered", Amount: 1, Currency: "usd", Interval: "month", UsageType: product.PriceUsageTypeMetered, MeteredAggregate: "sum", State: "active"}}, nil)
+
+		// the desired price omits metered_aggregate; the "sum" default must smooth
+		// it so the immutable check does not falsely reject on a later update.
+		metered := product.Price{Name: "metered", Amount: 1, Currency: "usd", Interval: "month", UsageType: product.PriceUsageTypeMetered}
+		svc := product.NewService(stripeClient, pr, priceRepo, fr)
+		if _, err := svc.Update(ctx, desired(metered)); err != nil {
+			t.Fatalf("Update() unexpected error = %v", err)
+		}
+	})
+
+	t.Run("does not reject a currency-case difference", func(t *testing.T) {
+		stripeClient, be, pr, priceRepo, fr := mockService(t)
+		expectProductNoise(be, pr, fr)
+		priceRepo.EXPECT().List(mock.Anything, product.Filter{ProductID: "prod-1"}).
+			Return([]product.Price{{ID: "price-monthly", Name: "monthly", Amount: 100, Currency: "usd", Interval: "month", State: "active"}}, nil)
+
+		upper := monthly
+		upper.Currency = "USD" // server stored "usd"; must not read as a change
+		svc := product.NewService(stripeClient, pr, priceRepo, fr)
+		if _, err := svc.Update(ctx, desired(upper)); err != nil {
+			t.Fatalf("Update() unexpected error = %v", err)
+		}
+	})
+
 	t.Run("empty price list leaves existing prices untouched", func(t *testing.T) {
 		stripeClient, be, pr, priceRepo, fr := mockService(t)
 		expectProductNoise(be, pr, fr)
@@ -749,7 +778,7 @@ func TestService_CreatePrice(t *testing.T) {
 					ID:            "1",
 					Name:          "price1",
 					Amount:        100,
-					Currency:      "usd",
+					Currency:      "USD", // stored lowercased
 					ProductID:     "1",
 					BillingScheme: product.BillingSchemeFlat,
 					UsageType:     product.PriceUsageTypeLicensed,
@@ -770,14 +799,15 @@ func TestService_CreatePrice(t *testing.T) {
 			setup: func() *product.Service {
 				stripeClient, mockStripeBackend, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
 				mockPriceRepo.EXPECT().Create(ctx, product.Price{
-					ID:            "1",
-					Name:          "price1",
-					Amount:        100,
-					Currency:      "usd",
-					ProductID:     "1",
-					BillingScheme: product.BillingSchemeFlat,
-					UsageType:     product.PriceUsageTypeLicensed,
-					Interval:      "month",
+					ID:               "1",
+					Name:             "price1",
+					Amount:           100,
+					Currency:         "usd", // lowercased from "USD"
+					ProductID:        "1",
+					BillingScheme:    product.BillingSchemeFlat,
+					UsageType:        product.PriceUsageTypeLicensed,
+					MeteredAggregate: "sum", // defaulted
+					Interval:         "month",
 				}).Return(product.Price{
 					ID:            "1",
 					Name:          "price1",

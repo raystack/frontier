@@ -236,6 +236,72 @@ spec:
   empty, so reconciling an export plans nothing, and headers and metadata set through other
   tools are carried through an update untouched.
 
+## The BillingProduct kind
+
+`BillingProduct` manages billing products: the thing a customer buys, its prices, and the
+features attached to it. The product name is the identity and never changes.
+
+```yaml
+apiVersion: v1
+kind: BillingProduct
+spec:
+  - name: standard_plan_product
+    title: Standard Plan
+    behavior: basic
+    features:
+      - name: order_archive_images
+      - name: open_source_data
+    prices:
+      - name: monthly
+        amount: 15000
+        currency: usd
+        interval: month
+  - name: tokens
+    title: Tokens
+    behavior: credits
+    config:
+      credit_amount: 1
+      min_quantity: 1
+      max_quantity: 100000
+    prices:
+      - name: default
+        amount: 100
+        currency: usd
+```
+
+- The product name is the identity and must be at least three characters. A `title` is
+  required, because the billing provider uses it as the product name and does not allow an
+  empty one. `title`, `description`, `config`, `prices`, and `features` are the managed fields.
+- `title`, `description`, and `config` state the whole desired value. The file writes them as
+  given, so leaving `description` out or zeroing a `config` field resets it. `behavior` is set
+  only when the product is created and cannot change afterward; a file that asks to change it
+  fails the plan. An omitted `behavior` becomes `basic` on create (or `credits` when
+  `credit_amount` is set) and is left as is on update. Metadata is out of scope for this kind:
+  it is never set, changed, or exported here.
+- The valid values for `behavior`, `interval`, `usage_type`, and `billing_scheme` are checked
+  against the API's own rules when the file is validated, up front, so a wrong value fails
+  before anything applies. This kind does not keep its own copy of those lists, so it stays in
+  step with the server as the lists change.
+- Prices are keyed by their name within the product. A new price name is added, and an active
+  price the file no longer lists is retired (marked inactive, not deleted, because a provider
+  price cannot be removed). Listing a retired name again brings it back, as long as its fields
+  match. Reusing a retired name with different fields fails the plan, because the old price
+  still exists on the server. Amount, currency, interval, and the other pricing fields cannot
+  change once a price exists: to change an amount, add a new price under a new name and drop
+  the old one. Changing a field on an existing price name fails the plan with that advice. A
+  tiered billing scheme is not supported. An empty price list is left alone, so a product's
+  last price cannot be removed through the file; retire it by hand.
+- Features are attached by name. A feature that does not exist yet is created.
+- Every product on the server must appear in the file. A product that is missing fails the
+  plan. There is no API to remove a product, so `delete: true` is rejected; archive a product
+  by hand. The one exception is a product this kind cannot represent — one that uses a tiered
+  price, has an empty title, or has a name shorter than three characters. That product is out
+  of scope: it is left untouched, not required in the file, and not exported, and a file that
+  names it fails the plan instead of trying to recreate it.
+- Export writes each product sorted by name, and each product's active prices sorted by name,
+  so reconciling an export plans nothing. Provider ids, timestamps, and price state are
+  server-owned and not written; metadata and out-of-scope products are left out too.
+
 ## Running it
 
 Log in as a superuser. The bootstrap service user exists for exactly this; its client id
@@ -278,7 +344,8 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 
 ## More kinds
 
-This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, and `Webhook`. The design and
+This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, `Webhook`, and
+`BillingProduct`. The design and
 the rules every kind follows live in
 [RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
 which also lists the kinds proposed next. The flag reference for both commands is in the
