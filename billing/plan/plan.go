@@ -16,6 +16,10 @@ var (
 	ErrInvalidDetail = errors.New("invalid plan detail")
 )
 
+// StateAll is a Filter.State sentinel that matches plans in any state. An empty
+// Filter.State defaults to active, so this is the way to list every plan.
+const StateAll = "all"
+
 // Plan is a collection of products
 // it is a logical grouping of products and doesn't have
 // a corresponding billing engine entity

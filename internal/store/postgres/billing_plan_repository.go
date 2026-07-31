@@ -417,9 +417,12 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 	if filter.State == "" {
 		filter.State = "active"
 	}
-	stmt = stmt.Where(goqu.Ex{
-		"plan.state": filter.State,
-	})
+	// StateAll lists plans in every state; any other value filters to that state.
+	if filter.State != plan.StateAll {
+		stmt = stmt.Where(goqu.Ex{
+			"plan.state": filter.State,
+		})
+	}
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
