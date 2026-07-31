@@ -275,8 +275,9 @@ spec:
 - `title`, `description`, and `config` state the whole desired value. The file writes them as
   given, so leaving `description` out or zeroing a `config` field resets it. `behavior` is set
   only when the product is created and cannot change afterward; a file that asks to change it
-  fails the plan. Metadata is out of scope for this kind: it is never set, changed, or exported
-  here.
+  fails the plan. An omitted `behavior` becomes `basic` on create (or `credits` when
+  `credit_amount` is set) and is left as is on update. Metadata is out of scope for this kind:
+  it is never set, changed, or exported here.
 - The valid values for `behavior`, `interval`, `usage_type`, and `billing_scheme` are checked
   against the API's own rules when the file is validated, up front, so a wrong value fails
   before anything applies. This kind does not keep its own copy of those lists, so it stays in
