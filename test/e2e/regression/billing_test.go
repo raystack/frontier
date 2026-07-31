@@ -312,7 +312,7 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().NotEmpty(listPlansResp.Msg.GetPlans())
 	})
 	s.Run("2. create a plan successfully", func() {
-		createPlanResp, err := s.testBench.Client.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
+		createPlanResp, err := s.testBench.AdminClient.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
 			Body: &frontierv1beta1.PlanRequestBody{
 				Name:        "test-plan-2",
 				Title:       "Test Plan 2",
@@ -1305,7 +1305,7 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 	s.Assert().NoError(err)
 	s.disableExistingBillingAccounts(ctxOrgAdminAuth, createOrgResp.Msg.GetOrganization().GetId())
 
-	createPlanResp, err := s.testBench.Client.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
+	createPlanResp, err := s.testBench.AdminClient.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
 		Body: &frontierv1beta1.PlanRequestBody{
 			Name:        "test-plan-entitlement-1",
 			Title:       "Test Plan 1",
