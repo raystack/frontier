@@ -3706,214 +3706,6 @@ func (x *ListFeaturesResponse) GetFeatures() []*Feature {
 	return nil
 }
 
-type PlanRequestBody struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Name        string     `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Title       string     `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Description string     `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Products    []*Product `protobuf:"bytes,4,rep,name=products,proto3" json:"products,omitempty"`
-	// known intervals are "day", "week", "month", and "year"
-	Interval       string           `protobuf:"bytes,5,opt,name=interval,proto3" json:"interval,omitempty"`
-	OnStartCredits int64            `protobuf:"varint,6,opt,name=on_start_credits,json=onStartCredits,proto3" json:"on_start_credits,omitempty"`
-	TrialDays      int64            `protobuf:"varint,7,opt,name=trial_days,json=trialDays,proto3" json:"trial_days,omitempty"`
-	State          string           `protobuf:"bytes,8,opt,name=state,proto3" json:"state,omitempty"`
-	Metadata       *structpb.Struct `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
-}
-
-func (x *PlanRequestBody) Reset() {
-	*x = PlanRequestBody{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[69]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *PlanRequestBody) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PlanRequestBody) ProtoMessage() {}
-
-func (x *PlanRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[69]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PlanRequestBody.ProtoReflect.Descriptor instead.
-func (*PlanRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{69}
-}
-
-func (x *PlanRequestBody) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *PlanRequestBody) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *PlanRequestBody) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *PlanRequestBody) GetProducts() []*Product {
-	if x != nil {
-		return x.Products
-	}
-	return nil
-}
-
-func (x *PlanRequestBody) GetInterval() string {
-	if x != nil {
-		return x.Interval
-	}
-	return ""
-}
-
-func (x *PlanRequestBody) GetOnStartCredits() int64 {
-	if x != nil {
-		return x.OnStartCredits
-	}
-	return 0
-}
-
-func (x *PlanRequestBody) GetTrialDays() int64 {
-	if x != nil {
-		return x.TrialDays
-	}
-	return 0
-}
-
-func (x *PlanRequestBody) GetState() string {
-	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-func (x *PlanRequestBody) GetMetadata() *structpb.Struct {
-	if x != nil {
-		return x.Metadata
-	}
-	return nil
-}
-
-type CreatePlanRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Plan to create
-	Body *PlanRequestBody `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
-}
-
-func (x *CreatePlanRequest) Reset() {
-	*x = CreatePlanRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[70]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CreatePlanRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreatePlanRequest) ProtoMessage() {}
-
-func (x *CreatePlanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[70]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreatePlanRequest.ProtoReflect.Descriptor instead.
-func (*CreatePlanRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{70}
-}
-
-func (x *CreatePlanRequest) GetBody() *PlanRequestBody {
-	if x != nil {
-		return x.Body
-	}
-	return nil
-}
-
-type CreatePlanResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Created plan
-	Plan *Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
-}
-
-func (x *CreatePlanResponse) Reset() {
-	*x = CreatePlanResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[71]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CreatePlanResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreatePlanResponse) ProtoMessage() {}
-
-func (x *CreatePlanResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[71]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreatePlanResponse.ProtoReflect.Descriptor instead.
-func (*CreatePlanResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{71}
-}
-
-func (x *CreatePlanResponse) GetPlan() *Plan {
-	if x != nil {
-		return x.Plan
-	}
-	return nil
-}
-
 type GetPlanRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3926,7 +3718,7 @@ type GetPlanRequest struct {
 func (x *GetPlanRequest) Reset() {
 	*x = GetPlanRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[72]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3939,7 +3731,7 @@ func (x *GetPlanRequest) String() string {
 func (*GetPlanRequest) ProtoMessage() {}
 
 func (x *GetPlanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[72]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3952,7 +3744,7 @@ func (x *GetPlanRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPlanRequest.ProtoReflect.Descriptor instead.
 func (*GetPlanRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{72}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *GetPlanRequest) GetId() string {
@@ -3974,7 +3766,7 @@ type GetPlanResponse struct {
 func (x *GetPlanResponse) Reset() {
 	*x = GetPlanResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[73]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3987,7 +3779,7 @@ func (x *GetPlanResponse) String() string {
 func (*GetPlanResponse) ProtoMessage() {}
 
 func (x *GetPlanResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[73]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4000,115 +3792,10 @@ func (x *GetPlanResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPlanResponse.ProtoReflect.Descriptor instead.
 func (*GetPlanResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{73}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *GetPlanResponse) GetPlan() *Plan {
-	if x != nil {
-		return x.Plan
-	}
-	return nil
-}
-
-type UpdatePlanRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// ID of the plan to update
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Plan to update
-	Body *PlanRequestBody `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
-}
-
-func (x *UpdatePlanRequest) Reset() {
-	*x = UpdatePlanRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[74]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *UpdatePlanRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpdatePlanRequest) ProtoMessage() {}
-
-func (x *UpdatePlanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[74]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UpdatePlanRequest.ProtoReflect.Descriptor instead.
-func (*UpdatePlanRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{74}
-}
-
-func (x *UpdatePlanRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *UpdatePlanRequest) GetBody() *PlanRequestBody {
-	if x != nil {
-		return x.Body
-	}
-	return nil
-}
-
-type UpdatePlanResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Updated plan
-	Plan *Plan `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
-}
-
-func (x *UpdatePlanResponse) Reset() {
-	*x = UpdatePlanResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[75]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *UpdatePlanResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpdatePlanResponse) ProtoMessage() {}
-
-func (x *UpdatePlanResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[75]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use UpdatePlanResponse.ProtoReflect.Descriptor instead.
-func (*UpdatePlanResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{75}
-}
-
-func (x *UpdatePlanResponse) GetPlan() *Plan {
 	if x != nil {
 		return x.Plan
 	}
@@ -4128,7 +3815,7 @@ type ListInvoicesRequest struct {
 func (x *ListInvoicesRequest) Reset() {
 	*x = ListInvoicesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[76]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4141,7 +3828,7 @@ func (x *ListInvoicesRequest) String() string {
 func (*ListInvoicesRequest) ProtoMessage() {}
 
 func (x *ListInvoicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[76]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4154,7 +3841,7 @@ func (x *ListInvoicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInvoicesRequest.ProtoReflect.Descriptor instead.
 func (*ListInvoicesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{76}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *ListInvoicesRequest) GetOrgId() string {
@@ -4190,7 +3877,7 @@ type ListInvoicesResponse struct {
 func (x *ListInvoicesResponse) Reset() {
 	*x = ListInvoicesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[77]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4203,7 +3890,7 @@ func (x *ListInvoicesResponse) String() string {
 func (*ListInvoicesResponse) ProtoMessage() {}
 
 func (x *ListInvoicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[77]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4216,7 +3903,7 @@ func (x *ListInvoicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInvoicesResponse.ProtoReflect.Descriptor instead.
 func (*ListInvoicesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{77}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *ListInvoicesResponse) GetInvoices() []*Invoice {
@@ -4238,7 +3925,7 @@ type SearchOrganizationInvoicesRequest struct {
 func (x *SearchOrganizationInvoicesRequest) Reset() {
 	*x = SearchOrganizationInvoicesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[78]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4251,7 +3938,7 @@ func (x *SearchOrganizationInvoicesRequest) String() string {
 func (*SearchOrganizationInvoicesRequest) ProtoMessage() {}
 
 func (x *SearchOrganizationInvoicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[78]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4264,7 +3951,7 @@ func (x *SearchOrganizationInvoicesRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SearchOrganizationInvoicesRequest.ProtoReflect.Descriptor instead.
 func (*SearchOrganizationInvoicesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{78}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *SearchOrganizationInvoicesRequest) GetId() string {
@@ -4294,7 +3981,7 @@ type SearchOrganizationInvoicesResponse struct {
 func (x *SearchOrganizationInvoicesResponse) Reset() {
 	*x = SearchOrganizationInvoicesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[79]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4307,7 +3994,7 @@ func (x *SearchOrganizationInvoicesResponse) String() string {
 func (*SearchOrganizationInvoicesResponse) ProtoMessage() {}
 
 func (x *SearchOrganizationInvoicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[79]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4320,7 +4007,7 @@ func (x *SearchOrganizationInvoicesResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use SearchOrganizationInvoicesResponse.ProtoReflect.Descriptor instead.
 func (*SearchOrganizationInvoicesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{79}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *SearchOrganizationInvoicesResponse) GetOrganizationInvoices() []*SearchOrganizationInvoicesResponse_OrganizationInvoice {
@@ -4355,7 +4042,7 @@ type GetUpcomingInvoiceRequest struct {
 func (x *GetUpcomingInvoiceRequest) Reset() {
 	*x = GetUpcomingInvoiceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[80]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4368,7 +4055,7 @@ func (x *GetUpcomingInvoiceRequest) String() string {
 func (*GetUpcomingInvoiceRequest) ProtoMessage() {}
 
 func (x *GetUpcomingInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[80]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4381,7 +4068,7 @@ func (x *GetUpcomingInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUpcomingInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*GetUpcomingInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{80}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *GetUpcomingInvoiceRequest) GetOrgId() string {
@@ -4403,7 +4090,7 @@ type GetUpcomingInvoiceResponse struct {
 func (x *GetUpcomingInvoiceResponse) Reset() {
 	*x = GetUpcomingInvoiceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[81]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4416,7 +4103,7 @@ func (x *GetUpcomingInvoiceResponse) String() string {
 func (*GetUpcomingInvoiceResponse) ProtoMessage() {}
 
 func (x *GetUpcomingInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[81]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4429,7 +4116,7 @@ func (x *GetUpcomingInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUpcomingInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*GetUpcomingInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{81}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *GetUpcomingInvoiceResponse) GetInvoice() *Invoice {
@@ -4448,7 +4135,7 @@ type GetJWKsRequest struct {
 func (x *GetJWKsRequest) Reset() {
 	*x = GetJWKsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[82]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4461,7 +4148,7 @@ func (x *GetJWKsRequest) String() string {
 func (*GetJWKsRequest) ProtoMessage() {}
 
 func (x *GetJWKsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[82]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4474,7 +4161,7 @@ func (x *GetJWKsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJWKsRequest.ProtoReflect.Descriptor instead.
 func (*GetJWKsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{82}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{77}
 }
 
 // GetJWKsResponse is a valid JSON Web Key Set as specififed in rfc 7517
@@ -4489,7 +4176,7 @@ type GetJWKsResponse struct {
 func (x *GetJWKsResponse) Reset() {
 	*x = GetJWKsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[83]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4502,7 +4189,7 @@ func (x *GetJWKsResponse) String() string {
 func (*GetJWKsResponse) ProtoMessage() {}
 
 func (x *GetJWKsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[83]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4515,7 +4202,7 @@ func (x *GetJWKsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJWKsResponse.ProtoReflect.Descriptor instead.
 func (*GetJWKsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{83}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *GetJWKsResponse) GetKeys() []*JSONWebKey {
@@ -4534,7 +4221,7 @@ type AuthLogoutRequest struct {
 func (x *AuthLogoutRequest) Reset() {
 	*x = AuthLogoutRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[84]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[79]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4547,7 +4234,7 @@ func (x *AuthLogoutRequest) String() string {
 func (*AuthLogoutRequest) ProtoMessage() {}
 
 func (x *AuthLogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[84]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[79]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4560,7 +4247,7 @@ func (x *AuthLogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthLogoutRequest.ProtoReflect.Descriptor instead.
 func (*AuthLogoutRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{84}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{79}
 }
 
 type AuthLogoutResponse struct {
@@ -4572,7 +4259,7 @@ type AuthLogoutResponse struct {
 func (x *AuthLogoutResponse) Reset() {
 	*x = AuthLogoutResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[85]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4585,7 +4272,7 @@ func (x *AuthLogoutResponse) String() string {
 func (*AuthLogoutResponse) ProtoMessage() {}
 
 func (x *AuthLogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[85]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4598,7 +4285,7 @@ func (x *AuthLogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthLogoutResponse.ProtoReflect.Descriptor instead.
 func (*AuthLogoutResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{85}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{80}
 }
 
 type AuthCallbackRequest struct {
@@ -4619,7 +4306,7 @@ type AuthCallbackRequest struct {
 func (x *AuthCallbackRequest) Reset() {
 	*x = AuthCallbackRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[86]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4632,7 +4319,7 @@ func (x *AuthCallbackRequest) String() string {
 func (*AuthCallbackRequest) ProtoMessage() {}
 
 func (x *AuthCallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[86]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4645,7 +4332,7 @@ func (x *AuthCallbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthCallbackRequest.ProtoReflect.Descriptor instead.
 func (*AuthCallbackRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{86}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *AuthCallbackRequest) GetStrategyName() string {
@@ -4685,7 +4372,7 @@ type AuthCallbackResponse struct {
 func (x *AuthCallbackResponse) Reset() {
 	*x = AuthCallbackResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[87]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4698,7 +4385,7 @@ func (x *AuthCallbackResponse) String() string {
 func (*AuthCallbackResponse) ProtoMessage() {}
 
 func (x *AuthCallbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[87]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4711,7 +4398,7 @@ func (x *AuthCallbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthCallbackResponse.ProtoReflect.Descriptor instead.
 func (*AuthCallbackResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{87}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{82}
 }
 
 type AuthenticateRequest struct {
@@ -4742,7 +4429,7 @@ type AuthenticateRequest struct {
 func (x *AuthenticateRequest) Reset() {
 	*x = AuthenticateRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[88]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4755,7 +4442,7 @@ func (x *AuthenticateRequest) String() string {
 func (*AuthenticateRequest) ProtoMessage() {}
 
 func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[88]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4768,7 +4455,7 @@ func (x *AuthenticateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateRequest.ProtoReflect.Descriptor instead.
 func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{88}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *AuthenticateRequest) GetStrategyName() string {
@@ -4822,7 +4509,7 @@ type AuthenticateResponse struct {
 func (x *AuthenticateResponse) Reset() {
 	*x = AuthenticateResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[89]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4835,7 +4522,7 @@ func (x *AuthenticateResponse) String() string {
 func (*AuthenticateResponse) ProtoMessage() {}
 
 func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[89]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4848,7 +4535,7 @@ func (x *AuthenticateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthenticateResponse.ProtoReflect.Descriptor instead.
 func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{89}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *AuthenticateResponse) GetEndpoint() string {
@@ -4884,7 +4571,7 @@ type AuthStrategy struct {
 func (x *AuthStrategy) Reset() {
 	*x = AuthStrategy{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[90]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4897,7 +4584,7 @@ func (x *AuthStrategy) String() string {
 func (*AuthStrategy) ProtoMessage() {}
 
 func (x *AuthStrategy) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[90]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4910,7 +4597,7 @@ func (x *AuthStrategy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthStrategy.ProtoReflect.Descriptor instead.
 func (*AuthStrategy) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{90}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *AuthStrategy) GetName() string {
@@ -4936,7 +4623,7 @@ type ListAuthStrategiesRequest struct {
 func (x *ListAuthStrategiesRequest) Reset() {
 	*x = ListAuthStrategiesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[91]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[86]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4949,7 +4636,7 @@ func (x *ListAuthStrategiesRequest) String() string {
 func (*ListAuthStrategiesRequest) ProtoMessage() {}
 
 func (x *ListAuthStrategiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[91]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[86]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4962,7 +4649,7 @@ func (x *ListAuthStrategiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuthStrategiesRequest.ProtoReflect.Descriptor instead.
 func (*ListAuthStrategiesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{91}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{86}
 }
 
 type ListAuthStrategiesResponse struct {
@@ -4976,7 +4663,7 @@ type ListAuthStrategiesResponse struct {
 func (x *ListAuthStrategiesResponse) Reset() {
 	*x = ListAuthStrategiesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[92]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[87]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4989,7 +4676,7 @@ func (x *ListAuthStrategiesResponse) String() string {
 func (*ListAuthStrategiesResponse) ProtoMessage() {}
 
 func (x *ListAuthStrategiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[92]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[87]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5002,7 +4689,7 @@ func (x *ListAuthStrategiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuthStrategiesResponse.ProtoReflect.Descriptor instead.
 func (*ListAuthStrategiesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{92}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *ListAuthStrategiesResponse) GetStrategies() []*AuthStrategy {
@@ -5031,7 +4718,7 @@ type AuthTokenRequest struct {
 func (x *AuthTokenRequest) Reset() {
 	*x = AuthTokenRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[93]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[88]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5044,7 +4731,7 @@ func (x *AuthTokenRequest) String() string {
 func (*AuthTokenRequest) ProtoMessage() {}
 
 func (x *AuthTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[93]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[88]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5057,7 +4744,7 @@ func (x *AuthTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthTokenRequest.ProtoReflect.Descriptor instead.
 func (*AuthTokenRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{93}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *AuthTokenRequest) GetGrantType() string {
@@ -5100,7 +4787,7 @@ type AuthTokenResponse struct {
 func (x *AuthTokenResponse) Reset() {
 	*x = AuthTokenResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[94]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[89]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5113,7 +4800,7 @@ func (x *AuthTokenResponse) String() string {
 func (*AuthTokenResponse) ProtoMessage() {}
 
 func (x *AuthTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[94]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[89]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5126,7 +4813,7 @@ func (x *AuthTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthTokenResponse.ProtoReflect.Descriptor instead.
 func (*AuthTokenResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{94}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *AuthTokenResponse) GetAccessToken() string {
@@ -5158,7 +4845,7 @@ type UserRequestBody struct {
 func (x *UserRequestBody) Reset() {
 	*x = UserRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[95]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[90]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5171,7 +4858,7 @@ func (x *UserRequestBody) String() string {
 func (*UserRequestBody) ProtoMessage() {}
 
 func (x *UserRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[95]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[90]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5184,7 +4871,7 @@ func (x *UserRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserRequestBody.ProtoReflect.Descriptor instead.
 func (*UserRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{95}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *UserRequestBody) GetName() string {
@@ -5238,7 +4925,7 @@ type ListUsersRequest struct {
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[96]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[91]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5251,7 +4938,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[96]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[91]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5264,7 +4951,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{96}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *ListUsersRequest) GetPageSize() int32 {
@@ -5321,7 +5008,7 @@ type ListUsersResponse struct {
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[97]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[92]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5334,7 +5021,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[97]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[92]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5347,7 +5034,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{97}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *ListUsersResponse) GetCount() int32 {
@@ -5375,7 +5062,7 @@ type CreateUserRequest struct {
 func (x *CreateUserRequest) Reset() {
 	*x = CreateUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[98]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[93]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5388,7 +5075,7 @@ func (x *CreateUserRequest) String() string {
 func (*CreateUserRequest) ProtoMessage() {}
 
 func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[98]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[93]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5401,7 +5088,7 @@ func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{98}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *CreateUserRequest) GetBody() *UserRequestBody {
@@ -5422,7 +5109,7 @@ type CreateUserResponse struct {
 func (x *CreateUserResponse) Reset() {
 	*x = CreateUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[99]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[94]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5435,7 +5122,7 @@ func (x *CreateUserResponse) String() string {
 func (*CreateUserResponse) ProtoMessage() {}
 
 func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[99]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[94]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5448,7 +5135,7 @@ func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{99}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *CreateUserResponse) GetUser() *User {
@@ -5470,7 +5157,7 @@ type ListOrganizationsByUserRequest struct {
 func (x *ListOrganizationsByUserRequest) Reset() {
 	*x = ListOrganizationsByUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[100]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[95]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5483,7 +5170,7 @@ func (x *ListOrganizationsByUserRequest) String() string {
 func (*ListOrganizationsByUserRequest) ProtoMessage() {}
 
 func (x *ListOrganizationsByUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[100]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[95]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5496,7 +5183,7 @@ func (x *ListOrganizationsByUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationsByUserRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsByUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{100}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *ListOrganizationsByUserRequest) GetId() string {
@@ -5525,7 +5212,7 @@ type ListOrganizationsByUserResponse struct {
 func (x *ListOrganizationsByUserResponse) Reset() {
 	*x = ListOrganizationsByUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[101]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[96]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5538,7 +5225,7 @@ func (x *ListOrganizationsByUserResponse) String() string {
 func (*ListOrganizationsByUserResponse) ProtoMessage() {}
 
 func (x *ListOrganizationsByUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[101]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[96]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5551,7 +5238,7 @@ func (x *ListOrganizationsByUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationsByUserResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsByUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{101}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *ListOrganizationsByUserResponse) GetOrganizations() []*Organization {
@@ -5579,7 +5266,7 @@ type ListOrganizationsByCurrentUserRequest struct {
 func (x *ListOrganizationsByCurrentUserRequest) Reset() {
 	*x = ListOrganizationsByCurrentUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[102]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[97]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5592,7 +5279,7 @@ func (x *ListOrganizationsByCurrentUserRequest) String() string {
 func (*ListOrganizationsByCurrentUserRequest) ProtoMessage() {}
 
 func (x *ListOrganizationsByCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[102]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[97]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5605,7 +5292,7 @@ func (x *ListOrganizationsByCurrentUserRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListOrganizationsByCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsByCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{102}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *ListOrganizationsByCurrentUserRequest) GetState() string {
@@ -5627,7 +5314,7 @@ type ListOrganizationsByCurrentUserResponse struct {
 func (x *ListOrganizationsByCurrentUserResponse) Reset() {
 	*x = ListOrganizationsByCurrentUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[103]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[98]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5640,7 +5327,7 @@ func (x *ListOrganizationsByCurrentUserResponse) String() string {
 func (*ListOrganizationsByCurrentUserResponse) ProtoMessage() {}
 
 func (x *ListOrganizationsByCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[103]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[98]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5653,7 +5340,7 @@ func (x *ListOrganizationsByCurrentUserResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListOrganizationsByCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsByCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{103}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *ListOrganizationsByCurrentUserResponse) GetOrganizations() []*Organization {
@@ -5681,7 +5368,7 @@ type ListProjectsByUserRequest struct {
 func (x *ListProjectsByUserRequest) Reset() {
 	*x = ListProjectsByUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[104]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[99]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5694,7 +5381,7 @@ func (x *ListProjectsByUserRequest) String() string {
 func (*ListProjectsByUserRequest) ProtoMessage() {}
 
 func (x *ListProjectsByUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[104]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[99]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5707,7 +5394,7 @@ func (x *ListProjectsByUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsByUserRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectsByUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{104}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *ListProjectsByUserRequest) GetId() string {
@@ -5728,7 +5415,7 @@ type ListProjectsByUserResponse struct {
 func (x *ListProjectsByUserResponse) Reset() {
 	*x = ListProjectsByUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[105]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[100]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5741,7 +5428,7 @@ func (x *ListProjectsByUserResponse) String() string {
 func (*ListProjectsByUserResponse) ProtoMessage() {}
 
 func (x *ListProjectsByUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[105]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[100]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5754,7 +5441,7 @@ func (x *ListProjectsByUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsByUserResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectsByUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{105}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *ListProjectsByUserResponse) GetProjects() []*Project {
@@ -5790,7 +5477,7 @@ type ListProjectsByCurrentUserRequest struct {
 func (x *ListProjectsByCurrentUserRequest) Reset() {
 	*x = ListProjectsByCurrentUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[106]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[101]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5803,7 +5490,7 @@ func (x *ListProjectsByCurrentUserRequest) String() string {
 func (*ListProjectsByCurrentUserRequest) ProtoMessage() {}
 
 func (x *ListProjectsByCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[106]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[101]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5816,7 +5503,7 @@ func (x *ListProjectsByCurrentUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsByCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectsByCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{106}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *ListProjectsByCurrentUserRequest) GetOrgId() string {
@@ -5874,7 +5561,7 @@ type ListProjectsByCurrentUserResponse struct {
 func (x *ListProjectsByCurrentUserResponse) Reset() {
 	*x = ListProjectsByCurrentUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[107]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[102]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5887,7 +5574,7 @@ func (x *ListProjectsByCurrentUserResponse) String() string {
 func (*ListProjectsByCurrentUserResponse) ProtoMessage() {}
 
 func (x *ListProjectsByCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[107]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[102]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5900,7 +5587,7 @@ func (x *ListProjectsByCurrentUserResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListProjectsByCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectsByCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{107}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *ListProjectsByCurrentUserResponse) GetProjects() []*Project {
@@ -5935,7 +5622,7 @@ type EnableUserRequest struct {
 func (x *EnableUserRequest) Reset() {
 	*x = EnableUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[108]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[103]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5948,7 +5635,7 @@ func (x *EnableUserRequest) String() string {
 func (*EnableUserRequest) ProtoMessage() {}
 
 func (x *EnableUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[108]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[103]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5961,7 +5648,7 @@ func (x *EnableUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableUserRequest.ProtoReflect.Descriptor instead.
 func (*EnableUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{108}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *EnableUserRequest) GetId() string {
@@ -5980,7 +5667,7 @@ type EnableUserResponse struct {
 func (x *EnableUserResponse) Reset() {
 	*x = EnableUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[109]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[104]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -5993,7 +5680,7 @@ func (x *EnableUserResponse) String() string {
 func (*EnableUserResponse) ProtoMessage() {}
 
 func (x *EnableUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[109]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[104]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6006,7 +5693,7 @@ func (x *EnableUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableUserResponse.ProtoReflect.Descriptor instead.
 func (*EnableUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{109}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{104}
 }
 
 type DisableUserRequest struct {
@@ -6020,7 +5707,7 @@ type DisableUserRequest struct {
 func (x *DisableUserRequest) Reset() {
 	*x = DisableUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[110]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[105]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6033,7 +5720,7 @@ func (x *DisableUserRequest) String() string {
 func (*DisableUserRequest) ProtoMessage() {}
 
 func (x *DisableUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[110]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[105]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6046,7 +5733,7 @@ func (x *DisableUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableUserRequest.ProtoReflect.Descriptor instead.
 func (*DisableUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{110}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *DisableUserRequest) GetId() string {
@@ -6065,7 +5752,7 @@ type DisableUserResponse struct {
 func (x *DisableUserResponse) Reset() {
 	*x = DisableUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[111]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[106]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6078,7 +5765,7 @@ func (x *DisableUserResponse) String() string {
 func (*DisableUserResponse) ProtoMessage() {}
 
 func (x *DisableUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[111]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[106]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6091,7 +5778,7 @@ func (x *DisableUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableUserResponse.ProtoReflect.Descriptor instead.
 func (*DisableUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{111}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{106}
 }
 
 type DeleteUserRequest struct {
@@ -6105,7 +5792,7 @@ type DeleteUserRequest struct {
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[112]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[107]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6118,7 +5805,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[112]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[107]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6131,7 +5818,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{112}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *DeleteUserRequest) GetId() string {
@@ -6150,7 +5837,7 @@ type DeleteUserResponse struct {
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[113]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[108]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6163,7 +5850,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[113]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[108]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6176,7 +5863,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{113}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{108}
 }
 
 type GetUserResponse struct {
@@ -6190,7 +5877,7 @@ type GetUserResponse struct {
 func (x *GetUserResponse) Reset() {
 	*x = GetUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[114]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[109]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6203,7 +5890,7 @@ func (x *GetUserResponse) String() string {
 func (*GetUserResponse) ProtoMessage() {}
 
 func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[114]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[109]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6216,7 +5903,7 @@ func (x *GetUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserResponse.ProtoReflect.Descriptor instead.
 func (*GetUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{114}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *GetUserResponse) GetUser() *User {
@@ -6235,7 +5922,7 @@ type GetCurrentUserRequest struct {
 func (x *GetCurrentUserRequest) Reset() {
 	*x = GetCurrentUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[115]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[110]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6248,7 +5935,7 @@ func (x *GetCurrentUserRequest) String() string {
 func (*GetCurrentUserRequest) ProtoMessage() {}
 
 func (x *GetCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[115]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[110]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6261,7 +5948,7 @@ func (x *GetCurrentUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{115}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{110}
 }
 
 type GetCurrentUserResponse struct {
@@ -6276,7 +5963,7 @@ type GetCurrentUserResponse struct {
 func (x *GetCurrentUserResponse) Reset() {
 	*x = GetCurrentUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[116]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[111]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6289,7 +5976,7 @@ func (x *GetCurrentUserResponse) String() string {
 func (*GetCurrentUserResponse) ProtoMessage() {}
 
 func (x *GetCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[116]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[111]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6302,7 +5989,7 @@ func (x *GetCurrentUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{116}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *GetCurrentUserResponse) GetUser() *User {
@@ -6330,7 +6017,7 @@ type UpdateUserResponse struct {
 func (x *UpdateUserResponse) Reset() {
 	*x = UpdateUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[117]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[112]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6343,7 +6030,7 @@ func (x *UpdateUserResponse) String() string {
 func (*UpdateUserResponse) ProtoMessage() {}
 
 func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[117]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[112]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6356,7 +6043,7 @@ func (x *UpdateUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{117}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *UpdateUserResponse) GetUser() *User {
@@ -6377,7 +6064,7 @@ type UpdateCurrentUserResponse struct {
 func (x *UpdateCurrentUserResponse) Reset() {
 	*x = UpdateCurrentUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[118]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[113]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6390,7 +6077,7 @@ func (x *UpdateCurrentUserResponse) String() string {
 func (*UpdateCurrentUserResponse) ProtoMessage() {}
 
 func (x *UpdateCurrentUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[118]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[113]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6403,7 +6090,7 @@ func (x *UpdateCurrentUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{118}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *UpdateCurrentUserResponse) GetUser() *User {
@@ -6425,7 +6112,7 @@ type UpdateUserRequest struct {
 func (x *UpdateUserRequest) Reset() {
 	*x = UpdateUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[119]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[114]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6438,7 +6125,7 @@ func (x *UpdateUserRequest) String() string {
 func (*UpdateUserRequest) ProtoMessage() {}
 
 func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[119]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[114]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6451,7 +6138,7 @@ func (x *UpdateUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{119}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *UpdateUserRequest) GetId() string {
@@ -6479,7 +6166,7 @@ type GetUserRequest struct {
 func (x *GetUserRequest) Reset() {
 	*x = GetUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[120]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[115]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6492,7 +6179,7 @@ func (x *GetUserRequest) String() string {
 func (*GetUserRequest) ProtoMessage() {}
 
 func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[120]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[115]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6505,7 +6192,7 @@ func (x *GetUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetUserRequest.ProtoReflect.Descriptor instead.
 func (*GetUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{120}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *GetUserRequest) GetId() string {
@@ -6529,7 +6216,7 @@ type ListCurrentUserGroupsRequest struct {
 func (x *ListCurrentUserGroupsRequest) Reset() {
 	*x = ListCurrentUserGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[121]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[116]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6542,7 +6229,7 @@ func (x *ListCurrentUserGroupsRequest) String() string {
 func (*ListCurrentUserGroupsRequest) ProtoMessage() {}
 
 func (x *ListCurrentUserGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[121]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[116]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6555,7 +6242,7 @@ func (x *ListCurrentUserGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCurrentUserGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{121}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *ListCurrentUserGroupsRequest) GetOrgId() string {
@@ -6591,7 +6278,7 @@ type ListCurrentUserGroupsResponse struct {
 func (x *ListCurrentUserGroupsResponse) Reset() {
 	*x = ListCurrentUserGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[122]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[117]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6604,7 +6291,7 @@ func (x *ListCurrentUserGroupsResponse) String() string {
 func (*ListCurrentUserGroupsResponse) ProtoMessage() {}
 
 func (x *ListCurrentUserGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[122]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[117]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6617,7 +6304,7 @@ func (x *ListCurrentUserGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCurrentUserGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{122}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *ListCurrentUserGroupsResponse) GetGroups() []*Group {
@@ -6646,7 +6333,7 @@ type ListUserGroupsRequest struct {
 func (x *ListUserGroupsRequest) Reset() {
 	*x = ListUserGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[123]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[118]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6659,7 +6346,7 @@ func (x *ListUserGroupsRequest) String() string {
 func (*ListUserGroupsRequest) ProtoMessage() {}
 
 func (x *ListUserGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[123]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[118]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6672,7 +6359,7 @@ func (x *ListUserGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListUserGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{123}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *ListUserGroupsRequest) GetId() string {
@@ -6700,7 +6387,7 @@ type ListUserGroupsResponse struct {
 func (x *ListUserGroupsResponse) Reset() {
 	*x = ListUserGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[124]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[119]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6713,7 +6400,7 @@ func (x *ListUserGroupsResponse) String() string {
 func (*ListUserGroupsResponse) ProtoMessage() {}
 
 func (x *ListUserGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[124]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[119]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6726,7 +6413,7 @@ func (x *ListUserGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListUserGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{124}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *ListUserGroupsResponse) GetGroups() []*Group {
@@ -6747,7 +6434,7 @@ type UpdateCurrentUserRequest struct {
 func (x *UpdateCurrentUserRequest) Reset() {
 	*x = UpdateCurrentUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[125]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[120]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6760,7 +6447,7 @@ func (x *UpdateCurrentUserRequest) String() string {
 func (*UpdateCurrentUserRequest) ProtoMessage() {}
 
 func (x *UpdateCurrentUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[125]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[120]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6773,7 +6460,7 @@ func (x *UpdateCurrentUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{125}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *UpdateCurrentUserRequest) GetBody() *UserRequestBody {
@@ -6795,7 +6482,7 @@ type ListUserInvitationsRequest struct {
 func (x *ListUserInvitationsRequest) Reset() {
 	*x = ListUserInvitationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[126]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[121]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6808,7 +6495,7 @@ func (x *ListUserInvitationsRequest) String() string {
 func (*ListUserInvitationsRequest) ProtoMessage() {}
 
 func (x *ListUserInvitationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[126]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[121]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6821,7 +6508,7 @@ func (x *ListUserInvitationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserInvitationsRequest.ProtoReflect.Descriptor instead.
 func (*ListUserInvitationsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{126}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *ListUserInvitationsRequest) GetId() string {
@@ -6842,7 +6529,7 @@ type ListUserInvitationsResponse struct {
 func (x *ListUserInvitationsResponse) Reset() {
 	*x = ListUserInvitationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[127]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[122]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6855,7 +6542,7 @@ func (x *ListUserInvitationsResponse) String() string {
 func (*ListUserInvitationsResponse) ProtoMessage() {}
 
 func (x *ListUserInvitationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[127]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[122]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6868,7 +6555,7 @@ func (x *ListUserInvitationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserInvitationsResponse.ProtoReflect.Descriptor instead.
 func (*ListUserInvitationsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{127}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{122}
 }
 
 func (x *ListUserInvitationsResponse) GetInvitations() []*Invitation {
@@ -6887,7 +6574,7 @@ type ListCurrentUserInvitationsRequest struct {
 func (x *ListCurrentUserInvitationsRequest) Reset() {
 	*x = ListCurrentUserInvitationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[128]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[123]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6900,7 +6587,7 @@ func (x *ListCurrentUserInvitationsRequest) String() string {
 func (*ListCurrentUserInvitationsRequest) ProtoMessage() {}
 
 func (x *ListCurrentUserInvitationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[128]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[123]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6913,7 +6600,7 @@ func (x *ListCurrentUserInvitationsRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListCurrentUserInvitationsRequest.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserInvitationsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{128}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{123}
 }
 
 type ListCurrentUserInvitationsResponse struct {
@@ -6928,7 +6615,7 @@ type ListCurrentUserInvitationsResponse struct {
 func (x *ListCurrentUserInvitationsResponse) Reset() {
 	*x = ListCurrentUserInvitationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[129]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[124]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6941,7 +6628,7 @@ func (x *ListCurrentUserInvitationsResponse) String() string {
 func (*ListCurrentUserInvitationsResponse) ProtoMessage() {}
 
 func (x *ListCurrentUserInvitationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[129]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[124]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6954,7 +6641,7 @@ func (x *ListCurrentUserInvitationsResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListCurrentUserInvitationsResponse.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserInvitationsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{129}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{124}
 }
 
 func (x *ListCurrentUserInvitationsResponse) GetInvitations() []*Invitation {
@@ -6983,7 +6670,7 @@ type ListServiceUsersRequest struct {
 func (x *ListServiceUsersRequest) Reset() {
 	*x = ListServiceUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[130]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[125]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -6996,7 +6683,7 @@ func (x *ListServiceUsersRequest) String() string {
 func (*ListServiceUsersRequest) ProtoMessage() {}
 
 func (x *ListServiceUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[130]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[125]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7009,7 +6696,7 @@ func (x *ListServiceUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListServiceUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{130}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *ListServiceUsersRequest) GetOrgId() string {
@@ -7037,7 +6724,7 @@ type ListServiceUsersResponse struct {
 func (x *ListServiceUsersResponse) Reset() {
 	*x = ListServiceUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[131]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[126]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7050,7 +6737,7 @@ func (x *ListServiceUsersResponse) String() string {
 func (*ListServiceUsersResponse) ProtoMessage() {}
 
 func (x *ListServiceUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[131]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[126]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7063,7 +6750,7 @@ func (x *ListServiceUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListServiceUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{131}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *ListServiceUsersResponse) GetServiceusers() []*ServiceUser {
@@ -7085,7 +6772,7 @@ type ServiceUserRequestBody struct {
 func (x *ServiceUserRequestBody) Reset() {
 	*x = ServiceUserRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[132]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[127]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7098,7 +6785,7 @@ func (x *ServiceUserRequestBody) String() string {
 func (*ServiceUserRequestBody) ProtoMessage() {}
 
 func (x *ServiceUserRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[132]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[127]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7111,7 +6798,7 @@ func (x *ServiceUserRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceUserRequestBody.ProtoReflect.Descriptor instead.
 func (*ServiceUserRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{132}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *ServiceUserRequestBody) GetTitle() string {
@@ -7140,7 +6827,7 @@ type CreateServiceUserRequest struct {
 func (x *CreateServiceUserRequest) Reset() {
 	*x = CreateServiceUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[133]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[128]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7153,7 +6840,7 @@ func (x *CreateServiceUserRequest) String() string {
 func (*CreateServiceUserRequest) ProtoMessage() {}
 
 func (x *CreateServiceUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[133]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[128]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7166,7 +6853,7 @@ func (x *CreateServiceUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceUserRequest.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{133}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *CreateServiceUserRequest) GetBody() *ServiceUserRequestBody {
@@ -7194,7 +6881,7 @@ type CreateServiceUserResponse struct {
 func (x *CreateServiceUserResponse) Reset() {
 	*x = CreateServiceUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[134]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[129]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7207,7 +6894,7 @@ func (x *CreateServiceUserResponse) String() string {
 func (*CreateServiceUserResponse) ProtoMessage() {}
 
 func (x *CreateServiceUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[134]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[129]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7220,7 +6907,7 @@ func (x *CreateServiceUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceUserResponse.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{134}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *CreateServiceUserResponse) GetServiceuser() *ServiceUser {
@@ -7242,7 +6929,7 @@ type GetServiceUserRequest struct {
 func (x *GetServiceUserRequest) Reset() {
 	*x = GetServiceUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[135]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[130]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7255,7 +6942,7 @@ func (x *GetServiceUserRequest) String() string {
 func (*GetServiceUserRequest) ProtoMessage() {}
 
 func (x *GetServiceUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[135]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[130]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7268,7 +6955,7 @@ func (x *GetServiceUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetServiceUserRequest.ProtoReflect.Descriptor instead.
 func (*GetServiceUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{135}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *GetServiceUserRequest) GetId() string {
@@ -7296,7 +6983,7 @@ type GetServiceUserResponse struct {
 func (x *GetServiceUserResponse) Reset() {
 	*x = GetServiceUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[136]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[131]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7309,7 +6996,7 @@ func (x *GetServiceUserResponse) String() string {
 func (*GetServiceUserResponse) ProtoMessage() {}
 
 func (x *GetServiceUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[136]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[131]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7322,7 +7009,7 @@ func (x *GetServiceUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetServiceUserResponse.ProtoReflect.Descriptor instead.
 func (*GetServiceUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{136}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{131}
 }
 
 func (x *GetServiceUserResponse) GetServiceuser() *ServiceUser {
@@ -7344,7 +7031,7 @@ type DeleteServiceUserRequest struct {
 func (x *DeleteServiceUserRequest) Reset() {
 	*x = DeleteServiceUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[137]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[132]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7357,7 +7044,7 @@ func (x *DeleteServiceUserRequest) String() string {
 func (*DeleteServiceUserRequest) ProtoMessage() {}
 
 func (x *DeleteServiceUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[137]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[132]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7370,7 +7057,7 @@ func (x *DeleteServiceUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{137}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{132}
 }
 
 func (x *DeleteServiceUserRequest) GetId() string {
@@ -7396,7 +7083,7 @@ type DeleteServiceUserResponse struct {
 func (x *DeleteServiceUserResponse) Reset() {
 	*x = DeleteServiceUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[138]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[133]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7409,7 +7096,7 @@ func (x *DeleteServiceUserResponse) String() string {
 func (*DeleteServiceUserResponse) ProtoMessage() {}
 
 func (x *DeleteServiceUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[138]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[133]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7422,7 +7109,7 @@ func (x *DeleteServiceUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{138}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{133}
 }
 
 type CreateServiceUserJWKRequest struct {
@@ -7438,7 +7125,7 @@ type CreateServiceUserJWKRequest struct {
 func (x *CreateServiceUserJWKRequest) Reset() {
 	*x = CreateServiceUserJWKRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[139]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[134]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7451,7 +7138,7 @@ func (x *CreateServiceUserJWKRequest) String() string {
 func (*CreateServiceUserJWKRequest) ProtoMessage() {}
 
 func (x *CreateServiceUserJWKRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[139]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[134]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7464,7 +7151,7 @@ func (x *CreateServiceUserJWKRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceUserJWKRequest.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserJWKRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{139}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{134}
 }
 
 func (x *CreateServiceUserJWKRequest) GetId() string {
@@ -7499,7 +7186,7 @@ type CreateServiceUserJWKResponse struct {
 func (x *CreateServiceUserJWKResponse) Reset() {
 	*x = CreateServiceUserJWKResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[140]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[135]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7512,7 +7199,7 @@ func (x *CreateServiceUserJWKResponse) String() string {
 func (*CreateServiceUserJWKResponse) ProtoMessage() {}
 
 func (x *CreateServiceUserJWKResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[140]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[135]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7525,7 +7212,7 @@ func (x *CreateServiceUserJWKResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceUserJWKResponse.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserJWKResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{140}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{135}
 }
 
 func (x *CreateServiceUserJWKResponse) GetKey() *KeyCredential {
@@ -7548,7 +7235,7 @@ type GetServiceUserJWKRequest struct {
 func (x *GetServiceUserJWKRequest) Reset() {
 	*x = GetServiceUserJWKRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[141]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[136]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7561,7 +7248,7 @@ func (x *GetServiceUserJWKRequest) String() string {
 func (*GetServiceUserJWKRequest) ProtoMessage() {}
 
 func (x *GetServiceUserJWKRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[141]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[136]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7574,7 +7261,7 @@ func (x *GetServiceUserJWKRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetServiceUserJWKRequest.ProtoReflect.Descriptor instead.
 func (*GetServiceUserJWKRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{141}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{136}
 }
 
 func (x *GetServiceUserJWKRequest) GetId() string {
@@ -7609,7 +7296,7 @@ type GetServiceUserJWKResponse struct {
 func (x *GetServiceUserJWKResponse) Reset() {
 	*x = GetServiceUserJWKResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[142]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[137]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7622,7 +7309,7 @@ func (x *GetServiceUserJWKResponse) String() string {
 func (*GetServiceUserJWKResponse) ProtoMessage() {}
 
 func (x *GetServiceUserJWKResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[142]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[137]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7635,7 +7322,7 @@ func (x *GetServiceUserJWKResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetServiceUserJWKResponse.ProtoReflect.Descriptor instead.
 func (*GetServiceUserJWKResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{142}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *GetServiceUserJWKResponse) GetKeys() []*JSONWebKey {
@@ -7657,7 +7344,7 @@ type ListServiceUserJWKsRequest struct {
 func (x *ListServiceUserJWKsRequest) Reset() {
 	*x = ListServiceUserJWKsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[143]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[138]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7670,7 +7357,7 @@ func (x *ListServiceUserJWKsRequest) String() string {
 func (*ListServiceUserJWKsRequest) ProtoMessage() {}
 
 func (x *ListServiceUserJWKsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[143]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[138]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7683,7 +7370,7 @@ func (x *ListServiceUserJWKsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUserJWKsRequest.ProtoReflect.Descriptor instead.
 func (*ListServiceUserJWKsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{143}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *ListServiceUserJWKsRequest) GetId() string {
@@ -7711,7 +7398,7 @@ type ListServiceUserJWKsResponse struct {
 func (x *ListServiceUserJWKsResponse) Reset() {
 	*x = ListServiceUserJWKsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[144]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[139]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7724,7 +7411,7 @@ func (x *ListServiceUserJWKsResponse) String() string {
 func (*ListServiceUserJWKsResponse) ProtoMessage() {}
 
 func (x *ListServiceUserJWKsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[144]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[139]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7737,7 +7424,7 @@ func (x *ListServiceUserJWKsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUserJWKsResponse.ProtoReflect.Descriptor instead.
 func (*ListServiceUserJWKsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{144}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{139}
 }
 
 func (x *ListServiceUserJWKsResponse) GetKeys() []*ServiceUserJWK {
@@ -7760,7 +7447,7 @@ type DeleteServiceUserJWKRequest struct {
 func (x *DeleteServiceUserJWKRequest) Reset() {
 	*x = DeleteServiceUserJWKRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[145]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[140]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7773,7 +7460,7 @@ func (x *DeleteServiceUserJWKRequest) String() string {
 func (*DeleteServiceUserJWKRequest) ProtoMessage() {}
 
 func (x *DeleteServiceUserJWKRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[145]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[140]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7786,7 +7473,7 @@ func (x *DeleteServiceUserJWKRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceUserJWKRequest.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserJWKRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{145}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *DeleteServiceUserJWKRequest) GetId() string {
@@ -7819,7 +7506,7 @@ type DeleteServiceUserJWKResponse struct {
 func (x *DeleteServiceUserJWKResponse) Reset() {
 	*x = DeleteServiceUserJWKResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[146]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[141]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7832,7 +7519,7 @@ func (x *DeleteServiceUserJWKResponse) String() string {
 func (*DeleteServiceUserJWKResponse) ProtoMessage() {}
 
 func (x *DeleteServiceUserJWKResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[146]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[141]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7845,7 +7532,7 @@ func (x *DeleteServiceUserJWKResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceUserJWKResponse.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserJWKResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{146}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{141}
 }
 
 type CreateServiceUserCredentialRequest struct {
@@ -7861,7 +7548,7 @@ type CreateServiceUserCredentialRequest struct {
 func (x *CreateServiceUserCredentialRequest) Reset() {
 	*x = CreateServiceUserCredentialRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[147]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[142]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7874,7 +7561,7 @@ func (x *CreateServiceUserCredentialRequest) String() string {
 func (*CreateServiceUserCredentialRequest) ProtoMessage() {}
 
 func (x *CreateServiceUserCredentialRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[147]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[142]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7887,7 +7574,7 @@ func (x *CreateServiceUserCredentialRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CreateServiceUserCredentialRequest.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserCredentialRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{147}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{142}
 }
 
 func (x *CreateServiceUserCredentialRequest) GetId() string {
@@ -7922,7 +7609,7 @@ type CreateServiceUserCredentialResponse struct {
 func (x *CreateServiceUserCredentialResponse) Reset() {
 	*x = CreateServiceUserCredentialResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[148]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[143]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7935,7 +7622,7 @@ func (x *CreateServiceUserCredentialResponse) String() string {
 func (*CreateServiceUserCredentialResponse) ProtoMessage() {}
 
 func (x *CreateServiceUserCredentialResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[148]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[143]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7948,7 +7635,7 @@ func (x *CreateServiceUserCredentialResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateServiceUserCredentialResponse.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserCredentialResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{148}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{143}
 }
 
 func (x *CreateServiceUserCredentialResponse) GetSecret() *SecretCredential {
@@ -7970,7 +7657,7 @@ type ListServiceUserCredentialsRequest struct {
 func (x *ListServiceUserCredentialsRequest) Reset() {
 	*x = ListServiceUserCredentialsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[149]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[144]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -7983,7 +7670,7 @@ func (x *ListServiceUserCredentialsRequest) String() string {
 func (*ListServiceUserCredentialsRequest) ProtoMessage() {}
 
 func (x *ListServiceUserCredentialsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[149]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[144]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7996,7 +7683,7 @@ func (x *ListServiceUserCredentialsRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListServiceUserCredentialsRequest.ProtoReflect.Descriptor instead.
 func (*ListServiceUserCredentialsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{149}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{144}
 }
 
 func (x *ListServiceUserCredentialsRequest) GetId() string {
@@ -8025,7 +7712,7 @@ type ListServiceUserCredentialsResponse struct {
 func (x *ListServiceUserCredentialsResponse) Reset() {
 	*x = ListServiceUserCredentialsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[150]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[145]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8038,7 +7725,7 @@ func (x *ListServiceUserCredentialsResponse) String() string {
 func (*ListServiceUserCredentialsResponse) ProtoMessage() {}
 
 func (x *ListServiceUserCredentialsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[150]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[145]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8051,7 +7738,7 @@ func (x *ListServiceUserCredentialsResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListServiceUserCredentialsResponse.ProtoReflect.Descriptor instead.
 func (*ListServiceUserCredentialsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{150}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *ListServiceUserCredentialsResponse) GetSecrets() []*SecretCredential {
@@ -8074,7 +7761,7 @@ type DeleteServiceUserCredentialRequest struct {
 func (x *DeleteServiceUserCredentialRequest) Reset() {
 	*x = DeleteServiceUserCredentialRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[151]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[146]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8087,7 +7774,7 @@ func (x *DeleteServiceUserCredentialRequest) String() string {
 func (*DeleteServiceUserCredentialRequest) ProtoMessage() {}
 
 func (x *DeleteServiceUserCredentialRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[151]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[146]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8100,7 +7787,7 @@ func (x *DeleteServiceUserCredentialRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DeleteServiceUserCredentialRequest.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserCredentialRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{151}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *DeleteServiceUserCredentialRequest) GetId() string {
@@ -8133,7 +7820,7 @@ type DeleteServiceUserCredentialResponse struct {
 func (x *DeleteServiceUserCredentialResponse) Reset() {
 	*x = DeleteServiceUserCredentialResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[152]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[147]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8146,7 +7833,7 @@ func (x *DeleteServiceUserCredentialResponse) String() string {
 func (*DeleteServiceUserCredentialResponse) ProtoMessage() {}
 
 func (x *DeleteServiceUserCredentialResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[152]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[147]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8159,7 +7846,7 @@ func (x *DeleteServiceUserCredentialResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use DeleteServiceUserCredentialResponse.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserCredentialResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{152}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{147}
 }
 
 type CreateServiceUserTokenRequest struct {
@@ -8175,7 +7862,7 @@ type CreateServiceUserTokenRequest struct {
 func (x *CreateServiceUserTokenRequest) Reset() {
 	*x = CreateServiceUserTokenRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[153]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[148]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8188,7 +7875,7 @@ func (x *CreateServiceUserTokenRequest) String() string {
 func (*CreateServiceUserTokenRequest) ProtoMessage() {}
 
 func (x *CreateServiceUserTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[153]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[148]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8201,7 +7888,7 @@ func (x *CreateServiceUserTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceUserTokenRequest.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserTokenRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{153}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{148}
 }
 
 func (x *CreateServiceUserTokenRequest) GetId() string {
@@ -8236,7 +7923,7 @@ type CreateServiceUserTokenResponse struct {
 func (x *CreateServiceUserTokenResponse) Reset() {
 	*x = CreateServiceUserTokenResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[154]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[149]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8249,7 +7936,7 @@ func (x *CreateServiceUserTokenResponse) String() string {
 func (*CreateServiceUserTokenResponse) ProtoMessage() {}
 
 func (x *CreateServiceUserTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[154]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[149]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8262,7 +7949,7 @@ func (x *CreateServiceUserTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateServiceUserTokenResponse.ProtoReflect.Descriptor instead.
 func (*CreateServiceUserTokenResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{154}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{149}
 }
 
 func (x *CreateServiceUserTokenResponse) GetToken() *ServiceUserToken {
@@ -8284,7 +7971,7 @@ type ListServiceUserTokensRequest struct {
 func (x *ListServiceUserTokensRequest) Reset() {
 	*x = ListServiceUserTokensRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[155]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[150]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8297,7 +7984,7 @@ func (x *ListServiceUserTokensRequest) String() string {
 func (*ListServiceUserTokensRequest) ProtoMessage() {}
 
 func (x *ListServiceUserTokensRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[155]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[150]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8310,7 +7997,7 @@ func (x *ListServiceUserTokensRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUserTokensRequest.ProtoReflect.Descriptor instead.
 func (*ListServiceUserTokensRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{155}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{150}
 }
 
 func (x *ListServiceUserTokensRequest) GetId() string {
@@ -8338,7 +8025,7 @@ type ListServiceUserTokensResponse struct {
 func (x *ListServiceUserTokensResponse) Reset() {
 	*x = ListServiceUserTokensResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[156]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[151]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8351,7 +8038,7 @@ func (x *ListServiceUserTokensResponse) String() string {
 func (*ListServiceUserTokensResponse) ProtoMessage() {}
 
 func (x *ListServiceUserTokensResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[156]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[151]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8364,7 +8051,7 @@ func (x *ListServiceUserTokensResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUserTokensResponse.ProtoReflect.Descriptor instead.
 func (*ListServiceUserTokensResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{156}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{151}
 }
 
 func (x *ListServiceUserTokensResponse) GetTokens() []*ServiceUserToken {
@@ -8387,7 +8074,7 @@ type DeleteServiceUserTokenRequest struct {
 func (x *DeleteServiceUserTokenRequest) Reset() {
 	*x = DeleteServiceUserTokenRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[157]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[152]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8400,7 +8087,7 @@ func (x *DeleteServiceUserTokenRequest) String() string {
 func (*DeleteServiceUserTokenRequest) ProtoMessage() {}
 
 func (x *DeleteServiceUserTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[157]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[152]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8413,7 +8100,7 @@ func (x *DeleteServiceUserTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceUserTokenRequest.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserTokenRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{157}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{152}
 }
 
 func (x *DeleteServiceUserTokenRequest) GetId() string {
@@ -8446,7 +8133,7 @@ type DeleteServiceUserTokenResponse struct {
 func (x *DeleteServiceUserTokenResponse) Reset() {
 	*x = DeleteServiceUserTokenResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[158]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[153]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8459,7 +8146,7 @@ func (x *DeleteServiceUserTokenResponse) String() string {
 func (*DeleteServiceUserTokenResponse) ProtoMessage() {}
 
 func (x *DeleteServiceUserTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[158]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[153]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8472,7 +8159,7 @@ func (x *DeleteServiceUserTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteServiceUserTokenResponse.ProtoReflect.Descriptor instead.
 func (*DeleteServiceUserTokenResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{158}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{153}
 }
 
 type ListServiceUserProjectsRequest struct {
@@ -8491,7 +8178,7 @@ type ListServiceUserProjectsRequest struct {
 func (x *ListServiceUserProjectsRequest) Reset() {
 	*x = ListServiceUserProjectsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[159]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[154]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8504,7 +8191,7 @@ func (x *ListServiceUserProjectsRequest) String() string {
 func (*ListServiceUserProjectsRequest) ProtoMessage() {}
 
 func (x *ListServiceUserProjectsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[159]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[154]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8517,7 +8204,7 @@ func (x *ListServiceUserProjectsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUserProjectsRequest.ProtoReflect.Descriptor instead.
 func (*ListServiceUserProjectsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{159}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{154}
 }
 
 func (x *ListServiceUserProjectsRequest) GetId() string {
@@ -8553,7 +8240,7 @@ type ListServiceUserProjectsResponse struct {
 func (x *ListServiceUserProjectsResponse) Reset() {
 	*x = ListServiceUserProjectsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[160]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[155]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8566,7 +8253,7 @@ func (x *ListServiceUserProjectsResponse) String() string {
 func (*ListServiceUserProjectsResponse) ProtoMessage() {}
 
 func (x *ListServiceUserProjectsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[160]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[155]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8579,7 +8266,7 @@ func (x *ListServiceUserProjectsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListServiceUserProjectsResponse.ProtoReflect.Descriptor instead.
 func (*ListServiceUserProjectsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{160}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{155}
 }
 
 func (x *ListServiceUserProjectsResponse) GetProjects() []*Project {
@@ -8611,7 +8298,7 @@ type ListOrganizationGroupsRequest struct {
 func (x *ListOrganizationGroupsRequest) Reset() {
 	*x = ListOrganizationGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[161]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[156]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8624,7 +8311,7 @@ func (x *ListOrganizationGroupsRequest) String() string {
 func (*ListOrganizationGroupsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[161]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[156]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8637,7 +8324,7 @@ func (x *ListOrganizationGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{161}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{156}
 }
 
 func (x *ListOrganizationGroupsRequest) GetOrgId() string {
@@ -8686,7 +8373,7 @@ type ListOrganizationGroupsResponse struct {
 func (x *ListOrganizationGroupsResponse) Reset() {
 	*x = ListOrganizationGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[162]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[157]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8699,7 +8386,7 @@ func (x *ListOrganizationGroupsResponse) String() string {
 func (*ListOrganizationGroupsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[162]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[157]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8712,7 +8399,7 @@ func (x *ListOrganizationGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{162}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{157}
 }
 
 func (x *ListOrganizationGroupsResponse) GetGroups() []*Group {
@@ -8734,7 +8421,7 @@ type CreateOrganizationRoleRequest struct {
 func (x *CreateOrganizationRoleRequest) Reset() {
 	*x = CreateOrganizationRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[163]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[158]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8747,7 +8434,7 @@ func (x *CreateOrganizationRoleRequest) String() string {
 func (*CreateOrganizationRoleRequest) ProtoMessage() {}
 
 func (x *CreateOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[163]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[158]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8760,7 +8447,7 @@ func (x *CreateOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{163}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{158}
 }
 
 func (x *CreateOrganizationRoleRequest) GetBody() *RoleRequestBody {
@@ -8788,7 +8475,7 @@ type CreateOrganizationRoleResponse struct {
 func (x *CreateOrganizationRoleResponse) Reset() {
 	*x = CreateOrganizationRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[164]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[159]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8801,7 +8488,7 @@ func (x *CreateOrganizationRoleResponse) String() string {
 func (*CreateOrganizationRoleResponse) ProtoMessage() {}
 
 func (x *CreateOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[164]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[159]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8814,7 +8501,7 @@ func (x *CreateOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{164}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{159}
 }
 
 func (x *CreateOrganizationRoleResponse) GetRole() *Role {
@@ -8836,7 +8523,7 @@ type GetOrganizationRoleRequest struct {
 func (x *GetOrganizationRoleRequest) Reset() {
 	*x = GetOrganizationRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[165]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[160]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8849,7 +8536,7 @@ func (x *GetOrganizationRoleRequest) String() string {
 func (*GetOrganizationRoleRequest) ProtoMessage() {}
 
 func (x *GetOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[165]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[160]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8862,7 +8549,7 @@ func (x *GetOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationRoleRequest.ProtoReflect.Descriptor instead.
 func (*GetOrganizationRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{165}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{160}
 }
 
 func (x *GetOrganizationRoleRequest) GetId() string {
@@ -8890,7 +8577,7 @@ type GetOrganizationRoleResponse struct {
 func (x *GetOrganizationRoleResponse) Reset() {
 	*x = GetOrganizationRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[166]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[161]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8903,7 +8590,7 @@ func (x *GetOrganizationRoleResponse) String() string {
 func (*GetOrganizationRoleResponse) ProtoMessage() {}
 
 func (x *GetOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[166]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[161]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8916,7 +8603,7 @@ func (x *GetOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationRoleResponse.ProtoReflect.Descriptor instead.
 func (*GetOrganizationRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{166}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{161}
 }
 
 func (x *GetOrganizationRoleResponse) GetRole() *Role {
@@ -8939,7 +8626,7 @@ type UpdateOrganizationRoleRequest struct {
 func (x *UpdateOrganizationRoleRequest) Reset() {
 	*x = UpdateOrganizationRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[167]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[162]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -8952,7 +8639,7 @@ func (x *UpdateOrganizationRoleRequest) String() string {
 func (*UpdateOrganizationRoleRequest) ProtoMessage() {}
 
 func (x *UpdateOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[167]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[162]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8965,7 +8652,7 @@ func (x *UpdateOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationRoleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{167}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{162}
 }
 
 func (x *UpdateOrganizationRoleRequest) GetId() string {
@@ -9000,7 +8687,7 @@ type UpdateOrganizationRoleResponse struct {
 func (x *UpdateOrganizationRoleResponse) Reset() {
 	*x = UpdateOrganizationRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[168]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[163]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9013,7 +8700,7 @@ func (x *UpdateOrganizationRoleResponse) String() string {
 func (*UpdateOrganizationRoleResponse) ProtoMessage() {}
 
 func (x *UpdateOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[168]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[163]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9026,7 +8713,7 @@ func (x *UpdateOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationRoleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{168}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{163}
 }
 
 func (x *UpdateOrganizationRoleResponse) GetRole() *Role {
@@ -9048,7 +8735,7 @@ type ListRolesRequest struct {
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[169]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[164]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9061,7 +8748,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[169]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[164]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9074,7 +8761,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{169}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{164}
 }
 
 func (x *ListRolesRequest) GetState() string {
@@ -9102,7 +8789,7 @@ type ListRolesResponse struct {
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[170]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[165]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9115,7 +8802,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[170]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[165]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9128,7 +8815,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{170}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{165}
 }
 
 func (x *ListRolesResponse) GetRoles() []*Role {
@@ -9151,7 +8838,7 @@ type ListOrganizationRolesRequest struct {
 func (x *ListOrganizationRolesRequest) Reset() {
 	*x = ListOrganizationRolesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[171]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[166]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9164,7 +8851,7 @@ func (x *ListOrganizationRolesRequest) String() string {
 func (*ListOrganizationRolesRequest) ProtoMessage() {}
 
 func (x *ListOrganizationRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[171]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[166]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9177,7 +8864,7 @@ func (x *ListOrganizationRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationRolesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{171}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{166}
 }
 
 func (x *ListOrganizationRolesRequest) GetOrgId() string {
@@ -9212,7 +8899,7 @@ type ListOrganizationRolesResponse struct {
 func (x *ListOrganizationRolesResponse) Reset() {
 	*x = ListOrganizationRolesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[172]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[167]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9225,7 +8912,7 @@ func (x *ListOrganizationRolesResponse) String() string {
 func (*ListOrganizationRolesResponse) ProtoMessage() {}
 
 func (x *ListOrganizationRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[172]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[167]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9238,7 +8925,7 @@ func (x *ListOrganizationRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationRolesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{172}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{167}
 }
 
 func (x *ListOrganizationRolesResponse) GetRoles() []*Role {
@@ -9260,7 +8947,7 @@ type DeleteOrganizationRoleRequest struct {
 func (x *DeleteOrganizationRoleRequest) Reset() {
 	*x = DeleteOrganizationRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[173]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[168]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9273,7 +8960,7 @@ func (x *DeleteOrganizationRoleRequest) String() string {
 func (*DeleteOrganizationRoleRequest) ProtoMessage() {}
 
 func (x *DeleteOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[173]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[168]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9286,7 +8973,7 @@ func (x *DeleteOrganizationRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{173}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{168}
 }
 
 func (x *DeleteOrganizationRoleRequest) GetId() string {
@@ -9312,7 +8999,7 @@ type DeleteOrganizationRoleResponse struct {
 func (x *DeleteOrganizationRoleResponse) Reset() {
 	*x = DeleteOrganizationRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[174]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[169]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9325,7 +9012,7 @@ func (x *DeleteOrganizationRoleResponse) String() string {
 func (*DeleteOrganizationRoleResponse) ProtoMessage() {}
 
 func (x *DeleteOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[174]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[169]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9338,7 +9025,7 @@ func (x *DeleteOrganizationRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{174}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{169}
 }
 
 type OrganizationRequestBody struct {
@@ -9355,7 +9042,7 @@ type OrganizationRequestBody struct {
 func (x *OrganizationRequestBody) Reset() {
 	*x = OrganizationRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[175]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[170]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9368,7 +9055,7 @@ func (x *OrganizationRequestBody) String() string {
 func (*OrganizationRequestBody) ProtoMessage() {}
 
 func (x *OrganizationRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[175]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[170]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9381,7 +9068,7 @@ func (x *OrganizationRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrganizationRequestBody.ProtoReflect.Descriptor instead.
 func (*OrganizationRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{175}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{170}
 }
 
 func (x *OrganizationRequestBody) GetName() string {
@@ -9426,7 +9113,7 @@ type ListOrganizationsRequest struct {
 func (x *ListOrganizationsRequest) Reset() {
 	*x = ListOrganizationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[176]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[171]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9439,7 +9126,7 @@ func (x *ListOrganizationsRequest) String() string {
 func (*ListOrganizationsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[176]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[171]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9452,7 +9139,7 @@ func (x *ListOrganizationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{176}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{171}
 }
 
 func (x *ListOrganizationsRequest) GetUserId() string {
@@ -9494,7 +9181,7 @@ type ListOrganizationsResponse struct {
 func (x *ListOrganizationsResponse) Reset() {
 	*x = ListOrganizationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[177]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[172]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9507,7 +9194,7 @@ func (x *ListOrganizationsResponse) String() string {
 func (*ListOrganizationsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[177]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[172]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9520,7 +9207,7 @@ func (x *ListOrganizationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{177}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{172}
 }
 
 func (x *ListOrganizationsResponse) GetOrganizations() []*Organization {
@@ -9541,7 +9228,7 @@ type CreateOrganizationRequest struct {
 func (x *CreateOrganizationRequest) Reset() {
 	*x = CreateOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[178]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[173]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9554,7 +9241,7 @@ func (x *CreateOrganizationRequest) String() string {
 func (*CreateOrganizationRequest) ProtoMessage() {}
 
 func (x *CreateOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[178]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[173]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9567,7 +9254,7 @@ func (x *CreateOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{178}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{173}
 }
 
 func (x *CreateOrganizationRequest) GetBody() *OrganizationRequestBody {
@@ -9588,7 +9275,7 @@ type CreateOrganizationResponse struct {
 func (x *CreateOrganizationResponse) Reset() {
 	*x = CreateOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[179]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[174]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9601,7 +9288,7 @@ func (x *CreateOrganizationResponse) String() string {
 func (*CreateOrganizationResponse) ProtoMessage() {}
 
 func (x *CreateOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[179]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[174]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9614,7 +9301,7 @@ func (x *CreateOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{179}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{174}
 }
 
 func (x *CreateOrganizationResponse) GetOrganization() *Organization {
@@ -9635,7 +9322,7 @@ type GetOrganizationResponse struct {
 func (x *GetOrganizationResponse) Reset() {
 	*x = GetOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[180]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[175]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9648,7 +9335,7 @@ func (x *GetOrganizationResponse) String() string {
 func (*GetOrganizationResponse) ProtoMessage() {}
 
 func (x *GetOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[180]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[175]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9661,7 +9348,7 @@ func (x *GetOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*GetOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{180}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{175}
 }
 
 func (x *GetOrganizationResponse) GetOrganization() *Organization {
@@ -9682,7 +9369,7 @@ type UpdateOrganizationResponse struct {
 func (x *UpdateOrganizationResponse) Reset() {
 	*x = UpdateOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[181]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[176]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9695,7 +9382,7 @@ func (x *UpdateOrganizationResponse) String() string {
 func (*UpdateOrganizationResponse) ProtoMessage() {}
 
 func (x *UpdateOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[181]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[176]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9708,7 +9395,7 @@ func (x *UpdateOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{181}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{176}
 }
 
 func (x *UpdateOrganizationResponse) GetOrganization() *Organization {
@@ -9729,7 +9416,7 @@ type GetOrganizationRequest struct {
 func (x *GetOrganizationRequest) Reset() {
 	*x = GetOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[182]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[177]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9742,7 +9429,7 @@ func (x *GetOrganizationRequest) String() string {
 func (*GetOrganizationRequest) ProtoMessage() {}
 
 func (x *GetOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[182]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[177]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9755,7 +9442,7 @@ func (x *GetOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*GetOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{182}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{177}
 }
 
 func (x *GetOrganizationRequest) GetId() string {
@@ -9777,7 +9464,7 @@ type UpdateOrganizationRequest struct {
 func (x *UpdateOrganizationRequest) Reset() {
 	*x = UpdateOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[183]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[178]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9790,7 +9477,7 @@ func (x *UpdateOrganizationRequest) String() string {
 func (*UpdateOrganizationRequest) ProtoMessage() {}
 
 func (x *UpdateOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[183]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[178]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9803,7 +9490,7 @@ func (x *UpdateOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{183}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{178}
 }
 
 func (x *UpdateOrganizationRequest) GetId() string {
@@ -9831,7 +9518,7 @@ type ListOrganizationAdminsRequest struct {
 func (x *ListOrganizationAdminsRequest) Reset() {
 	*x = ListOrganizationAdminsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[184]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[179]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9844,7 +9531,7 @@ func (x *ListOrganizationAdminsRequest) String() string {
 func (*ListOrganizationAdminsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationAdminsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[184]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[179]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9857,7 +9544,7 @@ func (x *ListOrganizationAdminsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationAdminsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationAdminsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{184}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{179}
 }
 
 func (x *ListOrganizationAdminsRequest) GetId() string {
@@ -9878,7 +9565,7 @@ type ListOrganizationAdminsResponse struct {
 func (x *ListOrganizationAdminsResponse) Reset() {
 	*x = ListOrganizationAdminsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[185]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[180]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9891,7 +9578,7 @@ func (x *ListOrganizationAdminsResponse) String() string {
 func (*ListOrganizationAdminsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationAdminsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[185]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[180]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9904,7 +9591,7 @@ func (x *ListOrganizationAdminsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationAdminsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationAdminsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{185}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{180}
 }
 
 func (x *ListOrganizationAdminsResponse) GetUsers() []*User {
@@ -9926,7 +9613,7 @@ type ListOrganizationUsersRequest struct {
 func (x *ListOrganizationUsersRequest) Reset() {
 	*x = ListOrganizationUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[186]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[181]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9939,7 +9626,7 @@ func (x *ListOrganizationUsersRequest) String() string {
 func (*ListOrganizationUsersRequest) ProtoMessage() {}
 
 func (x *ListOrganizationUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[186]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[181]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9952,7 +9639,7 @@ func (x *ListOrganizationUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{186}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{181}
 }
 
 func (x *ListOrganizationUsersRequest) GetId() string {
@@ -9981,7 +9668,7 @@ type ListOrganizationUsersResponse struct {
 func (x *ListOrganizationUsersResponse) Reset() {
 	*x = ListOrganizationUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[187]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[182]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9994,7 +9681,7 @@ func (x *ListOrganizationUsersResponse) String() string {
 func (*ListOrganizationUsersResponse) ProtoMessage() {}
 
 func (x *ListOrganizationUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[187]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[182]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10007,7 +9694,7 @@ func (x *ListOrganizationUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{187}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{182}
 }
 
 func (x *ListOrganizationUsersResponse) GetUsers() []*User {
@@ -10037,7 +9724,7 @@ type SetOrganizationMemberRoleRequest struct {
 func (x *SetOrganizationMemberRoleRequest) Reset() {
 	*x = SetOrganizationMemberRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[188]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[183]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10050,7 +9737,7 @@ func (x *SetOrganizationMemberRoleRequest) String() string {
 func (*SetOrganizationMemberRoleRequest) ProtoMessage() {}
 
 func (x *SetOrganizationMemberRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[188]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[183]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10063,7 +9750,7 @@ func (x *SetOrganizationMemberRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetOrganizationMemberRoleRequest.ProtoReflect.Descriptor instead.
 func (*SetOrganizationMemberRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{188}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{183}
 }
 
 func (x *SetOrganizationMemberRoleRequest) GetOrgId() string {
@@ -10096,7 +9783,7 @@ type SetOrganizationMemberRoleResponse struct {
 func (x *SetOrganizationMemberRoleResponse) Reset() {
 	*x = SetOrganizationMemberRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[189]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[184]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10109,7 +9796,7 @@ func (x *SetOrganizationMemberRoleResponse) String() string {
 func (*SetOrganizationMemberRoleResponse) ProtoMessage() {}
 
 func (x *SetOrganizationMemberRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[189]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[184]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10122,7 +9809,7 @@ func (x *SetOrganizationMemberRoleResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use SetOrganizationMemberRoleResponse.ProtoReflect.Descriptor instead.
 func (*SetOrganizationMemberRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{189}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{184}
 }
 
 type RemoveOrganizationMemberRequest struct {
@@ -10138,7 +9825,7 @@ type RemoveOrganizationMemberRequest struct {
 func (x *RemoveOrganizationMemberRequest) Reset() {
 	*x = RemoveOrganizationMemberRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[190]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[185]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10151,7 +9838,7 @@ func (x *RemoveOrganizationMemberRequest) String() string {
 func (*RemoveOrganizationMemberRequest) ProtoMessage() {}
 
 func (x *RemoveOrganizationMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[190]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[185]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10164,7 +9851,7 @@ func (x *RemoveOrganizationMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveOrganizationMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveOrganizationMemberRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{190}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{185}
 }
 
 func (x *RemoveOrganizationMemberRequest) GetOrgId() string {
@@ -10197,7 +9884,7 @@ type RemoveOrganizationMemberResponse struct {
 func (x *RemoveOrganizationMemberResponse) Reset() {
 	*x = RemoveOrganizationMemberResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[191]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[186]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10210,7 +9897,7 @@ func (x *RemoveOrganizationMemberResponse) String() string {
 func (*RemoveOrganizationMemberResponse) ProtoMessage() {}
 
 func (x *RemoveOrganizationMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[191]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[186]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10223,7 +9910,7 @@ func (x *RemoveOrganizationMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveOrganizationMemberResponse.ProtoReflect.Descriptor instead.
 func (*RemoveOrganizationMemberResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{191}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{186}
 }
 
 type ListOrganizationServiceUsersRequest struct {
@@ -10237,7 +9924,7 @@ type ListOrganizationServiceUsersRequest struct {
 func (x *ListOrganizationServiceUsersRequest) Reset() {
 	*x = ListOrganizationServiceUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[192]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[187]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10250,7 +9937,7 @@ func (x *ListOrganizationServiceUsersRequest) String() string {
 func (*ListOrganizationServiceUsersRequest) ProtoMessage() {}
 
 func (x *ListOrganizationServiceUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[192]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[187]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10263,7 +9950,7 @@ func (x *ListOrganizationServiceUsersRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListOrganizationServiceUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationServiceUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{192}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{187}
 }
 
 func (x *ListOrganizationServiceUsersRequest) GetId() string {
@@ -10284,7 +9971,7 @@ type ListOrganizationServiceUsersResponse struct {
 func (x *ListOrganizationServiceUsersResponse) Reset() {
 	*x = ListOrganizationServiceUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[193]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[188]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10297,7 +9984,7 @@ func (x *ListOrganizationServiceUsersResponse) String() string {
 func (*ListOrganizationServiceUsersResponse) ProtoMessage() {}
 
 func (x *ListOrganizationServiceUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[193]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[188]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10310,7 +9997,7 @@ func (x *ListOrganizationServiceUsersResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ListOrganizationServiceUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationServiceUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{193}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{188}
 }
 
 func (x *ListOrganizationServiceUsersResponse) GetServiceusers() []*ServiceUser {
@@ -10332,7 +10019,7 @@ type ListOrganizationInvitationsRequest struct {
 func (x *ListOrganizationInvitationsRequest) Reset() {
 	*x = ListOrganizationInvitationsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[194]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[189]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10345,7 +10032,7 @@ func (x *ListOrganizationInvitationsRequest) String() string {
 func (*ListOrganizationInvitationsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationInvitationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[194]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[189]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10358,7 +10045,7 @@ func (x *ListOrganizationInvitationsRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListOrganizationInvitationsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationInvitationsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{194}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{189}
 }
 
 func (x *ListOrganizationInvitationsRequest) GetOrgId() string {
@@ -10386,7 +10073,7 @@ type ListOrganizationInvitationsResponse struct {
 func (x *ListOrganizationInvitationsResponse) Reset() {
 	*x = ListOrganizationInvitationsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[195]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[190]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10399,7 +10086,7 @@ func (x *ListOrganizationInvitationsResponse) String() string {
 func (*ListOrganizationInvitationsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationInvitationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[195]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[190]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10412,7 +10099,7 @@ func (x *ListOrganizationInvitationsResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListOrganizationInvitationsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationInvitationsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{195}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{190}
 }
 
 func (x *ListOrganizationInvitationsResponse) GetInvitations() []*Invitation {
@@ -10436,7 +10123,7 @@ type CreateOrganizationInvitationRequest struct {
 func (x *CreateOrganizationInvitationRequest) Reset() {
 	*x = CreateOrganizationInvitationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[196]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[191]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10449,7 +10136,7 @@ func (x *CreateOrganizationInvitationRequest) String() string {
 func (*CreateOrganizationInvitationRequest) ProtoMessage() {}
 
 func (x *CreateOrganizationInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[196]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[191]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10462,7 +10149,7 @@ func (x *CreateOrganizationInvitationRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateOrganizationInvitationRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{196}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{191}
 }
 
 func (x *CreateOrganizationInvitationRequest) GetOrgId() string {
@@ -10504,7 +10191,7 @@ type CreateOrganizationInvitationResponse struct {
 func (x *CreateOrganizationInvitationResponse) Reset() {
 	*x = CreateOrganizationInvitationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[197]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[192]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10517,7 +10204,7 @@ func (x *CreateOrganizationInvitationResponse) String() string {
 func (*CreateOrganizationInvitationResponse) ProtoMessage() {}
 
 func (x *CreateOrganizationInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[197]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[192]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10530,7 +10217,7 @@ func (x *CreateOrganizationInvitationResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use CreateOrganizationInvitationResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{197}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{192}
 }
 
 func (x *CreateOrganizationInvitationResponse) GetInvitations() []*Invitation {
@@ -10552,7 +10239,7 @@ type GetOrganizationInvitationRequest struct {
 func (x *GetOrganizationInvitationRequest) Reset() {
 	*x = GetOrganizationInvitationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[198]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[193]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10565,7 +10252,7 @@ func (x *GetOrganizationInvitationRequest) String() string {
 func (*GetOrganizationInvitationRequest) ProtoMessage() {}
 
 func (x *GetOrganizationInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[198]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[193]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10578,7 +10265,7 @@ func (x *GetOrganizationInvitationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationInvitationRequest.ProtoReflect.Descriptor instead.
 func (*GetOrganizationInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{198}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{193}
 }
 
 func (x *GetOrganizationInvitationRequest) GetId() string {
@@ -10606,7 +10293,7 @@ type GetOrganizationInvitationResponse struct {
 func (x *GetOrganizationInvitationResponse) Reset() {
 	*x = GetOrganizationInvitationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[199]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[194]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10619,7 +10306,7 @@ func (x *GetOrganizationInvitationResponse) String() string {
 func (*GetOrganizationInvitationResponse) ProtoMessage() {}
 
 func (x *GetOrganizationInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[199]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[194]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10632,7 +10319,7 @@ func (x *GetOrganizationInvitationResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetOrganizationInvitationResponse.ProtoReflect.Descriptor instead.
 func (*GetOrganizationInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{199}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{194}
 }
 
 func (x *GetOrganizationInvitationResponse) GetInvitation() *Invitation {
@@ -10654,7 +10341,7 @@ type AcceptOrganizationInvitationRequest struct {
 func (x *AcceptOrganizationInvitationRequest) Reset() {
 	*x = AcceptOrganizationInvitationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[200]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[195]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10667,7 +10354,7 @@ func (x *AcceptOrganizationInvitationRequest) String() string {
 func (*AcceptOrganizationInvitationRequest) ProtoMessage() {}
 
 func (x *AcceptOrganizationInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[200]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[195]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10680,7 +10367,7 @@ func (x *AcceptOrganizationInvitationRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use AcceptOrganizationInvitationRequest.ProtoReflect.Descriptor instead.
 func (*AcceptOrganizationInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{200}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{195}
 }
 
 func (x *AcceptOrganizationInvitationRequest) GetId() string {
@@ -10706,7 +10393,7 @@ type AcceptOrganizationInvitationResponse struct {
 func (x *AcceptOrganizationInvitationResponse) Reset() {
 	*x = AcceptOrganizationInvitationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[201]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[196]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10719,7 +10406,7 @@ func (x *AcceptOrganizationInvitationResponse) String() string {
 func (*AcceptOrganizationInvitationResponse) ProtoMessage() {}
 
 func (x *AcceptOrganizationInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[201]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[196]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10732,7 +10419,7 @@ func (x *AcceptOrganizationInvitationResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use AcceptOrganizationInvitationResponse.ProtoReflect.Descriptor instead.
 func (*AcceptOrganizationInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{201}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{196}
 }
 
 type DeleteOrganizationInvitationRequest struct {
@@ -10747,7 +10434,7 @@ type DeleteOrganizationInvitationRequest struct {
 func (x *DeleteOrganizationInvitationRequest) Reset() {
 	*x = DeleteOrganizationInvitationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[202]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[197]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10760,7 +10447,7 @@ func (x *DeleteOrganizationInvitationRequest) String() string {
 func (*DeleteOrganizationInvitationRequest) ProtoMessage() {}
 
 func (x *DeleteOrganizationInvitationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[202]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[197]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10773,7 +10460,7 @@ func (x *DeleteOrganizationInvitationRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use DeleteOrganizationInvitationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationInvitationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{202}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{197}
 }
 
 func (x *DeleteOrganizationInvitationRequest) GetId() string {
@@ -10802,7 +10489,7 @@ type ListOrganizationDomainsRequest struct {
 func (x *ListOrganizationDomainsRequest) Reset() {
 	*x = ListOrganizationDomainsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[203]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[198]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10815,7 +10502,7 @@ func (x *ListOrganizationDomainsRequest) String() string {
 func (*ListOrganizationDomainsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationDomainsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[203]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[198]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10828,7 +10515,7 @@ func (x *ListOrganizationDomainsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationDomainsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationDomainsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{203}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{198}
 }
 
 func (x *ListOrganizationDomainsRequest) GetOrgId() string {
@@ -10856,7 +10543,7 @@ type ListOrganizationDomainsResponse struct {
 func (x *ListOrganizationDomainsResponse) Reset() {
 	*x = ListOrganizationDomainsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[204]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[199]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10869,7 +10556,7 @@ func (x *ListOrganizationDomainsResponse) String() string {
 func (*ListOrganizationDomainsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationDomainsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[204]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[199]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10882,7 +10569,7 @@ func (x *ListOrganizationDomainsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationDomainsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationDomainsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{204}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{199}
 }
 
 func (x *ListOrganizationDomainsResponse) GetDomains() []*Domain {
@@ -10903,7 +10590,7 @@ type JoinOrganizationRequest struct {
 func (x *JoinOrganizationRequest) Reset() {
 	*x = JoinOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[205]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[200]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10916,7 +10603,7 @@ func (x *JoinOrganizationRequest) String() string {
 func (*JoinOrganizationRequest) ProtoMessage() {}
 
 func (x *JoinOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[205]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[200]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10929,7 +10616,7 @@ func (x *JoinOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*JoinOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{205}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{200}
 }
 
 func (x *JoinOrganizationRequest) GetOrgId() string {
@@ -10948,7 +10635,7 @@ type JoinOrganizationResponse struct {
 func (x *JoinOrganizationResponse) Reset() {
 	*x = JoinOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[206]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[201]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10961,7 +10648,7 @@ func (x *JoinOrganizationResponse) String() string {
 func (*JoinOrganizationResponse) ProtoMessage() {}
 
 func (x *JoinOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[206]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[201]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10974,7 +10661,7 @@ func (x *JoinOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*JoinOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{206}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{201}
 }
 
 type GetOrganizationDomainRequest struct {
@@ -10989,7 +10676,7 @@ type GetOrganizationDomainRequest struct {
 func (x *GetOrganizationDomainRequest) Reset() {
 	*x = GetOrganizationDomainRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[207]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[202]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11002,7 +10689,7 @@ func (x *GetOrganizationDomainRequest) String() string {
 func (*GetOrganizationDomainRequest) ProtoMessage() {}
 
 func (x *GetOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[207]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[202]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11015,7 +10702,7 @@ func (x *GetOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationDomainRequest.ProtoReflect.Descriptor instead.
 func (*GetOrganizationDomainRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{207}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{202}
 }
 
 func (x *GetOrganizationDomainRequest) GetId() string {
@@ -11043,7 +10730,7 @@ type GetOrganizationDomainResponse struct {
 func (x *GetOrganizationDomainResponse) Reset() {
 	*x = GetOrganizationDomainResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[208]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[203]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11056,7 +10743,7 @@ func (x *GetOrganizationDomainResponse) String() string {
 func (*GetOrganizationDomainResponse) ProtoMessage() {}
 
 func (x *GetOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[208]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[203]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11069,7 +10756,7 @@ func (x *GetOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationDomainResponse.ProtoReflect.Descriptor instead.
 func (*GetOrganizationDomainResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{208}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{203}
 }
 
 func (x *GetOrganizationDomainResponse) GetDomain() *Domain {
@@ -11091,7 +10778,7 @@ type CreateOrganizationDomainRequest struct {
 func (x *CreateOrganizationDomainRequest) Reset() {
 	*x = CreateOrganizationDomainRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[209]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[204]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11104,7 +10791,7 @@ func (x *CreateOrganizationDomainRequest) String() string {
 func (*CreateOrganizationDomainRequest) ProtoMessage() {}
 
 func (x *CreateOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[209]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[204]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11117,7 +10804,7 @@ func (x *CreateOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationDomainRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationDomainRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{209}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{204}
 }
 
 func (x *CreateOrganizationDomainRequest) GetOrgId() string {
@@ -11145,7 +10832,7 @@ type CreateOrganizationDomainResponse struct {
 func (x *CreateOrganizationDomainResponse) Reset() {
 	*x = CreateOrganizationDomainResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[210]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[205]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11158,7 +10845,7 @@ func (x *CreateOrganizationDomainResponse) String() string {
 func (*CreateOrganizationDomainResponse) ProtoMessage() {}
 
 func (x *CreateOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[210]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[205]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11171,7 +10858,7 @@ func (x *CreateOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrganizationDomainResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationDomainResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{210}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{205}
 }
 
 func (x *CreateOrganizationDomainResponse) GetDomain() *Domain {
@@ -11193,7 +10880,7 @@ type DeleteOrganizationDomainRequest struct {
 func (x *DeleteOrganizationDomainRequest) Reset() {
 	*x = DeleteOrganizationDomainRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[211]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[206]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11206,7 +10893,7 @@ func (x *DeleteOrganizationDomainRequest) String() string {
 func (*DeleteOrganizationDomainRequest) ProtoMessage() {}
 
 func (x *DeleteOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[211]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[206]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11219,7 +10906,7 @@ func (x *DeleteOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationDomainRequest.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationDomainRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{211}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{206}
 }
 
 func (x *DeleteOrganizationDomainRequest) GetId() string {
@@ -11245,7 +10932,7 @@ type DeleteOrganizationDomainResponse struct {
 func (x *DeleteOrganizationDomainResponse) Reset() {
 	*x = DeleteOrganizationDomainResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[212]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[207]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11258,7 +10945,7 @@ func (x *DeleteOrganizationDomainResponse) String() string {
 func (*DeleteOrganizationDomainResponse) ProtoMessage() {}
 
 func (x *DeleteOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[212]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[207]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11271,7 +10958,7 @@ func (x *DeleteOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationDomainResponse.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationDomainResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{212}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{207}
 }
 
 type VerifyOrganizationDomainRequest struct {
@@ -11286,7 +10973,7 @@ type VerifyOrganizationDomainRequest struct {
 func (x *VerifyOrganizationDomainRequest) Reset() {
 	*x = VerifyOrganizationDomainRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[213]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[208]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11299,7 +10986,7 @@ func (x *VerifyOrganizationDomainRequest) String() string {
 func (*VerifyOrganizationDomainRequest) ProtoMessage() {}
 
 func (x *VerifyOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[213]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[208]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11312,7 +10999,7 @@ func (x *VerifyOrganizationDomainRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyOrganizationDomainRequest.ProtoReflect.Descriptor instead.
 func (*VerifyOrganizationDomainRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{213}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{208}
 }
 
 func (x *VerifyOrganizationDomainRequest) GetOrgId() string {
@@ -11340,7 +11027,7 @@ type VerifyOrganizationDomainResponse struct {
 func (x *VerifyOrganizationDomainResponse) Reset() {
 	*x = VerifyOrganizationDomainResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[214]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[209]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11353,7 +11040,7 @@ func (x *VerifyOrganizationDomainResponse) String() string {
 func (*VerifyOrganizationDomainResponse) ProtoMessage() {}
 
 func (x *VerifyOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[214]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[209]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11366,7 +11053,7 @@ func (x *VerifyOrganizationDomainResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyOrganizationDomainResponse.ProtoReflect.Descriptor instead.
 func (*VerifyOrganizationDomainResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{214}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{209}
 }
 
 func (x *VerifyOrganizationDomainResponse) GetState() string {
@@ -11385,7 +11072,7 @@ type DeleteOrganizationInvitationResponse struct {
 func (x *DeleteOrganizationInvitationResponse) Reset() {
 	*x = DeleteOrganizationInvitationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[215]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[210]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11398,7 +11085,7 @@ func (x *DeleteOrganizationInvitationResponse) String() string {
 func (*DeleteOrganizationInvitationResponse) ProtoMessage() {}
 
 func (x *DeleteOrganizationInvitationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[215]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[210]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11411,7 +11098,7 @@ func (x *DeleteOrganizationInvitationResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use DeleteOrganizationInvitationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationInvitationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{215}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{210}
 }
 
 type EnableOrganizationRequest struct {
@@ -11425,7 +11112,7 @@ type EnableOrganizationRequest struct {
 func (x *EnableOrganizationRequest) Reset() {
 	*x = EnableOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[216]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[211]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11438,7 +11125,7 @@ func (x *EnableOrganizationRequest) String() string {
 func (*EnableOrganizationRequest) ProtoMessage() {}
 
 func (x *EnableOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[216]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[211]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11451,7 +11138,7 @@ func (x *EnableOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*EnableOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{216}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{211}
 }
 
 func (x *EnableOrganizationRequest) GetId() string {
@@ -11470,7 +11157,7 @@ type EnableOrganizationResponse struct {
 func (x *EnableOrganizationResponse) Reset() {
 	*x = EnableOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[217]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[212]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11483,7 +11170,7 @@ func (x *EnableOrganizationResponse) String() string {
 func (*EnableOrganizationResponse) ProtoMessage() {}
 
 func (x *EnableOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[217]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[212]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11496,7 +11183,7 @@ func (x *EnableOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*EnableOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{217}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{212}
 }
 
 type DisableOrganizationRequest struct {
@@ -11510,7 +11197,7 @@ type DisableOrganizationRequest struct {
 func (x *DisableOrganizationRequest) Reset() {
 	*x = DisableOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[218]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[213]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11523,7 +11210,7 @@ func (x *DisableOrganizationRequest) String() string {
 func (*DisableOrganizationRequest) ProtoMessage() {}
 
 func (x *DisableOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[218]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[213]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11536,7 +11223,7 @@ func (x *DisableOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*DisableOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{218}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{213}
 }
 
 func (x *DisableOrganizationRequest) GetId() string {
@@ -11555,7 +11242,7 @@ type DisableOrganizationResponse struct {
 func (x *DisableOrganizationResponse) Reset() {
 	*x = DisableOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[219]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[214]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11568,7 +11255,7 @@ func (x *DisableOrganizationResponse) String() string {
 func (*DisableOrganizationResponse) ProtoMessage() {}
 
 func (x *DisableOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[219]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[214]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11581,7 +11268,7 @@ func (x *DisableOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*DisableOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{219}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{214}
 }
 
 type DeleteOrganizationRequest struct {
@@ -11595,7 +11282,7 @@ type DeleteOrganizationRequest struct {
 func (x *DeleteOrganizationRequest) Reset() {
 	*x = DeleteOrganizationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[220]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[215]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11608,7 +11295,7 @@ func (x *DeleteOrganizationRequest) String() string {
 func (*DeleteOrganizationRequest) ProtoMessage() {}
 
 func (x *DeleteOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[220]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[215]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11621,7 +11308,7 @@ func (x *DeleteOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{220}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{215}
 }
 
 func (x *DeleteOrganizationRequest) GetId() string {
@@ -11640,7 +11327,7 @@ type DeleteOrganizationResponse struct {
 func (x *DeleteOrganizationResponse) Reset() {
 	*x = DeleteOrganizationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[221]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[216]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11653,7 +11340,7 @@ func (x *DeleteOrganizationResponse) String() string {
 func (*DeleteOrganizationResponse) ProtoMessage() {}
 
 func (x *DeleteOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[221]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[216]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11666,7 +11353,7 @@ func (x *DeleteOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{221}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{216}
 }
 
 type GetOrganizationKycRequest struct {
@@ -11680,7 +11367,7 @@ type GetOrganizationKycRequest struct {
 func (x *GetOrganizationKycRequest) Reset() {
 	*x = GetOrganizationKycRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[222]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[217]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11693,7 +11380,7 @@ func (x *GetOrganizationKycRequest) String() string {
 func (*GetOrganizationKycRequest) ProtoMessage() {}
 
 func (x *GetOrganizationKycRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[222]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[217]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11706,7 +11393,7 @@ func (x *GetOrganizationKycRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationKycRequest.ProtoReflect.Descriptor instead.
 func (*GetOrganizationKycRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{222}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{217}
 }
 
 func (x *GetOrganizationKycRequest) GetOrgId() string {
@@ -11727,7 +11414,7 @@ type GetOrganizationKycResponse struct {
 func (x *GetOrganizationKycResponse) Reset() {
 	*x = GetOrganizationKycResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[223]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[218]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11740,7 +11427,7 @@ func (x *GetOrganizationKycResponse) String() string {
 func (*GetOrganizationKycResponse) ProtoMessage() {}
 
 func (x *GetOrganizationKycResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[223]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[218]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11753,7 +11440,7 @@ func (x *GetOrganizationKycResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrganizationKycResponse.ProtoReflect.Descriptor instead.
 func (*GetOrganizationKycResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{223}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{218}
 }
 
 func (x *GetOrganizationKycResponse) GetOrganizationKyc() *OrganizationKyc {
@@ -11777,7 +11464,7 @@ type ProjectRequestBody struct {
 func (x *ProjectRequestBody) Reset() {
 	*x = ProjectRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[224]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[219]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11790,7 +11477,7 @@ func (x *ProjectRequestBody) String() string {
 func (*ProjectRequestBody) ProtoMessage() {}
 
 func (x *ProjectRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[224]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[219]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11803,7 +11490,7 @@ func (x *ProjectRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectRequestBody.ProtoReflect.Descriptor instead.
 func (*ProjectRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{224}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{219}
 }
 
 func (x *ProjectRequestBody) GetName() string {
@@ -11845,7 +11532,7 @@ type CreateProjectRequest struct {
 func (x *CreateProjectRequest) Reset() {
 	*x = CreateProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[225]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[220]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11858,7 +11545,7 @@ func (x *CreateProjectRequest) String() string {
 func (*CreateProjectRequest) ProtoMessage() {}
 
 func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[225]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[220]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11871,7 +11558,7 @@ func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectRequest.ProtoReflect.Descriptor instead.
 func (*CreateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{225}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{220}
 }
 
 func (x *CreateProjectRequest) GetBody() *ProjectRequestBody {
@@ -11892,7 +11579,7 @@ type CreateProjectResponse struct {
 func (x *CreateProjectResponse) Reset() {
 	*x = CreateProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[226]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[221]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11905,7 +11592,7 @@ func (x *CreateProjectResponse) String() string {
 func (*CreateProjectResponse) ProtoMessage() {}
 
 func (x *CreateProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[226]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[221]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11918,7 +11605,7 @@ func (x *CreateProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectResponse.ProtoReflect.Descriptor instead.
 func (*CreateProjectResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{226}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{221}
 }
 
 func (x *CreateProjectResponse) GetProject() *Project {
@@ -11941,7 +11628,7 @@ type ListOrganizationProjectsRequest struct {
 func (x *ListOrganizationProjectsRequest) Reset() {
 	*x = ListOrganizationProjectsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[227]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[222]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -11954,7 +11641,7 @@ func (x *ListOrganizationProjectsRequest) String() string {
 func (*ListOrganizationProjectsRequest) ProtoMessage() {}
 
 func (x *ListOrganizationProjectsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[227]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[222]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11967,7 +11654,7 @@ func (x *ListOrganizationProjectsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationProjectsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationProjectsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{227}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{222}
 }
 
 func (x *ListOrganizationProjectsRequest) GetId() string {
@@ -12002,7 +11689,7 @@ type ListOrganizationProjectsResponse struct {
 func (x *ListOrganizationProjectsResponse) Reset() {
 	*x = ListOrganizationProjectsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[228]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[223]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12015,7 +11702,7 @@ func (x *ListOrganizationProjectsResponse) String() string {
 func (*ListOrganizationProjectsResponse) ProtoMessage() {}
 
 func (x *ListOrganizationProjectsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[228]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[223]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12028,7 +11715,7 @@ func (x *ListOrganizationProjectsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrganizationProjectsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationProjectsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{228}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{223}
 }
 
 func (x *ListOrganizationProjectsResponse) GetProjects() []*Project {
@@ -12049,7 +11736,7 @@ type GetProjectRequest struct {
 func (x *GetProjectRequest) Reset() {
 	*x = GetProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[229]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[224]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12062,7 +11749,7 @@ func (x *GetProjectRequest) String() string {
 func (*GetProjectRequest) ProtoMessage() {}
 
 func (x *GetProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[229]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[224]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12075,7 +11762,7 @@ func (x *GetProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectRequest.ProtoReflect.Descriptor instead.
 func (*GetProjectRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{229}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{224}
 }
 
 func (x *GetProjectRequest) GetId() string {
@@ -12096,7 +11783,7 @@ type GetProjectResponse struct {
 func (x *GetProjectResponse) Reset() {
 	*x = GetProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[230]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[225]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12109,7 +11796,7 @@ func (x *GetProjectResponse) String() string {
 func (*GetProjectResponse) ProtoMessage() {}
 
 func (x *GetProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[230]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[225]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12122,7 +11809,7 @@ func (x *GetProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectResponse.ProtoReflect.Descriptor instead.
 func (*GetProjectResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{230}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{225}
 }
 
 func (x *GetProjectResponse) GetProject() *Project {
@@ -12145,7 +11832,7 @@ type UpdateProjectRequestBody struct {
 func (x *UpdateProjectRequestBody) Reset() {
 	*x = UpdateProjectRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[231]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[226]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12158,7 +11845,7 @@ func (x *UpdateProjectRequestBody) String() string {
 func (*UpdateProjectRequestBody) ProtoMessage() {}
 
 func (x *UpdateProjectRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[231]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[226]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12171,7 +11858,7 @@ func (x *UpdateProjectRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectRequestBody.ProtoReflect.Descriptor instead.
 func (*UpdateProjectRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{231}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{226}
 }
 
 func (x *UpdateProjectRequestBody) GetName() string {
@@ -12207,7 +11894,7 @@ type UpdateProjectRequest struct {
 func (x *UpdateProjectRequest) Reset() {
 	*x = UpdateProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[232]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[227]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12220,7 +11907,7 @@ func (x *UpdateProjectRequest) String() string {
 func (*UpdateProjectRequest) ProtoMessage() {}
 
 func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[232]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[227]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12233,7 +11920,7 @@ func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{232}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{227}
 }
 
 func (x *UpdateProjectRequest) GetId() string {
@@ -12261,7 +11948,7 @@ type UpdateProjectResponse struct {
 func (x *UpdateProjectResponse) Reset() {
 	*x = UpdateProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[233]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[228]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12274,7 +11961,7 @@ func (x *UpdateProjectResponse) String() string {
 func (*UpdateProjectResponse) ProtoMessage() {}
 
 func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[233]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[228]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12287,7 +11974,7 @@ func (x *UpdateProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProjectResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{233}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{228}
 }
 
 func (x *UpdateProjectResponse) GetProject() *Project {
@@ -12308,7 +11995,7 @@ type ListProjectAdminsRequest struct {
 func (x *ListProjectAdminsRequest) Reset() {
 	*x = ListProjectAdminsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[234]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[229]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12321,7 +12008,7 @@ func (x *ListProjectAdminsRequest) String() string {
 func (*ListProjectAdminsRequest) ProtoMessage() {}
 
 func (x *ListProjectAdminsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[234]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[229]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12334,7 +12021,7 @@ func (x *ListProjectAdminsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectAdminsRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectAdminsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{234}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{229}
 }
 
 func (x *ListProjectAdminsRequest) GetId() string {
@@ -12355,7 +12042,7 @@ type ListProjectAdminsResponse struct {
 func (x *ListProjectAdminsResponse) Reset() {
 	*x = ListProjectAdminsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[235]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[230]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12368,7 +12055,7 @@ func (x *ListProjectAdminsResponse) String() string {
 func (*ListProjectAdminsResponse) ProtoMessage() {}
 
 func (x *ListProjectAdminsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[235]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[230]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12381,7 +12068,7 @@ func (x *ListProjectAdminsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectAdminsResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectAdminsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{235}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{230}
 }
 
 func (x *ListProjectAdminsResponse) GetUsers() []*User {
@@ -12402,7 +12089,7 @@ type ListProjectUsersRequest struct {
 func (x *ListProjectUsersRequest) Reset() {
 	*x = ListProjectUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[236]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[231]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12415,7 +12102,7 @@ func (x *ListProjectUsersRequest) String() string {
 func (*ListProjectUsersRequest) ProtoMessage() {}
 
 func (x *ListProjectUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[236]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[231]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12428,7 +12115,7 @@ func (x *ListProjectUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{236}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{231}
 }
 
 func (x *ListProjectUsersRequest) GetId() string {
@@ -12450,7 +12137,7 @@ type ListProjectUsersResponse struct {
 func (x *ListProjectUsersResponse) Reset() {
 	*x = ListProjectUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[237]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[232]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12463,7 +12150,7 @@ func (x *ListProjectUsersResponse) String() string {
 func (*ListProjectUsersResponse) ProtoMessage() {}
 
 func (x *ListProjectUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[237]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[232]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12476,7 +12163,7 @@ func (x *ListProjectUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{237}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{232}
 }
 
 func (x *ListProjectUsersResponse) GetUsers() []*User {
@@ -12504,7 +12191,7 @@ type ListProjectServiceUsersRequest struct {
 func (x *ListProjectServiceUsersRequest) Reset() {
 	*x = ListProjectServiceUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[238]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[233]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12517,7 +12204,7 @@ func (x *ListProjectServiceUsersRequest) String() string {
 func (*ListProjectServiceUsersRequest) ProtoMessage() {}
 
 func (x *ListProjectServiceUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[238]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[233]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12530,7 +12217,7 @@ func (x *ListProjectServiceUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectServiceUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectServiceUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{238}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{233}
 }
 
 func (x *ListProjectServiceUsersRequest) GetId() string {
@@ -12552,7 +12239,7 @@ type ListProjectServiceUsersResponse struct {
 func (x *ListProjectServiceUsersResponse) Reset() {
 	*x = ListProjectServiceUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[239]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[234]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12565,7 +12252,7 @@ func (x *ListProjectServiceUsersResponse) String() string {
 func (*ListProjectServiceUsersResponse) ProtoMessage() {}
 
 func (x *ListProjectServiceUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[239]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[234]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12578,7 +12265,7 @@ func (x *ListProjectServiceUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectServiceUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectServiceUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{239}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{234}
 }
 
 func (x *ListProjectServiceUsersResponse) GetServiceusers() []*ServiceUser {
@@ -12606,7 +12293,7 @@ type ListProjectGroupsRequest struct {
 func (x *ListProjectGroupsRequest) Reset() {
 	*x = ListProjectGroupsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[240]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[235]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12619,7 +12306,7 @@ func (x *ListProjectGroupsRequest) String() string {
 func (*ListProjectGroupsRequest) ProtoMessage() {}
 
 func (x *ListProjectGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[240]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[235]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12632,7 +12319,7 @@ func (x *ListProjectGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{240}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{235}
 }
 
 func (x *ListProjectGroupsRequest) GetId() string {
@@ -12654,7 +12341,7 @@ type ListProjectGroupsResponse struct {
 func (x *ListProjectGroupsResponse) Reset() {
 	*x = ListProjectGroupsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[241]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[236]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12667,7 +12354,7 @@ func (x *ListProjectGroupsResponse) String() string {
 func (*ListProjectGroupsResponse) ProtoMessage() {}
 
 func (x *ListProjectGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[241]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[236]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12680,7 +12367,7 @@ func (x *ListProjectGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{241}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{236}
 }
 
 func (x *ListProjectGroupsResponse) GetGroups() []*Group {
@@ -12708,7 +12395,7 @@ type EnableProjectRequest struct {
 func (x *EnableProjectRequest) Reset() {
 	*x = EnableProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[242]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[237]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12721,7 +12408,7 @@ func (x *EnableProjectRequest) String() string {
 func (*EnableProjectRequest) ProtoMessage() {}
 
 func (x *EnableProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[242]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[237]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12734,7 +12421,7 @@ func (x *EnableProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableProjectRequest.ProtoReflect.Descriptor instead.
 func (*EnableProjectRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{242}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{237}
 }
 
 func (x *EnableProjectRequest) GetId() string {
@@ -12753,7 +12440,7 @@ type EnableProjectResponse struct {
 func (x *EnableProjectResponse) Reset() {
 	*x = EnableProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[243]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[238]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12766,7 +12453,7 @@ func (x *EnableProjectResponse) String() string {
 func (*EnableProjectResponse) ProtoMessage() {}
 
 func (x *EnableProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[243]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[238]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12779,7 +12466,7 @@ func (x *EnableProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableProjectResponse.ProtoReflect.Descriptor instead.
 func (*EnableProjectResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{243}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{238}
 }
 
 type DisableProjectRequest struct {
@@ -12793,7 +12480,7 @@ type DisableProjectRequest struct {
 func (x *DisableProjectRequest) Reset() {
 	*x = DisableProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[244]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[239]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12806,7 +12493,7 @@ func (x *DisableProjectRequest) String() string {
 func (*DisableProjectRequest) ProtoMessage() {}
 
 func (x *DisableProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[244]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[239]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12819,7 +12506,7 @@ func (x *DisableProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableProjectRequest.ProtoReflect.Descriptor instead.
 func (*DisableProjectRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{244}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{239}
 }
 
 func (x *DisableProjectRequest) GetId() string {
@@ -12838,7 +12525,7 @@ type DisableProjectResponse struct {
 func (x *DisableProjectResponse) Reset() {
 	*x = DisableProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[245]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[240]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12851,7 +12538,7 @@ func (x *DisableProjectResponse) String() string {
 func (*DisableProjectResponse) ProtoMessage() {}
 
 func (x *DisableProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[245]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[240]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12864,7 +12551,7 @@ func (x *DisableProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableProjectResponse.ProtoReflect.Descriptor instead.
 func (*DisableProjectResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{245}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{240}
 }
 
 type DeleteProjectRequest struct {
@@ -12878,7 +12565,7 @@ type DeleteProjectRequest struct {
 func (x *DeleteProjectRequest) Reset() {
 	*x = DeleteProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[246]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[241]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12891,7 +12578,7 @@ func (x *DeleteProjectRequest) String() string {
 func (*DeleteProjectRequest) ProtoMessage() {}
 
 func (x *DeleteProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[246]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[241]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12904,7 +12591,7 @@ func (x *DeleteProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProjectRequest.ProtoReflect.Descriptor instead.
 func (*DeleteProjectRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{246}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{241}
 }
 
 func (x *DeleteProjectRequest) GetId() string {
@@ -12923,7 +12610,7 @@ type DeleteProjectResponse struct {
 func (x *DeleteProjectResponse) Reset() {
 	*x = DeleteProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[247]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[242]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12936,7 +12623,7 @@ func (x *DeleteProjectResponse) String() string {
 func (*DeleteProjectResponse) ProtoMessage() {}
 
 func (x *DeleteProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[247]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[242]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12949,7 +12636,7 @@ func (x *DeleteProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProjectResponse.ProtoReflect.Descriptor instead.
 func (*DeleteProjectResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{247}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{242}
 }
 
 type SetProjectMemberRoleRequest struct {
@@ -12966,7 +12653,7 @@ type SetProjectMemberRoleRequest struct {
 func (x *SetProjectMemberRoleRequest) Reset() {
 	*x = SetProjectMemberRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[248]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[243]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -12979,7 +12666,7 @@ func (x *SetProjectMemberRoleRequest) String() string {
 func (*SetProjectMemberRoleRequest) ProtoMessage() {}
 
 func (x *SetProjectMemberRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[248]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[243]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12992,7 +12679,7 @@ func (x *SetProjectMemberRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProjectMemberRoleRequest.ProtoReflect.Descriptor instead.
 func (*SetProjectMemberRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{248}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{243}
 }
 
 func (x *SetProjectMemberRoleRequest) GetProjectId() string {
@@ -13032,7 +12719,7 @@ type SetProjectMemberRoleResponse struct {
 func (x *SetProjectMemberRoleResponse) Reset() {
 	*x = SetProjectMemberRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[249]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[244]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13045,7 +12732,7 @@ func (x *SetProjectMemberRoleResponse) String() string {
 func (*SetProjectMemberRoleResponse) ProtoMessage() {}
 
 func (x *SetProjectMemberRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[249]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[244]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13058,7 +12745,7 @@ func (x *SetProjectMemberRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProjectMemberRoleResponse.ProtoReflect.Descriptor instead.
 func (*SetProjectMemberRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{249}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{244}
 }
 
 type RemoveProjectMemberRequest struct {
@@ -13074,7 +12761,7 @@ type RemoveProjectMemberRequest struct {
 func (x *RemoveProjectMemberRequest) Reset() {
 	*x = RemoveProjectMemberRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[250]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[245]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13087,7 +12774,7 @@ func (x *RemoveProjectMemberRequest) String() string {
 func (*RemoveProjectMemberRequest) ProtoMessage() {}
 
 func (x *RemoveProjectMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[250]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[245]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13100,7 +12787,7 @@ func (x *RemoveProjectMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveProjectMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveProjectMemberRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{250}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{245}
 }
 
 func (x *RemoveProjectMemberRequest) GetProjectId() string {
@@ -13133,7 +12820,7 @@ type RemoveProjectMemberResponse struct {
 func (x *RemoveProjectMemberResponse) Reset() {
 	*x = RemoveProjectMemberResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[251]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[246]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13146,7 +12833,7 @@ func (x *RemoveProjectMemberResponse) String() string {
 func (*RemoveProjectMemberResponse) ProtoMessage() {}
 
 func (x *RemoveProjectMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[251]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[246]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13159,7 +12846,7 @@ func (x *RemoveProjectMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveProjectMemberResponse.ProtoReflect.Descriptor instead.
 func (*RemoveProjectMemberResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{251}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{246}
 }
 
 type PolicyRequestBody struct {
@@ -13177,7 +12864,7 @@ type PolicyRequestBody struct {
 func (x *PolicyRequestBody) Reset() {
 	*x = PolicyRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[252]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[247]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13190,7 +12877,7 @@ func (x *PolicyRequestBody) String() string {
 func (*PolicyRequestBody) ProtoMessage() {}
 
 func (x *PolicyRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[252]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[247]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13203,7 +12890,7 @@ func (x *PolicyRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyRequestBody.ProtoReflect.Descriptor instead.
 func (*PolicyRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{252}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{247}
 }
 
 func (x *PolicyRequestBody) GetRoleId() string {
@@ -13254,7 +12941,7 @@ type CreatePolicyForProjectBody struct {
 func (x *CreatePolicyForProjectBody) Reset() {
 	*x = CreatePolicyForProjectBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[253]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[248]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13267,7 +12954,7 @@ func (x *CreatePolicyForProjectBody) String() string {
 func (*CreatePolicyForProjectBody) ProtoMessage() {}
 
 func (x *CreatePolicyForProjectBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[253]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[248]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13280,7 +12967,7 @@ func (x *CreatePolicyForProjectBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyForProjectBody.ProtoReflect.Descriptor instead.
 func (*CreatePolicyForProjectBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{253}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{248}
 }
 
 func (x *CreatePolicyForProjectBody) GetRoleId() string {
@@ -13315,7 +13002,7 @@ type GetPermissionRequest struct {
 func (x *GetPermissionRequest) Reset() {
 	*x = GetPermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[254]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[249]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13328,7 +13015,7 @@ func (x *GetPermissionRequest) String() string {
 func (*GetPermissionRequest) ProtoMessage() {}
 
 func (x *GetPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[254]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[249]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13341,7 +13028,7 @@ func (x *GetPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPermissionRequest.ProtoReflect.Descriptor instead.
 func (*GetPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{254}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{249}
 }
 
 func (x *GetPermissionRequest) GetId() string {
@@ -13362,7 +13049,7 @@ type GetPermissionResponse struct {
 func (x *GetPermissionResponse) Reset() {
 	*x = GetPermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[255]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[250]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13375,7 +13062,7 @@ func (x *GetPermissionResponse) String() string {
 func (*GetPermissionResponse) ProtoMessage() {}
 
 func (x *GetPermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[255]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[250]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13388,7 +13075,7 @@ func (x *GetPermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPermissionResponse.ProtoReflect.Descriptor instead.
 func (*GetPermissionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{255}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{250}
 }
 
 func (x *GetPermissionResponse) GetPermission() *Permission {
@@ -13407,7 +13094,7 @@ type ListPermissionsRequest struct {
 func (x *ListPermissionsRequest) Reset() {
 	*x = ListPermissionsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[256]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[251]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13420,7 +13107,7 @@ func (x *ListPermissionsRequest) String() string {
 func (*ListPermissionsRequest) ProtoMessage() {}
 
 func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[256]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[251]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13433,7 +13120,7 @@ func (x *ListPermissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsRequest.ProtoReflect.Descriptor instead.
 func (*ListPermissionsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{256}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{251}
 }
 
 type ListPermissionsResponse struct {
@@ -13447,7 +13134,7 @@ type ListPermissionsResponse struct {
 func (x *ListPermissionsResponse) Reset() {
 	*x = ListPermissionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[257]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[252]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13460,7 +13147,7 @@ func (x *ListPermissionsResponse) String() string {
 func (*ListPermissionsResponse) ProtoMessage() {}
 
 func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[257]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[252]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13473,7 +13160,7 @@ func (x *ListPermissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPermissionsResponse.ProtoReflect.Descriptor instead.
 func (*ListPermissionsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{257}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{252}
 }
 
 func (x *ListPermissionsResponse) GetPermissions() []*Permission {
@@ -13492,7 +13179,7 @@ type ListNamespacesRequest struct {
 func (x *ListNamespacesRequest) Reset() {
 	*x = ListNamespacesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[258]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[253]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13505,7 +13192,7 @@ func (x *ListNamespacesRequest) String() string {
 func (*ListNamespacesRequest) ProtoMessage() {}
 
 func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[258]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[253]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13518,7 +13205,7 @@ func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{258}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{253}
 }
 
 type ListNamespacesResponse struct {
@@ -13532,7 +13219,7 @@ type ListNamespacesResponse struct {
 func (x *ListNamespacesResponse) Reset() {
 	*x = ListNamespacesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[259]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[254]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13545,7 +13232,7 @@ func (x *ListNamespacesResponse) String() string {
 func (*ListNamespacesResponse) ProtoMessage() {}
 
 func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[259]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[254]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13558,7 +13245,7 @@ func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{259}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{254}
 }
 
 func (x *ListNamespacesResponse) GetNamespaces() []*Namespace {
@@ -13579,7 +13266,7 @@ type GetNamespaceRequest struct {
 func (x *GetNamespaceRequest) Reset() {
 	*x = GetNamespaceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[260]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[255]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13592,7 +13279,7 @@ func (x *GetNamespaceRequest) String() string {
 func (*GetNamespaceRequest) ProtoMessage() {}
 
 func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[260]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[255]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13605,7 +13292,7 @@ func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*GetNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{260}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{255}
 }
 
 func (x *GetNamespaceRequest) GetId() string {
@@ -13626,7 +13313,7 @@ type GetNamespaceResponse struct {
 func (x *GetNamespaceResponse) Reset() {
 	*x = GetNamespaceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[261]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[256]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13639,7 +13326,7 @@ func (x *GetNamespaceResponse) String() string {
 func (*GetNamespaceResponse) ProtoMessage() {}
 
 func (x *GetNamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[261]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[256]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13652,7 +13339,7 @@ func (x *GetNamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceResponse.ProtoReflect.Descriptor instead.
 func (*GetNamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{261}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{256}
 }
 
 func (x *GetNamespaceResponse) GetNamespace() *Namespace {
@@ -13673,7 +13360,7 @@ type CreatePolicyRequest struct {
 func (x *CreatePolicyRequest) Reset() {
 	*x = CreatePolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[262]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[257]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13686,7 +13373,7 @@ func (x *CreatePolicyRequest) String() string {
 func (*CreatePolicyRequest) ProtoMessage() {}
 
 func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[262]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[257]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13699,7 +13386,7 @@ func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyRequest.ProtoReflect.Descriptor instead.
 func (*CreatePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{262}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{257}
 }
 
 func (x *CreatePolicyRequest) GetBody() *PolicyRequestBody {
@@ -13720,7 +13407,7 @@ type CreatePolicyResponse struct {
 func (x *CreatePolicyResponse) Reset() {
 	*x = CreatePolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[263]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[258]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13733,7 +13420,7 @@ func (x *CreatePolicyResponse) String() string {
 func (*CreatePolicyResponse) ProtoMessage() {}
 
 func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[263]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[258]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13746,7 +13433,7 @@ func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyResponse.ProtoReflect.Descriptor instead.
 func (*CreatePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{263}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{258}
 }
 
 func (x *CreatePolicyResponse) GetPolicy() *Policy {
@@ -13767,7 +13454,7 @@ type GetPolicyRequest struct {
 func (x *GetPolicyRequest) Reset() {
 	*x = GetPolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[264]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[259]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13780,7 +13467,7 @@ func (x *GetPolicyRequest) String() string {
 func (*GetPolicyRequest) ProtoMessage() {}
 
 func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[264]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[259]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13793,7 +13480,7 @@ func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{264}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{259}
 }
 
 func (x *GetPolicyRequest) GetId() string {
@@ -13814,7 +13501,7 @@ type GetPolicyResponse struct {
 func (x *GetPolicyResponse) Reset() {
 	*x = GetPolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[265]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[260]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13827,7 +13514,7 @@ func (x *GetPolicyResponse) String() string {
 func (*GetPolicyResponse) ProtoMessage() {}
 
 func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[265]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[260]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13840,7 +13527,7 @@ func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{265}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{260}
 }
 
 func (x *GetPolicyResponse) GetPolicy() *Policy {
@@ -13865,7 +13552,7 @@ type ListPoliciesRequest struct {
 func (x *ListPoliciesRequest) Reset() {
 	*x = ListPoliciesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[266]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[261]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13878,7 +13565,7 @@ func (x *ListPoliciesRequest) String() string {
 func (*ListPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[266]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[261]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13891,7 +13578,7 @@ func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{266}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{261}
 }
 
 func (x *ListPoliciesRequest) GetOrgId() string {
@@ -13940,7 +13627,7 @@ type ListPoliciesResponse struct {
 func (x *ListPoliciesResponse) Reset() {
 	*x = ListPoliciesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[267]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[262]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -13953,7 +13640,7 @@ func (x *ListPoliciesResponse) String() string {
 func (*ListPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[267]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[262]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13966,7 +13653,7 @@ func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{267}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{262}
 }
 
 func (x *ListPoliciesResponse) GetPolicies() []*Policy {
@@ -13988,7 +13675,7 @@ type UpdatePolicyRequest struct {
 func (x *UpdatePolicyRequest) Reset() {
 	*x = UpdatePolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[268]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[263]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14001,7 +13688,7 @@ func (x *UpdatePolicyRequest) String() string {
 func (*UpdatePolicyRequest) ProtoMessage() {}
 
 func (x *UpdatePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[268]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[263]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14014,7 +13701,7 @@ func (x *UpdatePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePolicyRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{268}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{263}
 }
 
 func (x *UpdatePolicyRequest) GetId() string {
@@ -14042,7 +13729,7 @@ type UpdatePolicyResponse struct {
 func (x *UpdatePolicyResponse) Reset() {
 	*x = UpdatePolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[269]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[264]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14055,7 +13742,7 @@ func (x *UpdatePolicyResponse) String() string {
 func (*UpdatePolicyResponse) ProtoMessage() {}
 
 func (x *UpdatePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[269]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[264]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14068,7 +13755,7 @@ func (x *UpdatePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePolicyResponse.ProtoReflect.Descriptor instead.
 func (*UpdatePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{269}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{264}
 }
 
 func (x *UpdatePolicyResponse) GetPolicies() []*Policy {
@@ -14089,7 +13776,7 @@ type DeletePolicyRequest struct {
 func (x *DeletePolicyRequest) Reset() {
 	*x = DeletePolicyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[270]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[265]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14102,7 +13789,7 @@ func (x *DeletePolicyRequest) String() string {
 func (*DeletePolicyRequest) ProtoMessage() {}
 
 func (x *DeletePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[270]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[265]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14115,7 +13802,7 @@ func (x *DeletePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeletePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{270}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{265}
 }
 
 func (x *DeletePolicyRequest) GetId() string {
@@ -14134,7 +13821,7 @@ type DeletePolicyResponse struct {
 func (x *DeletePolicyResponse) Reset() {
 	*x = DeletePolicyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[271]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[266]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14147,7 +13834,7 @@ func (x *DeletePolicyResponse) String() string {
 func (*DeletePolicyResponse) ProtoMessage() {}
 
 func (x *DeletePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[271]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[266]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14160,7 +13847,7 @@ func (x *DeletePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeletePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{271}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{266}
 }
 
 type CreatePolicyForProjectRequest struct {
@@ -14175,7 +13862,7 @@ type CreatePolicyForProjectRequest struct {
 func (x *CreatePolicyForProjectRequest) Reset() {
 	*x = CreatePolicyForProjectRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[272]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[267]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14188,7 +13875,7 @@ func (x *CreatePolicyForProjectRequest) String() string {
 func (*CreatePolicyForProjectRequest) ProtoMessage() {}
 
 func (x *CreatePolicyForProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[272]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[267]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14201,7 +13888,7 @@ func (x *CreatePolicyForProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyForProjectRequest.ProtoReflect.Descriptor instead.
 func (*CreatePolicyForProjectRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{272}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{267}
 }
 
 func (x *CreatePolicyForProjectRequest) GetProjectId() string {
@@ -14227,7 +13914,7 @@ type CreatePolicyForProjectResponse struct {
 func (x *CreatePolicyForProjectResponse) Reset() {
 	*x = CreatePolicyForProjectResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[273]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[268]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14240,7 +13927,7 @@ func (x *CreatePolicyForProjectResponse) String() string {
 func (*CreatePolicyForProjectResponse) ProtoMessage() {}
 
 func (x *CreatePolicyForProjectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[273]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[268]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14253,7 +13940,7 @@ func (x *CreatePolicyForProjectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyForProjectResponse.ProtoReflect.Descriptor instead.
 func (*CreatePolicyForProjectResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{273}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{268}
 }
 
 type RelationRequestBody struct {
@@ -14272,7 +13959,7 @@ type RelationRequestBody struct {
 func (x *RelationRequestBody) Reset() {
 	*x = RelationRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[274]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[269]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14285,7 +13972,7 @@ func (x *RelationRequestBody) String() string {
 func (*RelationRequestBody) ProtoMessage() {}
 
 func (x *RelationRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[274]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[269]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14298,7 +13985,7 @@ func (x *RelationRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RelationRequestBody.ProtoReflect.Descriptor instead.
 func (*RelationRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{274}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{269}
 }
 
 func (x *RelationRequestBody) GetObject() string {
@@ -14340,7 +14027,7 @@ type CreateRelationRequest struct {
 func (x *CreateRelationRequest) Reset() {
 	*x = CreateRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[275]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[270]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14353,7 +14040,7 @@ func (x *CreateRelationRequest) String() string {
 func (*CreateRelationRequest) ProtoMessage() {}
 
 func (x *CreateRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[275]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[270]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14366,7 +14053,7 @@ func (x *CreateRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRelationRequest.ProtoReflect.Descriptor instead.
 func (*CreateRelationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{275}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{270}
 }
 
 func (x *CreateRelationRequest) GetBody() *RelationRequestBody {
@@ -14387,7 +14074,7 @@ type CreateRelationResponse struct {
 func (x *CreateRelationResponse) Reset() {
 	*x = CreateRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[276]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[271]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14400,7 +14087,7 @@ func (x *CreateRelationResponse) String() string {
 func (*CreateRelationResponse) ProtoMessage() {}
 
 func (x *CreateRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[276]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[271]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14413,7 +14100,7 @@ func (x *CreateRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRelationResponse.ProtoReflect.Descriptor instead.
 func (*CreateRelationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{276}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{271}
 }
 
 func (x *CreateRelationResponse) GetRelation() *Relation {
@@ -14434,7 +14121,7 @@ type GetRelationRequest struct {
 func (x *GetRelationRequest) Reset() {
 	*x = GetRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[277]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[272]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14447,7 +14134,7 @@ func (x *GetRelationRequest) String() string {
 func (*GetRelationRequest) ProtoMessage() {}
 
 func (x *GetRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[277]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[272]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14460,7 +14147,7 @@ func (x *GetRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRelationRequest.ProtoReflect.Descriptor instead.
 func (*GetRelationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{277}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{272}
 }
 
 func (x *GetRelationRequest) GetId() string {
@@ -14481,7 +14168,7 @@ type GetRelationResponse struct {
 func (x *GetRelationResponse) Reset() {
 	*x = GetRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[278]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[273]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14494,7 +14181,7 @@ func (x *GetRelationResponse) String() string {
 func (*GetRelationResponse) ProtoMessage() {}
 
 func (x *GetRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[278]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[273]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14507,7 +14194,7 @@ func (x *GetRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRelationResponse.ProtoReflect.Descriptor instead.
 func (*GetRelationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{278}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{273}
 }
 
 func (x *GetRelationResponse) GetRelation() *Relation {
@@ -14529,7 +14216,7 @@ type UpdateRelationRequest struct {
 func (x *UpdateRelationRequest) Reset() {
 	*x = UpdateRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[279]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[274]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14542,7 +14229,7 @@ func (x *UpdateRelationRequest) String() string {
 func (*UpdateRelationRequest) ProtoMessage() {}
 
 func (x *UpdateRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[279]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[274]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14555,7 +14242,7 @@ func (x *UpdateRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRelationRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRelationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{279}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{274}
 }
 
 func (x *UpdateRelationRequest) GetId() string {
@@ -14583,7 +14270,7 @@ type UpdateRelationResponse struct {
 func (x *UpdateRelationResponse) Reset() {
 	*x = UpdateRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[280]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[275]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14596,7 +14283,7 @@ func (x *UpdateRelationResponse) String() string {
 func (*UpdateRelationResponse) ProtoMessage() {}
 
 func (x *UpdateRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[280]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[275]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14609,7 +14296,7 @@ func (x *UpdateRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRelationResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRelationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{280}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{275}
 }
 
 func (x *UpdateRelationResponse) GetRelation() *Relation {
@@ -14632,7 +14319,7 @@ type GroupRequestBody struct {
 func (x *GroupRequestBody) Reset() {
 	*x = GroupRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[281]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[276]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14645,7 +14332,7 @@ func (x *GroupRequestBody) String() string {
 func (*GroupRequestBody) ProtoMessage() {}
 
 func (x *GroupRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[281]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[276]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14658,7 +14345,7 @@ func (x *GroupRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupRequestBody.ProtoReflect.Descriptor instead.
 func (*GroupRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{281}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{276}
 }
 
 func (x *GroupRequestBody) GetName() string {
@@ -14694,7 +14381,7 @@ type CreateGroupRequest struct {
 func (x *CreateGroupRequest) Reset() {
 	*x = CreateGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[282]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[277]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14707,7 +14394,7 @@ func (x *CreateGroupRequest) String() string {
 func (*CreateGroupRequest) ProtoMessage() {}
 
 func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[282]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[277]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14720,7 +14407,7 @@ func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateGroupRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{282}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{277}
 }
 
 func (x *CreateGroupRequest) GetBody() *GroupRequestBody {
@@ -14749,7 +14436,7 @@ type GetGroupRequest struct {
 func (x *GetGroupRequest) Reset() {
 	*x = GetGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[283]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[278]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14762,7 +14449,7 @@ func (x *GetGroupRequest) String() string {
 func (*GetGroupRequest) ProtoMessage() {}
 
 func (x *GetGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[283]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[278]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14775,7 +14462,7 @@ func (x *GetGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupRequest.ProtoReflect.Descriptor instead.
 func (*GetGroupRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{283}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{278}
 }
 
 func (x *GetGroupRequest) GetId() string {
@@ -14803,7 +14490,7 @@ type CreateGroupResponse struct {
 func (x *CreateGroupResponse) Reset() {
 	*x = CreateGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[284]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[279]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14816,7 +14503,7 @@ func (x *CreateGroupResponse) String() string {
 func (*CreateGroupResponse) ProtoMessage() {}
 
 func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[284]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[279]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14829,7 +14516,7 @@ func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupResponse.ProtoReflect.Descriptor instead.
 func (*CreateGroupResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{284}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{279}
 }
 
 func (x *CreateGroupResponse) GetGroup() *Group {
@@ -14850,7 +14537,7 @@ type GetGroupResponse struct {
 func (x *GetGroupResponse) Reset() {
 	*x = GetGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[285]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[280]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14863,7 +14550,7 @@ func (x *GetGroupResponse) String() string {
 func (*GetGroupResponse) ProtoMessage() {}
 
 func (x *GetGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[285]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[280]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14876,7 +14563,7 @@ func (x *GetGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupResponse.ProtoReflect.Descriptor instead.
 func (*GetGroupResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{285}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{280}
 }
 
 func (x *GetGroupResponse) GetGroup() *Group {
@@ -14897,7 +14584,7 @@ type UpdateGroupResponse struct {
 func (x *UpdateGroupResponse) Reset() {
 	*x = UpdateGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[286]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[281]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14910,7 +14597,7 @@ func (x *UpdateGroupResponse) String() string {
 func (*UpdateGroupResponse) ProtoMessage() {}
 
 func (x *UpdateGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[286]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[281]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14923,7 +14610,7 @@ func (x *UpdateGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateGroupResponse.ProtoReflect.Descriptor instead.
 func (*UpdateGroupResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{286}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{281}
 }
 
 func (x *UpdateGroupResponse) GetGroup() *Group {
@@ -14945,7 +14632,7 @@ type UpdateGroupRequest struct {
 func (x *UpdateGroupRequest) Reset() {
 	*x = UpdateGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[287]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[282]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -14958,7 +14645,7 @@ func (x *UpdateGroupRequest) String() string {
 func (*UpdateGroupRequest) ProtoMessage() {}
 
 func (x *UpdateGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[287]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[282]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14971,7 +14658,7 @@ func (x *UpdateGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateGroupRequest.ProtoReflect.Descriptor instead.
 func (*UpdateGroupRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{287}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{282}
 }
 
 func (x *UpdateGroupRequest) GetId() string {
@@ -14999,7 +14686,7 @@ type ListGroupUsersRequest struct {
 func (x *ListGroupUsersRequest) Reset() {
 	*x = ListGroupUsersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[288]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[283]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15012,7 +14699,7 @@ func (x *ListGroupUsersRequest) String() string {
 func (*ListGroupUsersRequest) ProtoMessage() {}
 
 func (x *ListGroupUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[288]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[283]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15025,7 +14712,7 @@ func (x *ListGroupUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupUsersRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{288}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{283}
 }
 
 func (x *ListGroupUsersRequest) GetId() string {
@@ -15047,7 +14734,7 @@ type ListGroupUsersResponse struct {
 func (x *ListGroupUsersResponse) Reset() {
 	*x = ListGroupUsersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[289]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[284]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15060,7 +14747,7 @@ func (x *ListGroupUsersResponse) String() string {
 func (*ListGroupUsersResponse) ProtoMessage() {}
 
 func (x *ListGroupUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[289]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[284]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15073,7 +14760,7 @@ func (x *ListGroupUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupUsersResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{289}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{284}
 }
 
 func (x *ListGroupUsersResponse) GetUsers() []*User {
@@ -15101,7 +14788,7 @@ type EnableGroupRequest struct {
 func (x *EnableGroupRequest) Reset() {
 	*x = EnableGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[290]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[285]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15114,7 +14801,7 @@ func (x *EnableGroupRequest) String() string {
 func (*EnableGroupRequest) ProtoMessage() {}
 
 func (x *EnableGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[290]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[285]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15127,7 +14814,7 @@ func (x *EnableGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableGroupRequest.ProtoReflect.Descriptor instead.
 func (*EnableGroupRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{290}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{285}
 }
 
 func (x *EnableGroupRequest) GetId() string {
@@ -15146,7 +14833,7 @@ type EnableGroupResponse struct {
 func (x *EnableGroupResponse) Reset() {
 	*x = EnableGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[291]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[286]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15159,7 +14846,7 @@ func (x *EnableGroupResponse) String() string {
 func (*EnableGroupResponse) ProtoMessage() {}
 
 func (x *EnableGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[291]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[286]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15172,7 +14859,7 @@ func (x *EnableGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnableGroupResponse.ProtoReflect.Descriptor instead.
 func (*EnableGroupResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{291}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{286}
 }
 
 type DisableGroupRequest struct {
@@ -15186,7 +14873,7 @@ type DisableGroupRequest struct {
 func (x *DisableGroupRequest) Reset() {
 	*x = DisableGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[292]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[287]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15199,7 +14886,7 @@ func (x *DisableGroupRequest) String() string {
 func (*DisableGroupRequest) ProtoMessage() {}
 
 func (x *DisableGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[292]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[287]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15212,7 +14899,7 @@ func (x *DisableGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableGroupRequest.ProtoReflect.Descriptor instead.
 func (*DisableGroupRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{292}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{287}
 }
 
 func (x *DisableGroupRequest) GetId() string {
@@ -15231,7 +14918,7 @@ type DisableGroupResponse struct {
 func (x *DisableGroupResponse) Reset() {
 	*x = DisableGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[293]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[288]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15244,7 +14931,7 @@ func (x *DisableGroupResponse) String() string {
 func (*DisableGroupResponse) ProtoMessage() {}
 
 func (x *DisableGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[293]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[288]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15257,7 +14944,7 @@ func (x *DisableGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisableGroupResponse.ProtoReflect.Descriptor instead.
 func (*DisableGroupResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{293}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{288}
 }
 
 type DeleteGroupRequest struct {
@@ -15271,7 +14958,7 @@ type DeleteGroupRequest struct {
 func (x *DeleteGroupRequest) Reset() {
 	*x = DeleteGroupRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[294]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[289]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15284,7 +14971,7 @@ func (x *DeleteGroupRequest) String() string {
 func (*DeleteGroupRequest) ProtoMessage() {}
 
 func (x *DeleteGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[294]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[289]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15297,7 +14984,7 @@ func (x *DeleteGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteGroupRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{294}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{289}
 }
 
 func (x *DeleteGroupRequest) GetId() string {
@@ -15316,7 +15003,7 @@ type DeleteGroupResponse struct {
 func (x *DeleteGroupResponse) Reset() {
 	*x = DeleteGroupResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[295]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[290]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15329,7 +15016,7 @@ func (x *DeleteGroupResponse) String() string {
 func (*DeleteGroupResponse) ProtoMessage() {}
 
 func (x *DeleteGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[295]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[290]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15342,7 +15029,7 @@ func (x *DeleteGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupResponse.ProtoReflect.Descriptor instead.
 func (*DeleteGroupResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{295}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{290}
 }
 
 type RemoveGroupUserRequest struct {
@@ -15357,7 +15044,7 @@ type RemoveGroupUserRequest struct {
 func (x *RemoveGroupUserRequest) Reset() {
 	*x = RemoveGroupUserRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[296]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[291]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15370,7 +15057,7 @@ func (x *RemoveGroupUserRequest) String() string {
 func (*RemoveGroupUserRequest) ProtoMessage() {}
 
 func (x *RemoveGroupUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[296]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[291]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15383,7 +15070,7 @@ func (x *RemoveGroupUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveGroupUserRequest.ProtoReflect.Descriptor instead.
 func (*RemoveGroupUserRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{296}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{291}
 }
 
 func (x *RemoveGroupUserRequest) GetId() string {
@@ -15409,7 +15096,7 @@ type RemoveGroupUserResponse struct {
 func (x *RemoveGroupUserResponse) Reset() {
 	*x = RemoveGroupUserResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[297]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[292]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15422,7 +15109,7 @@ func (x *RemoveGroupUserResponse) String() string {
 func (*RemoveGroupUserResponse) ProtoMessage() {}
 
 func (x *RemoveGroupUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[297]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[292]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15435,7 +15122,7 @@ func (x *RemoveGroupUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveGroupUserResponse.ProtoReflect.Descriptor instead.
 func (*RemoveGroupUserResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{297}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{292}
 }
 
 type SetGroupMemberRoleRequest struct {
@@ -15452,7 +15139,7 @@ type SetGroupMemberRoleRequest struct {
 func (x *SetGroupMemberRoleRequest) Reset() {
 	*x = SetGroupMemberRoleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[298]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[293]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15465,7 +15152,7 @@ func (x *SetGroupMemberRoleRequest) String() string {
 func (*SetGroupMemberRoleRequest) ProtoMessage() {}
 
 func (x *SetGroupMemberRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[298]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[293]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15478,7 +15165,7 @@ func (x *SetGroupMemberRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetGroupMemberRoleRequest.ProtoReflect.Descriptor instead.
 func (*SetGroupMemberRoleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{298}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{293}
 }
 
 func (x *SetGroupMemberRoleRequest) GetGroupId() string {
@@ -15518,7 +15205,7 @@ type SetGroupMemberRoleResponse struct {
 func (x *SetGroupMemberRoleResponse) Reset() {
 	*x = SetGroupMemberRoleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[299]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[294]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15531,7 +15218,7 @@ func (x *SetGroupMemberRoleResponse) String() string {
 func (*SetGroupMemberRoleResponse) ProtoMessage() {}
 
 func (x *SetGroupMemberRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[299]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[294]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15544,7 +15231,7 @@ func (x *SetGroupMemberRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetGroupMemberRoleResponse.ProtoReflect.Descriptor instead.
 func (*SetGroupMemberRoleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{299}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{294}
 }
 
 type DeleteRelationRequest struct {
@@ -15562,7 +15249,7 @@ type DeleteRelationRequest struct {
 func (x *DeleteRelationRequest) Reset() {
 	*x = DeleteRelationRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[300]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[295]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15575,7 +15262,7 @@ func (x *DeleteRelationRequest) String() string {
 func (*DeleteRelationRequest) ProtoMessage() {}
 
 func (x *DeleteRelationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[300]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[295]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15588,7 +15275,7 @@ func (x *DeleteRelationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRelationRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRelationRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{300}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{295}
 }
 
 func (x *DeleteRelationRequest) GetObject() string {
@@ -15621,7 +15308,7 @@ type DeleteRelationResponse struct {
 func (x *DeleteRelationResponse) Reset() {
 	*x = DeleteRelationResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[301]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[296]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15634,7 +15321,7 @@ func (x *DeleteRelationResponse) String() string {
 func (*DeleteRelationResponse) ProtoMessage() {}
 
 func (x *DeleteRelationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[301]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[296]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15647,7 +15334,7 @@ func (x *DeleteRelationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRelationResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRelationResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{301}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{296}
 }
 
 type ListProjectResourcesRequest struct {
@@ -15662,7 +15349,7 @@ type ListProjectResourcesRequest struct {
 func (x *ListProjectResourcesRequest) Reset() {
 	*x = ListProjectResourcesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[302]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[297]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15675,7 +15362,7 @@ func (x *ListProjectResourcesRequest) String() string {
 func (*ListProjectResourcesRequest) ProtoMessage() {}
 
 func (x *ListProjectResourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[302]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[297]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15688,7 +15375,7 @@ func (x *ListProjectResourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectResourcesRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectResourcesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{302}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{297}
 }
 
 func (x *ListProjectResourcesRequest) GetProjectId() string {
@@ -15716,7 +15403,7 @@ type ListProjectResourcesResponse struct {
 func (x *ListProjectResourcesResponse) Reset() {
 	*x = ListProjectResourcesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[303]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[298]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15729,7 +15416,7 @@ func (x *ListProjectResourcesResponse) String() string {
 func (*ListProjectResourcesResponse) ProtoMessage() {}
 
 func (x *ListProjectResourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[303]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[298]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15742,7 +15429,7 @@ func (x *ListProjectResourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectResourcesResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectResourcesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{303}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{298}
 }
 
 func (x *ListProjectResourcesResponse) GetResources() []*Resource {
@@ -15768,7 +15455,7 @@ type ResourceRequestBody struct {
 func (x *ResourceRequestBody) Reset() {
 	*x = ResourceRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[304]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[299]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15781,7 +15468,7 @@ func (x *ResourceRequestBody) String() string {
 func (*ResourceRequestBody) ProtoMessage() {}
 
 func (x *ResourceRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[304]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[299]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15794,7 +15481,7 @@ func (x *ResourceRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceRequestBody.ProtoReflect.Descriptor instead.
 func (*ResourceRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{304}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{299}
 }
 
 func (x *ResourceRequestBody) GetName() string {
@@ -15846,7 +15533,7 @@ type CreateProjectResourceRequest struct {
 func (x *CreateProjectResourceRequest) Reset() {
 	*x = CreateProjectResourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[305]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[300]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15859,7 +15546,7 @@ func (x *CreateProjectResourceRequest) String() string {
 func (*CreateProjectResourceRequest) ProtoMessage() {}
 
 func (x *CreateProjectResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[305]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[300]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15872,7 +15559,7 @@ func (x *CreateProjectResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectResourceRequest.ProtoReflect.Descriptor instead.
 func (*CreateProjectResourceRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{305}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{300}
 }
 
 func (x *CreateProjectResourceRequest) GetBody() *ResourceRequestBody {
@@ -15907,7 +15594,7 @@ type CreateProjectResourceResponse struct {
 func (x *CreateProjectResourceResponse) Reset() {
 	*x = CreateProjectResourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[306]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[301]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15920,7 +15607,7 @@ func (x *CreateProjectResourceResponse) String() string {
 func (*CreateProjectResourceResponse) ProtoMessage() {}
 
 func (x *CreateProjectResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[306]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[301]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15933,7 +15620,7 @@ func (x *CreateProjectResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectResourceResponse.ProtoReflect.Descriptor instead.
 func (*CreateProjectResourceResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{306}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{301}
 }
 
 func (x *CreateProjectResourceResponse) GetResource() *Resource {
@@ -15955,7 +15642,7 @@ type GetProjectResourceRequest struct {
 func (x *GetProjectResourceRequest) Reset() {
 	*x = GetProjectResourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[307]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[302]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15968,7 +15655,7 @@ func (x *GetProjectResourceRequest) String() string {
 func (*GetProjectResourceRequest) ProtoMessage() {}
 
 func (x *GetProjectResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[307]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[302]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15981,7 +15668,7 @@ func (x *GetProjectResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectResourceRequest.ProtoReflect.Descriptor instead.
 func (*GetProjectResourceRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{307}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{302}
 }
 
 func (x *GetProjectResourceRequest) GetId() string {
@@ -16009,7 +15696,7 @@ type GetProjectResourceResponse struct {
 func (x *GetProjectResourceResponse) Reset() {
 	*x = GetProjectResourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[308]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[303]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16022,7 +15709,7 @@ func (x *GetProjectResourceResponse) String() string {
 func (*GetProjectResourceResponse) ProtoMessage() {}
 
 func (x *GetProjectResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[308]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[303]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16035,7 +15722,7 @@ func (x *GetProjectResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectResourceResponse.ProtoReflect.Descriptor instead.
 func (*GetProjectResourceResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{308}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{303}
 }
 
 func (x *GetProjectResourceResponse) GetResource() *Resource {
@@ -16058,7 +15745,7 @@ type UpdateProjectResourceRequest struct {
 func (x *UpdateProjectResourceRequest) Reset() {
 	*x = UpdateProjectResourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[309]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[304]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16071,7 +15758,7 @@ func (x *UpdateProjectResourceRequest) String() string {
 func (*UpdateProjectResourceRequest) ProtoMessage() {}
 
 func (x *UpdateProjectResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[309]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[304]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16084,7 +15771,7 @@ func (x *UpdateProjectResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectResourceRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProjectResourceRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{309}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{304}
 }
 
 func (x *UpdateProjectResourceRequest) GetId() string {
@@ -16119,7 +15806,7 @@ type UpdateProjectResourceResponse struct {
 func (x *UpdateProjectResourceResponse) Reset() {
 	*x = UpdateProjectResourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[310]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[305]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16132,7 +15819,7 @@ func (x *UpdateProjectResourceResponse) String() string {
 func (*UpdateProjectResourceResponse) ProtoMessage() {}
 
 func (x *UpdateProjectResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[310]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[305]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16145,7 +15832,7 @@ func (x *UpdateProjectResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectResourceResponse.ProtoReflect.Descriptor instead.
 func (*UpdateProjectResourceResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{310}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{305}
 }
 
 func (x *UpdateProjectResourceResponse) GetResource() *Resource {
@@ -16167,7 +15854,7 @@ type DeleteProjectResourceRequest struct {
 func (x *DeleteProjectResourceRequest) Reset() {
 	*x = DeleteProjectResourceRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[311]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[306]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16180,7 +15867,7 @@ func (x *DeleteProjectResourceRequest) String() string {
 func (*DeleteProjectResourceRequest) ProtoMessage() {}
 
 func (x *DeleteProjectResourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[311]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[306]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16193,7 +15880,7 @@ func (x *DeleteProjectResourceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProjectResourceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteProjectResourceRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{311}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{306}
 }
 
 func (x *DeleteProjectResourceRequest) GetId() string {
@@ -16219,7 +15906,7 @@ type DeleteProjectResourceResponse struct {
 func (x *DeleteProjectResourceResponse) Reset() {
 	*x = DeleteProjectResourceResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[312]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[307]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16232,7 +15919,7 @@ func (x *DeleteProjectResourceResponse) String() string {
 func (*DeleteProjectResourceResponse) ProtoMessage() {}
 
 func (x *DeleteProjectResourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[312]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[307]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16245,7 +15932,7 @@ func (x *DeleteProjectResourceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProjectResourceResponse.ProtoReflect.Descriptor instead.
 func (*DeleteProjectResourceResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{312}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{307}
 }
 
 type CheckResourcePermissionRequest struct {
@@ -16264,7 +15951,7 @@ type CheckResourcePermissionRequest struct {
 func (x *CheckResourcePermissionRequest) Reset() {
 	*x = CheckResourcePermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[313]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[308]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16277,7 +15964,7 @@ func (x *CheckResourcePermissionRequest) String() string {
 func (*CheckResourcePermissionRequest) ProtoMessage() {}
 
 func (x *CheckResourcePermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[313]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[308]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16290,7 +15977,7 @@ func (x *CheckResourcePermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResourcePermissionRequest.ProtoReflect.Descriptor instead.
 func (*CheckResourcePermissionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{313}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{308}
 }
 
 // Deprecated: Marked as deprecated in raystack/frontier/v1beta1/frontier.proto.
@@ -16334,7 +16021,7 @@ type CheckResourcePermissionResponse struct {
 func (x *CheckResourcePermissionResponse) Reset() {
 	*x = CheckResourcePermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[314]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[309]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16347,7 +16034,7 @@ func (x *CheckResourcePermissionResponse) String() string {
 func (*CheckResourcePermissionResponse) ProtoMessage() {}
 
 func (x *CheckResourcePermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[314]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[309]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16360,7 +16047,7 @@ func (x *CheckResourcePermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResourcePermissionResponse.ProtoReflect.Descriptor instead.
 func (*CheckResourcePermissionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{314}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{309}
 }
 
 func (x *CheckResourcePermissionResponse) GetStatus() bool {
@@ -16381,7 +16068,7 @@ type BatchCheckPermissionRequest struct {
 func (x *BatchCheckPermissionRequest) Reset() {
 	*x = BatchCheckPermissionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[315]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[310]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16394,7 +16081,7 @@ func (x *BatchCheckPermissionRequest) String() string {
 func (*BatchCheckPermissionRequest) ProtoMessage() {}
 
 func (x *BatchCheckPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[315]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[310]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16407,7 +16094,7 @@ func (x *BatchCheckPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCheckPermissionRequest.ProtoReflect.Descriptor instead.
 func (*BatchCheckPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{315}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{310}
 }
 
 func (x *BatchCheckPermissionRequest) GetBodies() []*BatchCheckPermissionBody {
@@ -16429,7 +16116,7 @@ type BatchCheckPermissionBody struct {
 func (x *BatchCheckPermissionBody) Reset() {
 	*x = BatchCheckPermissionBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[316]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[311]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16442,7 +16129,7 @@ func (x *BatchCheckPermissionBody) String() string {
 func (*BatchCheckPermissionBody) ProtoMessage() {}
 
 func (x *BatchCheckPermissionBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[316]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[311]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16455,7 +16142,7 @@ func (x *BatchCheckPermissionBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCheckPermissionBody.ProtoReflect.Descriptor instead.
 func (*BatchCheckPermissionBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{316}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{311}
 }
 
 func (x *BatchCheckPermissionBody) GetPermission() string {
@@ -16483,7 +16170,7 @@ type BatchCheckPermissionResponse struct {
 func (x *BatchCheckPermissionResponse) Reset() {
 	*x = BatchCheckPermissionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[317]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[312]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16496,7 +16183,7 @@ func (x *BatchCheckPermissionResponse) String() string {
 func (*BatchCheckPermissionResponse) ProtoMessage() {}
 
 func (x *BatchCheckPermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[317]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[312]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16509,7 +16196,7 @@ func (x *BatchCheckPermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCheckPermissionResponse.ProtoReflect.Descriptor instead.
 func (*BatchCheckPermissionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{317}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{312}
 }
 
 func (x *BatchCheckPermissionResponse) GetPairs() []*BatchCheckPermissionResponsePair {
@@ -16531,7 +16218,7 @@ type BatchCheckPermissionResponsePair struct {
 func (x *BatchCheckPermissionResponsePair) Reset() {
 	*x = BatchCheckPermissionResponsePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[318]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[313]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16544,7 +16231,7 @@ func (x *BatchCheckPermissionResponsePair) String() string {
 func (*BatchCheckPermissionResponsePair) ProtoMessage() {}
 
 func (x *BatchCheckPermissionResponsePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[318]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[313]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16557,7 +16244,7 @@ func (x *BatchCheckPermissionResponsePair) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCheckPermissionResponsePair.ProtoReflect.Descriptor instead.
 func (*BatchCheckPermissionResponsePair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{318}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{313}
 }
 
 func (x *BatchCheckPermissionResponsePair) GetBody() *BatchCheckPermissionBody {
@@ -16586,7 +16273,7 @@ type MetaSchemaRequestBody struct {
 func (x *MetaSchemaRequestBody) Reset() {
 	*x = MetaSchemaRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[319]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[314]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16599,7 +16286,7 @@ func (x *MetaSchemaRequestBody) String() string {
 func (*MetaSchemaRequestBody) ProtoMessage() {}
 
 func (x *MetaSchemaRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[319]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[314]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16612,7 +16299,7 @@ func (x *MetaSchemaRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetaSchemaRequestBody.ProtoReflect.Descriptor instead.
 func (*MetaSchemaRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{319}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{314}
 }
 
 func (x *MetaSchemaRequestBody) GetName() string {
@@ -16640,7 +16327,7 @@ type CreateMetaSchemaRequest struct {
 func (x *CreateMetaSchemaRequest) Reset() {
 	*x = CreateMetaSchemaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[320]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[315]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16653,7 +16340,7 @@ func (x *CreateMetaSchemaRequest) String() string {
 func (*CreateMetaSchemaRequest) ProtoMessage() {}
 
 func (x *CreateMetaSchemaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[320]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[315]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16666,7 +16353,7 @@ func (x *CreateMetaSchemaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMetaSchemaRequest.ProtoReflect.Descriptor instead.
 func (*CreateMetaSchemaRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{320}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{315}
 }
 
 func (x *CreateMetaSchemaRequest) GetBody() *MetaSchemaRequestBody {
@@ -16687,7 +16374,7 @@ type CreateMetaSchemaResponse struct {
 func (x *CreateMetaSchemaResponse) Reset() {
 	*x = CreateMetaSchemaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[321]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[316]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16700,7 +16387,7 @@ func (x *CreateMetaSchemaResponse) String() string {
 func (*CreateMetaSchemaResponse) ProtoMessage() {}
 
 func (x *CreateMetaSchemaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[321]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[316]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16713,7 +16400,7 @@ func (x *CreateMetaSchemaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateMetaSchemaResponse.ProtoReflect.Descriptor instead.
 func (*CreateMetaSchemaResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{321}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{316}
 }
 
 func (x *CreateMetaSchemaResponse) GetMetaschema() *MetaSchema {
@@ -16734,7 +16421,7 @@ type GetMetaSchemaRequest struct {
 func (x *GetMetaSchemaRequest) Reset() {
 	*x = GetMetaSchemaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[322]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[317]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16747,7 +16434,7 @@ func (x *GetMetaSchemaRequest) String() string {
 func (*GetMetaSchemaRequest) ProtoMessage() {}
 
 func (x *GetMetaSchemaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[322]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[317]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16760,7 +16447,7 @@ func (x *GetMetaSchemaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMetaSchemaRequest.ProtoReflect.Descriptor instead.
 func (*GetMetaSchemaRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{322}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{317}
 }
 
 func (x *GetMetaSchemaRequest) GetId() string {
@@ -16781,7 +16468,7 @@ type GetMetaSchemaResponse struct {
 func (x *GetMetaSchemaResponse) Reset() {
 	*x = GetMetaSchemaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[323]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[318]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16794,7 +16481,7 @@ func (x *GetMetaSchemaResponse) String() string {
 func (*GetMetaSchemaResponse) ProtoMessage() {}
 
 func (x *GetMetaSchemaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[323]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[318]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16807,7 +16494,7 @@ func (x *GetMetaSchemaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMetaSchemaResponse.ProtoReflect.Descriptor instead.
 func (*GetMetaSchemaResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{323}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{318}
 }
 
 func (x *GetMetaSchemaResponse) GetMetaschema() *MetaSchema {
@@ -16829,7 +16516,7 @@ type UpdateMetaSchemaRequest struct {
 func (x *UpdateMetaSchemaRequest) Reset() {
 	*x = UpdateMetaSchemaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[324]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[319]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16842,7 +16529,7 @@ func (x *UpdateMetaSchemaRequest) String() string {
 func (*UpdateMetaSchemaRequest) ProtoMessage() {}
 
 func (x *UpdateMetaSchemaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[324]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[319]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16855,7 +16542,7 @@ func (x *UpdateMetaSchemaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMetaSchemaRequest.ProtoReflect.Descriptor instead.
 func (*UpdateMetaSchemaRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{324}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{319}
 }
 
 func (x *UpdateMetaSchemaRequest) GetId() string {
@@ -16883,7 +16570,7 @@ type UpdateMetaSchemaResponse struct {
 func (x *UpdateMetaSchemaResponse) Reset() {
 	*x = UpdateMetaSchemaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[325]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[320]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16896,7 +16583,7 @@ func (x *UpdateMetaSchemaResponse) String() string {
 func (*UpdateMetaSchemaResponse) ProtoMessage() {}
 
 func (x *UpdateMetaSchemaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[325]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[320]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16909,7 +16596,7 @@ func (x *UpdateMetaSchemaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateMetaSchemaResponse.ProtoReflect.Descriptor instead.
 func (*UpdateMetaSchemaResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{325}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{320}
 }
 
 func (x *UpdateMetaSchemaResponse) GetMetaschema() *MetaSchema {
@@ -16930,7 +16617,7 @@ type DeleteMetaSchemaRequest struct {
 func (x *DeleteMetaSchemaRequest) Reset() {
 	*x = DeleteMetaSchemaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[326]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[321]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16943,7 +16630,7 @@ func (x *DeleteMetaSchemaRequest) String() string {
 func (*DeleteMetaSchemaRequest) ProtoMessage() {}
 
 func (x *DeleteMetaSchemaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[326]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[321]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16956,7 +16643,7 @@ func (x *DeleteMetaSchemaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMetaSchemaRequest.ProtoReflect.Descriptor instead.
 func (*DeleteMetaSchemaRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{326}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{321}
 }
 
 func (x *DeleteMetaSchemaRequest) GetId() string {
@@ -16975,7 +16662,7 @@ type DeleteMetaSchemaResponse struct {
 func (x *DeleteMetaSchemaResponse) Reset() {
 	*x = DeleteMetaSchemaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[327]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[322]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16988,7 +16675,7 @@ func (x *DeleteMetaSchemaResponse) String() string {
 func (*DeleteMetaSchemaResponse) ProtoMessage() {}
 
 func (x *DeleteMetaSchemaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[327]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[322]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17001,7 +16688,7 @@ func (x *DeleteMetaSchemaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteMetaSchemaResponse.ProtoReflect.Descriptor instead.
 func (*DeleteMetaSchemaResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{327}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{322}
 }
 
 type ListMetaSchemasRequest struct {
@@ -17013,7 +16700,7 @@ type ListMetaSchemasRequest struct {
 func (x *ListMetaSchemasRequest) Reset() {
 	*x = ListMetaSchemasRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[328]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[323]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17026,7 +16713,7 @@ func (x *ListMetaSchemasRequest) String() string {
 func (*ListMetaSchemasRequest) ProtoMessage() {}
 
 func (x *ListMetaSchemasRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[328]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[323]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17039,7 +16726,7 @@ func (x *ListMetaSchemasRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMetaSchemasRequest.ProtoReflect.Descriptor instead.
 func (*ListMetaSchemasRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{328}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{323}
 }
 
 type ListMetaSchemasResponse struct {
@@ -17053,7 +16740,7 @@ type ListMetaSchemasResponse struct {
 func (x *ListMetaSchemasResponse) Reset() {
 	*x = ListMetaSchemasResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[329]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[324]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17066,7 +16753,7 @@ func (x *ListMetaSchemasResponse) String() string {
 func (*ListMetaSchemasResponse) ProtoMessage() {}
 
 func (x *ListMetaSchemasResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[329]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[324]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17079,7 +16766,7 @@ func (x *ListMetaSchemasResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMetaSchemasResponse.ProtoReflect.Descriptor instead.
 func (*ListMetaSchemasResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{329}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{324}
 }
 
 func (x *ListMetaSchemasResponse) GetMetaschemas() []*MetaSchema {
@@ -17098,7 +16785,7 @@ type DescribePreferencesRequest struct {
 func (x *DescribePreferencesRequest) Reset() {
 	*x = DescribePreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[330]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[325]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17111,7 +16798,7 @@ func (x *DescribePreferencesRequest) String() string {
 func (*DescribePreferencesRequest) ProtoMessage() {}
 
 func (x *DescribePreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[330]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[325]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17124,7 +16811,7 @@ func (x *DescribePreferencesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DescribePreferencesRequest.ProtoReflect.Descriptor instead.
 func (*DescribePreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{330}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{325}
 }
 
 type DescribePreferencesResponse struct {
@@ -17138,7 +16825,7 @@ type DescribePreferencesResponse struct {
 func (x *DescribePreferencesResponse) Reset() {
 	*x = DescribePreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[331]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[326]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17151,7 +16838,7 @@ func (x *DescribePreferencesResponse) String() string {
 func (*DescribePreferencesResponse) ProtoMessage() {}
 
 func (x *DescribePreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[331]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[326]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17164,7 +16851,7 @@ func (x *DescribePreferencesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DescribePreferencesResponse.ProtoReflect.Descriptor instead.
 func (*DescribePreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{331}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{326}
 }
 
 func (x *DescribePreferencesResponse) GetTraits() []*PreferenceTrait {
@@ -17186,7 +16873,7 @@ type CreateOrganizationPreferencesRequest struct {
 func (x *CreateOrganizationPreferencesRequest) Reset() {
 	*x = CreateOrganizationPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[332]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[327]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17199,7 +16886,7 @@ func (x *CreateOrganizationPreferencesRequest) String() string {
 func (*CreateOrganizationPreferencesRequest) ProtoMessage() {}
 
 func (x *CreateOrganizationPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[332]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[327]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17212,7 +16899,7 @@ func (x *CreateOrganizationPreferencesRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use CreateOrganizationPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{332}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{327}
 }
 
 func (x *CreateOrganizationPreferencesRequest) GetId() string {
@@ -17240,7 +16927,7 @@ type CreateOrganizationPreferencesResponse struct {
 func (x *CreateOrganizationPreferencesResponse) Reset() {
 	*x = CreateOrganizationPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[333]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[328]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17253,7 +16940,7 @@ func (x *CreateOrganizationPreferencesResponse) String() string {
 func (*CreateOrganizationPreferencesResponse) ProtoMessage() {}
 
 func (x *CreateOrganizationPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[333]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[328]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17266,7 +16953,7 @@ func (x *CreateOrganizationPreferencesResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use CreateOrganizationPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrganizationPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{333}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{328}
 }
 
 func (x *CreateOrganizationPreferencesResponse) GetPreferences() []*Preference {
@@ -17287,7 +16974,7 @@ type ListOrganizationPreferencesRequest struct {
 func (x *ListOrganizationPreferencesRequest) Reset() {
 	*x = ListOrganizationPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[334]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[329]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17300,7 +16987,7 @@ func (x *ListOrganizationPreferencesRequest) String() string {
 func (*ListOrganizationPreferencesRequest) ProtoMessage() {}
 
 func (x *ListOrganizationPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[334]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[329]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17313,7 +17000,7 @@ func (x *ListOrganizationPreferencesRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListOrganizationPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*ListOrganizationPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{334}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{329}
 }
 
 func (x *ListOrganizationPreferencesRequest) GetId() string {
@@ -17334,7 +17021,7 @@ type ListOrganizationPreferencesResponse struct {
 func (x *ListOrganizationPreferencesResponse) Reset() {
 	*x = ListOrganizationPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[335]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[330]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17347,7 +17034,7 @@ func (x *ListOrganizationPreferencesResponse) String() string {
 func (*ListOrganizationPreferencesResponse) ProtoMessage() {}
 
 func (x *ListOrganizationPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[335]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[330]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17360,7 +17047,7 @@ func (x *ListOrganizationPreferencesResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListOrganizationPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*ListOrganizationPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{335}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{330}
 }
 
 func (x *ListOrganizationPreferencesResponse) GetPreferences() []*Preference {
@@ -17382,7 +17069,7 @@ type CreateProjectPreferencesRequest struct {
 func (x *CreateProjectPreferencesRequest) Reset() {
 	*x = CreateProjectPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[336]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[331]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17395,7 +17082,7 @@ func (x *CreateProjectPreferencesRequest) String() string {
 func (*CreateProjectPreferencesRequest) ProtoMessage() {}
 
 func (x *CreateProjectPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[336]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[331]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17408,7 +17095,7 @@ func (x *CreateProjectPreferencesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*CreateProjectPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{336}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{331}
 }
 
 func (x *CreateProjectPreferencesRequest) GetId() string {
@@ -17436,7 +17123,7 @@ type CreateProjectPreferencesResponse struct {
 func (x *CreateProjectPreferencesResponse) Reset() {
 	*x = CreateProjectPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[337]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[332]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17449,7 +17136,7 @@ func (x *CreateProjectPreferencesResponse) String() string {
 func (*CreateProjectPreferencesResponse) ProtoMessage() {}
 
 func (x *CreateProjectPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[337]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[332]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17462,7 +17149,7 @@ func (x *CreateProjectPreferencesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*CreateProjectPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{337}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{332}
 }
 
 func (x *CreateProjectPreferencesResponse) GetPreferences() []*Preference {
@@ -17483,7 +17170,7 @@ type ListProjectPreferencesRequest struct {
 func (x *ListProjectPreferencesRequest) Reset() {
 	*x = ListProjectPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[338]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[333]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17496,7 +17183,7 @@ func (x *ListProjectPreferencesRequest) String() string {
 func (*ListProjectPreferencesRequest) ProtoMessage() {}
 
 func (x *ListProjectPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[338]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[333]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17509,7 +17196,7 @@ func (x *ListProjectPreferencesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{338}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{333}
 }
 
 func (x *ListProjectPreferencesRequest) GetId() string {
@@ -17530,7 +17217,7 @@ type ListProjectPreferencesResponse struct {
 func (x *ListProjectPreferencesResponse) Reset() {
 	*x = ListProjectPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[339]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[334]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17543,7 +17230,7 @@ func (x *ListProjectPreferencesResponse) String() string {
 func (*ListProjectPreferencesResponse) ProtoMessage() {}
 
 func (x *ListProjectPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[339]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[334]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17556,7 +17243,7 @@ func (x *ListProjectPreferencesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{339}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{334}
 }
 
 func (x *ListProjectPreferencesResponse) GetPreferences() []*Preference {
@@ -17578,7 +17265,7 @@ type CreateGroupPreferencesRequest struct {
 func (x *CreateGroupPreferencesRequest) Reset() {
 	*x = CreateGroupPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[340]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[335]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17591,7 +17278,7 @@ func (x *CreateGroupPreferencesRequest) String() string {
 func (*CreateGroupPreferencesRequest) ProtoMessage() {}
 
 func (x *CreateGroupPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[340]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[335]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17604,7 +17291,7 @@ func (x *CreateGroupPreferencesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*CreateGroupPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{340}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{335}
 }
 
 func (x *CreateGroupPreferencesRequest) GetId() string {
@@ -17632,7 +17319,7 @@ type CreateGroupPreferencesResponse struct {
 func (x *CreateGroupPreferencesResponse) Reset() {
 	*x = CreateGroupPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[341]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[336]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17645,7 +17332,7 @@ func (x *CreateGroupPreferencesResponse) String() string {
 func (*CreateGroupPreferencesResponse) ProtoMessage() {}
 
 func (x *CreateGroupPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[341]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[336]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17658,7 +17345,7 @@ func (x *CreateGroupPreferencesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*CreateGroupPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{341}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{336}
 }
 
 func (x *CreateGroupPreferencesResponse) GetPreferences() []*Preference {
@@ -17679,7 +17366,7 @@ type ListGroupPreferencesRequest struct {
 func (x *ListGroupPreferencesRequest) Reset() {
 	*x = ListGroupPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[342]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[337]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17692,7 +17379,7 @@ func (x *ListGroupPreferencesRequest) String() string {
 func (*ListGroupPreferencesRequest) ProtoMessage() {}
 
 func (x *ListGroupPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[342]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[337]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17705,7 +17392,7 @@ func (x *ListGroupPreferencesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{342}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{337}
 }
 
 func (x *ListGroupPreferencesRequest) GetId() string {
@@ -17726,7 +17413,7 @@ type ListGroupPreferencesResponse struct {
 func (x *ListGroupPreferencesResponse) Reset() {
 	*x = ListGroupPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[343]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[338]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17739,7 +17426,7 @@ func (x *ListGroupPreferencesResponse) String() string {
 func (*ListGroupPreferencesResponse) ProtoMessage() {}
 
 func (x *ListGroupPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[343]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[338]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17752,7 +17439,7 @@ func (x *ListGroupPreferencesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{343}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{338}
 }
 
 func (x *ListGroupPreferencesResponse) GetPreferences() []*Preference {
@@ -17774,7 +17461,7 @@ type CreateUserPreferencesRequest struct {
 func (x *CreateUserPreferencesRequest) Reset() {
 	*x = CreateUserPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[344]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[339]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17787,7 +17474,7 @@ func (x *CreateUserPreferencesRequest) String() string {
 func (*CreateUserPreferencesRequest) ProtoMessage() {}
 
 func (x *CreateUserPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[344]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[339]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17800,7 +17487,7 @@ func (x *CreateUserPreferencesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*CreateUserPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{344}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{339}
 }
 
 func (x *CreateUserPreferencesRequest) GetId() string {
@@ -17828,7 +17515,7 @@ type CreateUserPreferencesResponse struct {
 func (x *CreateUserPreferencesResponse) Reset() {
 	*x = CreateUserPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[345]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[340]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17841,7 +17528,7 @@ func (x *CreateUserPreferencesResponse) String() string {
 func (*CreateUserPreferencesResponse) ProtoMessage() {}
 
 func (x *CreateUserPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[345]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[340]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17854,7 +17541,7 @@ func (x *CreateUserPreferencesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateUserPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*CreateUserPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{345}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{340}
 }
 
 func (x *CreateUserPreferencesResponse) GetPreferences() []*Preference {
@@ -17883,7 +17570,7 @@ type ListUserPreferencesRequest struct {
 func (x *ListUserPreferencesRequest) Reset() {
 	*x = ListUserPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[346]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[341]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17896,7 +17583,7 @@ func (x *ListUserPreferencesRequest) String() string {
 func (*ListUserPreferencesRequest) ProtoMessage() {}
 
 func (x *ListUserPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[346]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[341]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17909,7 +17596,7 @@ func (x *ListUserPreferencesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*ListUserPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{346}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{341}
 }
 
 func (x *ListUserPreferencesRequest) GetId() string {
@@ -17944,7 +17631,7 @@ type ListUserPreferencesResponse struct {
 func (x *ListUserPreferencesResponse) Reset() {
 	*x = ListUserPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[347]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[342]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -17957,7 +17644,7 @@ func (x *ListUserPreferencesResponse) String() string {
 func (*ListUserPreferencesResponse) ProtoMessage() {}
 
 func (x *ListUserPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[347]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[342]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17970,7 +17657,7 @@ func (x *ListUserPreferencesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUserPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*ListUserPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{347}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{342}
 }
 
 func (x *ListUserPreferencesResponse) GetPreferences() []*Preference {
@@ -17991,7 +17678,7 @@ type CreateCurrentUserPreferencesRequest struct {
 func (x *CreateCurrentUserPreferencesRequest) Reset() {
 	*x = CreateCurrentUserPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[348]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[343]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18004,7 +17691,7 @@ func (x *CreateCurrentUserPreferencesRequest) String() string {
 func (*CreateCurrentUserPreferencesRequest) ProtoMessage() {}
 
 func (x *CreateCurrentUserPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[348]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[343]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18017,7 +17704,7 @@ func (x *CreateCurrentUserPreferencesRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CreateCurrentUserPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*CreateCurrentUserPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{348}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{343}
 }
 
 func (x *CreateCurrentUserPreferencesRequest) GetBodies() []*PreferenceRequestBody {
@@ -18038,7 +17725,7 @@ type CreateCurrentUserPreferencesResponse struct {
 func (x *CreateCurrentUserPreferencesResponse) Reset() {
 	*x = CreateCurrentUserPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[349]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[344]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18051,7 +17738,7 @@ func (x *CreateCurrentUserPreferencesResponse) String() string {
 func (*CreateCurrentUserPreferencesResponse) ProtoMessage() {}
 
 func (x *CreateCurrentUserPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[349]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[344]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18064,7 +17751,7 @@ func (x *CreateCurrentUserPreferencesResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use CreateCurrentUserPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*CreateCurrentUserPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{349}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{344}
 }
 
 func (x *CreateCurrentUserPreferencesResponse) GetPreferences() []*Preference {
@@ -18092,7 +17779,7 @@ type ListCurrentUserPreferencesRequest struct {
 func (x *ListCurrentUserPreferencesRequest) Reset() {
 	*x = ListCurrentUserPreferencesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[350]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[345]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18105,7 +17792,7 @@ func (x *ListCurrentUserPreferencesRequest) String() string {
 func (*ListCurrentUserPreferencesRequest) ProtoMessage() {}
 
 func (x *ListCurrentUserPreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[350]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[345]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18118,7 +17805,7 @@ func (x *ListCurrentUserPreferencesRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListCurrentUserPreferencesRequest.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserPreferencesRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{350}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{345}
 }
 
 func (x *ListCurrentUserPreferencesRequest) GetScopeType() string {
@@ -18146,7 +17833,7 @@ type ListCurrentUserPreferencesResponse struct {
 func (x *ListCurrentUserPreferencesResponse) Reset() {
 	*x = ListCurrentUserPreferencesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[351]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[346]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18159,7 +17846,7 @@ func (x *ListCurrentUserPreferencesResponse) String() string {
 func (*ListCurrentUserPreferencesResponse) ProtoMessage() {}
 
 func (x *ListCurrentUserPreferencesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[351]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[346]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18172,7 +17859,7 @@ func (x *ListCurrentUserPreferencesResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListCurrentUserPreferencesResponse.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserPreferencesResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{351}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{346}
 }
 
 func (x *ListCurrentUserPreferencesResponse) GetPreferences() []*Preference {
@@ -18194,7 +17881,7 @@ type BillingWebhookCallbackRequest struct {
 func (x *BillingWebhookCallbackRequest) Reset() {
 	*x = BillingWebhookCallbackRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[352]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[347]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18207,7 +17894,7 @@ func (x *BillingWebhookCallbackRequest) String() string {
 func (*BillingWebhookCallbackRequest) ProtoMessage() {}
 
 func (x *BillingWebhookCallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[352]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[347]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18220,7 +17907,7 @@ func (x *BillingWebhookCallbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BillingWebhookCallbackRequest.ProtoReflect.Descriptor instead.
 func (*BillingWebhookCallbackRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{352}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{347}
 }
 
 func (x *BillingWebhookCallbackRequest) GetProvider() string {
@@ -18246,7 +17933,7 @@ type BillingWebhookCallbackResponse struct {
 func (x *BillingWebhookCallbackResponse) Reset() {
 	*x = BillingWebhookCallbackResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[353]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[348]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18259,7 +17946,7 @@ func (x *BillingWebhookCallbackResponse) String() string {
 func (*BillingWebhookCallbackResponse) ProtoMessage() {}
 
 func (x *BillingWebhookCallbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[353]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[348]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18272,7 +17959,7 @@ func (x *BillingWebhookCallbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BillingWebhookCallbackResponse.ProtoReflect.Descriptor instead.
 func (*BillingWebhookCallbackResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{353}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{348}
 }
 
 type CreateProspectPublicRequest struct {
@@ -18291,7 +17978,7 @@ type CreateProspectPublicRequest struct {
 func (x *CreateProspectPublicRequest) Reset() {
 	*x = CreateProspectPublicRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[354]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[349]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18304,7 +17991,7 @@ func (x *CreateProspectPublicRequest) String() string {
 func (*CreateProspectPublicRequest) ProtoMessage() {}
 
 func (x *CreateProspectPublicRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[354]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[349]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18317,7 +18004,7 @@ func (x *CreateProspectPublicRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProspectPublicRequest.ProtoReflect.Descriptor instead.
 func (*CreateProspectPublicRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{354}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{349}
 }
 
 func (x *CreateProspectPublicRequest) GetName() string {
@@ -18371,7 +18058,7 @@ type CreateProspectPublicResponse struct {
 func (x *CreateProspectPublicResponse) Reset() {
 	*x = CreateProspectPublicResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[355]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[350]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18384,7 +18071,7 @@ func (x *CreateProspectPublicResponse) String() string {
 func (*CreateProspectPublicResponse) ProtoMessage() {}
 
 func (x *CreateProspectPublicResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[355]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[350]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18397,7 +18084,7 @@ func (x *CreateProspectPublicResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProspectPublicResponse.ProtoReflect.Descriptor instead.
 func (*CreateProspectPublicResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{355}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{350}
 }
 
 type ListSessionsRequest struct {
@@ -18409,7 +18096,7 @@ type ListSessionsRequest struct {
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[356]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[351]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18422,7 +18109,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[356]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[351]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18435,7 +18122,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{356}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{351}
 }
 
 type ListSessionsResponse struct {
@@ -18449,7 +18136,7 @@ type ListSessionsResponse struct {
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[357]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[352]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18462,7 +18149,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[357]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[352]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18475,7 +18162,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{357}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{352}
 }
 
 func (x *ListSessionsResponse) GetSessions() []*Session {
@@ -18496,7 +18183,7 @@ type RevokeSessionRequest struct {
 func (x *RevokeSessionRequest) Reset() {
 	*x = RevokeSessionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[358]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[353]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18509,7 +18196,7 @@ func (x *RevokeSessionRequest) String() string {
 func (*RevokeSessionRequest) ProtoMessage() {}
 
 func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[358]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[353]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18522,7 +18209,7 @@ func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionRequest.ProtoReflect.Descriptor instead.
 func (*RevokeSessionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{358}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{353}
 }
 
 func (x *RevokeSessionRequest) GetSessionId() string {
@@ -18541,7 +18228,7 @@ type RevokeSessionResponse struct {
 func (x *RevokeSessionResponse) Reset() {
 	*x = RevokeSessionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[354]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18554,7 +18241,7 @@ func (x *RevokeSessionResponse) String() string {
 func (*RevokeSessionResponse) ProtoMessage() {}
 
 func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[354]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18567,7 +18254,7 @@ func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionResponse.ProtoReflect.Descriptor instead.
 func (*RevokeSessionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{359}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{354}
 }
 
 type PingUserSessionRequest struct {
@@ -18579,7 +18266,7 @@ type PingUserSessionRequest struct {
 func (x *PingUserSessionRequest) Reset() {
 	*x = PingUserSessionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[355]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18592,7 +18279,7 @@ func (x *PingUserSessionRequest) String() string {
 func (*PingUserSessionRequest) ProtoMessage() {}
 
 func (x *PingUserSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[355]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18605,7 +18292,7 @@ func (x *PingUserSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingUserSessionRequest.ProtoReflect.Descriptor instead.
 func (*PingUserSessionRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{360}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{355}
 }
 
 type PingUserSessionResponse struct {
@@ -18619,7 +18306,7 @@ type PingUserSessionResponse struct {
 func (x *PingUserSessionResponse) Reset() {
 	*x = PingUserSessionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[356]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18632,7 +18319,7 @@ func (x *PingUserSessionResponse) String() string {
 func (*PingUserSessionResponse) ProtoMessage() {}
 
 func (x *PingUserSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[356]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18645,7 +18332,7 @@ func (x *PingUserSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PingUserSessionResponse.ProtoReflect.Descriptor instead.
 func (*PingUserSessionResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{361}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{356}
 }
 
 func (x *PingUserSessionResponse) GetMetadata() *Session_Meta {
@@ -18680,7 +18367,7 @@ type CreateAuditRecordRequest struct {
 func (x *CreateAuditRecordRequest) Reset() {
 	*x = CreateAuditRecordRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[357]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18693,7 +18380,7 @@ func (x *CreateAuditRecordRequest) String() string {
 func (*CreateAuditRecordRequest) ProtoMessage() {}
 
 func (x *CreateAuditRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[357]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18706,7 +18393,7 @@ func (x *CreateAuditRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAuditRecordRequest.ProtoReflect.Descriptor instead.
 func (*CreateAuditRecordRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{362}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{357}
 }
 
 func (x *CreateAuditRecordRequest) GetActor() *AuditRecordActor {
@@ -18783,7 +18470,7 @@ type CreateAuditRecordResponse struct {
 func (x *CreateAuditRecordResponse) Reset() {
 	*x = CreateAuditRecordResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[358]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18796,7 +18483,7 @@ func (x *CreateAuditRecordResponse) String() string {
 func (*CreateAuditRecordResponse) ProtoMessage() {}
 
 func (x *CreateAuditRecordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[358]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18809,7 +18496,7 @@ func (x *CreateAuditRecordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAuditRecordResponse.ProtoReflect.Descriptor instead.
 func (*CreateAuditRecordResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{363}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{358}
 }
 
 func (x *CreateAuditRecordResponse) GetAuditRecord() *AuditRecord {
@@ -18836,7 +18523,7 @@ type CreateCurrentUserPATRequest struct {
 func (x *CreateCurrentUserPATRequest) Reset() {
 	*x = CreateCurrentUserPATRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18849,7 +18536,7 @@ func (x *CreateCurrentUserPATRequest) String() string {
 func (*CreateCurrentUserPATRequest) ProtoMessage() {}
 
 func (x *CreateCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18862,7 +18549,7 @@ func (x *CreateCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCurrentUserPATRequest.ProtoReflect.Descriptor instead.
 func (*CreateCurrentUserPATRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{364}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{359}
 }
 
 func (x *CreateCurrentUserPATRequest) GetTitle() string {
@@ -18911,7 +18598,7 @@ type CreateCurrentUserPATResponse struct {
 func (x *CreateCurrentUserPATResponse) Reset() {
 	*x = CreateCurrentUserPATResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18924,7 +18611,7 @@ func (x *CreateCurrentUserPATResponse) String() string {
 func (*CreateCurrentUserPATResponse) ProtoMessage() {}
 
 func (x *CreateCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18937,7 +18624,7 @@ func (x *CreateCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCurrentUserPATResponse.ProtoReflect.Descriptor instead.
 func (*CreateCurrentUserPATResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{365}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{360}
 }
 
 func (x *CreateCurrentUserPATResponse) GetPat() *PAT {
@@ -18958,7 +18645,7 @@ type ListRolesForPATRequest struct {
 func (x *ListRolesForPATRequest) Reset() {
 	*x = ListRolesForPATRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18971,7 +18658,7 @@ func (x *ListRolesForPATRequest) String() string {
 func (*ListRolesForPATRequest) ProtoMessage() {}
 
 func (x *ListRolesForPATRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18984,7 +18671,7 @@ func (x *ListRolesForPATRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesForPATRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesForPATRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{366}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{361}
 }
 
 func (x *ListRolesForPATRequest) GetScopes() []string {
@@ -19005,7 +18692,7 @@ type ListRolesForPATResponse struct {
 func (x *ListRolesForPATResponse) Reset() {
 	*x = ListRolesForPATResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19018,7 +18705,7 @@ func (x *ListRolesForPATResponse) String() string {
 func (*ListRolesForPATResponse) ProtoMessage() {}
 
 func (x *ListRolesForPATResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19031,7 +18718,7 @@ func (x *ListRolesForPATResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesForPATResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesForPATResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{367}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{362}
 }
 
 func (x *ListRolesForPATResponse) GetRoles() []*Role {
@@ -19053,7 +18740,7 @@ type SearchCurrentUserPATsRequest struct {
 func (x *SearchCurrentUserPATsRequest) Reset() {
 	*x = SearchCurrentUserPATsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19066,7 +18753,7 @@ func (x *SearchCurrentUserPATsRequest) String() string {
 func (*SearchCurrentUserPATsRequest) ProtoMessage() {}
 
 func (x *SearchCurrentUserPATsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19079,7 +18766,7 @@ func (x *SearchCurrentUserPATsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchCurrentUserPATsRequest.ProtoReflect.Descriptor instead.
 func (*SearchCurrentUserPATsRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{368}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{363}
 }
 
 func (x *SearchCurrentUserPATsRequest) GetOrgId() string {
@@ -19108,7 +18795,7 @@ type SearchCurrentUserPATsResponse struct {
 func (x *SearchCurrentUserPATsResponse) Reset() {
 	*x = SearchCurrentUserPATsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19121,7 +18808,7 @@ func (x *SearchCurrentUserPATsResponse) String() string {
 func (*SearchCurrentUserPATsResponse) ProtoMessage() {}
 
 func (x *SearchCurrentUserPATsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19134,7 +18821,7 @@ func (x *SearchCurrentUserPATsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchCurrentUserPATsResponse.ProtoReflect.Descriptor instead.
 func (*SearchCurrentUserPATsResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{369}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{364}
 }
 
 func (x *SearchCurrentUserPATsResponse) GetPats() []*PAT {
@@ -19162,7 +18849,7 @@ type GetCurrentUserPATRequest struct {
 func (x *GetCurrentUserPATRequest) Reset() {
 	*x = GetCurrentUserPATRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19175,7 +18862,7 @@ func (x *GetCurrentUserPATRequest) String() string {
 func (*GetCurrentUserPATRequest) ProtoMessage() {}
 
 func (x *GetCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19188,7 +18875,7 @@ func (x *GetCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserPATRequest.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserPATRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{370}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{365}
 }
 
 func (x *GetCurrentUserPATRequest) GetId() string {
@@ -19209,7 +18896,7 @@ type GetCurrentUserPATResponse struct {
 func (x *GetCurrentUserPATResponse) Reset() {
 	*x = GetCurrentUserPATResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19222,7 +18909,7 @@ func (x *GetCurrentUserPATResponse) String() string {
 func (*GetCurrentUserPATResponse) ProtoMessage() {}
 
 func (x *GetCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19235,7 +18922,7 @@ func (x *GetCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCurrentUserPATResponse.ProtoReflect.Descriptor instead.
 func (*GetCurrentUserPATResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{371}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{366}
 }
 
 func (x *GetCurrentUserPATResponse) GetPat() *PAT {
@@ -19256,7 +18943,7 @@ type DeleteCurrentUserPATRequest struct {
 func (x *DeleteCurrentUserPATRequest) Reset() {
 	*x = DeleteCurrentUserPATRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19269,7 +18956,7 @@ func (x *DeleteCurrentUserPATRequest) String() string {
 func (*DeleteCurrentUserPATRequest) ProtoMessage() {}
 
 func (x *DeleteCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19282,7 +18969,7 @@ func (x *DeleteCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCurrentUserPATRequest.ProtoReflect.Descriptor instead.
 func (*DeleteCurrentUserPATRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{372}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{367}
 }
 
 func (x *DeleteCurrentUserPATRequest) GetId() string {
@@ -19301,7 +18988,7 @@ type DeleteCurrentUserPATResponse struct {
 func (x *DeleteCurrentUserPATResponse) Reset() {
 	*x = DeleteCurrentUserPATResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19314,7 +19001,7 @@ func (x *DeleteCurrentUserPATResponse) String() string {
 func (*DeleteCurrentUserPATResponse) ProtoMessage() {}
 
 func (x *DeleteCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19327,7 +19014,7 @@ func (x *DeleteCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCurrentUserPATResponse.ProtoReflect.Descriptor instead.
 func (*DeleteCurrentUserPATResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{373}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{368}
 }
 
 type UpdateCurrentUserPATRequest struct {
@@ -19345,7 +19032,7 @@ type UpdateCurrentUserPATRequest struct {
 func (x *UpdateCurrentUserPATRequest) Reset() {
 	*x = UpdateCurrentUserPATRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19358,7 +19045,7 @@ func (x *UpdateCurrentUserPATRequest) String() string {
 func (*UpdateCurrentUserPATRequest) ProtoMessage() {}
 
 func (x *UpdateCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19371,7 +19058,7 @@ func (x *UpdateCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserPATRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserPATRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{374}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{369}
 }
 
 func (x *UpdateCurrentUserPATRequest) GetId() string {
@@ -19413,7 +19100,7 @@ type UpdateCurrentUserPATResponse struct {
 func (x *UpdateCurrentUserPATResponse) Reset() {
 	*x = UpdateCurrentUserPATResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19426,7 +19113,7 @@ func (x *UpdateCurrentUserPATResponse) String() string {
 func (*UpdateCurrentUserPATResponse) ProtoMessage() {}
 
 func (x *UpdateCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19439,7 +19126,7 @@ func (x *UpdateCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCurrentUserPATResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCurrentUserPATResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{375}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{370}
 }
 
 func (x *UpdateCurrentUserPATResponse) GetPat() *PAT {
@@ -19461,7 +19148,7 @@ type RegenerateCurrentUserPATRequest struct {
 func (x *RegenerateCurrentUserPATRequest) Reset() {
 	*x = RegenerateCurrentUserPATRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19474,7 +19161,7 @@ func (x *RegenerateCurrentUserPATRequest) String() string {
 func (*RegenerateCurrentUserPATRequest) ProtoMessage() {}
 
 func (x *RegenerateCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19487,7 +19174,7 @@ func (x *RegenerateCurrentUserPATRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegenerateCurrentUserPATRequest.ProtoReflect.Descriptor instead.
 func (*RegenerateCurrentUserPATRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{376}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{371}
 }
 
 func (x *RegenerateCurrentUserPATRequest) GetId() string {
@@ -19515,7 +19202,7 @@ type RegenerateCurrentUserPATResponse struct {
 func (x *RegenerateCurrentUserPATResponse) Reset() {
 	*x = RegenerateCurrentUserPATResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[377]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19528,7 +19215,7 @@ func (x *RegenerateCurrentUserPATResponse) String() string {
 func (*RegenerateCurrentUserPATResponse) ProtoMessage() {}
 
 func (x *RegenerateCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[377]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19541,7 +19228,7 @@ func (x *RegenerateCurrentUserPATResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegenerateCurrentUserPATResponse.ProtoReflect.Descriptor instead.
 func (*RegenerateCurrentUserPATResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{377}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{372}
 }
 
 func (x *RegenerateCurrentUserPATResponse) GetPat() *PAT {
@@ -19565,7 +19252,7 @@ type CheckCurrentUserPATTitleRequest struct {
 func (x *CheckCurrentUserPATTitleRequest) Reset() {
 	*x = CheckCurrentUserPATTitleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[378]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19578,7 +19265,7 @@ func (x *CheckCurrentUserPATTitleRequest) String() string {
 func (*CheckCurrentUserPATTitleRequest) ProtoMessage() {}
 
 func (x *CheckCurrentUserPATTitleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[378]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19591,7 +19278,7 @@ func (x *CheckCurrentUserPATTitleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckCurrentUserPATTitleRequest.ProtoReflect.Descriptor instead.
 func (*CheckCurrentUserPATTitleRequest) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{378}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{373}
 }
 
 func (x *CheckCurrentUserPATTitleRequest) GetOrgId() string {
@@ -19620,7 +19307,7 @@ type CheckCurrentUserPATTitleResponse struct {
 func (x *CheckCurrentUserPATTitleResponse) Reset() {
 	*x = CheckCurrentUserPATTitleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[379]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19633,7 +19320,7 @@ func (x *CheckCurrentUserPATTitleResponse) String() string {
 func (*CheckCurrentUserPATTitleResponse) ProtoMessage() {}
 
 func (x *CheckCurrentUserPATTitleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[379]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19646,7 +19333,7 @@ func (x *CheckCurrentUserPATTitleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckCurrentUserPATTitleResponse.ProtoReflect.Descriptor instead.
 func (*CheckCurrentUserPATTitleResponse) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{379}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{374}
 }
 
 func (x *CheckCurrentUserPATTitleResponse) GetAvailable() bool {
@@ -19675,7 +19362,7 @@ type SearchOrganizationTokensResponse_OrganizationToken struct {
 func (x *SearchOrganizationTokensResponse_OrganizationToken) Reset() {
 	*x = SearchOrganizationTokensResponse_OrganizationToken{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[380]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19688,7 +19375,7 @@ func (x *SearchOrganizationTokensResponse_OrganizationToken) String() string {
 func (*SearchOrganizationTokensResponse_OrganizationToken) ProtoMessage() {}
 
 func (x *SearchOrganizationTokensResponse_OrganizationToken) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[380]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19781,7 +19468,7 @@ type ChangeSubscriptionRequest_PlanChange struct {
 func (x *ChangeSubscriptionRequest_PlanChange) Reset() {
 	*x = ChangeSubscriptionRequest_PlanChange{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[381]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19794,7 +19481,7 @@ func (x *ChangeSubscriptionRequest_PlanChange) String() string {
 func (*ChangeSubscriptionRequest_PlanChange) ProtoMessage() {}
 
 func (x *ChangeSubscriptionRequest_PlanChange) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[381]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19836,7 +19523,7 @@ type ChangeSubscriptionRequest_PhaseChange struct {
 func (x *ChangeSubscriptionRequest_PhaseChange) Reset() {
 	*x = ChangeSubscriptionRequest_PhaseChange{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[382]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[377]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19849,7 +19536,7 @@ func (x *ChangeSubscriptionRequest_PhaseChange) String() string {
 func (*ChangeSubscriptionRequest_PhaseChange) ProtoMessage() {}
 
 func (x *ChangeSubscriptionRequest_PhaseChange) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[382]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[377]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19889,7 +19576,7 @@ type SearchOrganizationInvoicesResponse_OrganizationInvoice struct {
 func (x *SearchOrganizationInvoicesResponse_OrganizationInvoice) Reset() {
 	*x = SearchOrganizationInvoicesResponse_OrganizationInvoice{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[383]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[378]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19902,7 +19589,7 @@ func (x *SearchOrganizationInvoicesResponse_OrganizationInvoice) String() string
 func (*SearchOrganizationInvoicesResponse_OrganizationInvoice) ProtoMessage() {}
 
 func (x *SearchOrganizationInvoicesResponse_OrganizationInvoice) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[383]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[378]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19915,7 +19602,7 @@ func (x *SearchOrganizationInvoicesResponse_OrganizationInvoice) ProtoReflect() 
 
 // Deprecated: Use SearchOrganizationInvoicesResponse_OrganizationInvoice.ProtoReflect.Descriptor instead.
 func (*SearchOrganizationInvoicesResponse_OrganizationInvoice) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{79, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{74, 0}
 }
 
 func (x *SearchOrganizationInvoicesResponse_OrganizationInvoice) GetId() string {
@@ -19979,7 +19666,7 @@ type ListProjectsByCurrentUserResponse_AccessPair struct {
 func (x *ListProjectsByCurrentUserResponse_AccessPair) Reset() {
 	*x = ListProjectsByCurrentUserResponse_AccessPair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[384]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[379]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -19992,7 +19679,7 @@ func (x *ListProjectsByCurrentUserResponse_AccessPair) String() string {
 func (*ListProjectsByCurrentUserResponse_AccessPair) ProtoMessage() {}
 
 func (x *ListProjectsByCurrentUserResponse_AccessPair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[384]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[379]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20005,7 +19692,7 @@ func (x *ListProjectsByCurrentUserResponse_AccessPair) ProtoReflect() protorefle
 
 // Deprecated: Use ListProjectsByCurrentUserResponse_AccessPair.ProtoReflect.Descriptor instead.
 func (*ListProjectsByCurrentUserResponse_AccessPair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{107, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{102, 0}
 }
 
 func (x *ListProjectsByCurrentUserResponse_AccessPair) GetProjectId() string {
@@ -20034,7 +19721,7 @@ type ListCurrentUserGroupsResponse_AccessPair struct {
 func (x *ListCurrentUserGroupsResponse_AccessPair) Reset() {
 	*x = ListCurrentUserGroupsResponse_AccessPair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[385]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[380]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -20047,7 +19734,7 @@ func (x *ListCurrentUserGroupsResponse_AccessPair) String() string {
 func (*ListCurrentUserGroupsResponse_AccessPair) ProtoMessage() {}
 
 func (x *ListCurrentUserGroupsResponse_AccessPair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[385]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[380]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20060,7 +19747,7 @@ func (x *ListCurrentUserGroupsResponse_AccessPair) ProtoReflect() protoreflect.M
 
 // Deprecated: Use ListCurrentUserGroupsResponse_AccessPair.ProtoReflect.Descriptor instead.
 func (*ListCurrentUserGroupsResponse_AccessPair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{122, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{117, 0}
 }
 
 func (x *ListCurrentUserGroupsResponse_AccessPair) GetGroupId() string {
@@ -20089,7 +19776,7 @@ type ListServiceUserProjectsResponse_AccessPair struct {
 func (x *ListServiceUserProjectsResponse_AccessPair) Reset() {
 	*x = ListServiceUserProjectsResponse_AccessPair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[386]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[381]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -20102,7 +19789,7 @@ func (x *ListServiceUserProjectsResponse_AccessPair) String() string {
 func (*ListServiceUserProjectsResponse_AccessPair) ProtoMessage() {}
 
 func (x *ListServiceUserProjectsResponse_AccessPair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[386]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[381]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20115,7 +19802,7 @@ func (x *ListServiceUserProjectsResponse_AccessPair) ProtoReflect() protoreflect
 
 // Deprecated: Use ListServiceUserProjectsResponse_AccessPair.ProtoReflect.Descriptor instead.
 func (*ListServiceUserProjectsResponse_AccessPair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{160, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{155, 0}
 }
 
 func (x *ListServiceUserProjectsResponse_AccessPair) GetProjectId() string {
@@ -20144,7 +19831,7 @@ type ListOrganizationUsersResponse_RolePair struct {
 func (x *ListOrganizationUsersResponse_RolePair) Reset() {
 	*x = ListOrganizationUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[387]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[382]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -20157,7 +19844,7 @@ func (x *ListOrganizationUsersResponse_RolePair) String() string {
 func (*ListOrganizationUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListOrganizationUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[387]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[382]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20170,7 +19857,7 @@ func (x *ListOrganizationUsersResponse_RolePair) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListOrganizationUsersResponse_RolePair.ProtoReflect.Descriptor instead.
 func (*ListOrganizationUsersResponse_RolePair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{187, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{182, 0}
 }
 
 func (x *ListOrganizationUsersResponse_RolePair) GetUserId() string {
@@ -20199,7 +19886,7 @@ type ListProjectUsersResponse_RolePair struct {
 func (x *ListProjectUsersResponse_RolePair) Reset() {
 	*x = ListProjectUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[388]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[383]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -20212,7 +19899,7 @@ func (x *ListProjectUsersResponse_RolePair) String() string {
 func (*ListProjectUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListProjectUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[388]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[383]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20225,7 +19912,7 @@ func (x *ListProjectUsersResponse_RolePair) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListProjectUsersResponse_RolePair.ProtoReflect.Descriptor instead.
 func (*ListProjectUsersResponse_RolePair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{237, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{232, 0}
 }
 
 func (x *ListProjectUsersResponse_RolePair) GetUserId() string {
@@ -20254,7 +19941,7 @@ type ListProjectServiceUsersResponse_RolePair struct {
 func (x *ListProjectServiceUsersResponse_RolePair) Reset() {
 	*x = ListProjectServiceUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[389]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[384]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -20267,7 +19954,7 @@ func (x *ListProjectServiceUsersResponse_RolePair) String() string {
 func (*ListProjectServiceUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListProjectServiceUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[389]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[384]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20280,7 +19967,7 @@ func (x *ListProjectServiceUsersResponse_RolePair) ProtoReflect() protoreflect.M
 
 // Deprecated: Use ListProjectServiceUsersResponse_RolePair.ProtoReflect.Descriptor instead.
 func (*ListProjectServiceUsersResponse_RolePair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{239, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{234, 0}
 }
 
 func (x *ListProjectServiceUsersResponse_RolePair) GetServiceuserId() string {
@@ -20309,7 +19996,7 @@ type ListProjectGroupsResponse_RolePair struct {
 func (x *ListProjectGroupsResponse_RolePair) Reset() {
 	*x = ListProjectGroupsResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[390]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[385]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -20322,7 +20009,7 @@ func (x *ListProjectGroupsResponse_RolePair) String() string {
 func (*ListProjectGroupsResponse_RolePair) ProtoMessage() {}
 
 func (x *ListProjectGroupsResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[390]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[385]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20335,7 +20022,7 @@ func (x *ListProjectGroupsResponse_RolePair) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListProjectGroupsResponse_RolePair.ProtoReflect.Descriptor instead.
 func (*ListProjectGroupsResponse_RolePair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{241, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{236, 0}
 }
 
 func (x *ListProjectGroupsResponse_RolePair) GetGroupId() string {
@@ -20364,7 +20051,7 @@ type ListGroupUsersResponse_RolePair struct {
 func (x *ListGroupUsersResponse_RolePair) Reset() {
 	*x = ListGroupUsersResponse_RolePair{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[391]
+		mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[386]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -20377,7 +20064,7 @@ func (x *ListGroupUsersResponse_RolePair) String() string {
 func (*ListGroupUsersResponse_RolePair) ProtoMessage() {}
 
 func (x *ListGroupUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[391]
+	mi := &file_raystack_frontier_v1beta1_frontier_proto_msgTypes[386]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -20390,7 +20077,7 @@ func (x *ListGroupUsersResponse_RolePair) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupUsersResponse_RolePair.ProtoReflect.Descriptor instead.
 func (*ListGroupUsersResponse_RolePair) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{289, 0}
+	return file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP(), []int{284, 0}
 }
 
 func (x *ListGroupUsersResponse_RolePair) GetUserId() string {
@@ -20936,55 +20623,10 @@ var file_raystack_frontier_v1beta1_frontier_proto_rawDesc = []byte{
 	0x75, 0x72, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x72, 0x61, 0x79,
 	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
 	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x52, 0x08,
-	0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x22, 0xec, 0x02, 0x0a, 0x0f, 0x50, 0x6c, 0x61,
-	0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x42, 0x6f, 0x64, 0x79, 0x12, 0x12, 0x0a, 0x04,
-	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65,
-	0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69,
-	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73,
-	0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3e, 0x0a, 0x08, 0x70, 0x72, 0x6f, 0x64,
-	0x75, 0x63, 0x74, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x72, 0x61, 0x79,
-	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52, 0x08,
-	0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x12, 0x39, 0x0a, 0x08, 0x69, 0x6e, 0x74, 0x65,
-	0x72, 0x76, 0x61, 0x6c, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x42, 0x1d, 0xba, 0x48, 0x1a, 0x72,
-	0x18, 0x52, 0x03, 0x64, 0x61, 0x79, 0x52, 0x04, 0x77, 0x65, 0x65, 0x6b, 0x52, 0x05, 0x6d, 0x6f,
-	0x6e, 0x74, 0x68, 0x52, 0x04, 0x79, 0x65, 0x61, 0x72, 0x52, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72,
-	0x76, 0x61, 0x6c, 0x12, 0x28, 0x0a, 0x10, 0x6f, 0x6e, 0x5f, 0x73, 0x74, 0x61, 0x72, 0x74, 0x5f,
-	0x63, 0x72, 0x65, 0x64, 0x69, 0x74, 0x73, 0x18, 0x06, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0e, 0x6f,
-	0x6e, 0x53, 0x74, 0x61, 0x72, 0x74, 0x43, 0x72, 0x65, 0x64, 0x69, 0x74, 0x73, 0x12, 0x1d, 0x0a,
-	0x0a, 0x74, 0x72, 0x69, 0x61, 0x6c, 0x5f, 0x64, 0x61, 0x79, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28,
-	0x03, 0x52, 0x09, 0x74, 0x72, 0x69, 0x61, 0x6c, 0x44, 0x61, 0x79, 0x73, 0x12, 0x14, 0x0a, 0x05,
-	0x73, 0x74, 0x61, 0x74, 0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x73, 0x74, 0x61,
-	0x74, 0x65, 0x12, 0x33, 0x0a, 0x08, 0x6d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x18, 0x14,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x53, 0x74, 0x72, 0x75, 0x63, 0x74, 0x52, 0x08, 0x6d,
-	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x22, 0x5b, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74,
-	0x65, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x46, 0x0a, 0x04,
-	0x62, 0x6f, 0x64, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2a, 0x2e, 0x72, 0x61, 0x79,
-	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x42, 0x6f, 0x64, 0x79, 0x42, 0x06, 0xba, 0x48, 0x03, 0xc8, 0x01, 0x01, 0x52, 0x04,
-	0x62, 0x6f, 0x64, 0x79, 0x22, 0x49, 0x0a, 0x12, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x6c,
-	0x61, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x33, 0x0a, 0x04, 0x70, 0x6c,
-	0x61, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
-	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
-	0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x04, 0x70, 0x6c, 0x61, 0x6e, 0x22,
-	0x29, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
-	0x74, 0x12, 0x17, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x07, 0xba,
-	0x48, 0x04, 0x72, 0x02, 0x10, 0x01, 0x52, 0x02, 0x69, 0x64, 0x22, 0x46, 0x0a, 0x0f, 0x47, 0x65,
-	0x74, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x33, 0x0a,
-	0x04, 0x70, 0x6c, 0x61, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x72, 0x61,
-	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x04, 0x70, 0x6c,
-	0x61, 0x6e, 0x22, 0x6c, 0x0a, 0x11, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x6c, 0x61, 0x6e,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x42, 0x07, 0xba, 0x48, 0x04, 0x72, 0x02, 0x10, 0x01, 0x52, 0x02, 0x69, 0x64,
-	0x12, 0x3e, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2a,
-	0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69,
-	0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x6c, 0x61, 0x6e, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x42, 0x6f, 0x64, 0x79, 0x52, 0x04, 0x62, 0x6f, 0x64, 0x79,
-	0x22, 0x49, 0x0a, 0x12, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65,
+	0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x22, 0x29, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x50,
+	0x6c, 0x61, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x17, 0x0a, 0x02, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x07, 0xba, 0x48, 0x04, 0x72, 0x02, 0x10, 0x01, 0x52,
+	0x02, 0x69, 0x64, 0x22, 0x46, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x33, 0x0a, 0x04, 0x70, 0x6c, 0x61, 0x6e, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
 	0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
@@ -22874,7 +22516,7 @@ var file_raystack_frontier_v1beta1_frontier_proto_rawDesc = []byte{
 	0x65, 0x63, 0x6b, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41,
 	0x54, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1c,
 	0x0a, 0x09, 0x61, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x08, 0x52, 0x09, 0x61, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x32, 0xcc, 0xba, 0x01,
+	0x08, 0x52, 0x09, 0x61, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x32, 0xf2, 0xb8, 0x01,
 	0x0a, 0x0f, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x12, 0x68, 0x0a, 0x09, 0x4c, 0x69, 0x73, 0x74, 0x55, 0x73, 0x65, 0x72, 0x73, 0x12, 0x2b,
 	0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69,
@@ -24142,248 +23784,234 @@ var file_raystack_frontier_v1beta1_frontier_proto_rawDesc = []byte{
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63,
 	0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
 	0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6b, 0x0a, 0x0a, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x12, 0x2c, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
-	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
-	0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x68, 0x0a, 0x09, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x6c,
-	0x61, 0x6e, 0x73, 0x12, 0x2b, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
-	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
-	0x4c, 0x69, 0x73, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x2c, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
-	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73,
-	0x74, 0x50, 0x6c, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x62, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x12, 0x29, 0x2e, 0x72, 0x61,
-	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x68, 0x0a, 0x09, 0x4c, 0x69, 0x73,
+	0x74, 0x50, 0x6c, 0x61, 0x6e, 0x73, 0x12, 0x2b, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63,
 	0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x6b, 0x0a, 0x0a, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x6c,
-	0x61, 0x6e, 0x12, 0x2c, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
-	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x55,
-	0x70, 0x64, 0x61, 0x74, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x2d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
-	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x55, 0x70, 0x64,
-	0x61, 0x74, 0x65, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x77, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b,
-	0x6f, 0x75, 0x74, 0x12, 0x30, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
+	0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
 	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
-	0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x74, 0x0a, 0x0d, 0x4c, 0x69,
-	0x73, 0x74, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x73, 0x12, 0x2f, 0x2e, 0x72, 0x61,
-	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x68, 0x65, 0x63,
-	0x6b, 0x6f, 0x75, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x30, 0x2e, 0x72,
-	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x68, 0x65,
-	0x63, 0x6b, 0x6f, 0x75, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x6e, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x12,
-	0x2d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74,
-	0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43,
-	0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e,
+	0x4c, 0x69, 0x73, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x62, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x12, 0x29,
 	0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69,
-	0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x68,
+	0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x6c,
+	0x61, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2a, 0x2e, 0x72, 0x61, 0x79, 0x73,
+	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x6c, 0x61, 0x6e, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x77, 0x0a, 0x0e, 0x43, 0x72, 0x65, 0x61, 0x74,
+	0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x12, 0x30, 0x2e, 0x72, 0x61, 0x79, 0x73,
+	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68, 0x65, 0x63,
+	0x6b, 0x6f, 0x75, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x72, 0x61,
+	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x68,
 	0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x92, 0x01, 0x0a, 0x17, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72,
-	0x65, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x39, 0x2e, 0x72,
-	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x46, 0x65,
-	0x61, 0x74, 0x75, 0x72, 0x65, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
-	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65,
-	0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x8f, 0x01, 0x0a, 0x16, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x43,
-	0x72, 0x65, 0x64, 0x69, 0x74, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74,
-	0x12, 0x38, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
+	0x12, 0x74, 0x0a, 0x0d, 0x4c, 0x69, 0x73, 0x74, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74,
+	0x73, 0x12, 0x2f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f,
+	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69,
+	0x73, 0x74, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x30, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
+	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c,
+	0x69, 0x73, 0x74, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x6e, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x43, 0x68, 0x65,
+	0x63, 0x6b, 0x6f, 0x75, 0x74, 0x12, 0x2d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
+	0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
+	0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
+	0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
+	0x2e, 0x47, 0x65, 0x74, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x92, 0x01, 0x0a, 0x17, 0x43, 0x68, 0x65, 0x63, 0x6b,
+	0x46, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65,
+	0x6e, 0x74, 0x12, 0x39, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
+	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43,
+	0x68, 0x65, 0x63, 0x6b, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x45, 0x6e, 0x74, 0x69, 0x74,
+	0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3a, 0x2e,
+	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x46,
+	0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e,
+	0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x8f, 0x01, 0x0a, 0x16,
+	0x43, 0x68, 0x65, 0x63, 0x6b, 0x43, 0x72, 0x65, 0x64, 0x69, 0x74, 0x45, 0x6e, 0x74, 0x69, 0x74,
+	0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x38, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63,
+	0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x43, 0x72, 0x65, 0x64, 0x69, 0x74, 0x45, 0x6e,
+	0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x39, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
 	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65,
 	0x63, 0x6b, 0x43, 0x72, 0x65, 0x64, 0x69, 0x74, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d,
-	0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x39, 0x2e, 0x72, 0x61, 0x79,
-	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x43, 0x72, 0x65, 0x64,
-	0x69, 0x74, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x83, 0x01, 0x0a, 0x12, 0x43, 0x72, 0x65, 0x61,
-	0x74, 0x65, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x55, 0x73, 0x61, 0x67, 0x65, 0x12, 0x34,
-	0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69,
-	0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74,
-	0x65, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x55, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
+	0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x83, 0x01,
+	0x0a, 0x12, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x55,
+	0x73, 0x61, 0x67, 0x65, 0x12, 0x34, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
 	0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
 	0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x55, 0x73,
-	0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x92, 0x01,
-	0x0a, 0x17, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x54, 0x72, 0x61,
-	0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x39, 0x2e, 0x72, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e,
-	0x67, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
-	0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
-	0x2e, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x54, 0x72, 0x61, 0x6e,
-	0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x95, 0x01, 0x0a, 0x18, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67,
-	0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x12,
-	0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74,
-	0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53, 0x65, 0x61, 0x72,
-	0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x6f,
-	0x6b, 0x65, 0x6e, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3b, 0x2e, 0x72, 0x61,
-	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72,
-	0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x95, 0x01, 0x0a, 0x18, 0x54,
-	0x6f, 0x74, 0x61, 0x6c, 0x44, 0x65, 0x62, 0x69, 0x74, 0x65, 0x64, 0x54, 0x72, 0x61, 0x6e, 0x73,
-	0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
-	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x44, 0x65, 0x62, 0x69, 0x74, 0x65, 0x64,
-	0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x3b, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
-	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
-	0x54, 0x6f, 0x74, 0x61, 0x6c, 0x44, 0x65, 0x62, 0x69, 0x74, 0x65, 0x64, 0x54, 0x72, 0x61, 0x6e,
-	0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x71, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63,
-	0x65, 0x73, 0x12, 0x2e, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
-	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c,
-	0x69, 0x73, 0x74, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
-	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c,
-	0x69, 0x73, 0x74, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x9b, 0x01, 0x0a, 0x1a, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68,
-	0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x76, 0x6f,
-	0x69, 0x63, 0x65, 0x73, 0x12, 0x3c, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
-	0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
-	0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x3d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
-	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53,
-	0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f,
-	0x6e, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x00, 0x12, 0x83, 0x01, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x55, 0x70, 0x63, 0x6f, 0x6d,
-	0x69, 0x6e, 0x67, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x12, 0x34, 0x2e, 0x72, 0x61, 0x79,
+	0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x72, 0x61, 0x79,
 	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x63, 0x6f, 0x6d, 0x69,
-	0x6e, 0x67, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x35, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x42, 0x69, 0x6c,
+	0x6c, 0x69, 0x6e, 0x67, 0x55, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x92, 0x01, 0x0a, 0x17, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x69, 0x6c, 0x6c,
+	0x69, 0x6e, 0x67, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12,
+	0x39, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74,
+	0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74,
+	0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3a, 0x2e, 0x72, 0x61, 0x79,
+	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x42, 0x69, 0x6c, 0x6c, 0x69,
+	0x6e, 0x67, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x95, 0x01, 0x0a, 0x18, 0x53, 0x65, 0x61,
+	0x72, 0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x54,
+	0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x12, 0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
+	0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
+	0x31, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x3b, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f,
+	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53, 0x65,
+	0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x95, 0x01, 0x0a, 0x18, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x44, 0x65, 0x62, 0x69, 0x74, 0x65,
+	0x64, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x3a, 0x2e,
+	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x44,
+	0x65, 0x62, 0x69, 0x74, 0x65, 0x64, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3b, 0x2e, 0x72, 0x61, 0x79, 0x73,
+	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x44, 0x65, 0x62, 0x69, 0x74,
+	0x65, 0x64, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x71, 0x0a, 0x0c, 0x4c, 0x69, 0x73, 0x74,
+	0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x73, 0x12, 0x2e, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x9b, 0x01, 0x0a, 0x1a,
+	0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x73, 0x12, 0x3c, 0x2e, 0x72, 0x61, 0x79,
+	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67,
+	0x61, 0x6e, 0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65,
+	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4f, 0x72, 0x67, 0x61, 0x6e,
+	0x69, 0x7a, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x83, 0x01, 0x0a, 0x12, 0x47, 0x65,
+	0x74, 0x55, 0x70, 0x63, 0x6f, 0x6d, 0x69, 0x6e, 0x67, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65,
+	0x12, 0x34, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
 	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74,
 	0x55, 0x70, 0x63, 0x6f, 0x6d, 0x69, 0x6e, 0x67, 0x49, 0x6e, 0x76, 0x6f, 0x69, 0x63, 0x65, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x8f, 0x01, 0x0a, 0x16, 0x42, 0x69,
-	0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x43, 0x61, 0x6c, 0x6c,
-	0x62, 0x61, 0x63, 0x6b, 0x12, 0x38, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x35, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63,
+	0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
+	0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x70, 0x63, 0x6f, 0x6d, 0x69, 0x6e, 0x67, 0x49, 0x6e,
+	0x76, 0x6f, 0x69, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12,
+	0x8f, 0x01, 0x0a, 0x16, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x57, 0x65, 0x62, 0x68, 0x6f,
+	0x6f, 0x6b, 0x43, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x12, 0x38, 0x2e, 0x72, 0x61, 0x79,
+	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x57, 0x65,
+	0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x43, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x39, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
 	0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
 	0x2e, 0x42, 0x69, 0x6c, 0x6c, 0x69, 0x6e, 0x67, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x43,
-	0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x39,
-	0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69,
-	0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x42, 0x69, 0x6c, 0x6c, 0x69,
-	0x6e, 0x67, 0x57, 0x65, 0x62, 0x68, 0x6f, 0x6f, 0x6b, 0x43, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63,
-	0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x89, 0x01, 0x0a, 0x14,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x50, 0x75,
-	0x62, 0x6c, 0x69, 0x63, 0x12, 0x36, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e,
-	0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31,
-	0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x50,
-	0x75, 0x62, 0x6c, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e, 0x72,
-	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50,
-	0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x80, 0x01, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61,
-	0x74, 0x65, 0x41, 0x75, 0x64, 0x69, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x12, 0x33, 0x2e,
-	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
-	0x41, 0x75, 0x64, 0x69, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x1a, 0x34, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
+	0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
+	0x00, 0x12, 0x89, 0x01, 0x0a, 0x14, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x73,
+	0x70, 0x65, 0x63, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x12, 0x36, 0x2e, 0x72, 0x61, 0x79,
+	0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76,
+	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f,
+	0x73, 0x70, 0x65, 0x63, 0x74, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x37, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
 	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43,
-	0x72, 0x65, 0x61, 0x74, 0x65, 0x41, 0x75, 0x64, 0x69, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x89, 0x01, 0x0a, 0x14, 0x43,
-	0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72,
-	0x50, 0x41, 0x54, 0x12, 0x36, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x50, 0x75, 0x62,
+	0x6c, 0x69, 0x63, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x80, 0x01,
+	0x0a, 0x11, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x41, 0x75, 0x64, 0x69, 0x74, 0x52, 0x65, 0x63,
+	0x6f, 0x72, 0x64, 0x12, 0x33, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
 	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65,
-	0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e, 0x72, 0x61,
-	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75,
-	0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7a, 0x0a, 0x0f, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x6f,
-	0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x12, 0x31, 0x2e, 0x72, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x65, 0x73, 0x46,
-	0x6f, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x32, 0x2e, 0x72,
-	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x6f, 0x6c,
-	0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x12, 0x8c, 0x01, 0x0a, 0x15, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x43, 0x75, 0x72,
-	0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x12, 0x37, 0x2e, 0x72,
-	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x43,
-	0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
-	0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55,
-	0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22,
-	0x00, 0x12, 0x80, 0x01, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74,
-	0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12, 0x33, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
-	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
-	0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73,
-	0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x34, 0x2e, 0x72,
-	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
-	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72, 0x72,
-	0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x89, 0x01, 0x0a, 0x14, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43,
-	0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12, 0x36, 0x2e,
-	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
-	0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
-	0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55,
-	0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
-	0x12, 0x89, 0x01, 0x0a, 0x14, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65,
+	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x41, 0x75, 0x64, 0x69, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x72,
+	0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x34, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x41, 0x75, 0x64, 0x69, 0x74,
+	0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00,
+	0x12, 0x89, 0x01, 0x0a, 0x14, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65,
 	0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12, 0x36, 0x2e, 0x72, 0x61, 0x79, 0x73,
 	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72,
 	0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x1a, 0x37, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f,
-	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x55, 0x70,
-	0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50,
-	0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x95, 0x01, 0x0a,
-	0x18, 0x52, 0x65, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65,
-	0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12, 0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x65, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65,
-	0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65,
-	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3b, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b,
-	0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
-	0x31, 0x2e, 0x52, 0x65, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72,
-	0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0x00, 0x12, 0x95, 0x01, 0x0a, 0x18, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x43, 0x75,
-	0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x54, 0x69, 0x74, 0x6c,
-	0x65, 0x12, 0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f,
-	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x68,
-	0x65, 0x63, 0x6b, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41,
-	0x54, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3b, 0x2e,
+	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50,
+	0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7a, 0x0a, 0x0f,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x12,
+	0x31, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74,
+	0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74,
+	0x52, 0x6f, 0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x32, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
+	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x4c,
+	0x69, 0x73, 0x74, 0x52, 0x6f, 0x6c, 0x65, 0x73, 0x46, 0x6f, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x8c, 0x01, 0x0a, 0x15, 0x53, 0x65, 0x61,
+	0x72, 0x63, 0x68, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41,
+	0x54, 0x73, 0x12, 0x37, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
+	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53,
+	0x65, 0x61, 0x72, 0x63, 0x68, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72,
+	0x50, 0x41, 0x54, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x38, 0x2e, 0x72, 0x61,
+	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x43, 0x75,
+	0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x80, 0x01, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x43,
+	0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12, 0x33, 0x2e,
 	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
-	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x43,
-	0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x54, 0x69, 0x74,
-	0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0xf0, 0x01, 0x0a,
-	0x1d, 0x63, 0x6f, 0x6d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
-	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x42, 0x0d,
-	0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,
-	0x3a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x72, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x2f, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2f, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x3b, 0x66, 0x72, 0x6f, 0x6e,
-	0x74, 0x69, 0x65, 0x72, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xa2, 0x02, 0x03, 0x52, 0x46,
-	0x58, 0xaa, 0x02, 0x19, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x46, 0x72, 0x6f,
-	0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xca, 0x02, 0x19,
-	0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x5c, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
-	0x72, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xe2, 0x02, 0x25, 0x52, 0x61, 0x79, 0x73,
-	0x74, 0x61, 0x63, 0x6b, 0x5c, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x5c, 0x56, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74,
-	0x61, 0xea, 0x02, 0x1b, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x3a, 0x3a, 0x46, 0x72,
-	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x72,
+	0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x1a, 0x34, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72,
+	0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x47,
+	0x65, 0x74, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x89, 0x01, 0x0a, 0x14, 0x44,
+	0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72,
+	0x50, 0x41, 0x54, 0x12, 0x36, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
+	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
+	0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65,
+	0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e, 0x72, 0x61,
+	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75,
+	0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x89, 0x01, 0x0a, 0x14, 0x55, 0x70, 0x64, 0x61, 0x74,
+	0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12,
+	0x36, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74,
+	0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61,
+	0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x37, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
+	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e,
+	0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x95, 0x01, 0x0a, 0x18, 0x52, 0x65, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74,
+	0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x12,
+	0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74,
+	0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x65, 0x67, 0x65,
+	0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65,
+	0x72, 0x50, 0x41, 0x54, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x3b, 0x2e, 0x72, 0x61,
+	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x65, 0x67, 0x65, 0x6e, 0x65, 0x72, 0x61,
+	0x74, 0x65, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x95, 0x01, 0x0a, 0x18, 0x43,
+	0x68, 0x65, 0x63, 0x6b, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72, 0x50,
+	0x41, 0x54, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x3a, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
+	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x31, 0x2e, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74,
+	0x55, 0x73, 0x65, 0x72, 0x50, 0x41, 0x54, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x3b, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66,
+	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e,
+	0x43, 0x68, 0x65, 0x63, 0x6b, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x74, 0x55, 0x73, 0x65, 0x72,
+	0x50, 0x41, 0x54, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x42, 0xf0, 0x01, 0x0a, 0x1d, 0x63, 0x6f, 0x6d, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74,
+	0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x42, 0x0d, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x50, 0x72,
+	0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x3a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2f, 0x66, 0x72, 0x6f, 0x6e, 0x74,
+	0x69, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
+	0x31, 0x3b, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61,
+	0x31, 0xa2, 0x02, 0x03, 0x52, 0x46, 0x58, 0xaa, 0x02, 0x19, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61,
+	0x63, 0x6b, 0x2e, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x56, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x31, 0xca, 0x02, 0x19, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x5c, 0x46,
+	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0xe2,
+	0x02, 0x25, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x5c, 0x46, 0x72, 0x6f, 0x6e, 0x74,
+	0x69, 0x65, 0x72, 0x5c, 0x56, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
+	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x1b, 0x52, 0x61, 0x79, 0x73, 0x74, 0x61,
+	0x63, 0x6b, 0x3a, 0x3a, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x3a, 0x3a, 0x56, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -24398,7 +24026,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_rawDescGZIP() []byte {
 	return file_raystack_frontier_v1beta1_frontier_proto_rawDescData
 }
 
-var file_raystack_frontier_v1beta1_frontier_proto_msgTypes = make([]protoimpl.MessageInfo, 392)
+var file_raystack_frontier_v1beta1_frontier_proto_msgTypes = make([]protoimpl.MessageInfo, 387)
 var file_raystack_frontier_v1beta1_frontier_proto_goTypes = []interface{}{
 	(*BillingAccountRequestBody)(nil),                              // 0: raystack.frontier.v1beta1.BillingAccountRequestBody
 	(*CreateBillingAccountRequest)(nil),                            // 1: raystack.frontier.v1beta1.CreateBillingAccountRequest
@@ -24469,990 +24097,975 @@ var file_raystack_frontier_v1beta1_frontier_proto_goTypes = []interface{}{
 	(*UpdateFeatureResponse)(nil),                                  // 66: raystack.frontier.v1beta1.UpdateFeatureResponse
 	(*ListFeaturesRequest)(nil),                                    // 67: raystack.frontier.v1beta1.ListFeaturesRequest
 	(*ListFeaturesResponse)(nil),                                   // 68: raystack.frontier.v1beta1.ListFeaturesResponse
-	(*PlanRequestBody)(nil),                                        // 69: raystack.frontier.v1beta1.PlanRequestBody
-	(*CreatePlanRequest)(nil),                                      // 70: raystack.frontier.v1beta1.CreatePlanRequest
-	(*CreatePlanResponse)(nil),                                     // 71: raystack.frontier.v1beta1.CreatePlanResponse
-	(*GetPlanRequest)(nil),                                         // 72: raystack.frontier.v1beta1.GetPlanRequest
-	(*GetPlanResponse)(nil),                                        // 73: raystack.frontier.v1beta1.GetPlanResponse
-	(*UpdatePlanRequest)(nil),                                      // 74: raystack.frontier.v1beta1.UpdatePlanRequest
-	(*UpdatePlanResponse)(nil),                                     // 75: raystack.frontier.v1beta1.UpdatePlanResponse
-	(*ListInvoicesRequest)(nil),                                    // 76: raystack.frontier.v1beta1.ListInvoicesRequest
-	(*ListInvoicesResponse)(nil),                                   // 77: raystack.frontier.v1beta1.ListInvoicesResponse
-	(*SearchOrganizationInvoicesRequest)(nil),                      // 78: raystack.frontier.v1beta1.SearchOrganizationInvoicesRequest
-	(*SearchOrganizationInvoicesResponse)(nil),                     // 79: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse
-	(*GetUpcomingInvoiceRequest)(nil),                              // 80: raystack.frontier.v1beta1.GetUpcomingInvoiceRequest
-	(*GetUpcomingInvoiceResponse)(nil),                             // 81: raystack.frontier.v1beta1.GetUpcomingInvoiceResponse
-	(*GetJWKsRequest)(nil),                                         // 82: raystack.frontier.v1beta1.GetJWKsRequest
-	(*GetJWKsResponse)(nil),                                        // 83: raystack.frontier.v1beta1.GetJWKsResponse
-	(*AuthLogoutRequest)(nil),                                      // 84: raystack.frontier.v1beta1.AuthLogoutRequest
-	(*AuthLogoutResponse)(nil),                                     // 85: raystack.frontier.v1beta1.AuthLogoutResponse
-	(*AuthCallbackRequest)(nil),                                    // 86: raystack.frontier.v1beta1.AuthCallbackRequest
-	(*AuthCallbackResponse)(nil),                                   // 87: raystack.frontier.v1beta1.AuthCallbackResponse
-	(*AuthenticateRequest)(nil),                                    // 88: raystack.frontier.v1beta1.AuthenticateRequest
-	(*AuthenticateResponse)(nil),                                   // 89: raystack.frontier.v1beta1.AuthenticateResponse
-	(*AuthStrategy)(nil),                                           // 90: raystack.frontier.v1beta1.AuthStrategy
-	(*ListAuthStrategiesRequest)(nil),                              // 91: raystack.frontier.v1beta1.ListAuthStrategiesRequest
-	(*ListAuthStrategiesResponse)(nil),                             // 92: raystack.frontier.v1beta1.ListAuthStrategiesResponse
-	(*AuthTokenRequest)(nil),                                       // 93: raystack.frontier.v1beta1.AuthTokenRequest
-	(*AuthTokenResponse)(nil),                                      // 94: raystack.frontier.v1beta1.AuthTokenResponse
-	(*UserRequestBody)(nil),                                        // 95: raystack.frontier.v1beta1.UserRequestBody
-	(*ListUsersRequest)(nil),                                       // 96: raystack.frontier.v1beta1.ListUsersRequest
-	(*ListUsersResponse)(nil),                                      // 97: raystack.frontier.v1beta1.ListUsersResponse
-	(*CreateUserRequest)(nil),                                      // 98: raystack.frontier.v1beta1.CreateUserRequest
-	(*CreateUserResponse)(nil),                                     // 99: raystack.frontier.v1beta1.CreateUserResponse
-	(*ListOrganizationsByUserRequest)(nil),                         // 100: raystack.frontier.v1beta1.ListOrganizationsByUserRequest
-	(*ListOrganizationsByUserResponse)(nil),                        // 101: raystack.frontier.v1beta1.ListOrganizationsByUserResponse
-	(*ListOrganizationsByCurrentUserRequest)(nil),                  // 102: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserRequest
-	(*ListOrganizationsByCurrentUserResponse)(nil),                 // 103: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse
-	(*ListProjectsByUserRequest)(nil),                              // 104: raystack.frontier.v1beta1.ListProjectsByUserRequest
-	(*ListProjectsByUserResponse)(nil),                             // 105: raystack.frontier.v1beta1.ListProjectsByUserResponse
-	(*ListProjectsByCurrentUserRequest)(nil),                       // 106: raystack.frontier.v1beta1.ListProjectsByCurrentUserRequest
-	(*ListProjectsByCurrentUserResponse)(nil),                      // 107: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse
-	(*EnableUserRequest)(nil),                                      // 108: raystack.frontier.v1beta1.EnableUserRequest
-	(*EnableUserResponse)(nil),                                     // 109: raystack.frontier.v1beta1.EnableUserResponse
-	(*DisableUserRequest)(nil),                                     // 110: raystack.frontier.v1beta1.DisableUserRequest
-	(*DisableUserResponse)(nil),                                    // 111: raystack.frontier.v1beta1.DisableUserResponse
-	(*DeleteUserRequest)(nil),                                      // 112: raystack.frontier.v1beta1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),                                     // 113: raystack.frontier.v1beta1.DeleteUserResponse
-	(*GetUserResponse)(nil),                                        // 114: raystack.frontier.v1beta1.GetUserResponse
-	(*GetCurrentUserRequest)(nil),                                  // 115: raystack.frontier.v1beta1.GetCurrentUserRequest
-	(*GetCurrentUserResponse)(nil),                                 // 116: raystack.frontier.v1beta1.GetCurrentUserResponse
-	(*UpdateUserResponse)(nil),                                     // 117: raystack.frontier.v1beta1.UpdateUserResponse
-	(*UpdateCurrentUserResponse)(nil),                              // 118: raystack.frontier.v1beta1.UpdateCurrentUserResponse
-	(*UpdateUserRequest)(nil),                                      // 119: raystack.frontier.v1beta1.UpdateUserRequest
-	(*GetUserRequest)(nil),                                         // 120: raystack.frontier.v1beta1.GetUserRequest
-	(*ListCurrentUserGroupsRequest)(nil),                           // 121: raystack.frontier.v1beta1.ListCurrentUserGroupsRequest
-	(*ListCurrentUserGroupsResponse)(nil),                          // 122: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse
-	(*ListUserGroupsRequest)(nil),                                  // 123: raystack.frontier.v1beta1.ListUserGroupsRequest
-	(*ListUserGroupsResponse)(nil),                                 // 124: raystack.frontier.v1beta1.ListUserGroupsResponse
-	(*UpdateCurrentUserRequest)(nil),                               // 125: raystack.frontier.v1beta1.UpdateCurrentUserRequest
-	(*ListUserInvitationsRequest)(nil),                             // 126: raystack.frontier.v1beta1.ListUserInvitationsRequest
-	(*ListUserInvitationsResponse)(nil),                            // 127: raystack.frontier.v1beta1.ListUserInvitationsResponse
-	(*ListCurrentUserInvitationsRequest)(nil),                      // 128: raystack.frontier.v1beta1.ListCurrentUserInvitationsRequest
-	(*ListCurrentUserInvitationsResponse)(nil),                     // 129: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse
-	(*ListServiceUsersRequest)(nil),                                // 130: raystack.frontier.v1beta1.ListServiceUsersRequest
-	(*ListServiceUsersResponse)(nil),                               // 131: raystack.frontier.v1beta1.ListServiceUsersResponse
-	(*ServiceUserRequestBody)(nil),                                 // 132: raystack.frontier.v1beta1.ServiceUserRequestBody
-	(*CreateServiceUserRequest)(nil),                               // 133: raystack.frontier.v1beta1.CreateServiceUserRequest
-	(*CreateServiceUserResponse)(nil),                              // 134: raystack.frontier.v1beta1.CreateServiceUserResponse
-	(*GetServiceUserRequest)(nil),                                  // 135: raystack.frontier.v1beta1.GetServiceUserRequest
-	(*GetServiceUserResponse)(nil),                                 // 136: raystack.frontier.v1beta1.GetServiceUserResponse
-	(*DeleteServiceUserRequest)(nil),                               // 137: raystack.frontier.v1beta1.DeleteServiceUserRequest
-	(*DeleteServiceUserResponse)(nil),                              // 138: raystack.frontier.v1beta1.DeleteServiceUserResponse
-	(*CreateServiceUserJWKRequest)(nil),                            // 139: raystack.frontier.v1beta1.CreateServiceUserJWKRequest
-	(*CreateServiceUserJWKResponse)(nil),                           // 140: raystack.frontier.v1beta1.CreateServiceUserJWKResponse
-	(*GetServiceUserJWKRequest)(nil),                               // 141: raystack.frontier.v1beta1.GetServiceUserJWKRequest
-	(*GetServiceUserJWKResponse)(nil),                              // 142: raystack.frontier.v1beta1.GetServiceUserJWKResponse
-	(*ListServiceUserJWKsRequest)(nil),                             // 143: raystack.frontier.v1beta1.ListServiceUserJWKsRequest
-	(*ListServiceUserJWKsResponse)(nil),                            // 144: raystack.frontier.v1beta1.ListServiceUserJWKsResponse
-	(*DeleteServiceUserJWKRequest)(nil),                            // 145: raystack.frontier.v1beta1.DeleteServiceUserJWKRequest
-	(*DeleteServiceUserJWKResponse)(nil),                           // 146: raystack.frontier.v1beta1.DeleteServiceUserJWKResponse
-	(*CreateServiceUserCredentialRequest)(nil),                     // 147: raystack.frontier.v1beta1.CreateServiceUserCredentialRequest
-	(*CreateServiceUserCredentialResponse)(nil),                    // 148: raystack.frontier.v1beta1.CreateServiceUserCredentialResponse
-	(*ListServiceUserCredentialsRequest)(nil),                      // 149: raystack.frontier.v1beta1.ListServiceUserCredentialsRequest
-	(*ListServiceUserCredentialsResponse)(nil),                     // 150: raystack.frontier.v1beta1.ListServiceUserCredentialsResponse
-	(*DeleteServiceUserCredentialRequest)(nil),                     // 151: raystack.frontier.v1beta1.DeleteServiceUserCredentialRequest
-	(*DeleteServiceUserCredentialResponse)(nil),                    // 152: raystack.frontier.v1beta1.DeleteServiceUserCredentialResponse
-	(*CreateServiceUserTokenRequest)(nil),                          // 153: raystack.frontier.v1beta1.CreateServiceUserTokenRequest
-	(*CreateServiceUserTokenResponse)(nil),                         // 154: raystack.frontier.v1beta1.CreateServiceUserTokenResponse
-	(*ListServiceUserTokensRequest)(nil),                           // 155: raystack.frontier.v1beta1.ListServiceUserTokensRequest
-	(*ListServiceUserTokensResponse)(nil),                          // 156: raystack.frontier.v1beta1.ListServiceUserTokensResponse
-	(*DeleteServiceUserTokenRequest)(nil),                          // 157: raystack.frontier.v1beta1.DeleteServiceUserTokenRequest
-	(*DeleteServiceUserTokenResponse)(nil),                         // 158: raystack.frontier.v1beta1.DeleteServiceUserTokenResponse
-	(*ListServiceUserProjectsRequest)(nil),                         // 159: raystack.frontier.v1beta1.ListServiceUserProjectsRequest
-	(*ListServiceUserProjectsResponse)(nil),                        // 160: raystack.frontier.v1beta1.ListServiceUserProjectsResponse
-	(*ListOrganizationGroupsRequest)(nil),                          // 161: raystack.frontier.v1beta1.ListOrganizationGroupsRequest
-	(*ListOrganizationGroupsResponse)(nil),                         // 162: raystack.frontier.v1beta1.ListOrganizationGroupsResponse
-	(*CreateOrganizationRoleRequest)(nil),                          // 163: raystack.frontier.v1beta1.CreateOrganizationRoleRequest
-	(*CreateOrganizationRoleResponse)(nil),                         // 164: raystack.frontier.v1beta1.CreateOrganizationRoleResponse
-	(*GetOrganizationRoleRequest)(nil),                             // 165: raystack.frontier.v1beta1.GetOrganizationRoleRequest
-	(*GetOrganizationRoleResponse)(nil),                            // 166: raystack.frontier.v1beta1.GetOrganizationRoleResponse
-	(*UpdateOrganizationRoleRequest)(nil),                          // 167: raystack.frontier.v1beta1.UpdateOrganizationRoleRequest
-	(*UpdateOrganizationRoleResponse)(nil),                         // 168: raystack.frontier.v1beta1.UpdateOrganizationRoleResponse
-	(*ListRolesRequest)(nil),                                       // 169: raystack.frontier.v1beta1.ListRolesRequest
-	(*ListRolesResponse)(nil),                                      // 170: raystack.frontier.v1beta1.ListRolesResponse
-	(*ListOrganizationRolesRequest)(nil),                           // 171: raystack.frontier.v1beta1.ListOrganizationRolesRequest
-	(*ListOrganizationRolesResponse)(nil),                          // 172: raystack.frontier.v1beta1.ListOrganizationRolesResponse
-	(*DeleteOrganizationRoleRequest)(nil),                          // 173: raystack.frontier.v1beta1.DeleteOrganizationRoleRequest
-	(*DeleteOrganizationRoleResponse)(nil),                         // 174: raystack.frontier.v1beta1.DeleteOrganizationRoleResponse
-	(*OrganizationRequestBody)(nil),                                // 175: raystack.frontier.v1beta1.OrganizationRequestBody
-	(*ListOrganizationsRequest)(nil),                               // 176: raystack.frontier.v1beta1.ListOrganizationsRequest
-	(*ListOrganizationsResponse)(nil),                              // 177: raystack.frontier.v1beta1.ListOrganizationsResponse
-	(*CreateOrganizationRequest)(nil),                              // 178: raystack.frontier.v1beta1.CreateOrganizationRequest
-	(*CreateOrganizationResponse)(nil),                             // 179: raystack.frontier.v1beta1.CreateOrganizationResponse
-	(*GetOrganizationResponse)(nil),                                // 180: raystack.frontier.v1beta1.GetOrganizationResponse
-	(*UpdateOrganizationResponse)(nil),                             // 181: raystack.frontier.v1beta1.UpdateOrganizationResponse
-	(*GetOrganizationRequest)(nil),                                 // 182: raystack.frontier.v1beta1.GetOrganizationRequest
-	(*UpdateOrganizationRequest)(nil),                              // 183: raystack.frontier.v1beta1.UpdateOrganizationRequest
-	(*ListOrganizationAdminsRequest)(nil),                          // 184: raystack.frontier.v1beta1.ListOrganizationAdminsRequest
-	(*ListOrganizationAdminsResponse)(nil),                         // 185: raystack.frontier.v1beta1.ListOrganizationAdminsResponse
-	(*ListOrganizationUsersRequest)(nil),                           // 186: raystack.frontier.v1beta1.ListOrganizationUsersRequest
-	(*ListOrganizationUsersResponse)(nil),                          // 187: raystack.frontier.v1beta1.ListOrganizationUsersResponse
-	(*SetOrganizationMemberRoleRequest)(nil),                       // 188: raystack.frontier.v1beta1.SetOrganizationMemberRoleRequest
-	(*SetOrganizationMemberRoleResponse)(nil),                      // 189: raystack.frontier.v1beta1.SetOrganizationMemberRoleResponse
-	(*RemoveOrganizationMemberRequest)(nil),                        // 190: raystack.frontier.v1beta1.RemoveOrganizationMemberRequest
-	(*RemoveOrganizationMemberResponse)(nil),                       // 191: raystack.frontier.v1beta1.RemoveOrganizationMemberResponse
-	(*ListOrganizationServiceUsersRequest)(nil),                    // 192: raystack.frontier.v1beta1.ListOrganizationServiceUsersRequest
-	(*ListOrganizationServiceUsersResponse)(nil),                   // 193: raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse
-	(*ListOrganizationInvitationsRequest)(nil),                     // 194: raystack.frontier.v1beta1.ListOrganizationInvitationsRequest
-	(*ListOrganizationInvitationsResponse)(nil),                    // 195: raystack.frontier.v1beta1.ListOrganizationInvitationsResponse
-	(*CreateOrganizationInvitationRequest)(nil),                    // 196: raystack.frontier.v1beta1.CreateOrganizationInvitationRequest
-	(*CreateOrganizationInvitationResponse)(nil),                   // 197: raystack.frontier.v1beta1.CreateOrganizationInvitationResponse
-	(*GetOrganizationInvitationRequest)(nil),                       // 198: raystack.frontier.v1beta1.GetOrganizationInvitationRequest
-	(*GetOrganizationInvitationResponse)(nil),                      // 199: raystack.frontier.v1beta1.GetOrganizationInvitationResponse
-	(*AcceptOrganizationInvitationRequest)(nil),                    // 200: raystack.frontier.v1beta1.AcceptOrganizationInvitationRequest
-	(*AcceptOrganizationInvitationResponse)(nil),                   // 201: raystack.frontier.v1beta1.AcceptOrganizationInvitationResponse
-	(*DeleteOrganizationInvitationRequest)(nil),                    // 202: raystack.frontier.v1beta1.DeleteOrganizationInvitationRequest
-	(*ListOrganizationDomainsRequest)(nil),                         // 203: raystack.frontier.v1beta1.ListOrganizationDomainsRequest
-	(*ListOrganizationDomainsResponse)(nil),                        // 204: raystack.frontier.v1beta1.ListOrganizationDomainsResponse
-	(*JoinOrganizationRequest)(nil),                                // 205: raystack.frontier.v1beta1.JoinOrganizationRequest
-	(*JoinOrganizationResponse)(nil),                               // 206: raystack.frontier.v1beta1.JoinOrganizationResponse
-	(*GetOrganizationDomainRequest)(nil),                           // 207: raystack.frontier.v1beta1.GetOrganizationDomainRequest
-	(*GetOrganizationDomainResponse)(nil),                          // 208: raystack.frontier.v1beta1.GetOrganizationDomainResponse
-	(*CreateOrganizationDomainRequest)(nil),                        // 209: raystack.frontier.v1beta1.CreateOrganizationDomainRequest
-	(*CreateOrganizationDomainResponse)(nil),                       // 210: raystack.frontier.v1beta1.CreateOrganizationDomainResponse
-	(*DeleteOrganizationDomainRequest)(nil),                        // 211: raystack.frontier.v1beta1.DeleteOrganizationDomainRequest
-	(*DeleteOrganizationDomainResponse)(nil),                       // 212: raystack.frontier.v1beta1.DeleteOrganizationDomainResponse
-	(*VerifyOrganizationDomainRequest)(nil),                        // 213: raystack.frontier.v1beta1.VerifyOrganizationDomainRequest
-	(*VerifyOrganizationDomainResponse)(nil),                       // 214: raystack.frontier.v1beta1.VerifyOrganizationDomainResponse
-	(*DeleteOrganizationInvitationResponse)(nil),                   // 215: raystack.frontier.v1beta1.DeleteOrganizationInvitationResponse
-	(*EnableOrganizationRequest)(nil),                              // 216: raystack.frontier.v1beta1.EnableOrganizationRequest
-	(*EnableOrganizationResponse)(nil),                             // 217: raystack.frontier.v1beta1.EnableOrganizationResponse
-	(*DisableOrganizationRequest)(nil),                             // 218: raystack.frontier.v1beta1.DisableOrganizationRequest
-	(*DisableOrganizationResponse)(nil),                            // 219: raystack.frontier.v1beta1.DisableOrganizationResponse
-	(*DeleteOrganizationRequest)(nil),                              // 220: raystack.frontier.v1beta1.DeleteOrganizationRequest
-	(*DeleteOrganizationResponse)(nil),                             // 221: raystack.frontier.v1beta1.DeleteOrganizationResponse
-	(*GetOrganizationKycRequest)(nil),                              // 222: raystack.frontier.v1beta1.GetOrganizationKycRequest
-	(*GetOrganizationKycResponse)(nil),                             // 223: raystack.frontier.v1beta1.GetOrganizationKycResponse
-	(*ProjectRequestBody)(nil),                                     // 224: raystack.frontier.v1beta1.ProjectRequestBody
-	(*CreateProjectRequest)(nil),                                   // 225: raystack.frontier.v1beta1.CreateProjectRequest
-	(*CreateProjectResponse)(nil),                                  // 226: raystack.frontier.v1beta1.CreateProjectResponse
-	(*ListOrganizationProjectsRequest)(nil),                        // 227: raystack.frontier.v1beta1.ListOrganizationProjectsRequest
-	(*ListOrganizationProjectsResponse)(nil),                       // 228: raystack.frontier.v1beta1.ListOrganizationProjectsResponse
-	(*GetProjectRequest)(nil),                                      // 229: raystack.frontier.v1beta1.GetProjectRequest
-	(*GetProjectResponse)(nil),                                     // 230: raystack.frontier.v1beta1.GetProjectResponse
-	(*UpdateProjectRequestBody)(nil),                               // 231: raystack.frontier.v1beta1.UpdateProjectRequestBody
-	(*UpdateProjectRequest)(nil),                                   // 232: raystack.frontier.v1beta1.UpdateProjectRequest
-	(*UpdateProjectResponse)(nil),                                  // 233: raystack.frontier.v1beta1.UpdateProjectResponse
-	(*ListProjectAdminsRequest)(nil),                               // 234: raystack.frontier.v1beta1.ListProjectAdminsRequest
-	(*ListProjectAdminsResponse)(nil),                              // 235: raystack.frontier.v1beta1.ListProjectAdminsResponse
-	(*ListProjectUsersRequest)(nil),                                // 236: raystack.frontier.v1beta1.ListProjectUsersRequest
-	(*ListProjectUsersResponse)(nil),                               // 237: raystack.frontier.v1beta1.ListProjectUsersResponse
-	(*ListProjectServiceUsersRequest)(nil),                         // 238: raystack.frontier.v1beta1.ListProjectServiceUsersRequest
-	(*ListProjectServiceUsersResponse)(nil),                        // 239: raystack.frontier.v1beta1.ListProjectServiceUsersResponse
-	(*ListProjectGroupsRequest)(nil),                               // 240: raystack.frontier.v1beta1.ListProjectGroupsRequest
-	(*ListProjectGroupsResponse)(nil),                              // 241: raystack.frontier.v1beta1.ListProjectGroupsResponse
-	(*EnableProjectRequest)(nil),                                   // 242: raystack.frontier.v1beta1.EnableProjectRequest
-	(*EnableProjectResponse)(nil),                                  // 243: raystack.frontier.v1beta1.EnableProjectResponse
-	(*DisableProjectRequest)(nil),                                  // 244: raystack.frontier.v1beta1.DisableProjectRequest
-	(*DisableProjectResponse)(nil),                                 // 245: raystack.frontier.v1beta1.DisableProjectResponse
-	(*DeleteProjectRequest)(nil),                                   // 246: raystack.frontier.v1beta1.DeleteProjectRequest
-	(*DeleteProjectResponse)(nil),                                  // 247: raystack.frontier.v1beta1.DeleteProjectResponse
-	(*SetProjectMemberRoleRequest)(nil),                            // 248: raystack.frontier.v1beta1.SetProjectMemberRoleRequest
-	(*SetProjectMemberRoleResponse)(nil),                           // 249: raystack.frontier.v1beta1.SetProjectMemberRoleResponse
-	(*RemoveProjectMemberRequest)(nil),                             // 250: raystack.frontier.v1beta1.RemoveProjectMemberRequest
-	(*RemoveProjectMemberResponse)(nil),                            // 251: raystack.frontier.v1beta1.RemoveProjectMemberResponse
-	(*PolicyRequestBody)(nil),                                      // 252: raystack.frontier.v1beta1.PolicyRequestBody
-	(*CreatePolicyForProjectBody)(nil),                             // 253: raystack.frontier.v1beta1.CreatePolicyForProjectBody
-	(*GetPermissionRequest)(nil),                                   // 254: raystack.frontier.v1beta1.GetPermissionRequest
-	(*GetPermissionResponse)(nil),                                  // 255: raystack.frontier.v1beta1.GetPermissionResponse
-	(*ListPermissionsRequest)(nil),                                 // 256: raystack.frontier.v1beta1.ListPermissionsRequest
-	(*ListPermissionsResponse)(nil),                                // 257: raystack.frontier.v1beta1.ListPermissionsResponse
-	(*ListNamespacesRequest)(nil),                                  // 258: raystack.frontier.v1beta1.ListNamespacesRequest
-	(*ListNamespacesResponse)(nil),                                 // 259: raystack.frontier.v1beta1.ListNamespacesResponse
-	(*GetNamespaceRequest)(nil),                                    // 260: raystack.frontier.v1beta1.GetNamespaceRequest
-	(*GetNamespaceResponse)(nil),                                   // 261: raystack.frontier.v1beta1.GetNamespaceResponse
-	(*CreatePolicyRequest)(nil),                                    // 262: raystack.frontier.v1beta1.CreatePolicyRequest
-	(*CreatePolicyResponse)(nil),                                   // 263: raystack.frontier.v1beta1.CreatePolicyResponse
-	(*GetPolicyRequest)(nil),                                       // 264: raystack.frontier.v1beta1.GetPolicyRequest
-	(*GetPolicyResponse)(nil),                                      // 265: raystack.frontier.v1beta1.GetPolicyResponse
-	(*ListPoliciesRequest)(nil),                                    // 266: raystack.frontier.v1beta1.ListPoliciesRequest
-	(*ListPoliciesResponse)(nil),                                   // 267: raystack.frontier.v1beta1.ListPoliciesResponse
-	(*UpdatePolicyRequest)(nil),                                    // 268: raystack.frontier.v1beta1.UpdatePolicyRequest
-	(*UpdatePolicyResponse)(nil),                                   // 269: raystack.frontier.v1beta1.UpdatePolicyResponse
-	(*DeletePolicyRequest)(nil),                                    // 270: raystack.frontier.v1beta1.DeletePolicyRequest
-	(*DeletePolicyResponse)(nil),                                   // 271: raystack.frontier.v1beta1.DeletePolicyResponse
-	(*CreatePolicyForProjectRequest)(nil),                          // 272: raystack.frontier.v1beta1.CreatePolicyForProjectRequest
-	(*CreatePolicyForProjectResponse)(nil),                         // 273: raystack.frontier.v1beta1.CreatePolicyForProjectResponse
-	(*RelationRequestBody)(nil),                                    // 274: raystack.frontier.v1beta1.RelationRequestBody
-	(*CreateRelationRequest)(nil),                                  // 275: raystack.frontier.v1beta1.CreateRelationRequest
-	(*CreateRelationResponse)(nil),                                 // 276: raystack.frontier.v1beta1.CreateRelationResponse
-	(*GetRelationRequest)(nil),                                     // 277: raystack.frontier.v1beta1.GetRelationRequest
-	(*GetRelationResponse)(nil),                                    // 278: raystack.frontier.v1beta1.GetRelationResponse
-	(*UpdateRelationRequest)(nil),                                  // 279: raystack.frontier.v1beta1.UpdateRelationRequest
-	(*UpdateRelationResponse)(nil),                                 // 280: raystack.frontier.v1beta1.UpdateRelationResponse
-	(*GroupRequestBody)(nil),                                       // 281: raystack.frontier.v1beta1.GroupRequestBody
-	(*CreateGroupRequest)(nil),                                     // 282: raystack.frontier.v1beta1.CreateGroupRequest
-	(*GetGroupRequest)(nil),                                        // 283: raystack.frontier.v1beta1.GetGroupRequest
-	(*CreateGroupResponse)(nil),                                    // 284: raystack.frontier.v1beta1.CreateGroupResponse
-	(*GetGroupResponse)(nil),                                       // 285: raystack.frontier.v1beta1.GetGroupResponse
-	(*UpdateGroupResponse)(nil),                                    // 286: raystack.frontier.v1beta1.UpdateGroupResponse
-	(*UpdateGroupRequest)(nil),                                     // 287: raystack.frontier.v1beta1.UpdateGroupRequest
-	(*ListGroupUsersRequest)(nil),                                  // 288: raystack.frontier.v1beta1.ListGroupUsersRequest
-	(*ListGroupUsersResponse)(nil),                                 // 289: raystack.frontier.v1beta1.ListGroupUsersResponse
-	(*EnableGroupRequest)(nil),                                     // 290: raystack.frontier.v1beta1.EnableGroupRequest
-	(*EnableGroupResponse)(nil),                                    // 291: raystack.frontier.v1beta1.EnableGroupResponse
-	(*DisableGroupRequest)(nil),                                    // 292: raystack.frontier.v1beta1.DisableGroupRequest
-	(*DisableGroupResponse)(nil),                                   // 293: raystack.frontier.v1beta1.DisableGroupResponse
-	(*DeleteGroupRequest)(nil),                                     // 294: raystack.frontier.v1beta1.DeleteGroupRequest
-	(*DeleteGroupResponse)(nil),                                    // 295: raystack.frontier.v1beta1.DeleteGroupResponse
-	(*RemoveGroupUserRequest)(nil),                                 // 296: raystack.frontier.v1beta1.RemoveGroupUserRequest
-	(*RemoveGroupUserResponse)(nil),                                // 297: raystack.frontier.v1beta1.RemoveGroupUserResponse
-	(*SetGroupMemberRoleRequest)(nil),                              // 298: raystack.frontier.v1beta1.SetGroupMemberRoleRequest
-	(*SetGroupMemberRoleResponse)(nil),                             // 299: raystack.frontier.v1beta1.SetGroupMemberRoleResponse
-	(*DeleteRelationRequest)(nil),                                  // 300: raystack.frontier.v1beta1.DeleteRelationRequest
-	(*DeleteRelationResponse)(nil),                                 // 301: raystack.frontier.v1beta1.DeleteRelationResponse
-	(*ListProjectResourcesRequest)(nil),                            // 302: raystack.frontier.v1beta1.ListProjectResourcesRequest
-	(*ListProjectResourcesResponse)(nil),                           // 303: raystack.frontier.v1beta1.ListProjectResourcesResponse
-	(*ResourceRequestBody)(nil),                                    // 304: raystack.frontier.v1beta1.ResourceRequestBody
-	(*CreateProjectResourceRequest)(nil),                           // 305: raystack.frontier.v1beta1.CreateProjectResourceRequest
-	(*CreateProjectResourceResponse)(nil),                          // 306: raystack.frontier.v1beta1.CreateProjectResourceResponse
-	(*GetProjectResourceRequest)(nil),                              // 307: raystack.frontier.v1beta1.GetProjectResourceRequest
-	(*GetProjectResourceResponse)(nil),                             // 308: raystack.frontier.v1beta1.GetProjectResourceResponse
-	(*UpdateProjectResourceRequest)(nil),                           // 309: raystack.frontier.v1beta1.UpdateProjectResourceRequest
-	(*UpdateProjectResourceResponse)(nil),                          // 310: raystack.frontier.v1beta1.UpdateProjectResourceResponse
-	(*DeleteProjectResourceRequest)(nil),                           // 311: raystack.frontier.v1beta1.DeleteProjectResourceRequest
-	(*DeleteProjectResourceResponse)(nil),                          // 312: raystack.frontier.v1beta1.DeleteProjectResourceResponse
-	(*CheckResourcePermissionRequest)(nil),                         // 313: raystack.frontier.v1beta1.CheckResourcePermissionRequest
-	(*CheckResourcePermissionResponse)(nil),                        // 314: raystack.frontier.v1beta1.CheckResourcePermissionResponse
-	(*BatchCheckPermissionRequest)(nil),                            // 315: raystack.frontier.v1beta1.BatchCheckPermissionRequest
-	(*BatchCheckPermissionBody)(nil),                               // 316: raystack.frontier.v1beta1.BatchCheckPermissionBody
-	(*BatchCheckPermissionResponse)(nil),                           // 317: raystack.frontier.v1beta1.BatchCheckPermissionResponse
-	(*BatchCheckPermissionResponsePair)(nil),                       // 318: raystack.frontier.v1beta1.BatchCheckPermissionResponsePair
-	(*MetaSchemaRequestBody)(nil),                                  // 319: raystack.frontier.v1beta1.MetaSchemaRequestBody
-	(*CreateMetaSchemaRequest)(nil),                                // 320: raystack.frontier.v1beta1.CreateMetaSchemaRequest
-	(*CreateMetaSchemaResponse)(nil),                               // 321: raystack.frontier.v1beta1.CreateMetaSchemaResponse
-	(*GetMetaSchemaRequest)(nil),                                   // 322: raystack.frontier.v1beta1.GetMetaSchemaRequest
-	(*GetMetaSchemaResponse)(nil),                                  // 323: raystack.frontier.v1beta1.GetMetaSchemaResponse
-	(*UpdateMetaSchemaRequest)(nil),                                // 324: raystack.frontier.v1beta1.UpdateMetaSchemaRequest
-	(*UpdateMetaSchemaResponse)(nil),                               // 325: raystack.frontier.v1beta1.UpdateMetaSchemaResponse
-	(*DeleteMetaSchemaRequest)(nil),                                // 326: raystack.frontier.v1beta1.DeleteMetaSchemaRequest
-	(*DeleteMetaSchemaResponse)(nil),                               // 327: raystack.frontier.v1beta1.DeleteMetaSchemaResponse
-	(*ListMetaSchemasRequest)(nil),                                 // 328: raystack.frontier.v1beta1.ListMetaSchemasRequest
-	(*ListMetaSchemasResponse)(nil),                                // 329: raystack.frontier.v1beta1.ListMetaSchemasResponse
-	(*DescribePreferencesRequest)(nil),                             // 330: raystack.frontier.v1beta1.DescribePreferencesRequest
-	(*DescribePreferencesResponse)(nil),                            // 331: raystack.frontier.v1beta1.DescribePreferencesResponse
-	(*CreateOrganizationPreferencesRequest)(nil),                   // 332: raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest
-	(*CreateOrganizationPreferencesResponse)(nil),                  // 333: raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse
-	(*ListOrganizationPreferencesRequest)(nil),                     // 334: raystack.frontier.v1beta1.ListOrganizationPreferencesRequest
-	(*ListOrganizationPreferencesResponse)(nil),                    // 335: raystack.frontier.v1beta1.ListOrganizationPreferencesResponse
-	(*CreateProjectPreferencesRequest)(nil),                        // 336: raystack.frontier.v1beta1.CreateProjectPreferencesRequest
-	(*CreateProjectPreferencesResponse)(nil),                       // 337: raystack.frontier.v1beta1.CreateProjectPreferencesResponse
-	(*ListProjectPreferencesRequest)(nil),                          // 338: raystack.frontier.v1beta1.ListProjectPreferencesRequest
-	(*ListProjectPreferencesResponse)(nil),                         // 339: raystack.frontier.v1beta1.ListProjectPreferencesResponse
-	(*CreateGroupPreferencesRequest)(nil),                          // 340: raystack.frontier.v1beta1.CreateGroupPreferencesRequest
-	(*CreateGroupPreferencesResponse)(nil),                         // 341: raystack.frontier.v1beta1.CreateGroupPreferencesResponse
-	(*ListGroupPreferencesRequest)(nil),                            // 342: raystack.frontier.v1beta1.ListGroupPreferencesRequest
-	(*ListGroupPreferencesResponse)(nil),                           // 343: raystack.frontier.v1beta1.ListGroupPreferencesResponse
-	(*CreateUserPreferencesRequest)(nil),                           // 344: raystack.frontier.v1beta1.CreateUserPreferencesRequest
-	(*CreateUserPreferencesResponse)(nil),                          // 345: raystack.frontier.v1beta1.CreateUserPreferencesResponse
-	(*ListUserPreferencesRequest)(nil),                             // 346: raystack.frontier.v1beta1.ListUserPreferencesRequest
-	(*ListUserPreferencesResponse)(nil),                            // 347: raystack.frontier.v1beta1.ListUserPreferencesResponse
-	(*CreateCurrentUserPreferencesRequest)(nil),                    // 348: raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest
-	(*CreateCurrentUserPreferencesResponse)(nil),                   // 349: raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse
-	(*ListCurrentUserPreferencesRequest)(nil),                      // 350: raystack.frontier.v1beta1.ListCurrentUserPreferencesRequest
-	(*ListCurrentUserPreferencesResponse)(nil),                     // 351: raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse
-	(*BillingWebhookCallbackRequest)(nil),                          // 352: raystack.frontier.v1beta1.BillingWebhookCallbackRequest
-	(*BillingWebhookCallbackResponse)(nil),                         // 353: raystack.frontier.v1beta1.BillingWebhookCallbackResponse
-	(*CreateProspectPublicRequest)(nil),                            // 354: raystack.frontier.v1beta1.CreateProspectPublicRequest
-	(*CreateProspectPublicResponse)(nil),                           // 355: raystack.frontier.v1beta1.CreateProspectPublicResponse
-	(*ListSessionsRequest)(nil),                                    // 356: raystack.frontier.v1beta1.ListSessionsRequest
-	(*ListSessionsResponse)(nil),                                   // 357: raystack.frontier.v1beta1.ListSessionsResponse
-	(*RevokeSessionRequest)(nil),                                   // 358: raystack.frontier.v1beta1.RevokeSessionRequest
-	(*RevokeSessionResponse)(nil),                                  // 359: raystack.frontier.v1beta1.RevokeSessionResponse
-	(*PingUserSessionRequest)(nil),                                 // 360: raystack.frontier.v1beta1.PingUserSessionRequest
-	(*PingUserSessionResponse)(nil),                                // 361: raystack.frontier.v1beta1.PingUserSessionResponse
-	(*CreateAuditRecordRequest)(nil),                               // 362: raystack.frontier.v1beta1.CreateAuditRecordRequest
-	(*CreateAuditRecordResponse)(nil),                              // 363: raystack.frontier.v1beta1.CreateAuditRecordResponse
-	(*CreateCurrentUserPATRequest)(nil),                            // 364: raystack.frontier.v1beta1.CreateCurrentUserPATRequest
-	(*CreateCurrentUserPATResponse)(nil),                           // 365: raystack.frontier.v1beta1.CreateCurrentUserPATResponse
-	(*ListRolesForPATRequest)(nil),                                 // 366: raystack.frontier.v1beta1.ListRolesForPATRequest
-	(*ListRolesForPATResponse)(nil),                                // 367: raystack.frontier.v1beta1.ListRolesForPATResponse
-	(*SearchCurrentUserPATsRequest)(nil),                           // 368: raystack.frontier.v1beta1.SearchCurrentUserPATsRequest
-	(*SearchCurrentUserPATsResponse)(nil),                          // 369: raystack.frontier.v1beta1.SearchCurrentUserPATsResponse
-	(*GetCurrentUserPATRequest)(nil),                               // 370: raystack.frontier.v1beta1.GetCurrentUserPATRequest
-	(*GetCurrentUserPATResponse)(nil),                              // 371: raystack.frontier.v1beta1.GetCurrentUserPATResponse
-	(*DeleteCurrentUserPATRequest)(nil),                            // 372: raystack.frontier.v1beta1.DeleteCurrentUserPATRequest
-	(*DeleteCurrentUserPATResponse)(nil),                           // 373: raystack.frontier.v1beta1.DeleteCurrentUserPATResponse
-	(*UpdateCurrentUserPATRequest)(nil),                            // 374: raystack.frontier.v1beta1.UpdateCurrentUserPATRequest
-	(*UpdateCurrentUserPATResponse)(nil),                           // 375: raystack.frontier.v1beta1.UpdateCurrentUserPATResponse
-	(*RegenerateCurrentUserPATRequest)(nil),                        // 376: raystack.frontier.v1beta1.RegenerateCurrentUserPATRequest
-	(*RegenerateCurrentUserPATResponse)(nil),                       // 377: raystack.frontier.v1beta1.RegenerateCurrentUserPATResponse
-	(*CheckCurrentUserPATTitleRequest)(nil),                        // 378: raystack.frontier.v1beta1.CheckCurrentUserPATTitleRequest
-	(*CheckCurrentUserPATTitleResponse)(nil),                       // 379: raystack.frontier.v1beta1.CheckCurrentUserPATTitleResponse
-	(*SearchOrganizationTokensResponse_OrganizationToken)(nil),     // 380: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.OrganizationToken
-	(*ChangeSubscriptionRequest_PlanChange)(nil),                   // 381: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
-	(*ChangeSubscriptionRequest_PhaseChange)(nil),                  // 382: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
-	(*SearchOrganizationInvoicesResponse_OrganizationInvoice)(nil), // 383: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.OrganizationInvoice
-	(*ListProjectsByCurrentUserResponse_AccessPair)(nil),           // 384: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
-	(*ListCurrentUserGroupsResponse_AccessPair)(nil),               // 385: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
-	(*ListServiceUserProjectsResponse_AccessPair)(nil),             // 386: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
-	(*ListOrganizationUsersResponse_RolePair)(nil),                 // 387: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
-	(*ListProjectUsersResponse_RolePair)(nil),                      // 388: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
-	(*ListProjectServiceUsersResponse_RolePair)(nil),               // 389: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
-	(*ListProjectGroupsResponse_RolePair)(nil),                     // 390: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
-	(*ListGroupUsersResponse_RolePair)(nil),                        // 391: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
-	(*BillingAccount_Address)(nil),                                 // 392: raystack.frontier.v1beta1.BillingAccount.Address
-	(*BillingAccount_Tax)(nil),                                     // 393: raystack.frontier.v1beta1.BillingAccount.Tax
-	(*structpb.Struct)(nil),                                        // 394: google.protobuf.Struct
-	(*BillingAccount)(nil),                                         // 395: raystack.frontier.v1beta1.BillingAccount
-	(*PaymentMethod)(nil),                                          // 396: raystack.frontier.v1beta1.PaymentMethod
-	(*BillingAccountDetails)(nil),                                  // 397: raystack.frontier.v1beta1.BillingAccountDetails
-	(*BillingAccount_Balance)(nil),                                 // 398: raystack.frontier.v1beta1.BillingAccount.Balance
-	(*Usage)(nil),                                                  // 399: raystack.frontier.v1beta1.Usage
-	(*timestamppb.Timestamp)(nil),                                  // 400: google.protobuf.Timestamp
-	(*BillingTransaction)(nil),                                     // 401: raystack.frontier.v1beta1.BillingTransaction
-	(*RQLRequest)(nil),                                             // 402: raystack.frontier.v1beta1.RQLRequest
-	(*RQLQueryPaginationResponse)(nil),                             // 403: raystack.frontier.v1beta1.RQLQueryPaginationResponse
-	(*RQLQueryGroupResponse)(nil),                                  // 404: raystack.frontier.v1beta1.RQLQueryGroupResponse
-	(*Subscription)(nil),                                           // 405: raystack.frontier.v1beta1.Subscription
-	(*Subscription_Phase)(nil),                                     // 406: raystack.frontier.v1beta1.Subscription.Phase
-	(*Plan)(nil),                                                   // 407: raystack.frontier.v1beta1.Plan
-	(*CheckoutSubscriptionBody)(nil),                               // 408: raystack.frontier.v1beta1.CheckoutSubscriptionBody
-	(*CheckoutProductBody)(nil),                                    // 409: raystack.frontier.v1beta1.CheckoutProductBody
-	(*CheckoutSetupBody)(nil),                                      // 410: raystack.frontier.v1beta1.CheckoutSetupBody
-	(*CheckoutSession)(nil),                                        // 411: raystack.frontier.v1beta1.CheckoutSession
-	(*Price)(nil),                                                  // 412: raystack.frontier.v1beta1.Price
-	(*Feature)(nil),                                                // 413: raystack.frontier.v1beta1.Feature
-	(*Product_BehaviorConfig)(nil),                                 // 414: raystack.frontier.v1beta1.Product.BehaviorConfig
-	(*Product)(nil),                                                // 415: raystack.frontier.v1beta1.Product
-	(*Invoice)(nil),                                                // 416: raystack.frontier.v1beta1.Invoice
-	(*JSONWebKey)(nil),                                             // 417: raystack.frontier.v1beta1.JSONWebKey
-	(*User)(nil),                                                   // 418: raystack.frontier.v1beta1.User
-	(*Organization)(nil),                                           // 419: raystack.frontier.v1beta1.Organization
-	(*Project)(nil),                                                // 420: raystack.frontier.v1beta1.Project
-	(*ServiceUser)(nil),                                            // 421: raystack.frontier.v1beta1.ServiceUser
-	(*Group)(nil),                                                  // 422: raystack.frontier.v1beta1.Group
-	(*Invitation)(nil),                                             // 423: raystack.frontier.v1beta1.Invitation
-	(*KeyCredential)(nil),                                          // 424: raystack.frontier.v1beta1.KeyCredential
-	(*ServiceUserJWK)(nil),                                         // 425: raystack.frontier.v1beta1.ServiceUserJWK
-	(*SecretCredential)(nil),                                       // 426: raystack.frontier.v1beta1.SecretCredential
-	(*ServiceUserToken)(nil),                                       // 427: raystack.frontier.v1beta1.ServiceUserToken
-	(*RoleRequestBody)(nil),                                        // 428: raystack.frontier.v1beta1.RoleRequestBody
-	(*Role)(nil),                                                   // 429: raystack.frontier.v1beta1.Role
-	(*Domain)(nil),                                                 // 430: raystack.frontier.v1beta1.Domain
-	(*OrganizationKyc)(nil),                                        // 431: raystack.frontier.v1beta1.OrganizationKyc
-	(*Permission)(nil),                                             // 432: raystack.frontier.v1beta1.Permission
-	(*Namespace)(nil),                                              // 433: raystack.frontier.v1beta1.Namespace
-	(*Policy)(nil),                                                 // 434: raystack.frontier.v1beta1.Policy
-	(*Relation)(nil),                                               // 435: raystack.frontier.v1beta1.Relation
-	(*Resource)(nil),                                               // 436: raystack.frontier.v1beta1.Resource
-	(*MetaSchema)(nil),                                             // 437: raystack.frontier.v1beta1.MetaSchema
-	(*PreferenceTrait)(nil),                                        // 438: raystack.frontier.v1beta1.PreferenceTrait
-	(*PreferenceRequestBody)(nil),                                  // 439: raystack.frontier.v1beta1.PreferenceRequestBody
-	(*Preference)(nil),                                             // 440: raystack.frontier.v1beta1.Preference
-	(*Session)(nil),                                                // 441: raystack.frontier.v1beta1.Session
-	(*Session_Meta)(nil),                                           // 442: raystack.frontier.v1beta1.Session.Meta
-	(*AuditRecordActor)(nil),                                       // 443: raystack.frontier.v1beta1.AuditRecordActor
-	(*AuditRecordResource)(nil),                                    // 444: raystack.frontier.v1beta1.AuditRecordResource
-	(*AuditRecordTarget)(nil),                                      // 445: raystack.frontier.v1beta1.AuditRecordTarget
-	(*AuditRecord)(nil),                                            // 446: raystack.frontier.v1beta1.AuditRecord
-	(*PATScope)(nil),                                               // 447: raystack.frontier.v1beta1.PATScope
-	(*PAT)(nil),                                                    // 448: raystack.frontier.v1beta1.PAT
+	(*GetPlanRequest)(nil),                                         // 69: raystack.frontier.v1beta1.GetPlanRequest
+	(*GetPlanResponse)(nil),                                        // 70: raystack.frontier.v1beta1.GetPlanResponse
+	(*ListInvoicesRequest)(nil),                                    // 71: raystack.frontier.v1beta1.ListInvoicesRequest
+	(*ListInvoicesResponse)(nil),                                   // 72: raystack.frontier.v1beta1.ListInvoicesResponse
+	(*SearchOrganizationInvoicesRequest)(nil),                      // 73: raystack.frontier.v1beta1.SearchOrganizationInvoicesRequest
+	(*SearchOrganizationInvoicesResponse)(nil),                     // 74: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse
+	(*GetUpcomingInvoiceRequest)(nil),                              // 75: raystack.frontier.v1beta1.GetUpcomingInvoiceRequest
+	(*GetUpcomingInvoiceResponse)(nil),                             // 76: raystack.frontier.v1beta1.GetUpcomingInvoiceResponse
+	(*GetJWKsRequest)(nil),                                         // 77: raystack.frontier.v1beta1.GetJWKsRequest
+	(*GetJWKsResponse)(nil),                                        // 78: raystack.frontier.v1beta1.GetJWKsResponse
+	(*AuthLogoutRequest)(nil),                                      // 79: raystack.frontier.v1beta1.AuthLogoutRequest
+	(*AuthLogoutResponse)(nil),                                     // 80: raystack.frontier.v1beta1.AuthLogoutResponse
+	(*AuthCallbackRequest)(nil),                                    // 81: raystack.frontier.v1beta1.AuthCallbackRequest
+	(*AuthCallbackResponse)(nil),                                   // 82: raystack.frontier.v1beta1.AuthCallbackResponse
+	(*AuthenticateRequest)(nil),                                    // 83: raystack.frontier.v1beta1.AuthenticateRequest
+	(*AuthenticateResponse)(nil),                                   // 84: raystack.frontier.v1beta1.AuthenticateResponse
+	(*AuthStrategy)(nil),                                           // 85: raystack.frontier.v1beta1.AuthStrategy
+	(*ListAuthStrategiesRequest)(nil),                              // 86: raystack.frontier.v1beta1.ListAuthStrategiesRequest
+	(*ListAuthStrategiesResponse)(nil),                             // 87: raystack.frontier.v1beta1.ListAuthStrategiesResponse
+	(*AuthTokenRequest)(nil),                                       // 88: raystack.frontier.v1beta1.AuthTokenRequest
+	(*AuthTokenResponse)(nil),                                      // 89: raystack.frontier.v1beta1.AuthTokenResponse
+	(*UserRequestBody)(nil),                                        // 90: raystack.frontier.v1beta1.UserRequestBody
+	(*ListUsersRequest)(nil),                                       // 91: raystack.frontier.v1beta1.ListUsersRequest
+	(*ListUsersResponse)(nil),                                      // 92: raystack.frontier.v1beta1.ListUsersResponse
+	(*CreateUserRequest)(nil),                                      // 93: raystack.frontier.v1beta1.CreateUserRequest
+	(*CreateUserResponse)(nil),                                     // 94: raystack.frontier.v1beta1.CreateUserResponse
+	(*ListOrganizationsByUserRequest)(nil),                         // 95: raystack.frontier.v1beta1.ListOrganizationsByUserRequest
+	(*ListOrganizationsByUserResponse)(nil),                        // 96: raystack.frontier.v1beta1.ListOrganizationsByUserResponse
+	(*ListOrganizationsByCurrentUserRequest)(nil),                  // 97: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserRequest
+	(*ListOrganizationsByCurrentUserResponse)(nil),                 // 98: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse
+	(*ListProjectsByUserRequest)(nil),                              // 99: raystack.frontier.v1beta1.ListProjectsByUserRequest
+	(*ListProjectsByUserResponse)(nil),                             // 100: raystack.frontier.v1beta1.ListProjectsByUserResponse
+	(*ListProjectsByCurrentUserRequest)(nil),                       // 101: raystack.frontier.v1beta1.ListProjectsByCurrentUserRequest
+	(*ListProjectsByCurrentUserResponse)(nil),                      // 102: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse
+	(*EnableUserRequest)(nil),                                      // 103: raystack.frontier.v1beta1.EnableUserRequest
+	(*EnableUserResponse)(nil),                                     // 104: raystack.frontier.v1beta1.EnableUserResponse
+	(*DisableUserRequest)(nil),                                     // 105: raystack.frontier.v1beta1.DisableUserRequest
+	(*DisableUserResponse)(nil),                                    // 106: raystack.frontier.v1beta1.DisableUserResponse
+	(*DeleteUserRequest)(nil),                                      // 107: raystack.frontier.v1beta1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),                                     // 108: raystack.frontier.v1beta1.DeleteUserResponse
+	(*GetUserResponse)(nil),                                        // 109: raystack.frontier.v1beta1.GetUserResponse
+	(*GetCurrentUserRequest)(nil),                                  // 110: raystack.frontier.v1beta1.GetCurrentUserRequest
+	(*GetCurrentUserResponse)(nil),                                 // 111: raystack.frontier.v1beta1.GetCurrentUserResponse
+	(*UpdateUserResponse)(nil),                                     // 112: raystack.frontier.v1beta1.UpdateUserResponse
+	(*UpdateCurrentUserResponse)(nil),                              // 113: raystack.frontier.v1beta1.UpdateCurrentUserResponse
+	(*UpdateUserRequest)(nil),                                      // 114: raystack.frontier.v1beta1.UpdateUserRequest
+	(*GetUserRequest)(nil),                                         // 115: raystack.frontier.v1beta1.GetUserRequest
+	(*ListCurrentUserGroupsRequest)(nil),                           // 116: raystack.frontier.v1beta1.ListCurrentUserGroupsRequest
+	(*ListCurrentUserGroupsResponse)(nil),                          // 117: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse
+	(*ListUserGroupsRequest)(nil),                                  // 118: raystack.frontier.v1beta1.ListUserGroupsRequest
+	(*ListUserGroupsResponse)(nil),                                 // 119: raystack.frontier.v1beta1.ListUserGroupsResponse
+	(*UpdateCurrentUserRequest)(nil),                               // 120: raystack.frontier.v1beta1.UpdateCurrentUserRequest
+	(*ListUserInvitationsRequest)(nil),                             // 121: raystack.frontier.v1beta1.ListUserInvitationsRequest
+	(*ListUserInvitationsResponse)(nil),                            // 122: raystack.frontier.v1beta1.ListUserInvitationsResponse
+	(*ListCurrentUserInvitationsRequest)(nil),                      // 123: raystack.frontier.v1beta1.ListCurrentUserInvitationsRequest
+	(*ListCurrentUserInvitationsResponse)(nil),                     // 124: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse
+	(*ListServiceUsersRequest)(nil),                                // 125: raystack.frontier.v1beta1.ListServiceUsersRequest
+	(*ListServiceUsersResponse)(nil),                               // 126: raystack.frontier.v1beta1.ListServiceUsersResponse
+	(*ServiceUserRequestBody)(nil),                                 // 127: raystack.frontier.v1beta1.ServiceUserRequestBody
+	(*CreateServiceUserRequest)(nil),                               // 128: raystack.frontier.v1beta1.CreateServiceUserRequest
+	(*CreateServiceUserResponse)(nil),                              // 129: raystack.frontier.v1beta1.CreateServiceUserResponse
+	(*GetServiceUserRequest)(nil),                                  // 130: raystack.frontier.v1beta1.GetServiceUserRequest
+	(*GetServiceUserResponse)(nil),                                 // 131: raystack.frontier.v1beta1.GetServiceUserResponse
+	(*DeleteServiceUserRequest)(nil),                               // 132: raystack.frontier.v1beta1.DeleteServiceUserRequest
+	(*DeleteServiceUserResponse)(nil),                              // 133: raystack.frontier.v1beta1.DeleteServiceUserResponse
+	(*CreateServiceUserJWKRequest)(nil),                            // 134: raystack.frontier.v1beta1.CreateServiceUserJWKRequest
+	(*CreateServiceUserJWKResponse)(nil),                           // 135: raystack.frontier.v1beta1.CreateServiceUserJWKResponse
+	(*GetServiceUserJWKRequest)(nil),                               // 136: raystack.frontier.v1beta1.GetServiceUserJWKRequest
+	(*GetServiceUserJWKResponse)(nil),                              // 137: raystack.frontier.v1beta1.GetServiceUserJWKResponse
+	(*ListServiceUserJWKsRequest)(nil),                             // 138: raystack.frontier.v1beta1.ListServiceUserJWKsRequest
+	(*ListServiceUserJWKsResponse)(nil),                            // 139: raystack.frontier.v1beta1.ListServiceUserJWKsResponse
+	(*DeleteServiceUserJWKRequest)(nil),                            // 140: raystack.frontier.v1beta1.DeleteServiceUserJWKRequest
+	(*DeleteServiceUserJWKResponse)(nil),                           // 141: raystack.frontier.v1beta1.DeleteServiceUserJWKResponse
+	(*CreateServiceUserCredentialRequest)(nil),                     // 142: raystack.frontier.v1beta1.CreateServiceUserCredentialRequest
+	(*CreateServiceUserCredentialResponse)(nil),                    // 143: raystack.frontier.v1beta1.CreateServiceUserCredentialResponse
+	(*ListServiceUserCredentialsRequest)(nil),                      // 144: raystack.frontier.v1beta1.ListServiceUserCredentialsRequest
+	(*ListServiceUserCredentialsResponse)(nil),                     // 145: raystack.frontier.v1beta1.ListServiceUserCredentialsResponse
+	(*DeleteServiceUserCredentialRequest)(nil),                     // 146: raystack.frontier.v1beta1.DeleteServiceUserCredentialRequest
+	(*DeleteServiceUserCredentialResponse)(nil),                    // 147: raystack.frontier.v1beta1.DeleteServiceUserCredentialResponse
+	(*CreateServiceUserTokenRequest)(nil),                          // 148: raystack.frontier.v1beta1.CreateServiceUserTokenRequest
+	(*CreateServiceUserTokenResponse)(nil),                         // 149: raystack.frontier.v1beta1.CreateServiceUserTokenResponse
+	(*ListServiceUserTokensRequest)(nil),                           // 150: raystack.frontier.v1beta1.ListServiceUserTokensRequest
+	(*ListServiceUserTokensResponse)(nil),                          // 151: raystack.frontier.v1beta1.ListServiceUserTokensResponse
+	(*DeleteServiceUserTokenRequest)(nil),                          // 152: raystack.frontier.v1beta1.DeleteServiceUserTokenRequest
+	(*DeleteServiceUserTokenResponse)(nil),                         // 153: raystack.frontier.v1beta1.DeleteServiceUserTokenResponse
+	(*ListServiceUserProjectsRequest)(nil),                         // 154: raystack.frontier.v1beta1.ListServiceUserProjectsRequest
+	(*ListServiceUserProjectsResponse)(nil),                        // 155: raystack.frontier.v1beta1.ListServiceUserProjectsResponse
+	(*ListOrganizationGroupsRequest)(nil),                          // 156: raystack.frontier.v1beta1.ListOrganizationGroupsRequest
+	(*ListOrganizationGroupsResponse)(nil),                         // 157: raystack.frontier.v1beta1.ListOrganizationGroupsResponse
+	(*CreateOrganizationRoleRequest)(nil),                          // 158: raystack.frontier.v1beta1.CreateOrganizationRoleRequest
+	(*CreateOrganizationRoleResponse)(nil),                         // 159: raystack.frontier.v1beta1.CreateOrganizationRoleResponse
+	(*GetOrganizationRoleRequest)(nil),                             // 160: raystack.frontier.v1beta1.GetOrganizationRoleRequest
+	(*GetOrganizationRoleResponse)(nil),                            // 161: raystack.frontier.v1beta1.GetOrganizationRoleResponse
+	(*UpdateOrganizationRoleRequest)(nil),                          // 162: raystack.frontier.v1beta1.UpdateOrganizationRoleRequest
+	(*UpdateOrganizationRoleResponse)(nil),                         // 163: raystack.frontier.v1beta1.UpdateOrganizationRoleResponse
+	(*ListRolesRequest)(nil),                                       // 164: raystack.frontier.v1beta1.ListRolesRequest
+	(*ListRolesResponse)(nil),                                      // 165: raystack.frontier.v1beta1.ListRolesResponse
+	(*ListOrganizationRolesRequest)(nil),                           // 166: raystack.frontier.v1beta1.ListOrganizationRolesRequest
+	(*ListOrganizationRolesResponse)(nil),                          // 167: raystack.frontier.v1beta1.ListOrganizationRolesResponse
+	(*DeleteOrganizationRoleRequest)(nil),                          // 168: raystack.frontier.v1beta1.DeleteOrganizationRoleRequest
+	(*DeleteOrganizationRoleResponse)(nil),                         // 169: raystack.frontier.v1beta1.DeleteOrganizationRoleResponse
+	(*OrganizationRequestBody)(nil),                                // 170: raystack.frontier.v1beta1.OrganizationRequestBody
+	(*ListOrganizationsRequest)(nil),                               // 171: raystack.frontier.v1beta1.ListOrganizationsRequest
+	(*ListOrganizationsResponse)(nil),                              // 172: raystack.frontier.v1beta1.ListOrganizationsResponse
+	(*CreateOrganizationRequest)(nil),                              // 173: raystack.frontier.v1beta1.CreateOrganizationRequest
+	(*CreateOrganizationResponse)(nil),                             // 174: raystack.frontier.v1beta1.CreateOrganizationResponse
+	(*GetOrganizationResponse)(nil),                                // 175: raystack.frontier.v1beta1.GetOrganizationResponse
+	(*UpdateOrganizationResponse)(nil),                             // 176: raystack.frontier.v1beta1.UpdateOrganizationResponse
+	(*GetOrganizationRequest)(nil),                                 // 177: raystack.frontier.v1beta1.GetOrganizationRequest
+	(*UpdateOrganizationRequest)(nil),                              // 178: raystack.frontier.v1beta1.UpdateOrganizationRequest
+	(*ListOrganizationAdminsRequest)(nil),                          // 179: raystack.frontier.v1beta1.ListOrganizationAdminsRequest
+	(*ListOrganizationAdminsResponse)(nil),                         // 180: raystack.frontier.v1beta1.ListOrganizationAdminsResponse
+	(*ListOrganizationUsersRequest)(nil),                           // 181: raystack.frontier.v1beta1.ListOrganizationUsersRequest
+	(*ListOrganizationUsersResponse)(nil),                          // 182: raystack.frontier.v1beta1.ListOrganizationUsersResponse
+	(*SetOrganizationMemberRoleRequest)(nil),                       // 183: raystack.frontier.v1beta1.SetOrganizationMemberRoleRequest
+	(*SetOrganizationMemberRoleResponse)(nil),                      // 184: raystack.frontier.v1beta1.SetOrganizationMemberRoleResponse
+	(*RemoveOrganizationMemberRequest)(nil),                        // 185: raystack.frontier.v1beta1.RemoveOrganizationMemberRequest
+	(*RemoveOrganizationMemberResponse)(nil),                       // 186: raystack.frontier.v1beta1.RemoveOrganizationMemberResponse
+	(*ListOrganizationServiceUsersRequest)(nil),                    // 187: raystack.frontier.v1beta1.ListOrganizationServiceUsersRequest
+	(*ListOrganizationServiceUsersResponse)(nil),                   // 188: raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse
+	(*ListOrganizationInvitationsRequest)(nil),                     // 189: raystack.frontier.v1beta1.ListOrganizationInvitationsRequest
+	(*ListOrganizationInvitationsResponse)(nil),                    // 190: raystack.frontier.v1beta1.ListOrganizationInvitationsResponse
+	(*CreateOrganizationInvitationRequest)(nil),                    // 191: raystack.frontier.v1beta1.CreateOrganizationInvitationRequest
+	(*CreateOrganizationInvitationResponse)(nil),                   // 192: raystack.frontier.v1beta1.CreateOrganizationInvitationResponse
+	(*GetOrganizationInvitationRequest)(nil),                       // 193: raystack.frontier.v1beta1.GetOrganizationInvitationRequest
+	(*GetOrganizationInvitationResponse)(nil),                      // 194: raystack.frontier.v1beta1.GetOrganizationInvitationResponse
+	(*AcceptOrganizationInvitationRequest)(nil),                    // 195: raystack.frontier.v1beta1.AcceptOrganizationInvitationRequest
+	(*AcceptOrganizationInvitationResponse)(nil),                   // 196: raystack.frontier.v1beta1.AcceptOrganizationInvitationResponse
+	(*DeleteOrganizationInvitationRequest)(nil),                    // 197: raystack.frontier.v1beta1.DeleteOrganizationInvitationRequest
+	(*ListOrganizationDomainsRequest)(nil),                         // 198: raystack.frontier.v1beta1.ListOrganizationDomainsRequest
+	(*ListOrganizationDomainsResponse)(nil),                        // 199: raystack.frontier.v1beta1.ListOrganizationDomainsResponse
+	(*JoinOrganizationRequest)(nil),                                // 200: raystack.frontier.v1beta1.JoinOrganizationRequest
+	(*JoinOrganizationResponse)(nil),                               // 201: raystack.frontier.v1beta1.JoinOrganizationResponse
+	(*GetOrganizationDomainRequest)(nil),                           // 202: raystack.frontier.v1beta1.GetOrganizationDomainRequest
+	(*GetOrganizationDomainResponse)(nil),                          // 203: raystack.frontier.v1beta1.GetOrganizationDomainResponse
+	(*CreateOrganizationDomainRequest)(nil),                        // 204: raystack.frontier.v1beta1.CreateOrganizationDomainRequest
+	(*CreateOrganizationDomainResponse)(nil),                       // 205: raystack.frontier.v1beta1.CreateOrganizationDomainResponse
+	(*DeleteOrganizationDomainRequest)(nil),                        // 206: raystack.frontier.v1beta1.DeleteOrganizationDomainRequest
+	(*DeleteOrganizationDomainResponse)(nil),                       // 207: raystack.frontier.v1beta1.DeleteOrganizationDomainResponse
+	(*VerifyOrganizationDomainRequest)(nil),                        // 208: raystack.frontier.v1beta1.VerifyOrganizationDomainRequest
+	(*VerifyOrganizationDomainResponse)(nil),                       // 209: raystack.frontier.v1beta1.VerifyOrganizationDomainResponse
+	(*DeleteOrganizationInvitationResponse)(nil),                   // 210: raystack.frontier.v1beta1.DeleteOrganizationInvitationResponse
+	(*EnableOrganizationRequest)(nil),                              // 211: raystack.frontier.v1beta1.EnableOrganizationRequest
+	(*EnableOrganizationResponse)(nil),                             // 212: raystack.frontier.v1beta1.EnableOrganizationResponse
+	(*DisableOrganizationRequest)(nil),                             // 213: raystack.frontier.v1beta1.DisableOrganizationRequest
+	(*DisableOrganizationResponse)(nil),                            // 214: raystack.frontier.v1beta1.DisableOrganizationResponse
+	(*DeleteOrganizationRequest)(nil),                              // 215: raystack.frontier.v1beta1.DeleteOrganizationRequest
+	(*DeleteOrganizationResponse)(nil),                             // 216: raystack.frontier.v1beta1.DeleteOrganizationResponse
+	(*GetOrganizationKycRequest)(nil),                              // 217: raystack.frontier.v1beta1.GetOrganizationKycRequest
+	(*GetOrganizationKycResponse)(nil),                             // 218: raystack.frontier.v1beta1.GetOrganizationKycResponse
+	(*ProjectRequestBody)(nil),                                     // 219: raystack.frontier.v1beta1.ProjectRequestBody
+	(*CreateProjectRequest)(nil),                                   // 220: raystack.frontier.v1beta1.CreateProjectRequest
+	(*CreateProjectResponse)(nil),                                  // 221: raystack.frontier.v1beta1.CreateProjectResponse
+	(*ListOrganizationProjectsRequest)(nil),                        // 222: raystack.frontier.v1beta1.ListOrganizationProjectsRequest
+	(*ListOrganizationProjectsResponse)(nil),                       // 223: raystack.frontier.v1beta1.ListOrganizationProjectsResponse
+	(*GetProjectRequest)(nil),                                      // 224: raystack.frontier.v1beta1.GetProjectRequest
+	(*GetProjectResponse)(nil),                                     // 225: raystack.frontier.v1beta1.GetProjectResponse
+	(*UpdateProjectRequestBody)(nil),                               // 226: raystack.frontier.v1beta1.UpdateProjectRequestBody
+	(*UpdateProjectRequest)(nil),                                   // 227: raystack.frontier.v1beta1.UpdateProjectRequest
+	(*UpdateProjectResponse)(nil),                                  // 228: raystack.frontier.v1beta1.UpdateProjectResponse
+	(*ListProjectAdminsRequest)(nil),                               // 229: raystack.frontier.v1beta1.ListProjectAdminsRequest
+	(*ListProjectAdminsResponse)(nil),                              // 230: raystack.frontier.v1beta1.ListProjectAdminsResponse
+	(*ListProjectUsersRequest)(nil),                                // 231: raystack.frontier.v1beta1.ListProjectUsersRequest
+	(*ListProjectUsersResponse)(nil),                               // 232: raystack.frontier.v1beta1.ListProjectUsersResponse
+	(*ListProjectServiceUsersRequest)(nil),                         // 233: raystack.frontier.v1beta1.ListProjectServiceUsersRequest
+	(*ListProjectServiceUsersResponse)(nil),                        // 234: raystack.frontier.v1beta1.ListProjectServiceUsersResponse
+	(*ListProjectGroupsRequest)(nil),                               // 235: raystack.frontier.v1beta1.ListProjectGroupsRequest
+	(*ListProjectGroupsResponse)(nil),                              // 236: raystack.frontier.v1beta1.ListProjectGroupsResponse
+	(*EnableProjectRequest)(nil),                                   // 237: raystack.frontier.v1beta1.EnableProjectRequest
+	(*EnableProjectResponse)(nil),                                  // 238: raystack.frontier.v1beta1.EnableProjectResponse
+	(*DisableProjectRequest)(nil),                                  // 239: raystack.frontier.v1beta1.DisableProjectRequest
+	(*DisableProjectResponse)(nil),                                 // 240: raystack.frontier.v1beta1.DisableProjectResponse
+	(*DeleteProjectRequest)(nil),                                   // 241: raystack.frontier.v1beta1.DeleteProjectRequest
+	(*DeleteProjectResponse)(nil),                                  // 242: raystack.frontier.v1beta1.DeleteProjectResponse
+	(*SetProjectMemberRoleRequest)(nil),                            // 243: raystack.frontier.v1beta1.SetProjectMemberRoleRequest
+	(*SetProjectMemberRoleResponse)(nil),                           // 244: raystack.frontier.v1beta1.SetProjectMemberRoleResponse
+	(*RemoveProjectMemberRequest)(nil),                             // 245: raystack.frontier.v1beta1.RemoveProjectMemberRequest
+	(*RemoveProjectMemberResponse)(nil),                            // 246: raystack.frontier.v1beta1.RemoveProjectMemberResponse
+	(*PolicyRequestBody)(nil),                                      // 247: raystack.frontier.v1beta1.PolicyRequestBody
+	(*CreatePolicyForProjectBody)(nil),                             // 248: raystack.frontier.v1beta1.CreatePolicyForProjectBody
+	(*GetPermissionRequest)(nil),                                   // 249: raystack.frontier.v1beta1.GetPermissionRequest
+	(*GetPermissionResponse)(nil),                                  // 250: raystack.frontier.v1beta1.GetPermissionResponse
+	(*ListPermissionsRequest)(nil),                                 // 251: raystack.frontier.v1beta1.ListPermissionsRequest
+	(*ListPermissionsResponse)(nil),                                // 252: raystack.frontier.v1beta1.ListPermissionsResponse
+	(*ListNamespacesRequest)(nil),                                  // 253: raystack.frontier.v1beta1.ListNamespacesRequest
+	(*ListNamespacesResponse)(nil),                                 // 254: raystack.frontier.v1beta1.ListNamespacesResponse
+	(*GetNamespaceRequest)(nil),                                    // 255: raystack.frontier.v1beta1.GetNamespaceRequest
+	(*GetNamespaceResponse)(nil),                                   // 256: raystack.frontier.v1beta1.GetNamespaceResponse
+	(*CreatePolicyRequest)(nil),                                    // 257: raystack.frontier.v1beta1.CreatePolicyRequest
+	(*CreatePolicyResponse)(nil),                                   // 258: raystack.frontier.v1beta1.CreatePolicyResponse
+	(*GetPolicyRequest)(nil),                                       // 259: raystack.frontier.v1beta1.GetPolicyRequest
+	(*GetPolicyResponse)(nil),                                      // 260: raystack.frontier.v1beta1.GetPolicyResponse
+	(*ListPoliciesRequest)(nil),                                    // 261: raystack.frontier.v1beta1.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),                                   // 262: raystack.frontier.v1beta1.ListPoliciesResponse
+	(*UpdatePolicyRequest)(nil),                                    // 263: raystack.frontier.v1beta1.UpdatePolicyRequest
+	(*UpdatePolicyResponse)(nil),                                   // 264: raystack.frontier.v1beta1.UpdatePolicyResponse
+	(*DeletePolicyRequest)(nil),                                    // 265: raystack.frontier.v1beta1.DeletePolicyRequest
+	(*DeletePolicyResponse)(nil),                                   // 266: raystack.frontier.v1beta1.DeletePolicyResponse
+	(*CreatePolicyForProjectRequest)(nil),                          // 267: raystack.frontier.v1beta1.CreatePolicyForProjectRequest
+	(*CreatePolicyForProjectResponse)(nil),                         // 268: raystack.frontier.v1beta1.CreatePolicyForProjectResponse
+	(*RelationRequestBody)(nil),                                    // 269: raystack.frontier.v1beta1.RelationRequestBody
+	(*CreateRelationRequest)(nil),                                  // 270: raystack.frontier.v1beta1.CreateRelationRequest
+	(*CreateRelationResponse)(nil),                                 // 271: raystack.frontier.v1beta1.CreateRelationResponse
+	(*GetRelationRequest)(nil),                                     // 272: raystack.frontier.v1beta1.GetRelationRequest
+	(*GetRelationResponse)(nil),                                    // 273: raystack.frontier.v1beta1.GetRelationResponse
+	(*UpdateRelationRequest)(nil),                                  // 274: raystack.frontier.v1beta1.UpdateRelationRequest
+	(*UpdateRelationResponse)(nil),                                 // 275: raystack.frontier.v1beta1.UpdateRelationResponse
+	(*GroupRequestBody)(nil),                                       // 276: raystack.frontier.v1beta1.GroupRequestBody
+	(*CreateGroupRequest)(nil),                                     // 277: raystack.frontier.v1beta1.CreateGroupRequest
+	(*GetGroupRequest)(nil),                                        // 278: raystack.frontier.v1beta1.GetGroupRequest
+	(*CreateGroupResponse)(nil),                                    // 279: raystack.frontier.v1beta1.CreateGroupResponse
+	(*GetGroupResponse)(nil),                                       // 280: raystack.frontier.v1beta1.GetGroupResponse
+	(*UpdateGroupResponse)(nil),                                    // 281: raystack.frontier.v1beta1.UpdateGroupResponse
+	(*UpdateGroupRequest)(nil),                                     // 282: raystack.frontier.v1beta1.UpdateGroupRequest
+	(*ListGroupUsersRequest)(nil),                                  // 283: raystack.frontier.v1beta1.ListGroupUsersRequest
+	(*ListGroupUsersResponse)(nil),                                 // 284: raystack.frontier.v1beta1.ListGroupUsersResponse
+	(*EnableGroupRequest)(nil),                                     // 285: raystack.frontier.v1beta1.EnableGroupRequest
+	(*EnableGroupResponse)(nil),                                    // 286: raystack.frontier.v1beta1.EnableGroupResponse
+	(*DisableGroupRequest)(nil),                                    // 287: raystack.frontier.v1beta1.DisableGroupRequest
+	(*DisableGroupResponse)(nil),                                   // 288: raystack.frontier.v1beta1.DisableGroupResponse
+	(*DeleteGroupRequest)(nil),                                     // 289: raystack.frontier.v1beta1.DeleteGroupRequest
+	(*DeleteGroupResponse)(nil),                                    // 290: raystack.frontier.v1beta1.DeleteGroupResponse
+	(*RemoveGroupUserRequest)(nil),                                 // 291: raystack.frontier.v1beta1.RemoveGroupUserRequest
+	(*RemoveGroupUserResponse)(nil),                                // 292: raystack.frontier.v1beta1.RemoveGroupUserResponse
+	(*SetGroupMemberRoleRequest)(nil),                              // 293: raystack.frontier.v1beta1.SetGroupMemberRoleRequest
+	(*SetGroupMemberRoleResponse)(nil),                             // 294: raystack.frontier.v1beta1.SetGroupMemberRoleResponse
+	(*DeleteRelationRequest)(nil),                                  // 295: raystack.frontier.v1beta1.DeleteRelationRequest
+	(*DeleteRelationResponse)(nil),                                 // 296: raystack.frontier.v1beta1.DeleteRelationResponse
+	(*ListProjectResourcesRequest)(nil),                            // 297: raystack.frontier.v1beta1.ListProjectResourcesRequest
+	(*ListProjectResourcesResponse)(nil),                           // 298: raystack.frontier.v1beta1.ListProjectResourcesResponse
+	(*ResourceRequestBody)(nil),                                    // 299: raystack.frontier.v1beta1.ResourceRequestBody
+	(*CreateProjectResourceRequest)(nil),                           // 300: raystack.frontier.v1beta1.CreateProjectResourceRequest
+	(*CreateProjectResourceResponse)(nil),                          // 301: raystack.frontier.v1beta1.CreateProjectResourceResponse
+	(*GetProjectResourceRequest)(nil),                              // 302: raystack.frontier.v1beta1.GetProjectResourceRequest
+	(*GetProjectResourceResponse)(nil),                             // 303: raystack.frontier.v1beta1.GetProjectResourceResponse
+	(*UpdateProjectResourceRequest)(nil),                           // 304: raystack.frontier.v1beta1.UpdateProjectResourceRequest
+	(*UpdateProjectResourceResponse)(nil),                          // 305: raystack.frontier.v1beta1.UpdateProjectResourceResponse
+	(*DeleteProjectResourceRequest)(nil),                           // 306: raystack.frontier.v1beta1.DeleteProjectResourceRequest
+	(*DeleteProjectResourceResponse)(nil),                          // 307: raystack.frontier.v1beta1.DeleteProjectResourceResponse
+	(*CheckResourcePermissionRequest)(nil),                         // 308: raystack.frontier.v1beta1.CheckResourcePermissionRequest
+	(*CheckResourcePermissionResponse)(nil),                        // 309: raystack.frontier.v1beta1.CheckResourcePermissionResponse
+	(*BatchCheckPermissionRequest)(nil),                            // 310: raystack.frontier.v1beta1.BatchCheckPermissionRequest
+	(*BatchCheckPermissionBody)(nil),                               // 311: raystack.frontier.v1beta1.BatchCheckPermissionBody
+	(*BatchCheckPermissionResponse)(nil),                           // 312: raystack.frontier.v1beta1.BatchCheckPermissionResponse
+	(*BatchCheckPermissionResponsePair)(nil),                       // 313: raystack.frontier.v1beta1.BatchCheckPermissionResponsePair
+	(*MetaSchemaRequestBody)(nil),                                  // 314: raystack.frontier.v1beta1.MetaSchemaRequestBody
+	(*CreateMetaSchemaRequest)(nil),                                // 315: raystack.frontier.v1beta1.CreateMetaSchemaRequest
+	(*CreateMetaSchemaResponse)(nil),                               // 316: raystack.frontier.v1beta1.CreateMetaSchemaResponse
+	(*GetMetaSchemaRequest)(nil),                                   // 317: raystack.frontier.v1beta1.GetMetaSchemaRequest
+	(*GetMetaSchemaResponse)(nil),                                  // 318: raystack.frontier.v1beta1.GetMetaSchemaResponse
+	(*UpdateMetaSchemaRequest)(nil),                                // 319: raystack.frontier.v1beta1.UpdateMetaSchemaRequest
+	(*UpdateMetaSchemaResponse)(nil),                               // 320: raystack.frontier.v1beta1.UpdateMetaSchemaResponse
+	(*DeleteMetaSchemaRequest)(nil),                                // 321: raystack.frontier.v1beta1.DeleteMetaSchemaRequest
+	(*DeleteMetaSchemaResponse)(nil),                               // 322: raystack.frontier.v1beta1.DeleteMetaSchemaResponse
+	(*ListMetaSchemasRequest)(nil),                                 // 323: raystack.frontier.v1beta1.ListMetaSchemasRequest
+	(*ListMetaSchemasResponse)(nil),                                // 324: raystack.frontier.v1beta1.ListMetaSchemasResponse
+	(*DescribePreferencesRequest)(nil),                             // 325: raystack.frontier.v1beta1.DescribePreferencesRequest
+	(*DescribePreferencesResponse)(nil),                            // 326: raystack.frontier.v1beta1.DescribePreferencesResponse
+	(*CreateOrganizationPreferencesRequest)(nil),                   // 327: raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest
+	(*CreateOrganizationPreferencesResponse)(nil),                  // 328: raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse
+	(*ListOrganizationPreferencesRequest)(nil),                     // 329: raystack.frontier.v1beta1.ListOrganizationPreferencesRequest
+	(*ListOrganizationPreferencesResponse)(nil),                    // 330: raystack.frontier.v1beta1.ListOrganizationPreferencesResponse
+	(*CreateProjectPreferencesRequest)(nil),                        // 331: raystack.frontier.v1beta1.CreateProjectPreferencesRequest
+	(*CreateProjectPreferencesResponse)(nil),                       // 332: raystack.frontier.v1beta1.CreateProjectPreferencesResponse
+	(*ListProjectPreferencesRequest)(nil),                          // 333: raystack.frontier.v1beta1.ListProjectPreferencesRequest
+	(*ListProjectPreferencesResponse)(nil),                         // 334: raystack.frontier.v1beta1.ListProjectPreferencesResponse
+	(*CreateGroupPreferencesRequest)(nil),                          // 335: raystack.frontier.v1beta1.CreateGroupPreferencesRequest
+	(*CreateGroupPreferencesResponse)(nil),                         // 336: raystack.frontier.v1beta1.CreateGroupPreferencesResponse
+	(*ListGroupPreferencesRequest)(nil),                            // 337: raystack.frontier.v1beta1.ListGroupPreferencesRequest
+	(*ListGroupPreferencesResponse)(nil),                           // 338: raystack.frontier.v1beta1.ListGroupPreferencesResponse
+	(*CreateUserPreferencesRequest)(nil),                           // 339: raystack.frontier.v1beta1.CreateUserPreferencesRequest
+	(*CreateUserPreferencesResponse)(nil),                          // 340: raystack.frontier.v1beta1.CreateUserPreferencesResponse
+	(*ListUserPreferencesRequest)(nil),                             // 341: raystack.frontier.v1beta1.ListUserPreferencesRequest
+	(*ListUserPreferencesResponse)(nil),                            // 342: raystack.frontier.v1beta1.ListUserPreferencesResponse
+	(*CreateCurrentUserPreferencesRequest)(nil),                    // 343: raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest
+	(*CreateCurrentUserPreferencesResponse)(nil),                   // 344: raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse
+	(*ListCurrentUserPreferencesRequest)(nil),                      // 345: raystack.frontier.v1beta1.ListCurrentUserPreferencesRequest
+	(*ListCurrentUserPreferencesResponse)(nil),                     // 346: raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse
+	(*BillingWebhookCallbackRequest)(nil),                          // 347: raystack.frontier.v1beta1.BillingWebhookCallbackRequest
+	(*BillingWebhookCallbackResponse)(nil),                         // 348: raystack.frontier.v1beta1.BillingWebhookCallbackResponse
+	(*CreateProspectPublicRequest)(nil),                            // 349: raystack.frontier.v1beta1.CreateProspectPublicRequest
+	(*CreateProspectPublicResponse)(nil),                           // 350: raystack.frontier.v1beta1.CreateProspectPublicResponse
+	(*ListSessionsRequest)(nil),                                    // 351: raystack.frontier.v1beta1.ListSessionsRequest
+	(*ListSessionsResponse)(nil),                                   // 352: raystack.frontier.v1beta1.ListSessionsResponse
+	(*RevokeSessionRequest)(nil),                                   // 353: raystack.frontier.v1beta1.RevokeSessionRequest
+	(*RevokeSessionResponse)(nil),                                  // 354: raystack.frontier.v1beta1.RevokeSessionResponse
+	(*PingUserSessionRequest)(nil),                                 // 355: raystack.frontier.v1beta1.PingUserSessionRequest
+	(*PingUserSessionResponse)(nil),                                // 356: raystack.frontier.v1beta1.PingUserSessionResponse
+	(*CreateAuditRecordRequest)(nil),                               // 357: raystack.frontier.v1beta1.CreateAuditRecordRequest
+	(*CreateAuditRecordResponse)(nil),                              // 358: raystack.frontier.v1beta1.CreateAuditRecordResponse
+	(*CreateCurrentUserPATRequest)(nil),                            // 359: raystack.frontier.v1beta1.CreateCurrentUserPATRequest
+	(*CreateCurrentUserPATResponse)(nil),                           // 360: raystack.frontier.v1beta1.CreateCurrentUserPATResponse
+	(*ListRolesForPATRequest)(nil),                                 // 361: raystack.frontier.v1beta1.ListRolesForPATRequest
+	(*ListRolesForPATResponse)(nil),                                // 362: raystack.frontier.v1beta1.ListRolesForPATResponse
+	(*SearchCurrentUserPATsRequest)(nil),                           // 363: raystack.frontier.v1beta1.SearchCurrentUserPATsRequest
+	(*SearchCurrentUserPATsResponse)(nil),                          // 364: raystack.frontier.v1beta1.SearchCurrentUserPATsResponse
+	(*GetCurrentUserPATRequest)(nil),                               // 365: raystack.frontier.v1beta1.GetCurrentUserPATRequest
+	(*GetCurrentUserPATResponse)(nil),                              // 366: raystack.frontier.v1beta1.GetCurrentUserPATResponse
+	(*DeleteCurrentUserPATRequest)(nil),                            // 367: raystack.frontier.v1beta1.DeleteCurrentUserPATRequest
+	(*DeleteCurrentUserPATResponse)(nil),                           // 368: raystack.frontier.v1beta1.DeleteCurrentUserPATResponse
+	(*UpdateCurrentUserPATRequest)(nil),                            // 369: raystack.frontier.v1beta1.UpdateCurrentUserPATRequest
+	(*UpdateCurrentUserPATResponse)(nil),                           // 370: raystack.frontier.v1beta1.UpdateCurrentUserPATResponse
+	(*RegenerateCurrentUserPATRequest)(nil),                        // 371: raystack.frontier.v1beta1.RegenerateCurrentUserPATRequest
+	(*RegenerateCurrentUserPATResponse)(nil),                       // 372: raystack.frontier.v1beta1.RegenerateCurrentUserPATResponse
+	(*CheckCurrentUserPATTitleRequest)(nil),                        // 373: raystack.frontier.v1beta1.CheckCurrentUserPATTitleRequest
+	(*CheckCurrentUserPATTitleResponse)(nil),                       // 374: raystack.frontier.v1beta1.CheckCurrentUserPATTitleResponse
+	(*SearchOrganizationTokensResponse_OrganizationToken)(nil),     // 375: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.OrganizationToken
+	(*ChangeSubscriptionRequest_PlanChange)(nil),                   // 376: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
+	(*ChangeSubscriptionRequest_PhaseChange)(nil),                  // 377: raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
+	(*SearchOrganizationInvoicesResponse_OrganizationInvoice)(nil), // 378: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.OrganizationInvoice
+	(*ListProjectsByCurrentUserResponse_AccessPair)(nil),           // 379: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
+	(*ListCurrentUserGroupsResponse_AccessPair)(nil),               // 380: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
+	(*ListServiceUserProjectsResponse_AccessPair)(nil),             // 381: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
+	(*ListOrganizationUsersResponse_RolePair)(nil),                 // 382: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
+	(*ListProjectUsersResponse_RolePair)(nil),                      // 383: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
+	(*ListProjectServiceUsersResponse_RolePair)(nil),               // 384: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
+	(*ListProjectGroupsResponse_RolePair)(nil),                     // 385: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
+	(*ListGroupUsersResponse_RolePair)(nil),                        // 386: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
+	(*BillingAccount_Address)(nil),                                 // 387: raystack.frontier.v1beta1.BillingAccount.Address
+	(*BillingAccount_Tax)(nil),                                     // 388: raystack.frontier.v1beta1.BillingAccount.Tax
+	(*structpb.Struct)(nil),                                        // 389: google.protobuf.Struct
+	(*BillingAccount)(nil),                                         // 390: raystack.frontier.v1beta1.BillingAccount
+	(*PaymentMethod)(nil),                                          // 391: raystack.frontier.v1beta1.PaymentMethod
+	(*BillingAccountDetails)(nil),                                  // 392: raystack.frontier.v1beta1.BillingAccountDetails
+	(*BillingAccount_Balance)(nil),                                 // 393: raystack.frontier.v1beta1.BillingAccount.Balance
+	(*Usage)(nil),                                                  // 394: raystack.frontier.v1beta1.Usage
+	(*timestamppb.Timestamp)(nil),                                  // 395: google.protobuf.Timestamp
+	(*BillingTransaction)(nil),                                     // 396: raystack.frontier.v1beta1.BillingTransaction
+	(*RQLRequest)(nil),                                             // 397: raystack.frontier.v1beta1.RQLRequest
+	(*RQLQueryPaginationResponse)(nil),                             // 398: raystack.frontier.v1beta1.RQLQueryPaginationResponse
+	(*RQLQueryGroupResponse)(nil),                                  // 399: raystack.frontier.v1beta1.RQLQueryGroupResponse
+	(*Subscription)(nil),                                           // 400: raystack.frontier.v1beta1.Subscription
+	(*Subscription_Phase)(nil),                                     // 401: raystack.frontier.v1beta1.Subscription.Phase
+	(*Plan)(nil),                                                   // 402: raystack.frontier.v1beta1.Plan
+	(*CheckoutSubscriptionBody)(nil),                               // 403: raystack.frontier.v1beta1.CheckoutSubscriptionBody
+	(*CheckoutProductBody)(nil),                                    // 404: raystack.frontier.v1beta1.CheckoutProductBody
+	(*CheckoutSetupBody)(nil),                                      // 405: raystack.frontier.v1beta1.CheckoutSetupBody
+	(*CheckoutSession)(nil),                                        // 406: raystack.frontier.v1beta1.CheckoutSession
+	(*Price)(nil),                                                  // 407: raystack.frontier.v1beta1.Price
+	(*Feature)(nil),                                                // 408: raystack.frontier.v1beta1.Feature
+	(*Product_BehaviorConfig)(nil),                                 // 409: raystack.frontier.v1beta1.Product.BehaviorConfig
+	(*Product)(nil),                                                // 410: raystack.frontier.v1beta1.Product
+	(*Invoice)(nil),                                                // 411: raystack.frontier.v1beta1.Invoice
+	(*JSONWebKey)(nil),                                             // 412: raystack.frontier.v1beta1.JSONWebKey
+	(*User)(nil),                                                   // 413: raystack.frontier.v1beta1.User
+	(*Organization)(nil),                                           // 414: raystack.frontier.v1beta1.Organization
+	(*Project)(nil),                                                // 415: raystack.frontier.v1beta1.Project
+	(*ServiceUser)(nil),                                            // 416: raystack.frontier.v1beta1.ServiceUser
+	(*Group)(nil),                                                  // 417: raystack.frontier.v1beta1.Group
+	(*Invitation)(nil),                                             // 418: raystack.frontier.v1beta1.Invitation
+	(*KeyCredential)(nil),                                          // 419: raystack.frontier.v1beta1.KeyCredential
+	(*ServiceUserJWK)(nil),                                         // 420: raystack.frontier.v1beta1.ServiceUserJWK
+	(*SecretCredential)(nil),                                       // 421: raystack.frontier.v1beta1.SecretCredential
+	(*ServiceUserToken)(nil),                                       // 422: raystack.frontier.v1beta1.ServiceUserToken
+	(*RoleRequestBody)(nil),                                        // 423: raystack.frontier.v1beta1.RoleRequestBody
+	(*Role)(nil),                                                   // 424: raystack.frontier.v1beta1.Role
+	(*Domain)(nil),                                                 // 425: raystack.frontier.v1beta1.Domain
+	(*OrganizationKyc)(nil),                                        // 426: raystack.frontier.v1beta1.OrganizationKyc
+	(*Permission)(nil),                                             // 427: raystack.frontier.v1beta1.Permission
+	(*Namespace)(nil),                                              // 428: raystack.frontier.v1beta1.Namespace
+	(*Policy)(nil),                                                 // 429: raystack.frontier.v1beta1.Policy
+	(*Relation)(nil),                                               // 430: raystack.frontier.v1beta1.Relation
+	(*Resource)(nil),                                               // 431: raystack.frontier.v1beta1.Resource
+	(*MetaSchema)(nil),                                             // 432: raystack.frontier.v1beta1.MetaSchema
+	(*PreferenceTrait)(nil),                                        // 433: raystack.frontier.v1beta1.PreferenceTrait
+	(*PreferenceRequestBody)(nil),                                  // 434: raystack.frontier.v1beta1.PreferenceRequestBody
+	(*Preference)(nil),                                             // 435: raystack.frontier.v1beta1.Preference
+	(*Session)(nil),                                                // 436: raystack.frontier.v1beta1.Session
+	(*Session_Meta)(nil),                                           // 437: raystack.frontier.v1beta1.Session.Meta
+	(*AuditRecordActor)(nil),                                       // 438: raystack.frontier.v1beta1.AuditRecordActor
+	(*AuditRecordResource)(nil),                                    // 439: raystack.frontier.v1beta1.AuditRecordResource
+	(*AuditRecordTarget)(nil),                                      // 440: raystack.frontier.v1beta1.AuditRecordTarget
+	(*AuditRecord)(nil),                                            // 441: raystack.frontier.v1beta1.AuditRecord
+	(*PATScope)(nil),                                               // 442: raystack.frontier.v1beta1.PATScope
+	(*PAT)(nil),                                                    // 443: raystack.frontier.v1beta1.PAT
 }
 var file_raystack_frontier_v1beta1_frontier_proto_depIdxs = []int32{
-	392, // 0: raystack.frontier.v1beta1.BillingAccountRequestBody.address:type_name -> raystack.frontier.v1beta1.BillingAccount.Address
-	393, // 1: raystack.frontier.v1beta1.BillingAccountRequestBody.tax_data:type_name -> raystack.frontier.v1beta1.BillingAccount.Tax
-	394, // 2: raystack.frontier.v1beta1.BillingAccountRequestBody.metadata:type_name -> google.protobuf.Struct
+	387, // 0: raystack.frontier.v1beta1.BillingAccountRequestBody.address:type_name -> raystack.frontier.v1beta1.BillingAccount.Address
+	388, // 1: raystack.frontier.v1beta1.BillingAccountRequestBody.tax_data:type_name -> raystack.frontier.v1beta1.BillingAccount.Tax
+	389, // 2: raystack.frontier.v1beta1.BillingAccountRequestBody.metadata:type_name -> google.protobuf.Struct
 	0,   // 3: raystack.frontier.v1beta1.CreateBillingAccountRequest.body:type_name -> raystack.frontier.v1beta1.BillingAccountRequestBody
-	395, // 4: raystack.frontier.v1beta1.CreateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
-	395, // 5: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
-	396, // 6: raystack.frontier.v1beta1.GetBillingAccountResponse.payment_methods:type_name -> raystack.frontier.v1beta1.PaymentMethod
-	397, // 7: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_details:type_name -> raystack.frontier.v1beta1.BillingAccountDetails
+	390, // 4: raystack.frontier.v1beta1.CreateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
+	390, // 5: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
+	391, // 6: raystack.frontier.v1beta1.GetBillingAccountResponse.payment_methods:type_name -> raystack.frontier.v1beta1.PaymentMethod
+	392, // 7: raystack.frontier.v1beta1.GetBillingAccountResponse.billing_details:type_name -> raystack.frontier.v1beta1.BillingAccountDetails
 	0,   // 8: raystack.frontier.v1beta1.UpdateBillingAccountRequest.body:type_name -> raystack.frontier.v1beta1.BillingAccountRequestBody
-	395, // 9: raystack.frontier.v1beta1.UpdateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
-	395, // 10: raystack.frontier.v1beta1.ListBillingAccountsResponse.billing_accounts:type_name -> raystack.frontier.v1beta1.BillingAccount
-	398, // 11: raystack.frontier.v1beta1.GetBillingBalanceResponse.balance:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
-	399, // 12: raystack.frontier.v1beta1.CreateBillingUsageRequest.usages:type_name -> raystack.frontier.v1beta1.Usage
-	400, // 13: raystack.frontier.v1beta1.ListBillingTransactionsRequest.since:type_name -> google.protobuf.Timestamp
-	400, // 14: raystack.frontier.v1beta1.ListBillingTransactionsRequest.start_range:type_name -> google.protobuf.Timestamp
-	400, // 15: raystack.frontier.v1beta1.ListBillingTransactionsRequest.end_range:type_name -> google.protobuf.Timestamp
-	401, // 16: raystack.frontier.v1beta1.ListBillingTransactionsResponse.transactions:type_name -> raystack.frontier.v1beta1.BillingTransaction
-	398, // 17: raystack.frontier.v1beta1.TotalDebitedTransactionsResponse.debited:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
-	402, // 18: raystack.frontier.v1beta1.SearchOrganizationTokensRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
-	380, // 19: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.organization_tokens:type_name -> raystack.frontier.v1beta1.SearchOrganizationTokensResponse.OrganizationToken
-	403, // 20: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
-	404, // 21: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.group:type_name -> raystack.frontier.v1beta1.RQLQueryGroupResponse
-	405, // 22: raystack.frontier.v1beta1.GetSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
-	405, // 23: raystack.frontier.v1beta1.ListSubscriptionsResponse.subscriptions:type_name -> raystack.frontier.v1beta1.Subscription
-	394, // 24: raystack.frontier.v1beta1.UpdateSubscriptionRequest.metadata:type_name -> google.protobuf.Struct
-	405, // 25: raystack.frontier.v1beta1.UpdateSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
-	381, // 26: raystack.frontier.v1beta1.ChangeSubscriptionRequest.plan_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
-	382, // 27: raystack.frontier.v1beta1.ChangeSubscriptionRequest.phase_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
-	406, // 28: raystack.frontier.v1beta1.ChangeSubscriptionResponse.phase:type_name -> raystack.frontier.v1beta1.Subscription.Phase
-	407, // 29: raystack.frontier.v1beta1.ListPlansResponse.plans:type_name -> raystack.frontier.v1beta1.Plan
-	408, // 30: raystack.frontier.v1beta1.CreateCheckoutRequest.subscription_body:type_name -> raystack.frontier.v1beta1.CheckoutSubscriptionBody
-	409, // 31: raystack.frontier.v1beta1.CreateCheckoutRequest.product_body:type_name -> raystack.frontier.v1beta1.CheckoutProductBody
-	410, // 32: raystack.frontier.v1beta1.CreateCheckoutRequest.setup_body:type_name -> raystack.frontier.v1beta1.CheckoutSetupBody
-	411, // 33: raystack.frontier.v1beta1.CreateCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
-	411, // 34: raystack.frontier.v1beta1.ListCheckoutsResponse.checkout_sessions:type_name -> raystack.frontier.v1beta1.CheckoutSession
-	411, // 35: raystack.frontier.v1beta1.GetCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
-	412, // 36: raystack.frontier.v1beta1.ProductRequestBody.prices:type_name -> raystack.frontier.v1beta1.Price
-	413, // 37: raystack.frontier.v1beta1.ProductRequestBody.features:type_name -> raystack.frontier.v1beta1.Feature
-	414, // 38: raystack.frontier.v1beta1.ProductRequestBody.behavior_config:type_name -> raystack.frontier.v1beta1.Product.BehaviorConfig
-	394, // 39: raystack.frontier.v1beta1.ProductRequestBody.metadata:type_name -> google.protobuf.Struct
+	390, // 9: raystack.frontier.v1beta1.UpdateBillingAccountResponse.billing_account:type_name -> raystack.frontier.v1beta1.BillingAccount
+	390, // 10: raystack.frontier.v1beta1.ListBillingAccountsResponse.billing_accounts:type_name -> raystack.frontier.v1beta1.BillingAccount
+	393, // 11: raystack.frontier.v1beta1.GetBillingBalanceResponse.balance:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
+	394, // 12: raystack.frontier.v1beta1.CreateBillingUsageRequest.usages:type_name -> raystack.frontier.v1beta1.Usage
+	395, // 13: raystack.frontier.v1beta1.ListBillingTransactionsRequest.since:type_name -> google.protobuf.Timestamp
+	395, // 14: raystack.frontier.v1beta1.ListBillingTransactionsRequest.start_range:type_name -> google.protobuf.Timestamp
+	395, // 15: raystack.frontier.v1beta1.ListBillingTransactionsRequest.end_range:type_name -> google.protobuf.Timestamp
+	396, // 16: raystack.frontier.v1beta1.ListBillingTransactionsResponse.transactions:type_name -> raystack.frontier.v1beta1.BillingTransaction
+	393, // 17: raystack.frontier.v1beta1.TotalDebitedTransactionsResponse.debited:type_name -> raystack.frontier.v1beta1.BillingAccount.Balance
+	397, // 18: raystack.frontier.v1beta1.SearchOrganizationTokensRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
+	375, // 19: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.organization_tokens:type_name -> raystack.frontier.v1beta1.SearchOrganizationTokensResponse.OrganizationToken
+	398, // 20: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
+	399, // 21: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.group:type_name -> raystack.frontier.v1beta1.RQLQueryGroupResponse
+	400, // 22: raystack.frontier.v1beta1.GetSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
+	400, // 23: raystack.frontier.v1beta1.ListSubscriptionsResponse.subscriptions:type_name -> raystack.frontier.v1beta1.Subscription
+	389, // 24: raystack.frontier.v1beta1.UpdateSubscriptionRequest.metadata:type_name -> google.protobuf.Struct
+	400, // 25: raystack.frontier.v1beta1.UpdateSubscriptionResponse.subscription:type_name -> raystack.frontier.v1beta1.Subscription
+	376, // 26: raystack.frontier.v1beta1.ChangeSubscriptionRequest.plan_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PlanChange
+	377, // 27: raystack.frontier.v1beta1.ChangeSubscriptionRequest.phase_change:type_name -> raystack.frontier.v1beta1.ChangeSubscriptionRequest.PhaseChange
+	401, // 28: raystack.frontier.v1beta1.ChangeSubscriptionResponse.phase:type_name -> raystack.frontier.v1beta1.Subscription.Phase
+	402, // 29: raystack.frontier.v1beta1.ListPlansResponse.plans:type_name -> raystack.frontier.v1beta1.Plan
+	403, // 30: raystack.frontier.v1beta1.CreateCheckoutRequest.subscription_body:type_name -> raystack.frontier.v1beta1.CheckoutSubscriptionBody
+	404, // 31: raystack.frontier.v1beta1.CreateCheckoutRequest.product_body:type_name -> raystack.frontier.v1beta1.CheckoutProductBody
+	405, // 32: raystack.frontier.v1beta1.CreateCheckoutRequest.setup_body:type_name -> raystack.frontier.v1beta1.CheckoutSetupBody
+	406, // 33: raystack.frontier.v1beta1.CreateCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
+	406, // 34: raystack.frontier.v1beta1.ListCheckoutsResponse.checkout_sessions:type_name -> raystack.frontier.v1beta1.CheckoutSession
+	406, // 35: raystack.frontier.v1beta1.GetCheckoutResponse.checkout_session:type_name -> raystack.frontier.v1beta1.CheckoutSession
+	407, // 36: raystack.frontier.v1beta1.ProductRequestBody.prices:type_name -> raystack.frontier.v1beta1.Price
+	408, // 37: raystack.frontier.v1beta1.ProductRequestBody.features:type_name -> raystack.frontier.v1beta1.Feature
+	409, // 38: raystack.frontier.v1beta1.ProductRequestBody.behavior_config:type_name -> raystack.frontier.v1beta1.Product.BehaviorConfig
+	389, // 39: raystack.frontier.v1beta1.ProductRequestBody.metadata:type_name -> google.protobuf.Struct
 	51,  // 40: raystack.frontier.v1beta1.CreateProductRequest.body:type_name -> raystack.frontier.v1beta1.ProductRequestBody
-	415, // 41: raystack.frontier.v1beta1.CreateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
-	415, // 42: raystack.frontier.v1beta1.GetProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
-	415, // 43: raystack.frontier.v1beta1.ListProductsResponse.products:type_name -> raystack.frontier.v1beta1.Product
+	410, // 41: raystack.frontier.v1beta1.CreateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
+	410, // 42: raystack.frontier.v1beta1.GetProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
+	410, // 43: raystack.frontier.v1beta1.ListProductsResponse.products:type_name -> raystack.frontier.v1beta1.Product
 	51,  // 44: raystack.frontier.v1beta1.UpdateProductRequest.body:type_name -> raystack.frontier.v1beta1.ProductRequestBody
-	415, // 45: raystack.frontier.v1beta1.UpdateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
-	394, // 46: raystack.frontier.v1beta1.FeatureRequestBody.metadata:type_name -> google.protobuf.Struct
+	410, // 45: raystack.frontier.v1beta1.UpdateProductResponse.product:type_name -> raystack.frontier.v1beta1.Product
+	389, // 46: raystack.frontier.v1beta1.FeatureRequestBody.metadata:type_name -> google.protobuf.Struct
 	60,  // 47: raystack.frontier.v1beta1.CreateFeatureRequest.body:type_name -> raystack.frontier.v1beta1.FeatureRequestBody
-	413, // 48: raystack.frontier.v1beta1.CreateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
-	413, // 49: raystack.frontier.v1beta1.GetFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
+	408, // 48: raystack.frontier.v1beta1.CreateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
+	408, // 49: raystack.frontier.v1beta1.GetFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
 	60,  // 50: raystack.frontier.v1beta1.UpdateFeatureRequest.body:type_name -> raystack.frontier.v1beta1.FeatureRequestBody
-	413, // 51: raystack.frontier.v1beta1.UpdateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
-	413, // 52: raystack.frontier.v1beta1.ListFeaturesResponse.features:type_name -> raystack.frontier.v1beta1.Feature
-	415, // 53: raystack.frontier.v1beta1.PlanRequestBody.products:type_name -> raystack.frontier.v1beta1.Product
-	394, // 54: raystack.frontier.v1beta1.PlanRequestBody.metadata:type_name -> google.protobuf.Struct
-	69,  // 55: raystack.frontier.v1beta1.CreatePlanRequest.body:type_name -> raystack.frontier.v1beta1.PlanRequestBody
-	407, // 56: raystack.frontier.v1beta1.CreatePlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
-	407, // 57: raystack.frontier.v1beta1.GetPlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
-	69,  // 58: raystack.frontier.v1beta1.UpdatePlanRequest.body:type_name -> raystack.frontier.v1beta1.PlanRequestBody
-	407, // 59: raystack.frontier.v1beta1.UpdatePlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
-	416, // 60: raystack.frontier.v1beta1.ListInvoicesResponse.invoices:type_name -> raystack.frontier.v1beta1.Invoice
-	402, // 61: raystack.frontier.v1beta1.SearchOrganizationInvoicesRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
-	383, // 62: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.organization_invoices:type_name -> raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.OrganizationInvoice
-	403, // 63: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
-	404, // 64: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.group:type_name -> raystack.frontier.v1beta1.RQLQueryGroupResponse
-	416, // 65: raystack.frontier.v1beta1.GetUpcomingInvoiceResponse.invoice:type_name -> raystack.frontier.v1beta1.Invoice
-	417, // 66: raystack.frontier.v1beta1.GetJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
-	394, // 67: raystack.frontier.v1beta1.AuthCallbackRequest.state_options:type_name -> google.protobuf.Struct
-	394, // 68: raystack.frontier.v1beta1.AuthenticateResponse.state_options:type_name -> google.protobuf.Struct
-	394, // 69: raystack.frontier.v1beta1.AuthStrategy.params:type_name -> google.protobuf.Struct
-	90,  // 70: raystack.frontier.v1beta1.ListAuthStrategiesResponse.strategies:type_name -> raystack.frontier.v1beta1.AuthStrategy
-	394, // 71: raystack.frontier.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
-	418, // 72: raystack.frontier.v1beta1.ListUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
-	95,  // 73: raystack.frontier.v1beta1.CreateUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
-	418, // 74: raystack.frontier.v1beta1.CreateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	419, // 75: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
-	419, // 76: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
-	419, // 77: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
-	419, // 78: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
-	420, // 79: raystack.frontier.v1beta1.ListProjectsByUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	420, // 80: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	384, // 81: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
-	418, // 82: raystack.frontier.v1beta1.GetUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	418, // 83: raystack.frontier.v1beta1.GetCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	421, // 84: raystack.frontier.v1beta1.GetCurrentUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
-	418, // 85: raystack.frontier.v1beta1.UpdateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	418, // 86: raystack.frontier.v1beta1.UpdateCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
-	95,  // 87: raystack.frontier.v1beta1.UpdateUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
-	422, // 88: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
-	385, // 89: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
-	422, // 90: raystack.frontier.v1beta1.ListUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
-	95,  // 91: raystack.frontier.v1beta1.UpdateCurrentUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
-	423, // 92: raystack.frontier.v1beta1.ListUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	423, // 93: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	419, // 94: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.orgs:type_name -> raystack.frontier.v1beta1.Organization
-	421, // 95: raystack.frontier.v1beta1.ListServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
-	394, // 96: raystack.frontier.v1beta1.ServiceUserRequestBody.metadata:type_name -> google.protobuf.Struct
-	132, // 97: raystack.frontier.v1beta1.CreateServiceUserRequest.body:type_name -> raystack.frontier.v1beta1.ServiceUserRequestBody
-	421, // 98: raystack.frontier.v1beta1.CreateServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
-	421, // 99: raystack.frontier.v1beta1.GetServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
-	424, // 100: raystack.frontier.v1beta1.CreateServiceUserJWKResponse.key:type_name -> raystack.frontier.v1beta1.KeyCredential
-	417, // 101: raystack.frontier.v1beta1.GetServiceUserJWKResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
-	425, // 102: raystack.frontier.v1beta1.ListServiceUserJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.ServiceUserJWK
-	426, // 103: raystack.frontier.v1beta1.CreateServiceUserCredentialResponse.secret:type_name -> raystack.frontier.v1beta1.SecretCredential
-	426, // 104: raystack.frontier.v1beta1.ListServiceUserCredentialsResponse.secrets:type_name -> raystack.frontier.v1beta1.SecretCredential
-	427, // 105: raystack.frontier.v1beta1.CreateServiceUserTokenResponse.token:type_name -> raystack.frontier.v1beta1.ServiceUserToken
-	427, // 106: raystack.frontier.v1beta1.ListServiceUserTokensResponse.tokens:type_name -> raystack.frontier.v1beta1.ServiceUserToken
-	420, // 107: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	386, // 108: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
-	422, // 109: raystack.frontier.v1beta1.ListOrganizationGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
-	428, // 110: raystack.frontier.v1beta1.CreateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
-	429, // 111: raystack.frontier.v1beta1.CreateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
-	429, // 112: raystack.frontier.v1beta1.GetOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
-	428, // 113: raystack.frontier.v1beta1.UpdateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
-	429, // 114: raystack.frontier.v1beta1.UpdateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
-	429, // 115: raystack.frontier.v1beta1.ListRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
-	429, // 116: raystack.frontier.v1beta1.ListOrganizationRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
-	394, // 117: raystack.frontier.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
-	419, // 118: raystack.frontier.v1beta1.ListOrganizationsResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
-	175, // 119: raystack.frontier.v1beta1.CreateOrganizationRequest.body:type_name -> raystack.frontier.v1beta1.OrganizationRequestBody
-	419, // 120: raystack.frontier.v1beta1.CreateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
-	419, // 121: raystack.frontier.v1beta1.GetOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
-	419, // 122: raystack.frontier.v1beta1.UpdateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
-	175, // 123: raystack.frontier.v1beta1.UpdateOrganizationRequest.body:type_name -> raystack.frontier.v1beta1.OrganizationRequestBody
-	418, // 124: raystack.frontier.v1beta1.ListOrganizationAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
-	418, // 125: raystack.frontier.v1beta1.ListOrganizationUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
-	387, // 126: raystack.frontier.v1beta1.ListOrganizationUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
-	421, // 127: raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
-	423, // 128: raystack.frontier.v1beta1.ListOrganizationInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	423, // 129: raystack.frontier.v1beta1.CreateOrganizationInvitationResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
-	423, // 130: raystack.frontier.v1beta1.GetOrganizationInvitationResponse.invitation:type_name -> raystack.frontier.v1beta1.Invitation
-	430, // 131: raystack.frontier.v1beta1.ListOrganizationDomainsResponse.domains:type_name -> raystack.frontier.v1beta1.Domain
-	430, // 132: raystack.frontier.v1beta1.GetOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
-	430, // 133: raystack.frontier.v1beta1.CreateOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
-	431, // 134: raystack.frontier.v1beta1.GetOrganizationKycResponse.organization_kyc:type_name -> raystack.frontier.v1beta1.OrganizationKyc
-	394, // 135: raystack.frontier.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
-	224, // 136: raystack.frontier.v1beta1.CreateProjectRequest.body:type_name -> raystack.frontier.v1beta1.ProjectRequestBody
-	420, // 137: raystack.frontier.v1beta1.CreateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
-	420, // 138: raystack.frontier.v1beta1.ListOrganizationProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
-	420, // 139: raystack.frontier.v1beta1.GetProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
-	394, // 140: raystack.frontier.v1beta1.UpdateProjectRequestBody.metadata:type_name -> google.protobuf.Struct
-	231, // 141: raystack.frontier.v1beta1.UpdateProjectRequest.body:type_name -> raystack.frontier.v1beta1.UpdateProjectRequestBody
-	420, // 142: raystack.frontier.v1beta1.UpdateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
-	418, // 143: raystack.frontier.v1beta1.ListProjectAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
-	418, // 144: raystack.frontier.v1beta1.ListProjectUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
-	388, // 145: raystack.frontier.v1beta1.ListProjectUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
-	421, // 146: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
-	389, // 147: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
-	422, // 148: raystack.frontier.v1beta1.ListProjectGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
-	390, // 149: raystack.frontier.v1beta1.ListProjectGroupsResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
-	394, // 150: raystack.frontier.v1beta1.PolicyRequestBody.metadata:type_name -> google.protobuf.Struct
-	432, // 151: raystack.frontier.v1beta1.GetPermissionResponse.permission:type_name -> raystack.frontier.v1beta1.Permission
-	432, // 152: raystack.frontier.v1beta1.ListPermissionsResponse.permissions:type_name -> raystack.frontier.v1beta1.Permission
-	433, // 153: raystack.frontier.v1beta1.ListNamespacesResponse.namespaces:type_name -> raystack.frontier.v1beta1.Namespace
-	433, // 154: raystack.frontier.v1beta1.GetNamespaceResponse.namespace:type_name -> raystack.frontier.v1beta1.Namespace
-	252, // 155: raystack.frontier.v1beta1.CreatePolicyRequest.body:type_name -> raystack.frontier.v1beta1.PolicyRequestBody
-	434, // 156: raystack.frontier.v1beta1.CreatePolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
-	434, // 157: raystack.frontier.v1beta1.GetPolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
-	434, // 158: raystack.frontier.v1beta1.ListPoliciesResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
-	252, // 159: raystack.frontier.v1beta1.UpdatePolicyRequest.body:type_name -> raystack.frontier.v1beta1.PolicyRequestBody
-	434, // 160: raystack.frontier.v1beta1.UpdatePolicyResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
-	253, // 161: raystack.frontier.v1beta1.CreatePolicyForProjectRequest.body:type_name -> raystack.frontier.v1beta1.CreatePolicyForProjectBody
-	274, // 162: raystack.frontier.v1beta1.CreateRelationRequest.body:type_name -> raystack.frontier.v1beta1.RelationRequestBody
-	435, // 163: raystack.frontier.v1beta1.CreateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
-	435, // 164: raystack.frontier.v1beta1.GetRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
-	274, // 165: raystack.frontier.v1beta1.UpdateRelationRequest.body:type_name -> raystack.frontier.v1beta1.RelationRequestBody
-	435, // 166: raystack.frontier.v1beta1.UpdateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
-	394, // 167: raystack.frontier.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
-	281, // 168: raystack.frontier.v1beta1.CreateGroupRequest.body:type_name -> raystack.frontier.v1beta1.GroupRequestBody
-	422, // 169: raystack.frontier.v1beta1.CreateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
-	422, // 170: raystack.frontier.v1beta1.GetGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
-	422, // 171: raystack.frontier.v1beta1.UpdateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
-	281, // 172: raystack.frontier.v1beta1.UpdateGroupRequest.body:type_name -> raystack.frontier.v1beta1.GroupRequestBody
-	418, // 173: raystack.frontier.v1beta1.ListGroupUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
-	391, // 174: raystack.frontier.v1beta1.ListGroupUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
-	436, // 175: raystack.frontier.v1beta1.ListProjectResourcesResponse.resources:type_name -> raystack.frontier.v1beta1.Resource
-	394, // 176: raystack.frontier.v1beta1.ResourceRequestBody.metadata:type_name -> google.protobuf.Struct
-	304, // 177: raystack.frontier.v1beta1.CreateProjectResourceRequest.body:type_name -> raystack.frontier.v1beta1.ResourceRequestBody
-	436, // 178: raystack.frontier.v1beta1.CreateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
-	436, // 179: raystack.frontier.v1beta1.GetProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
-	304, // 180: raystack.frontier.v1beta1.UpdateProjectResourceRequest.body:type_name -> raystack.frontier.v1beta1.ResourceRequestBody
-	436, // 181: raystack.frontier.v1beta1.UpdateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
-	316, // 182: raystack.frontier.v1beta1.BatchCheckPermissionRequest.bodies:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionBody
-	318, // 183: raystack.frontier.v1beta1.BatchCheckPermissionResponse.pairs:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionResponsePair
-	316, // 184: raystack.frontier.v1beta1.BatchCheckPermissionResponsePair.body:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionBody
-	319, // 185: raystack.frontier.v1beta1.CreateMetaSchemaRequest.body:type_name -> raystack.frontier.v1beta1.MetaSchemaRequestBody
-	437, // 186: raystack.frontier.v1beta1.CreateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
-	437, // 187: raystack.frontier.v1beta1.GetMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
-	319, // 188: raystack.frontier.v1beta1.UpdateMetaSchemaRequest.body:type_name -> raystack.frontier.v1beta1.MetaSchemaRequestBody
-	437, // 189: raystack.frontier.v1beta1.UpdateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
-	437, // 190: raystack.frontier.v1beta1.ListMetaSchemasResponse.metaschemas:type_name -> raystack.frontier.v1beta1.MetaSchema
-	438, // 191: raystack.frontier.v1beta1.DescribePreferencesResponse.traits:type_name -> raystack.frontier.v1beta1.PreferenceTrait
-	439, // 192: raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	440, // 193: raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	440, // 194: raystack.frontier.v1beta1.ListOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	439, // 195: raystack.frontier.v1beta1.CreateProjectPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	440, // 196: raystack.frontier.v1beta1.CreateProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	440, // 197: raystack.frontier.v1beta1.ListProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	439, // 198: raystack.frontier.v1beta1.CreateGroupPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	440, // 199: raystack.frontier.v1beta1.CreateGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	440, // 200: raystack.frontier.v1beta1.ListGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	439, // 201: raystack.frontier.v1beta1.CreateUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	440, // 202: raystack.frontier.v1beta1.CreateUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	440, // 203: raystack.frontier.v1beta1.ListUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	439, // 204: raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
-	440, // 205: raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	440, // 206: raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
-	394, // 207: raystack.frontier.v1beta1.CreateProspectPublicRequest.metadata:type_name -> google.protobuf.Struct
-	441, // 208: raystack.frontier.v1beta1.ListSessionsResponse.sessions:type_name -> raystack.frontier.v1beta1.Session
-	442, // 209: raystack.frontier.v1beta1.PingUserSessionResponse.metadata:type_name -> raystack.frontier.v1beta1.Session.Meta
-	443, // 210: raystack.frontier.v1beta1.CreateAuditRecordRequest.actor:type_name -> raystack.frontier.v1beta1.AuditRecordActor
-	444, // 211: raystack.frontier.v1beta1.CreateAuditRecordRequest.resource:type_name -> raystack.frontier.v1beta1.AuditRecordResource
-	445, // 212: raystack.frontier.v1beta1.CreateAuditRecordRequest.target:type_name -> raystack.frontier.v1beta1.AuditRecordTarget
-	400, // 213: raystack.frontier.v1beta1.CreateAuditRecordRequest.occurred_at:type_name -> google.protobuf.Timestamp
-	394, // 214: raystack.frontier.v1beta1.CreateAuditRecordRequest.metadata:type_name -> google.protobuf.Struct
-	446, // 215: raystack.frontier.v1beta1.CreateAuditRecordResponse.audit_record:type_name -> raystack.frontier.v1beta1.AuditRecord
-	447, // 216: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.scopes:type_name -> raystack.frontier.v1beta1.PATScope
-	400, // 217: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.expires_at:type_name -> google.protobuf.Timestamp
-	394, // 218: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.metadata:type_name -> google.protobuf.Struct
-	448, // 219: raystack.frontier.v1beta1.CreateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
-	429, // 220: raystack.frontier.v1beta1.ListRolesForPATResponse.roles:type_name -> raystack.frontier.v1beta1.Role
-	402, // 221: raystack.frontier.v1beta1.SearchCurrentUserPATsRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
-	448, // 222: raystack.frontier.v1beta1.SearchCurrentUserPATsResponse.pats:type_name -> raystack.frontier.v1beta1.PAT
-	403, // 223: raystack.frontier.v1beta1.SearchCurrentUserPATsResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
-	448, // 224: raystack.frontier.v1beta1.GetCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
-	447, // 225: raystack.frontier.v1beta1.UpdateCurrentUserPATRequest.scopes:type_name -> raystack.frontier.v1beta1.PATScope
-	394, // 226: raystack.frontier.v1beta1.UpdateCurrentUserPATRequest.metadata:type_name -> google.protobuf.Struct
-	448, // 227: raystack.frontier.v1beta1.UpdateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
-	400, // 228: raystack.frontier.v1beta1.RegenerateCurrentUserPATRequest.expires_at:type_name -> google.protobuf.Timestamp
-	448, // 229: raystack.frontier.v1beta1.RegenerateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
-	400, // 230: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.OrganizationToken.created_at:type_name -> google.protobuf.Timestamp
-	400, // 231: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.OrganizationInvoice.created_at:type_name -> google.protobuf.Timestamp
-	429, // 232: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	429, // 233: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	429, // 234: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	429, // 235: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	429, // 236: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
-	96,  // 237: raystack.frontier.v1beta1.FrontierService.ListUsers:input_type -> raystack.frontier.v1beta1.ListUsersRequest
-	98,  // 238: raystack.frontier.v1beta1.FrontierService.CreateUser:input_type -> raystack.frontier.v1beta1.CreateUserRequest
-	120, // 239: raystack.frontier.v1beta1.FrontierService.GetUser:input_type -> raystack.frontier.v1beta1.GetUserRequest
-	123, // 240: raystack.frontier.v1beta1.FrontierService.ListUserGroups:input_type -> raystack.frontier.v1beta1.ListUserGroupsRequest
-	121, // 241: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:input_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsRequest
-	115, // 242: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:input_type -> raystack.frontier.v1beta1.GetCurrentUserRequest
-	119, // 243: raystack.frontier.v1beta1.FrontierService.UpdateUser:input_type -> raystack.frontier.v1beta1.UpdateUserRequest
-	125, // 244: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:input_type -> raystack.frontier.v1beta1.UpdateCurrentUserRequest
-	108, // 245: raystack.frontier.v1beta1.FrontierService.EnableUser:input_type -> raystack.frontier.v1beta1.EnableUserRequest
-	110, // 246: raystack.frontier.v1beta1.FrontierService.DisableUser:input_type -> raystack.frontier.v1beta1.DisableUserRequest
-	112, // 247: raystack.frontier.v1beta1.FrontierService.DeleteUser:input_type -> raystack.frontier.v1beta1.DeleteUserRequest
-	100, // 248: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByUserRequest
-	102, // 249: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserRequest
-	104, // 250: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:input_type -> raystack.frontier.v1beta1.ListProjectsByUserRequest
-	106, // 251: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserRequest
-	126, // 252: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:input_type -> raystack.frontier.v1beta1.ListUserInvitationsRequest
-	128, // 253: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:input_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsRequest
-	130, // 254: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:input_type -> raystack.frontier.v1beta1.ListServiceUsersRequest
-	133, // 255: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:input_type -> raystack.frontier.v1beta1.CreateServiceUserRequest
-	135, // 256: raystack.frontier.v1beta1.FrontierService.GetServiceUser:input_type -> raystack.frontier.v1beta1.GetServiceUserRequest
-	137, // 257: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:input_type -> raystack.frontier.v1beta1.DeleteServiceUserRequest
-	139, // 258: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:input_type -> raystack.frontier.v1beta1.CreateServiceUserJWKRequest
-	143, // 259: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:input_type -> raystack.frontier.v1beta1.ListServiceUserJWKsRequest
-	141, // 260: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:input_type -> raystack.frontier.v1beta1.GetServiceUserJWKRequest
-	145, // 261: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:input_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKRequest
-	147, // 262: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:input_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialRequest
-	149, // 263: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:input_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsRequest
-	151, // 264: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:input_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialRequest
-	153, // 265: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:input_type -> raystack.frontier.v1beta1.CreateServiceUserTokenRequest
-	155, // 266: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:input_type -> raystack.frontier.v1beta1.ListServiceUserTokensRequest
-	157, // 267: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:input_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenRequest
-	159, // 268: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:input_type -> raystack.frontier.v1beta1.ListServiceUserProjectsRequest
-	161, // 269: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:input_type -> raystack.frontier.v1beta1.ListOrganizationGroupsRequest
-	282, // 270: raystack.frontier.v1beta1.FrontierService.CreateGroup:input_type -> raystack.frontier.v1beta1.CreateGroupRequest
-	283, // 271: raystack.frontier.v1beta1.FrontierService.GetGroup:input_type -> raystack.frontier.v1beta1.GetGroupRequest
-	287, // 272: raystack.frontier.v1beta1.FrontierService.UpdateGroup:input_type -> raystack.frontier.v1beta1.UpdateGroupRequest
-	288, // 273: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:input_type -> raystack.frontier.v1beta1.ListGroupUsersRequest
-	296, // 274: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:input_type -> raystack.frontier.v1beta1.RemoveGroupUserRequest
-	298, // 275: raystack.frontier.v1beta1.FrontierService.SetGroupMemberRole:input_type -> raystack.frontier.v1beta1.SetGroupMemberRoleRequest
-	290, // 276: raystack.frontier.v1beta1.FrontierService.EnableGroup:input_type -> raystack.frontier.v1beta1.EnableGroupRequest
-	292, // 277: raystack.frontier.v1beta1.FrontierService.DisableGroup:input_type -> raystack.frontier.v1beta1.DisableGroupRequest
-	294, // 278: raystack.frontier.v1beta1.FrontierService.DeleteGroup:input_type -> raystack.frontier.v1beta1.DeleteGroupRequest
-	169, // 279: raystack.frontier.v1beta1.FrontierService.ListRoles:input_type -> raystack.frontier.v1beta1.ListRolesRequest
-	171, // 280: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:input_type -> raystack.frontier.v1beta1.ListOrganizationRolesRequest
-	163, // 281: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:input_type -> raystack.frontier.v1beta1.CreateOrganizationRoleRequest
-	165, // 282: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:input_type -> raystack.frontier.v1beta1.GetOrganizationRoleRequest
-	167, // 283: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleRequest
-	173, // 284: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleRequest
-	176, // 285: raystack.frontier.v1beta1.FrontierService.ListOrganizations:input_type -> raystack.frontier.v1beta1.ListOrganizationsRequest
-	178, // 286: raystack.frontier.v1beta1.FrontierService.CreateOrganization:input_type -> raystack.frontier.v1beta1.CreateOrganizationRequest
-	182, // 287: raystack.frontier.v1beta1.FrontierService.GetOrganization:input_type -> raystack.frontier.v1beta1.GetOrganizationRequest
-	183, // 288: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRequest
-	227, // 289: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:input_type -> raystack.frontier.v1beta1.ListOrganizationProjectsRequest
-	184, // 290: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:input_type -> raystack.frontier.v1beta1.ListOrganizationAdminsRequest
-	186, // 291: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationUsersRequest
-	188, // 292: raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole:input_type -> raystack.frontier.v1beta1.SetOrganizationMemberRoleRequest
-	190, // 293: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationMember:input_type -> raystack.frontier.v1beta1.RemoveOrganizationMemberRequest
-	222, // 294: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:input_type -> raystack.frontier.v1beta1.GetOrganizationKycRequest
-	192, // 295: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersRequest
-	194, // 296: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:input_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsRequest
-	196, // 297: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:input_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationRequest
-	198, // 298: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:input_type -> raystack.frontier.v1beta1.GetOrganizationInvitationRequest
-	200, // 299: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:input_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationRequest
-	202, // 300: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:input_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationRequest
-	203, // 301: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:input_type -> raystack.frontier.v1beta1.ListOrganizationDomainsRequest
-	209, // 302: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:input_type -> raystack.frontier.v1beta1.CreateOrganizationDomainRequest
-	211, // 303: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:input_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainRequest
-	207, // 304: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:input_type -> raystack.frontier.v1beta1.GetOrganizationDomainRequest
-	213, // 305: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:input_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainRequest
-	205, // 306: raystack.frontier.v1beta1.FrontierService.JoinOrganization:input_type -> raystack.frontier.v1beta1.JoinOrganizationRequest
-	216, // 307: raystack.frontier.v1beta1.FrontierService.EnableOrganization:input_type -> raystack.frontier.v1beta1.EnableOrganizationRequest
-	218, // 308: raystack.frontier.v1beta1.FrontierService.DisableOrganization:input_type -> raystack.frontier.v1beta1.DisableOrganizationRequest
-	220, // 309: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRequest
-	225, // 310: raystack.frontier.v1beta1.FrontierService.CreateProject:input_type -> raystack.frontier.v1beta1.CreateProjectRequest
-	229, // 311: raystack.frontier.v1beta1.FrontierService.GetProject:input_type -> raystack.frontier.v1beta1.GetProjectRequest
-	232, // 312: raystack.frontier.v1beta1.FrontierService.UpdateProject:input_type -> raystack.frontier.v1beta1.UpdateProjectRequest
-	234, // 313: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:input_type -> raystack.frontier.v1beta1.ListProjectAdminsRequest
-	236, // 314: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:input_type -> raystack.frontier.v1beta1.ListProjectUsersRequest
-	238, // 315: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:input_type -> raystack.frontier.v1beta1.ListProjectServiceUsersRequest
-	240, // 316: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:input_type -> raystack.frontier.v1beta1.ListProjectGroupsRequest
-	242, // 317: raystack.frontier.v1beta1.FrontierService.EnableProject:input_type -> raystack.frontier.v1beta1.EnableProjectRequest
-	244, // 318: raystack.frontier.v1beta1.FrontierService.DisableProject:input_type -> raystack.frontier.v1beta1.DisableProjectRequest
-	246, // 319: raystack.frontier.v1beta1.FrontierService.DeleteProject:input_type -> raystack.frontier.v1beta1.DeleteProjectRequest
-	248, // 320: raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole:input_type -> raystack.frontier.v1beta1.SetProjectMemberRoleRequest
-	250, // 321: raystack.frontier.v1beta1.FrontierService.RemoveProjectMember:input_type -> raystack.frontier.v1beta1.RemoveProjectMemberRequest
-	262, // 322: raystack.frontier.v1beta1.FrontierService.CreatePolicy:input_type -> raystack.frontier.v1beta1.CreatePolicyRequest
-	264, // 323: raystack.frontier.v1beta1.FrontierService.GetPolicy:input_type -> raystack.frontier.v1beta1.GetPolicyRequest
-	266, // 324: raystack.frontier.v1beta1.FrontierService.ListPolicies:input_type -> raystack.frontier.v1beta1.ListPoliciesRequest
-	268, // 325: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:input_type -> raystack.frontier.v1beta1.UpdatePolicyRequest
-	270, // 326: raystack.frontier.v1beta1.FrontierService.DeletePolicy:input_type -> raystack.frontier.v1beta1.DeletePolicyRequest
-	272, // 327: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:input_type -> raystack.frontier.v1beta1.CreatePolicyForProjectRequest
-	275, // 328: raystack.frontier.v1beta1.FrontierService.CreateRelation:input_type -> raystack.frontier.v1beta1.CreateRelationRequest
-	277, // 329: raystack.frontier.v1beta1.FrontierService.GetRelation:input_type -> raystack.frontier.v1beta1.GetRelationRequest
-	300, // 330: raystack.frontier.v1beta1.FrontierService.DeleteRelation:input_type -> raystack.frontier.v1beta1.DeleteRelationRequest
-	256, // 331: raystack.frontier.v1beta1.FrontierService.ListPermissions:input_type -> raystack.frontier.v1beta1.ListPermissionsRequest
-	254, // 332: raystack.frontier.v1beta1.FrontierService.GetPermission:input_type -> raystack.frontier.v1beta1.GetPermissionRequest
-	258, // 333: raystack.frontier.v1beta1.FrontierService.ListNamespaces:input_type -> raystack.frontier.v1beta1.ListNamespacesRequest
-	260, // 334: raystack.frontier.v1beta1.FrontierService.GetNamespace:input_type -> raystack.frontier.v1beta1.GetNamespaceRequest
-	302, // 335: raystack.frontier.v1beta1.FrontierService.ListProjectResources:input_type -> raystack.frontier.v1beta1.ListProjectResourcesRequest
-	305, // 336: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:input_type -> raystack.frontier.v1beta1.CreateProjectResourceRequest
-	307, // 337: raystack.frontier.v1beta1.FrontierService.GetProjectResource:input_type -> raystack.frontier.v1beta1.GetProjectResourceRequest
-	309, // 338: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:input_type -> raystack.frontier.v1beta1.UpdateProjectResourceRequest
-	311, // 339: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:input_type -> raystack.frontier.v1beta1.DeleteProjectResourceRequest
-	313, // 340: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:input_type -> raystack.frontier.v1beta1.CheckResourcePermissionRequest
-	315, // 341: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:input_type -> raystack.frontier.v1beta1.BatchCheckPermissionRequest
-	82,  // 342: raystack.frontier.v1beta1.FrontierService.GetJWKs:input_type -> raystack.frontier.v1beta1.GetJWKsRequest
-	356, // 343: raystack.frontier.v1beta1.FrontierService.ListSessions:input_type -> raystack.frontier.v1beta1.ListSessionsRequest
-	358, // 344: raystack.frontier.v1beta1.FrontierService.RevokeSession:input_type -> raystack.frontier.v1beta1.RevokeSessionRequest
-	360, // 345: raystack.frontier.v1beta1.FrontierService.PingUserSession:input_type -> raystack.frontier.v1beta1.PingUserSessionRequest
-	91,  // 346: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:input_type -> raystack.frontier.v1beta1.ListAuthStrategiesRequest
-	88,  // 347: raystack.frontier.v1beta1.FrontierService.Authenticate:input_type -> raystack.frontier.v1beta1.AuthenticateRequest
-	86,  // 348: raystack.frontier.v1beta1.FrontierService.AuthCallback:input_type -> raystack.frontier.v1beta1.AuthCallbackRequest
-	93,  // 349: raystack.frontier.v1beta1.FrontierService.AuthToken:input_type -> raystack.frontier.v1beta1.AuthTokenRequest
-	84,  // 350: raystack.frontier.v1beta1.FrontierService.AuthLogout:input_type -> raystack.frontier.v1beta1.AuthLogoutRequest
-	328, // 351: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:input_type -> raystack.frontier.v1beta1.ListMetaSchemasRequest
-	320, // 352: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:input_type -> raystack.frontier.v1beta1.CreateMetaSchemaRequest
-	322, // 353: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:input_type -> raystack.frontier.v1beta1.GetMetaSchemaRequest
-	324, // 354: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:input_type -> raystack.frontier.v1beta1.UpdateMetaSchemaRequest
-	326, // 355: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:input_type -> raystack.frontier.v1beta1.DeleteMetaSchemaRequest
-	330, // 356: raystack.frontier.v1beta1.FrontierService.DescribePreferences:input_type -> raystack.frontier.v1beta1.DescribePreferencesRequest
-	332, // 357: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:input_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest
-	334, // 358: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:input_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesRequest
-	336, // 359: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:input_type -> raystack.frontier.v1beta1.CreateProjectPreferencesRequest
-	338, // 360: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:input_type -> raystack.frontier.v1beta1.ListProjectPreferencesRequest
-	340, // 361: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:input_type -> raystack.frontier.v1beta1.CreateGroupPreferencesRequest
-	342, // 362: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:input_type -> raystack.frontier.v1beta1.ListGroupPreferencesRequest
-	344, // 363: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:input_type -> raystack.frontier.v1beta1.CreateUserPreferencesRequest
-	346, // 364: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:input_type -> raystack.frontier.v1beta1.ListUserPreferencesRequest
-	348, // 365: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest
-	350, // 366: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesRequest
-	1,   // 367: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:input_type -> raystack.frontier.v1beta1.CreateBillingAccountRequest
-	3,   // 368: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:input_type -> raystack.frontier.v1beta1.GetBillingAccountRequest
-	5,   // 369: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:input_type -> raystack.frontier.v1beta1.UpdateBillingAccountRequest
-	7,   // 370: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:input_type -> raystack.frontier.v1beta1.RegisterBillingAccountRequest
-	9,   // 371: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:input_type -> raystack.frontier.v1beta1.ListBillingAccountsRequest
-	11,  // 372: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:input_type -> raystack.frontier.v1beta1.DeleteBillingAccountRequest
-	13,  // 373: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:input_type -> raystack.frontier.v1beta1.EnableBillingAccountRequest
-	15,  // 374: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:input_type -> raystack.frontier.v1beta1.DisableBillingAccountRequest
-	17,  // 375: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:input_type -> raystack.frontier.v1beta1.GetBillingBalanceRequest
-	19,  // 376: raystack.frontier.v1beta1.FrontierService.HasTrialed:input_type -> raystack.frontier.v1beta1.HasTrialedRequest
-	29,  // 377: raystack.frontier.v1beta1.FrontierService.GetSubscription:input_type -> raystack.frontier.v1beta1.GetSubscriptionRequest
-	37,  // 378: raystack.frontier.v1beta1.FrontierService.CancelSubscription:input_type -> raystack.frontier.v1beta1.CancelSubscriptionRequest
-	31,  // 379: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:input_type -> raystack.frontier.v1beta1.ListSubscriptionsRequest
-	35,  // 380: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:input_type -> raystack.frontier.v1beta1.ChangeSubscriptionRequest
-	33,  // 381: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:input_type -> raystack.frontier.v1beta1.UpdateSubscriptionRequest
-	52,  // 382: raystack.frontier.v1beta1.FrontierService.CreateProduct:input_type -> raystack.frontier.v1beta1.CreateProductRequest
-	54,  // 383: raystack.frontier.v1beta1.FrontierService.GetProduct:input_type -> raystack.frontier.v1beta1.GetProductRequest
-	56,  // 384: raystack.frontier.v1beta1.FrontierService.ListProducts:input_type -> raystack.frontier.v1beta1.ListProductsRequest
-	58,  // 385: raystack.frontier.v1beta1.FrontierService.UpdateProduct:input_type -> raystack.frontier.v1beta1.UpdateProductRequest
-	61,  // 386: raystack.frontier.v1beta1.FrontierService.CreateFeature:input_type -> raystack.frontier.v1beta1.CreateFeatureRequest
-	63,  // 387: raystack.frontier.v1beta1.FrontierService.GetFeature:input_type -> raystack.frontier.v1beta1.GetFeatureRequest
-	65,  // 388: raystack.frontier.v1beta1.FrontierService.UpdateFeature:input_type -> raystack.frontier.v1beta1.UpdateFeatureRequest
-	67,  // 389: raystack.frontier.v1beta1.FrontierService.ListFeatures:input_type -> raystack.frontier.v1beta1.ListFeaturesRequest
-	70,  // 390: raystack.frontier.v1beta1.FrontierService.CreatePlan:input_type -> raystack.frontier.v1beta1.CreatePlanRequest
-	39,  // 391: raystack.frontier.v1beta1.FrontierService.ListPlans:input_type -> raystack.frontier.v1beta1.ListPlansRequest
-	72,  // 392: raystack.frontier.v1beta1.FrontierService.GetPlan:input_type -> raystack.frontier.v1beta1.GetPlanRequest
-	74,  // 393: raystack.frontier.v1beta1.FrontierService.UpdatePlan:input_type -> raystack.frontier.v1beta1.UpdatePlanRequest
-	45,  // 394: raystack.frontier.v1beta1.FrontierService.CreateCheckout:input_type -> raystack.frontier.v1beta1.CreateCheckoutRequest
-	47,  // 395: raystack.frontier.v1beta1.FrontierService.ListCheckouts:input_type -> raystack.frontier.v1beta1.ListCheckoutsRequest
-	49,  // 396: raystack.frontier.v1beta1.FrontierService.GetCheckout:input_type -> raystack.frontier.v1beta1.GetCheckoutRequest
-	41,  // 397: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:input_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementRequest
-	43,  // 398: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:input_type -> raystack.frontier.v1beta1.CheckCreditEntitlementRequest
-	21,  // 399: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:input_type -> raystack.frontier.v1beta1.CreateBillingUsageRequest
-	23,  // 400: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:input_type -> raystack.frontier.v1beta1.ListBillingTransactionsRequest
-	27,  // 401: raystack.frontier.v1beta1.FrontierService.SearchOrganizationTokens:input_type -> raystack.frontier.v1beta1.SearchOrganizationTokensRequest
-	25,  // 402: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:input_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsRequest
-	76,  // 403: raystack.frontier.v1beta1.FrontierService.ListInvoices:input_type -> raystack.frontier.v1beta1.ListInvoicesRequest
-	78,  // 404: raystack.frontier.v1beta1.FrontierService.SearchOrganizationInvoices:input_type -> raystack.frontier.v1beta1.SearchOrganizationInvoicesRequest
-	80,  // 405: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:input_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceRequest
-	352, // 406: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:input_type -> raystack.frontier.v1beta1.BillingWebhookCallbackRequest
-	354, // 407: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:input_type -> raystack.frontier.v1beta1.CreateProspectPublicRequest
-	362, // 408: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:input_type -> raystack.frontier.v1beta1.CreateAuditRecordRequest
-	364, // 409: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPATRequest
-	366, // 410: raystack.frontier.v1beta1.FrontierService.ListRolesForPAT:input_type -> raystack.frontier.v1beta1.ListRolesForPATRequest
-	368, // 411: raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs:input_type -> raystack.frontier.v1beta1.SearchCurrentUserPATsRequest
-	370, // 412: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:input_type -> raystack.frontier.v1beta1.GetCurrentUserPATRequest
-	372, // 413: raystack.frontier.v1beta1.FrontierService.DeleteCurrentUserPAT:input_type -> raystack.frontier.v1beta1.DeleteCurrentUserPATRequest
-	374, // 414: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.UpdateCurrentUserPATRequest
-	376, // 415: raystack.frontier.v1beta1.FrontierService.RegenerateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.RegenerateCurrentUserPATRequest
-	378, // 416: raystack.frontier.v1beta1.FrontierService.CheckCurrentUserPATTitle:input_type -> raystack.frontier.v1beta1.CheckCurrentUserPATTitleRequest
-	97,  // 417: raystack.frontier.v1beta1.FrontierService.ListUsers:output_type -> raystack.frontier.v1beta1.ListUsersResponse
-	99,  // 418: raystack.frontier.v1beta1.FrontierService.CreateUser:output_type -> raystack.frontier.v1beta1.CreateUserResponse
-	114, // 419: raystack.frontier.v1beta1.FrontierService.GetUser:output_type -> raystack.frontier.v1beta1.GetUserResponse
-	124, // 420: raystack.frontier.v1beta1.FrontierService.ListUserGroups:output_type -> raystack.frontier.v1beta1.ListUserGroupsResponse
-	122, // 421: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:output_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse
-	116, // 422: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:output_type -> raystack.frontier.v1beta1.GetCurrentUserResponse
-	117, // 423: raystack.frontier.v1beta1.FrontierService.UpdateUser:output_type -> raystack.frontier.v1beta1.UpdateUserResponse
-	118, // 424: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:output_type -> raystack.frontier.v1beta1.UpdateCurrentUserResponse
-	109, // 425: raystack.frontier.v1beta1.FrontierService.EnableUser:output_type -> raystack.frontier.v1beta1.EnableUserResponse
-	111, // 426: raystack.frontier.v1beta1.FrontierService.DisableUser:output_type -> raystack.frontier.v1beta1.DisableUserResponse
-	113, // 427: raystack.frontier.v1beta1.FrontierService.DeleteUser:output_type -> raystack.frontier.v1beta1.DeleteUserResponse
-	101, // 428: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByUserResponse
-	103, // 429: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse
-	105, // 430: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:output_type -> raystack.frontier.v1beta1.ListProjectsByUserResponse
-	107, // 431: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse
-	127, // 432: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:output_type -> raystack.frontier.v1beta1.ListUserInvitationsResponse
-	129, // 433: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:output_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse
-	131, // 434: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:output_type -> raystack.frontier.v1beta1.ListServiceUsersResponse
-	134, // 435: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:output_type -> raystack.frontier.v1beta1.CreateServiceUserResponse
-	136, // 436: raystack.frontier.v1beta1.FrontierService.GetServiceUser:output_type -> raystack.frontier.v1beta1.GetServiceUserResponse
-	138, // 437: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:output_type -> raystack.frontier.v1beta1.DeleteServiceUserResponse
-	140, // 438: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:output_type -> raystack.frontier.v1beta1.CreateServiceUserJWKResponse
-	144, // 439: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:output_type -> raystack.frontier.v1beta1.ListServiceUserJWKsResponse
-	142, // 440: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:output_type -> raystack.frontier.v1beta1.GetServiceUserJWKResponse
-	146, // 441: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:output_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKResponse
-	148, // 442: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:output_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialResponse
-	150, // 443: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:output_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsResponse
-	152, // 444: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:output_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialResponse
-	154, // 445: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:output_type -> raystack.frontier.v1beta1.CreateServiceUserTokenResponse
-	156, // 446: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:output_type -> raystack.frontier.v1beta1.ListServiceUserTokensResponse
-	158, // 447: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:output_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenResponse
-	160, // 448: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:output_type -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse
-	162, // 449: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:output_type -> raystack.frontier.v1beta1.ListOrganizationGroupsResponse
-	284, // 450: raystack.frontier.v1beta1.FrontierService.CreateGroup:output_type -> raystack.frontier.v1beta1.CreateGroupResponse
-	285, // 451: raystack.frontier.v1beta1.FrontierService.GetGroup:output_type -> raystack.frontier.v1beta1.GetGroupResponse
-	286, // 452: raystack.frontier.v1beta1.FrontierService.UpdateGroup:output_type -> raystack.frontier.v1beta1.UpdateGroupResponse
-	289, // 453: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:output_type -> raystack.frontier.v1beta1.ListGroupUsersResponse
-	297, // 454: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:output_type -> raystack.frontier.v1beta1.RemoveGroupUserResponse
-	299, // 455: raystack.frontier.v1beta1.FrontierService.SetGroupMemberRole:output_type -> raystack.frontier.v1beta1.SetGroupMemberRoleResponse
-	291, // 456: raystack.frontier.v1beta1.FrontierService.EnableGroup:output_type -> raystack.frontier.v1beta1.EnableGroupResponse
-	293, // 457: raystack.frontier.v1beta1.FrontierService.DisableGroup:output_type -> raystack.frontier.v1beta1.DisableGroupResponse
-	295, // 458: raystack.frontier.v1beta1.FrontierService.DeleteGroup:output_type -> raystack.frontier.v1beta1.DeleteGroupResponse
-	170, // 459: raystack.frontier.v1beta1.FrontierService.ListRoles:output_type -> raystack.frontier.v1beta1.ListRolesResponse
-	172, // 460: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:output_type -> raystack.frontier.v1beta1.ListOrganizationRolesResponse
-	164, // 461: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:output_type -> raystack.frontier.v1beta1.CreateOrganizationRoleResponse
-	166, // 462: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:output_type -> raystack.frontier.v1beta1.GetOrganizationRoleResponse
-	168, // 463: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:output_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleResponse
-	174, // 464: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:output_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleResponse
-	177, // 465: raystack.frontier.v1beta1.FrontierService.ListOrganizations:output_type -> raystack.frontier.v1beta1.ListOrganizationsResponse
-	179, // 466: raystack.frontier.v1beta1.FrontierService.CreateOrganization:output_type -> raystack.frontier.v1beta1.CreateOrganizationResponse
-	180, // 467: raystack.frontier.v1beta1.FrontierService.GetOrganization:output_type -> raystack.frontier.v1beta1.GetOrganizationResponse
-	181, // 468: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:output_type -> raystack.frontier.v1beta1.UpdateOrganizationResponse
-	228, // 469: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:output_type -> raystack.frontier.v1beta1.ListOrganizationProjectsResponse
-	185, // 470: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:output_type -> raystack.frontier.v1beta1.ListOrganizationAdminsResponse
-	187, // 471: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationUsersResponse
-	189, // 472: raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole:output_type -> raystack.frontier.v1beta1.SetOrganizationMemberRoleResponse
-	191, // 473: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationMember:output_type -> raystack.frontier.v1beta1.RemoveOrganizationMemberResponse
-	223, // 474: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:output_type -> raystack.frontier.v1beta1.GetOrganizationKycResponse
-	193, // 475: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse
-	195, // 476: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:output_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsResponse
-	197, // 477: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:output_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationResponse
-	199, // 478: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:output_type -> raystack.frontier.v1beta1.GetOrganizationInvitationResponse
-	201, // 479: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:output_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationResponse
-	215, // 480: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:output_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationResponse
-	204, // 481: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:output_type -> raystack.frontier.v1beta1.ListOrganizationDomainsResponse
-	210, // 482: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:output_type -> raystack.frontier.v1beta1.CreateOrganizationDomainResponse
-	212, // 483: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:output_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainResponse
-	208, // 484: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:output_type -> raystack.frontier.v1beta1.GetOrganizationDomainResponse
-	214, // 485: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:output_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainResponse
-	206, // 486: raystack.frontier.v1beta1.FrontierService.JoinOrganization:output_type -> raystack.frontier.v1beta1.JoinOrganizationResponse
-	217, // 487: raystack.frontier.v1beta1.FrontierService.EnableOrganization:output_type -> raystack.frontier.v1beta1.EnableOrganizationResponse
-	219, // 488: raystack.frontier.v1beta1.FrontierService.DisableOrganization:output_type -> raystack.frontier.v1beta1.DisableOrganizationResponse
-	221, // 489: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:output_type -> raystack.frontier.v1beta1.DeleteOrganizationResponse
-	226, // 490: raystack.frontier.v1beta1.FrontierService.CreateProject:output_type -> raystack.frontier.v1beta1.CreateProjectResponse
-	230, // 491: raystack.frontier.v1beta1.FrontierService.GetProject:output_type -> raystack.frontier.v1beta1.GetProjectResponse
-	233, // 492: raystack.frontier.v1beta1.FrontierService.UpdateProject:output_type -> raystack.frontier.v1beta1.UpdateProjectResponse
-	235, // 493: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:output_type -> raystack.frontier.v1beta1.ListProjectAdminsResponse
-	237, // 494: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:output_type -> raystack.frontier.v1beta1.ListProjectUsersResponse
-	239, // 495: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:output_type -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse
-	241, // 496: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:output_type -> raystack.frontier.v1beta1.ListProjectGroupsResponse
-	243, // 497: raystack.frontier.v1beta1.FrontierService.EnableProject:output_type -> raystack.frontier.v1beta1.EnableProjectResponse
-	245, // 498: raystack.frontier.v1beta1.FrontierService.DisableProject:output_type -> raystack.frontier.v1beta1.DisableProjectResponse
-	247, // 499: raystack.frontier.v1beta1.FrontierService.DeleteProject:output_type -> raystack.frontier.v1beta1.DeleteProjectResponse
-	249, // 500: raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole:output_type -> raystack.frontier.v1beta1.SetProjectMemberRoleResponse
-	251, // 501: raystack.frontier.v1beta1.FrontierService.RemoveProjectMember:output_type -> raystack.frontier.v1beta1.RemoveProjectMemberResponse
-	263, // 502: raystack.frontier.v1beta1.FrontierService.CreatePolicy:output_type -> raystack.frontier.v1beta1.CreatePolicyResponse
-	265, // 503: raystack.frontier.v1beta1.FrontierService.GetPolicy:output_type -> raystack.frontier.v1beta1.GetPolicyResponse
-	267, // 504: raystack.frontier.v1beta1.FrontierService.ListPolicies:output_type -> raystack.frontier.v1beta1.ListPoliciesResponse
-	269, // 505: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:output_type -> raystack.frontier.v1beta1.UpdatePolicyResponse
-	271, // 506: raystack.frontier.v1beta1.FrontierService.DeletePolicy:output_type -> raystack.frontier.v1beta1.DeletePolicyResponse
-	273, // 507: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:output_type -> raystack.frontier.v1beta1.CreatePolicyForProjectResponse
-	276, // 508: raystack.frontier.v1beta1.FrontierService.CreateRelation:output_type -> raystack.frontier.v1beta1.CreateRelationResponse
-	278, // 509: raystack.frontier.v1beta1.FrontierService.GetRelation:output_type -> raystack.frontier.v1beta1.GetRelationResponse
-	301, // 510: raystack.frontier.v1beta1.FrontierService.DeleteRelation:output_type -> raystack.frontier.v1beta1.DeleteRelationResponse
-	257, // 511: raystack.frontier.v1beta1.FrontierService.ListPermissions:output_type -> raystack.frontier.v1beta1.ListPermissionsResponse
-	255, // 512: raystack.frontier.v1beta1.FrontierService.GetPermission:output_type -> raystack.frontier.v1beta1.GetPermissionResponse
-	259, // 513: raystack.frontier.v1beta1.FrontierService.ListNamespaces:output_type -> raystack.frontier.v1beta1.ListNamespacesResponse
-	261, // 514: raystack.frontier.v1beta1.FrontierService.GetNamespace:output_type -> raystack.frontier.v1beta1.GetNamespaceResponse
-	303, // 515: raystack.frontier.v1beta1.FrontierService.ListProjectResources:output_type -> raystack.frontier.v1beta1.ListProjectResourcesResponse
-	306, // 516: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:output_type -> raystack.frontier.v1beta1.CreateProjectResourceResponse
-	308, // 517: raystack.frontier.v1beta1.FrontierService.GetProjectResource:output_type -> raystack.frontier.v1beta1.GetProjectResourceResponse
-	310, // 518: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:output_type -> raystack.frontier.v1beta1.UpdateProjectResourceResponse
-	312, // 519: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:output_type -> raystack.frontier.v1beta1.DeleteProjectResourceResponse
-	314, // 520: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:output_type -> raystack.frontier.v1beta1.CheckResourcePermissionResponse
-	317, // 521: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:output_type -> raystack.frontier.v1beta1.BatchCheckPermissionResponse
-	83,  // 522: raystack.frontier.v1beta1.FrontierService.GetJWKs:output_type -> raystack.frontier.v1beta1.GetJWKsResponse
-	357, // 523: raystack.frontier.v1beta1.FrontierService.ListSessions:output_type -> raystack.frontier.v1beta1.ListSessionsResponse
-	359, // 524: raystack.frontier.v1beta1.FrontierService.RevokeSession:output_type -> raystack.frontier.v1beta1.RevokeSessionResponse
-	361, // 525: raystack.frontier.v1beta1.FrontierService.PingUserSession:output_type -> raystack.frontier.v1beta1.PingUserSessionResponse
-	92,  // 526: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:output_type -> raystack.frontier.v1beta1.ListAuthStrategiesResponse
-	89,  // 527: raystack.frontier.v1beta1.FrontierService.Authenticate:output_type -> raystack.frontier.v1beta1.AuthenticateResponse
-	87,  // 528: raystack.frontier.v1beta1.FrontierService.AuthCallback:output_type -> raystack.frontier.v1beta1.AuthCallbackResponse
-	94,  // 529: raystack.frontier.v1beta1.FrontierService.AuthToken:output_type -> raystack.frontier.v1beta1.AuthTokenResponse
-	85,  // 530: raystack.frontier.v1beta1.FrontierService.AuthLogout:output_type -> raystack.frontier.v1beta1.AuthLogoutResponse
-	329, // 531: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:output_type -> raystack.frontier.v1beta1.ListMetaSchemasResponse
-	321, // 532: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:output_type -> raystack.frontier.v1beta1.CreateMetaSchemaResponse
-	323, // 533: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:output_type -> raystack.frontier.v1beta1.GetMetaSchemaResponse
-	325, // 534: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:output_type -> raystack.frontier.v1beta1.UpdateMetaSchemaResponse
-	327, // 535: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:output_type -> raystack.frontier.v1beta1.DeleteMetaSchemaResponse
-	331, // 536: raystack.frontier.v1beta1.FrontierService.DescribePreferences:output_type -> raystack.frontier.v1beta1.DescribePreferencesResponse
-	333, // 537: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:output_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse
-	335, // 538: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:output_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesResponse
-	337, // 539: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:output_type -> raystack.frontier.v1beta1.CreateProjectPreferencesResponse
-	339, // 540: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:output_type -> raystack.frontier.v1beta1.ListProjectPreferencesResponse
-	341, // 541: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:output_type -> raystack.frontier.v1beta1.CreateGroupPreferencesResponse
-	343, // 542: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:output_type -> raystack.frontier.v1beta1.ListGroupPreferencesResponse
-	345, // 543: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:output_type -> raystack.frontier.v1beta1.CreateUserPreferencesResponse
-	347, // 544: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:output_type -> raystack.frontier.v1beta1.ListUserPreferencesResponse
-	349, // 545: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse
-	351, // 546: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse
-	2,   // 547: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:output_type -> raystack.frontier.v1beta1.CreateBillingAccountResponse
-	4,   // 548: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:output_type -> raystack.frontier.v1beta1.GetBillingAccountResponse
-	6,   // 549: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:output_type -> raystack.frontier.v1beta1.UpdateBillingAccountResponse
-	8,   // 550: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:output_type -> raystack.frontier.v1beta1.RegisterBillingAccountResponse
-	10,  // 551: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:output_type -> raystack.frontier.v1beta1.ListBillingAccountsResponse
-	12,  // 552: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:output_type -> raystack.frontier.v1beta1.DeleteBillingAccountResponse
-	14,  // 553: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:output_type -> raystack.frontier.v1beta1.EnableBillingAccountResponse
-	16,  // 554: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:output_type -> raystack.frontier.v1beta1.DisableBillingAccountResponse
-	18,  // 555: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:output_type -> raystack.frontier.v1beta1.GetBillingBalanceResponse
-	20,  // 556: raystack.frontier.v1beta1.FrontierService.HasTrialed:output_type -> raystack.frontier.v1beta1.HasTrialedResponse
-	30,  // 557: raystack.frontier.v1beta1.FrontierService.GetSubscription:output_type -> raystack.frontier.v1beta1.GetSubscriptionResponse
-	38,  // 558: raystack.frontier.v1beta1.FrontierService.CancelSubscription:output_type -> raystack.frontier.v1beta1.CancelSubscriptionResponse
-	32,  // 559: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:output_type -> raystack.frontier.v1beta1.ListSubscriptionsResponse
-	36,  // 560: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:output_type -> raystack.frontier.v1beta1.ChangeSubscriptionResponse
-	34,  // 561: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:output_type -> raystack.frontier.v1beta1.UpdateSubscriptionResponse
-	53,  // 562: raystack.frontier.v1beta1.FrontierService.CreateProduct:output_type -> raystack.frontier.v1beta1.CreateProductResponse
-	55,  // 563: raystack.frontier.v1beta1.FrontierService.GetProduct:output_type -> raystack.frontier.v1beta1.GetProductResponse
-	57,  // 564: raystack.frontier.v1beta1.FrontierService.ListProducts:output_type -> raystack.frontier.v1beta1.ListProductsResponse
-	59,  // 565: raystack.frontier.v1beta1.FrontierService.UpdateProduct:output_type -> raystack.frontier.v1beta1.UpdateProductResponse
-	62,  // 566: raystack.frontier.v1beta1.FrontierService.CreateFeature:output_type -> raystack.frontier.v1beta1.CreateFeatureResponse
-	64,  // 567: raystack.frontier.v1beta1.FrontierService.GetFeature:output_type -> raystack.frontier.v1beta1.GetFeatureResponse
-	66,  // 568: raystack.frontier.v1beta1.FrontierService.UpdateFeature:output_type -> raystack.frontier.v1beta1.UpdateFeatureResponse
-	68,  // 569: raystack.frontier.v1beta1.FrontierService.ListFeatures:output_type -> raystack.frontier.v1beta1.ListFeaturesResponse
-	71,  // 570: raystack.frontier.v1beta1.FrontierService.CreatePlan:output_type -> raystack.frontier.v1beta1.CreatePlanResponse
-	40,  // 571: raystack.frontier.v1beta1.FrontierService.ListPlans:output_type -> raystack.frontier.v1beta1.ListPlansResponse
-	73,  // 572: raystack.frontier.v1beta1.FrontierService.GetPlan:output_type -> raystack.frontier.v1beta1.GetPlanResponse
-	75,  // 573: raystack.frontier.v1beta1.FrontierService.UpdatePlan:output_type -> raystack.frontier.v1beta1.UpdatePlanResponse
-	46,  // 574: raystack.frontier.v1beta1.FrontierService.CreateCheckout:output_type -> raystack.frontier.v1beta1.CreateCheckoutResponse
-	48,  // 575: raystack.frontier.v1beta1.FrontierService.ListCheckouts:output_type -> raystack.frontier.v1beta1.ListCheckoutsResponse
-	50,  // 576: raystack.frontier.v1beta1.FrontierService.GetCheckout:output_type -> raystack.frontier.v1beta1.GetCheckoutResponse
-	42,  // 577: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:output_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementResponse
-	44,  // 578: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:output_type -> raystack.frontier.v1beta1.CheckCreditEntitlementResponse
-	22,  // 579: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:output_type -> raystack.frontier.v1beta1.CreateBillingUsageResponse
-	24,  // 580: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:output_type -> raystack.frontier.v1beta1.ListBillingTransactionsResponse
-	28,  // 581: raystack.frontier.v1beta1.FrontierService.SearchOrganizationTokens:output_type -> raystack.frontier.v1beta1.SearchOrganizationTokensResponse
-	26,  // 582: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:output_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsResponse
-	77,  // 583: raystack.frontier.v1beta1.FrontierService.ListInvoices:output_type -> raystack.frontier.v1beta1.ListInvoicesResponse
-	79,  // 584: raystack.frontier.v1beta1.FrontierService.SearchOrganizationInvoices:output_type -> raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse
-	81,  // 585: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:output_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceResponse
-	353, // 586: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:output_type -> raystack.frontier.v1beta1.BillingWebhookCallbackResponse
-	355, // 587: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:output_type -> raystack.frontier.v1beta1.CreateProspectPublicResponse
-	363, // 588: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:output_type -> raystack.frontier.v1beta1.CreateAuditRecordResponse
-	365, // 589: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPATResponse
-	367, // 590: raystack.frontier.v1beta1.FrontierService.ListRolesForPAT:output_type -> raystack.frontier.v1beta1.ListRolesForPATResponse
-	369, // 591: raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs:output_type -> raystack.frontier.v1beta1.SearchCurrentUserPATsResponse
-	371, // 592: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:output_type -> raystack.frontier.v1beta1.GetCurrentUserPATResponse
-	373, // 593: raystack.frontier.v1beta1.FrontierService.DeleteCurrentUserPAT:output_type -> raystack.frontier.v1beta1.DeleteCurrentUserPATResponse
-	375, // 594: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.UpdateCurrentUserPATResponse
-	377, // 595: raystack.frontier.v1beta1.FrontierService.RegenerateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.RegenerateCurrentUserPATResponse
-	379, // 596: raystack.frontier.v1beta1.FrontierService.CheckCurrentUserPATTitle:output_type -> raystack.frontier.v1beta1.CheckCurrentUserPATTitleResponse
-	417, // [417:597] is the sub-list for method output_type
-	237, // [237:417] is the sub-list for method input_type
-	237, // [237:237] is the sub-list for extension type_name
-	237, // [237:237] is the sub-list for extension extendee
-	0,   // [0:237] is the sub-list for field type_name
+	408, // 51: raystack.frontier.v1beta1.UpdateFeatureResponse.feature:type_name -> raystack.frontier.v1beta1.Feature
+	408, // 52: raystack.frontier.v1beta1.ListFeaturesResponse.features:type_name -> raystack.frontier.v1beta1.Feature
+	402, // 53: raystack.frontier.v1beta1.GetPlanResponse.plan:type_name -> raystack.frontier.v1beta1.Plan
+	411, // 54: raystack.frontier.v1beta1.ListInvoicesResponse.invoices:type_name -> raystack.frontier.v1beta1.Invoice
+	397, // 55: raystack.frontier.v1beta1.SearchOrganizationInvoicesRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
+	378, // 56: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.organization_invoices:type_name -> raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.OrganizationInvoice
+	398, // 57: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
+	399, // 58: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.group:type_name -> raystack.frontier.v1beta1.RQLQueryGroupResponse
+	411, // 59: raystack.frontier.v1beta1.GetUpcomingInvoiceResponse.invoice:type_name -> raystack.frontier.v1beta1.Invoice
+	412, // 60: raystack.frontier.v1beta1.GetJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
+	389, // 61: raystack.frontier.v1beta1.AuthCallbackRequest.state_options:type_name -> google.protobuf.Struct
+	389, // 62: raystack.frontier.v1beta1.AuthenticateResponse.state_options:type_name -> google.protobuf.Struct
+	389, // 63: raystack.frontier.v1beta1.AuthStrategy.params:type_name -> google.protobuf.Struct
+	85,  // 64: raystack.frontier.v1beta1.ListAuthStrategiesResponse.strategies:type_name -> raystack.frontier.v1beta1.AuthStrategy
+	389, // 65: raystack.frontier.v1beta1.UserRequestBody.metadata:type_name -> google.protobuf.Struct
+	413, // 66: raystack.frontier.v1beta1.ListUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	90,  // 67: raystack.frontier.v1beta1.CreateUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
+	413, // 68: raystack.frontier.v1beta1.CreateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	414, // 69: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	414, // 70: raystack.frontier.v1beta1.ListOrganizationsByUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
+	414, // 71: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	414, // 72: raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse.joinable_via_domain:type_name -> raystack.frontier.v1beta1.Organization
+	415, // 73: raystack.frontier.v1beta1.ListProjectsByUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	415, // 74: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	379, // 75: raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse.AccessPair
+	413, // 76: raystack.frontier.v1beta1.GetUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	413, // 77: raystack.frontier.v1beta1.GetCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	416, // 78: raystack.frontier.v1beta1.GetCurrentUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
+	413, // 79: raystack.frontier.v1beta1.UpdateUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	413, // 80: raystack.frontier.v1beta1.UpdateCurrentUserResponse.user:type_name -> raystack.frontier.v1beta1.User
+	90,  // 81: raystack.frontier.v1beta1.UpdateUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
+	417, // 82: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	380, // 83: raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse.AccessPair
+	417, // 84: raystack.frontier.v1beta1.ListUserGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	90,  // 85: raystack.frontier.v1beta1.UpdateCurrentUserRequest.body:type_name -> raystack.frontier.v1beta1.UserRequestBody
+	418, // 86: raystack.frontier.v1beta1.ListUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	418, // 87: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	414, // 88: raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse.orgs:type_name -> raystack.frontier.v1beta1.Organization
+	416, // 89: raystack.frontier.v1beta1.ListServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
+	389, // 90: raystack.frontier.v1beta1.ServiceUserRequestBody.metadata:type_name -> google.protobuf.Struct
+	127, // 91: raystack.frontier.v1beta1.CreateServiceUserRequest.body:type_name -> raystack.frontier.v1beta1.ServiceUserRequestBody
+	416, // 92: raystack.frontier.v1beta1.CreateServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
+	416, // 93: raystack.frontier.v1beta1.GetServiceUserResponse.serviceuser:type_name -> raystack.frontier.v1beta1.ServiceUser
+	419, // 94: raystack.frontier.v1beta1.CreateServiceUserJWKResponse.key:type_name -> raystack.frontier.v1beta1.KeyCredential
+	412, // 95: raystack.frontier.v1beta1.GetServiceUserJWKResponse.keys:type_name -> raystack.frontier.v1beta1.JSONWebKey
+	420, // 96: raystack.frontier.v1beta1.ListServiceUserJWKsResponse.keys:type_name -> raystack.frontier.v1beta1.ServiceUserJWK
+	421, // 97: raystack.frontier.v1beta1.CreateServiceUserCredentialResponse.secret:type_name -> raystack.frontier.v1beta1.SecretCredential
+	421, // 98: raystack.frontier.v1beta1.ListServiceUserCredentialsResponse.secrets:type_name -> raystack.frontier.v1beta1.SecretCredential
+	422, // 99: raystack.frontier.v1beta1.CreateServiceUserTokenResponse.token:type_name -> raystack.frontier.v1beta1.ServiceUserToken
+	422, // 100: raystack.frontier.v1beta1.ListServiceUserTokensResponse.tokens:type_name -> raystack.frontier.v1beta1.ServiceUserToken
+	415, // 101: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	381, // 102: raystack.frontier.v1beta1.ListServiceUserProjectsResponse.access_pairs:type_name -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse.AccessPair
+	417, // 103: raystack.frontier.v1beta1.ListOrganizationGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	423, // 104: raystack.frontier.v1beta1.CreateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
+	424, // 105: raystack.frontier.v1beta1.CreateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
+	424, // 106: raystack.frontier.v1beta1.GetOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
+	423, // 107: raystack.frontier.v1beta1.UpdateOrganizationRoleRequest.body:type_name -> raystack.frontier.v1beta1.RoleRequestBody
+	424, // 108: raystack.frontier.v1beta1.UpdateOrganizationRoleResponse.role:type_name -> raystack.frontier.v1beta1.Role
+	424, // 109: raystack.frontier.v1beta1.ListRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
+	424, // 110: raystack.frontier.v1beta1.ListOrganizationRolesResponse.roles:type_name -> raystack.frontier.v1beta1.Role
+	389, // 111: raystack.frontier.v1beta1.OrganizationRequestBody.metadata:type_name -> google.protobuf.Struct
+	414, // 112: raystack.frontier.v1beta1.ListOrganizationsResponse.organizations:type_name -> raystack.frontier.v1beta1.Organization
+	170, // 113: raystack.frontier.v1beta1.CreateOrganizationRequest.body:type_name -> raystack.frontier.v1beta1.OrganizationRequestBody
+	414, // 114: raystack.frontier.v1beta1.CreateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
+	414, // 115: raystack.frontier.v1beta1.GetOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
+	414, // 116: raystack.frontier.v1beta1.UpdateOrganizationResponse.organization:type_name -> raystack.frontier.v1beta1.Organization
+	170, // 117: raystack.frontier.v1beta1.UpdateOrganizationRequest.body:type_name -> raystack.frontier.v1beta1.OrganizationRequestBody
+	413, // 118: raystack.frontier.v1beta1.ListOrganizationAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
+	413, // 119: raystack.frontier.v1beta1.ListOrganizationUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	382, // 120: raystack.frontier.v1beta1.ListOrganizationUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair
+	416, // 121: raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
+	418, // 122: raystack.frontier.v1beta1.ListOrganizationInvitationsResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	418, // 123: raystack.frontier.v1beta1.CreateOrganizationInvitationResponse.invitations:type_name -> raystack.frontier.v1beta1.Invitation
+	418, // 124: raystack.frontier.v1beta1.GetOrganizationInvitationResponse.invitation:type_name -> raystack.frontier.v1beta1.Invitation
+	425, // 125: raystack.frontier.v1beta1.ListOrganizationDomainsResponse.domains:type_name -> raystack.frontier.v1beta1.Domain
+	425, // 126: raystack.frontier.v1beta1.GetOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
+	425, // 127: raystack.frontier.v1beta1.CreateOrganizationDomainResponse.domain:type_name -> raystack.frontier.v1beta1.Domain
+	426, // 128: raystack.frontier.v1beta1.GetOrganizationKycResponse.organization_kyc:type_name -> raystack.frontier.v1beta1.OrganizationKyc
+	389, // 129: raystack.frontier.v1beta1.ProjectRequestBody.metadata:type_name -> google.protobuf.Struct
+	219, // 130: raystack.frontier.v1beta1.CreateProjectRequest.body:type_name -> raystack.frontier.v1beta1.ProjectRequestBody
+	415, // 131: raystack.frontier.v1beta1.CreateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
+	415, // 132: raystack.frontier.v1beta1.ListOrganizationProjectsResponse.projects:type_name -> raystack.frontier.v1beta1.Project
+	415, // 133: raystack.frontier.v1beta1.GetProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
+	389, // 134: raystack.frontier.v1beta1.UpdateProjectRequestBody.metadata:type_name -> google.protobuf.Struct
+	226, // 135: raystack.frontier.v1beta1.UpdateProjectRequest.body:type_name -> raystack.frontier.v1beta1.UpdateProjectRequestBody
+	415, // 136: raystack.frontier.v1beta1.UpdateProjectResponse.project:type_name -> raystack.frontier.v1beta1.Project
+	413, // 137: raystack.frontier.v1beta1.ListProjectAdminsResponse.users:type_name -> raystack.frontier.v1beta1.User
+	413, // 138: raystack.frontier.v1beta1.ListProjectUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	383, // 139: raystack.frontier.v1beta1.ListProjectUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair
+	416, // 140: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.serviceusers:type_name -> raystack.frontier.v1beta1.ServiceUser
+	384, // 141: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair
+	417, // 142: raystack.frontier.v1beta1.ListProjectGroupsResponse.groups:type_name -> raystack.frontier.v1beta1.Group
+	385, // 143: raystack.frontier.v1beta1.ListProjectGroupsResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair
+	389, // 144: raystack.frontier.v1beta1.PolicyRequestBody.metadata:type_name -> google.protobuf.Struct
+	427, // 145: raystack.frontier.v1beta1.GetPermissionResponse.permission:type_name -> raystack.frontier.v1beta1.Permission
+	427, // 146: raystack.frontier.v1beta1.ListPermissionsResponse.permissions:type_name -> raystack.frontier.v1beta1.Permission
+	428, // 147: raystack.frontier.v1beta1.ListNamespacesResponse.namespaces:type_name -> raystack.frontier.v1beta1.Namespace
+	428, // 148: raystack.frontier.v1beta1.GetNamespaceResponse.namespace:type_name -> raystack.frontier.v1beta1.Namespace
+	247, // 149: raystack.frontier.v1beta1.CreatePolicyRequest.body:type_name -> raystack.frontier.v1beta1.PolicyRequestBody
+	429, // 150: raystack.frontier.v1beta1.CreatePolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
+	429, // 151: raystack.frontier.v1beta1.GetPolicyResponse.policy:type_name -> raystack.frontier.v1beta1.Policy
+	429, // 152: raystack.frontier.v1beta1.ListPoliciesResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
+	247, // 153: raystack.frontier.v1beta1.UpdatePolicyRequest.body:type_name -> raystack.frontier.v1beta1.PolicyRequestBody
+	429, // 154: raystack.frontier.v1beta1.UpdatePolicyResponse.policies:type_name -> raystack.frontier.v1beta1.Policy
+	248, // 155: raystack.frontier.v1beta1.CreatePolicyForProjectRequest.body:type_name -> raystack.frontier.v1beta1.CreatePolicyForProjectBody
+	269, // 156: raystack.frontier.v1beta1.CreateRelationRequest.body:type_name -> raystack.frontier.v1beta1.RelationRequestBody
+	430, // 157: raystack.frontier.v1beta1.CreateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
+	430, // 158: raystack.frontier.v1beta1.GetRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
+	269, // 159: raystack.frontier.v1beta1.UpdateRelationRequest.body:type_name -> raystack.frontier.v1beta1.RelationRequestBody
+	430, // 160: raystack.frontier.v1beta1.UpdateRelationResponse.relation:type_name -> raystack.frontier.v1beta1.Relation
+	389, // 161: raystack.frontier.v1beta1.GroupRequestBody.metadata:type_name -> google.protobuf.Struct
+	276, // 162: raystack.frontier.v1beta1.CreateGroupRequest.body:type_name -> raystack.frontier.v1beta1.GroupRequestBody
+	417, // 163: raystack.frontier.v1beta1.CreateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
+	417, // 164: raystack.frontier.v1beta1.GetGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
+	417, // 165: raystack.frontier.v1beta1.UpdateGroupResponse.group:type_name -> raystack.frontier.v1beta1.Group
+	276, // 166: raystack.frontier.v1beta1.UpdateGroupRequest.body:type_name -> raystack.frontier.v1beta1.GroupRequestBody
+	413, // 167: raystack.frontier.v1beta1.ListGroupUsersResponse.users:type_name -> raystack.frontier.v1beta1.User
+	386, // 168: raystack.frontier.v1beta1.ListGroupUsersResponse.role_pairs:type_name -> raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair
+	431, // 169: raystack.frontier.v1beta1.ListProjectResourcesResponse.resources:type_name -> raystack.frontier.v1beta1.Resource
+	389, // 170: raystack.frontier.v1beta1.ResourceRequestBody.metadata:type_name -> google.protobuf.Struct
+	299, // 171: raystack.frontier.v1beta1.CreateProjectResourceRequest.body:type_name -> raystack.frontier.v1beta1.ResourceRequestBody
+	431, // 172: raystack.frontier.v1beta1.CreateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
+	431, // 173: raystack.frontier.v1beta1.GetProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
+	299, // 174: raystack.frontier.v1beta1.UpdateProjectResourceRequest.body:type_name -> raystack.frontier.v1beta1.ResourceRequestBody
+	431, // 175: raystack.frontier.v1beta1.UpdateProjectResourceResponse.resource:type_name -> raystack.frontier.v1beta1.Resource
+	311, // 176: raystack.frontier.v1beta1.BatchCheckPermissionRequest.bodies:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionBody
+	313, // 177: raystack.frontier.v1beta1.BatchCheckPermissionResponse.pairs:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionResponsePair
+	311, // 178: raystack.frontier.v1beta1.BatchCheckPermissionResponsePair.body:type_name -> raystack.frontier.v1beta1.BatchCheckPermissionBody
+	314, // 179: raystack.frontier.v1beta1.CreateMetaSchemaRequest.body:type_name -> raystack.frontier.v1beta1.MetaSchemaRequestBody
+	432, // 180: raystack.frontier.v1beta1.CreateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
+	432, // 181: raystack.frontier.v1beta1.GetMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
+	314, // 182: raystack.frontier.v1beta1.UpdateMetaSchemaRequest.body:type_name -> raystack.frontier.v1beta1.MetaSchemaRequestBody
+	432, // 183: raystack.frontier.v1beta1.UpdateMetaSchemaResponse.metaschema:type_name -> raystack.frontier.v1beta1.MetaSchema
+	432, // 184: raystack.frontier.v1beta1.ListMetaSchemasResponse.metaschemas:type_name -> raystack.frontier.v1beta1.MetaSchema
+	433, // 185: raystack.frontier.v1beta1.DescribePreferencesResponse.traits:type_name -> raystack.frontier.v1beta1.PreferenceTrait
+	434, // 186: raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	435, // 187: raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	435, // 188: raystack.frontier.v1beta1.ListOrganizationPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	434, // 189: raystack.frontier.v1beta1.CreateProjectPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	435, // 190: raystack.frontier.v1beta1.CreateProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	435, // 191: raystack.frontier.v1beta1.ListProjectPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	434, // 192: raystack.frontier.v1beta1.CreateGroupPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	435, // 193: raystack.frontier.v1beta1.CreateGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	435, // 194: raystack.frontier.v1beta1.ListGroupPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	434, // 195: raystack.frontier.v1beta1.CreateUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	435, // 196: raystack.frontier.v1beta1.CreateUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	435, // 197: raystack.frontier.v1beta1.ListUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	434, // 198: raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest.bodies:type_name -> raystack.frontier.v1beta1.PreferenceRequestBody
+	435, // 199: raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	435, // 200: raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse.preferences:type_name -> raystack.frontier.v1beta1.Preference
+	389, // 201: raystack.frontier.v1beta1.CreateProspectPublicRequest.metadata:type_name -> google.protobuf.Struct
+	436, // 202: raystack.frontier.v1beta1.ListSessionsResponse.sessions:type_name -> raystack.frontier.v1beta1.Session
+	437, // 203: raystack.frontier.v1beta1.PingUserSessionResponse.metadata:type_name -> raystack.frontier.v1beta1.Session.Meta
+	438, // 204: raystack.frontier.v1beta1.CreateAuditRecordRequest.actor:type_name -> raystack.frontier.v1beta1.AuditRecordActor
+	439, // 205: raystack.frontier.v1beta1.CreateAuditRecordRequest.resource:type_name -> raystack.frontier.v1beta1.AuditRecordResource
+	440, // 206: raystack.frontier.v1beta1.CreateAuditRecordRequest.target:type_name -> raystack.frontier.v1beta1.AuditRecordTarget
+	395, // 207: raystack.frontier.v1beta1.CreateAuditRecordRequest.occurred_at:type_name -> google.protobuf.Timestamp
+	389, // 208: raystack.frontier.v1beta1.CreateAuditRecordRequest.metadata:type_name -> google.protobuf.Struct
+	441, // 209: raystack.frontier.v1beta1.CreateAuditRecordResponse.audit_record:type_name -> raystack.frontier.v1beta1.AuditRecord
+	442, // 210: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.scopes:type_name -> raystack.frontier.v1beta1.PATScope
+	395, // 211: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.expires_at:type_name -> google.protobuf.Timestamp
+	389, // 212: raystack.frontier.v1beta1.CreateCurrentUserPATRequest.metadata:type_name -> google.protobuf.Struct
+	443, // 213: raystack.frontier.v1beta1.CreateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
+	424, // 214: raystack.frontier.v1beta1.ListRolesForPATResponse.roles:type_name -> raystack.frontier.v1beta1.Role
+	397, // 215: raystack.frontier.v1beta1.SearchCurrentUserPATsRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
+	443, // 216: raystack.frontier.v1beta1.SearchCurrentUserPATsResponse.pats:type_name -> raystack.frontier.v1beta1.PAT
+	398, // 217: raystack.frontier.v1beta1.SearchCurrentUserPATsResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
+	443, // 218: raystack.frontier.v1beta1.GetCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
+	442, // 219: raystack.frontier.v1beta1.UpdateCurrentUserPATRequest.scopes:type_name -> raystack.frontier.v1beta1.PATScope
+	389, // 220: raystack.frontier.v1beta1.UpdateCurrentUserPATRequest.metadata:type_name -> google.protobuf.Struct
+	443, // 221: raystack.frontier.v1beta1.UpdateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
+	395, // 222: raystack.frontier.v1beta1.RegenerateCurrentUserPATRequest.expires_at:type_name -> google.protobuf.Timestamp
+	443, // 223: raystack.frontier.v1beta1.RegenerateCurrentUserPATResponse.pat:type_name -> raystack.frontier.v1beta1.PAT
+	395, // 224: raystack.frontier.v1beta1.SearchOrganizationTokensResponse.OrganizationToken.created_at:type_name -> google.protobuf.Timestamp
+	395, // 225: raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse.OrganizationInvoice.created_at:type_name -> google.protobuf.Timestamp
+	424, // 226: raystack.frontier.v1beta1.ListOrganizationUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	424, // 227: raystack.frontier.v1beta1.ListProjectUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	424, // 228: raystack.frontier.v1beta1.ListProjectServiceUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	424, // 229: raystack.frontier.v1beta1.ListProjectGroupsResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	424, // 230: raystack.frontier.v1beta1.ListGroupUsersResponse.RolePair.roles:type_name -> raystack.frontier.v1beta1.Role
+	91,  // 231: raystack.frontier.v1beta1.FrontierService.ListUsers:input_type -> raystack.frontier.v1beta1.ListUsersRequest
+	93,  // 232: raystack.frontier.v1beta1.FrontierService.CreateUser:input_type -> raystack.frontier.v1beta1.CreateUserRequest
+	115, // 233: raystack.frontier.v1beta1.FrontierService.GetUser:input_type -> raystack.frontier.v1beta1.GetUserRequest
+	118, // 234: raystack.frontier.v1beta1.FrontierService.ListUserGroups:input_type -> raystack.frontier.v1beta1.ListUserGroupsRequest
+	116, // 235: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:input_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsRequest
+	110, // 236: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:input_type -> raystack.frontier.v1beta1.GetCurrentUserRequest
+	114, // 237: raystack.frontier.v1beta1.FrontierService.UpdateUser:input_type -> raystack.frontier.v1beta1.UpdateUserRequest
+	120, // 238: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:input_type -> raystack.frontier.v1beta1.UpdateCurrentUserRequest
+	103, // 239: raystack.frontier.v1beta1.FrontierService.EnableUser:input_type -> raystack.frontier.v1beta1.EnableUserRequest
+	105, // 240: raystack.frontier.v1beta1.FrontierService.DisableUser:input_type -> raystack.frontier.v1beta1.DisableUserRequest
+	107, // 241: raystack.frontier.v1beta1.FrontierService.DeleteUser:input_type -> raystack.frontier.v1beta1.DeleteUserRequest
+	95,  // 242: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByUserRequest
+	97,  // 243: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserRequest
+	99,  // 244: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:input_type -> raystack.frontier.v1beta1.ListProjectsByUserRequest
+	101, // 245: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:input_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserRequest
+	121, // 246: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:input_type -> raystack.frontier.v1beta1.ListUserInvitationsRequest
+	123, // 247: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:input_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsRequest
+	125, // 248: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:input_type -> raystack.frontier.v1beta1.ListServiceUsersRequest
+	128, // 249: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:input_type -> raystack.frontier.v1beta1.CreateServiceUserRequest
+	130, // 250: raystack.frontier.v1beta1.FrontierService.GetServiceUser:input_type -> raystack.frontier.v1beta1.GetServiceUserRequest
+	132, // 251: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:input_type -> raystack.frontier.v1beta1.DeleteServiceUserRequest
+	134, // 252: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:input_type -> raystack.frontier.v1beta1.CreateServiceUserJWKRequest
+	138, // 253: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:input_type -> raystack.frontier.v1beta1.ListServiceUserJWKsRequest
+	136, // 254: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:input_type -> raystack.frontier.v1beta1.GetServiceUserJWKRequest
+	140, // 255: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:input_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKRequest
+	142, // 256: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:input_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialRequest
+	144, // 257: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:input_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsRequest
+	146, // 258: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:input_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialRequest
+	148, // 259: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:input_type -> raystack.frontier.v1beta1.CreateServiceUserTokenRequest
+	150, // 260: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:input_type -> raystack.frontier.v1beta1.ListServiceUserTokensRequest
+	152, // 261: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:input_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenRequest
+	154, // 262: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:input_type -> raystack.frontier.v1beta1.ListServiceUserProjectsRequest
+	156, // 263: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:input_type -> raystack.frontier.v1beta1.ListOrganizationGroupsRequest
+	277, // 264: raystack.frontier.v1beta1.FrontierService.CreateGroup:input_type -> raystack.frontier.v1beta1.CreateGroupRequest
+	278, // 265: raystack.frontier.v1beta1.FrontierService.GetGroup:input_type -> raystack.frontier.v1beta1.GetGroupRequest
+	282, // 266: raystack.frontier.v1beta1.FrontierService.UpdateGroup:input_type -> raystack.frontier.v1beta1.UpdateGroupRequest
+	283, // 267: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:input_type -> raystack.frontier.v1beta1.ListGroupUsersRequest
+	291, // 268: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:input_type -> raystack.frontier.v1beta1.RemoveGroupUserRequest
+	293, // 269: raystack.frontier.v1beta1.FrontierService.SetGroupMemberRole:input_type -> raystack.frontier.v1beta1.SetGroupMemberRoleRequest
+	285, // 270: raystack.frontier.v1beta1.FrontierService.EnableGroup:input_type -> raystack.frontier.v1beta1.EnableGroupRequest
+	287, // 271: raystack.frontier.v1beta1.FrontierService.DisableGroup:input_type -> raystack.frontier.v1beta1.DisableGroupRequest
+	289, // 272: raystack.frontier.v1beta1.FrontierService.DeleteGroup:input_type -> raystack.frontier.v1beta1.DeleteGroupRequest
+	164, // 273: raystack.frontier.v1beta1.FrontierService.ListRoles:input_type -> raystack.frontier.v1beta1.ListRolesRequest
+	166, // 274: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:input_type -> raystack.frontier.v1beta1.ListOrganizationRolesRequest
+	158, // 275: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:input_type -> raystack.frontier.v1beta1.CreateOrganizationRoleRequest
+	160, // 276: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:input_type -> raystack.frontier.v1beta1.GetOrganizationRoleRequest
+	162, // 277: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleRequest
+	168, // 278: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleRequest
+	171, // 279: raystack.frontier.v1beta1.FrontierService.ListOrganizations:input_type -> raystack.frontier.v1beta1.ListOrganizationsRequest
+	173, // 280: raystack.frontier.v1beta1.FrontierService.CreateOrganization:input_type -> raystack.frontier.v1beta1.CreateOrganizationRequest
+	177, // 281: raystack.frontier.v1beta1.FrontierService.GetOrganization:input_type -> raystack.frontier.v1beta1.GetOrganizationRequest
+	178, // 282: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:input_type -> raystack.frontier.v1beta1.UpdateOrganizationRequest
+	222, // 283: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:input_type -> raystack.frontier.v1beta1.ListOrganizationProjectsRequest
+	179, // 284: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:input_type -> raystack.frontier.v1beta1.ListOrganizationAdminsRequest
+	181, // 285: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationUsersRequest
+	183, // 286: raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole:input_type -> raystack.frontier.v1beta1.SetOrganizationMemberRoleRequest
+	185, // 287: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationMember:input_type -> raystack.frontier.v1beta1.RemoveOrganizationMemberRequest
+	217, // 288: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:input_type -> raystack.frontier.v1beta1.GetOrganizationKycRequest
+	187, // 289: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:input_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersRequest
+	189, // 290: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:input_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsRequest
+	191, // 291: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:input_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationRequest
+	193, // 292: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:input_type -> raystack.frontier.v1beta1.GetOrganizationInvitationRequest
+	195, // 293: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:input_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationRequest
+	197, // 294: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:input_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationRequest
+	198, // 295: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:input_type -> raystack.frontier.v1beta1.ListOrganizationDomainsRequest
+	204, // 296: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:input_type -> raystack.frontier.v1beta1.CreateOrganizationDomainRequest
+	206, // 297: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:input_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainRequest
+	202, // 298: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:input_type -> raystack.frontier.v1beta1.GetOrganizationDomainRequest
+	208, // 299: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:input_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainRequest
+	200, // 300: raystack.frontier.v1beta1.FrontierService.JoinOrganization:input_type -> raystack.frontier.v1beta1.JoinOrganizationRequest
+	211, // 301: raystack.frontier.v1beta1.FrontierService.EnableOrganization:input_type -> raystack.frontier.v1beta1.EnableOrganizationRequest
+	213, // 302: raystack.frontier.v1beta1.FrontierService.DisableOrganization:input_type -> raystack.frontier.v1beta1.DisableOrganizationRequest
+	215, // 303: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:input_type -> raystack.frontier.v1beta1.DeleteOrganizationRequest
+	220, // 304: raystack.frontier.v1beta1.FrontierService.CreateProject:input_type -> raystack.frontier.v1beta1.CreateProjectRequest
+	224, // 305: raystack.frontier.v1beta1.FrontierService.GetProject:input_type -> raystack.frontier.v1beta1.GetProjectRequest
+	227, // 306: raystack.frontier.v1beta1.FrontierService.UpdateProject:input_type -> raystack.frontier.v1beta1.UpdateProjectRequest
+	229, // 307: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:input_type -> raystack.frontier.v1beta1.ListProjectAdminsRequest
+	231, // 308: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:input_type -> raystack.frontier.v1beta1.ListProjectUsersRequest
+	233, // 309: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:input_type -> raystack.frontier.v1beta1.ListProjectServiceUsersRequest
+	235, // 310: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:input_type -> raystack.frontier.v1beta1.ListProjectGroupsRequest
+	237, // 311: raystack.frontier.v1beta1.FrontierService.EnableProject:input_type -> raystack.frontier.v1beta1.EnableProjectRequest
+	239, // 312: raystack.frontier.v1beta1.FrontierService.DisableProject:input_type -> raystack.frontier.v1beta1.DisableProjectRequest
+	241, // 313: raystack.frontier.v1beta1.FrontierService.DeleteProject:input_type -> raystack.frontier.v1beta1.DeleteProjectRequest
+	243, // 314: raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole:input_type -> raystack.frontier.v1beta1.SetProjectMemberRoleRequest
+	245, // 315: raystack.frontier.v1beta1.FrontierService.RemoveProjectMember:input_type -> raystack.frontier.v1beta1.RemoveProjectMemberRequest
+	257, // 316: raystack.frontier.v1beta1.FrontierService.CreatePolicy:input_type -> raystack.frontier.v1beta1.CreatePolicyRequest
+	259, // 317: raystack.frontier.v1beta1.FrontierService.GetPolicy:input_type -> raystack.frontier.v1beta1.GetPolicyRequest
+	261, // 318: raystack.frontier.v1beta1.FrontierService.ListPolicies:input_type -> raystack.frontier.v1beta1.ListPoliciesRequest
+	263, // 319: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:input_type -> raystack.frontier.v1beta1.UpdatePolicyRequest
+	265, // 320: raystack.frontier.v1beta1.FrontierService.DeletePolicy:input_type -> raystack.frontier.v1beta1.DeletePolicyRequest
+	267, // 321: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:input_type -> raystack.frontier.v1beta1.CreatePolicyForProjectRequest
+	270, // 322: raystack.frontier.v1beta1.FrontierService.CreateRelation:input_type -> raystack.frontier.v1beta1.CreateRelationRequest
+	272, // 323: raystack.frontier.v1beta1.FrontierService.GetRelation:input_type -> raystack.frontier.v1beta1.GetRelationRequest
+	295, // 324: raystack.frontier.v1beta1.FrontierService.DeleteRelation:input_type -> raystack.frontier.v1beta1.DeleteRelationRequest
+	251, // 325: raystack.frontier.v1beta1.FrontierService.ListPermissions:input_type -> raystack.frontier.v1beta1.ListPermissionsRequest
+	249, // 326: raystack.frontier.v1beta1.FrontierService.GetPermission:input_type -> raystack.frontier.v1beta1.GetPermissionRequest
+	253, // 327: raystack.frontier.v1beta1.FrontierService.ListNamespaces:input_type -> raystack.frontier.v1beta1.ListNamespacesRequest
+	255, // 328: raystack.frontier.v1beta1.FrontierService.GetNamespace:input_type -> raystack.frontier.v1beta1.GetNamespaceRequest
+	297, // 329: raystack.frontier.v1beta1.FrontierService.ListProjectResources:input_type -> raystack.frontier.v1beta1.ListProjectResourcesRequest
+	300, // 330: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:input_type -> raystack.frontier.v1beta1.CreateProjectResourceRequest
+	302, // 331: raystack.frontier.v1beta1.FrontierService.GetProjectResource:input_type -> raystack.frontier.v1beta1.GetProjectResourceRequest
+	304, // 332: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:input_type -> raystack.frontier.v1beta1.UpdateProjectResourceRequest
+	306, // 333: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:input_type -> raystack.frontier.v1beta1.DeleteProjectResourceRequest
+	308, // 334: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:input_type -> raystack.frontier.v1beta1.CheckResourcePermissionRequest
+	310, // 335: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:input_type -> raystack.frontier.v1beta1.BatchCheckPermissionRequest
+	77,  // 336: raystack.frontier.v1beta1.FrontierService.GetJWKs:input_type -> raystack.frontier.v1beta1.GetJWKsRequest
+	351, // 337: raystack.frontier.v1beta1.FrontierService.ListSessions:input_type -> raystack.frontier.v1beta1.ListSessionsRequest
+	353, // 338: raystack.frontier.v1beta1.FrontierService.RevokeSession:input_type -> raystack.frontier.v1beta1.RevokeSessionRequest
+	355, // 339: raystack.frontier.v1beta1.FrontierService.PingUserSession:input_type -> raystack.frontier.v1beta1.PingUserSessionRequest
+	86,  // 340: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:input_type -> raystack.frontier.v1beta1.ListAuthStrategiesRequest
+	83,  // 341: raystack.frontier.v1beta1.FrontierService.Authenticate:input_type -> raystack.frontier.v1beta1.AuthenticateRequest
+	81,  // 342: raystack.frontier.v1beta1.FrontierService.AuthCallback:input_type -> raystack.frontier.v1beta1.AuthCallbackRequest
+	88,  // 343: raystack.frontier.v1beta1.FrontierService.AuthToken:input_type -> raystack.frontier.v1beta1.AuthTokenRequest
+	79,  // 344: raystack.frontier.v1beta1.FrontierService.AuthLogout:input_type -> raystack.frontier.v1beta1.AuthLogoutRequest
+	323, // 345: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:input_type -> raystack.frontier.v1beta1.ListMetaSchemasRequest
+	315, // 346: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:input_type -> raystack.frontier.v1beta1.CreateMetaSchemaRequest
+	317, // 347: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:input_type -> raystack.frontier.v1beta1.GetMetaSchemaRequest
+	319, // 348: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:input_type -> raystack.frontier.v1beta1.UpdateMetaSchemaRequest
+	321, // 349: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:input_type -> raystack.frontier.v1beta1.DeleteMetaSchemaRequest
+	325, // 350: raystack.frontier.v1beta1.FrontierService.DescribePreferences:input_type -> raystack.frontier.v1beta1.DescribePreferencesRequest
+	327, // 351: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:input_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesRequest
+	329, // 352: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:input_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesRequest
+	331, // 353: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:input_type -> raystack.frontier.v1beta1.CreateProjectPreferencesRequest
+	333, // 354: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:input_type -> raystack.frontier.v1beta1.ListProjectPreferencesRequest
+	335, // 355: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:input_type -> raystack.frontier.v1beta1.CreateGroupPreferencesRequest
+	337, // 356: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:input_type -> raystack.frontier.v1beta1.ListGroupPreferencesRequest
+	339, // 357: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:input_type -> raystack.frontier.v1beta1.CreateUserPreferencesRequest
+	341, // 358: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:input_type -> raystack.frontier.v1beta1.ListUserPreferencesRequest
+	343, // 359: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesRequest
+	345, // 360: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:input_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesRequest
+	1,   // 361: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:input_type -> raystack.frontier.v1beta1.CreateBillingAccountRequest
+	3,   // 362: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:input_type -> raystack.frontier.v1beta1.GetBillingAccountRequest
+	5,   // 363: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:input_type -> raystack.frontier.v1beta1.UpdateBillingAccountRequest
+	7,   // 364: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:input_type -> raystack.frontier.v1beta1.RegisterBillingAccountRequest
+	9,   // 365: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:input_type -> raystack.frontier.v1beta1.ListBillingAccountsRequest
+	11,  // 366: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:input_type -> raystack.frontier.v1beta1.DeleteBillingAccountRequest
+	13,  // 367: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:input_type -> raystack.frontier.v1beta1.EnableBillingAccountRequest
+	15,  // 368: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:input_type -> raystack.frontier.v1beta1.DisableBillingAccountRequest
+	17,  // 369: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:input_type -> raystack.frontier.v1beta1.GetBillingBalanceRequest
+	19,  // 370: raystack.frontier.v1beta1.FrontierService.HasTrialed:input_type -> raystack.frontier.v1beta1.HasTrialedRequest
+	29,  // 371: raystack.frontier.v1beta1.FrontierService.GetSubscription:input_type -> raystack.frontier.v1beta1.GetSubscriptionRequest
+	37,  // 372: raystack.frontier.v1beta1.FrontierService.CancelSubscription:input_type -> raystack.frontier.v1beta1.CancelSubscriptionRequest
+	31,  // 373: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:input_type -> raystack.frontier.v1beta1.ListSubscriptionsRequest
+	35,  // 374: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:input_type -> raystack.frontier.v1beta1.ChangeSubscriptionRequest
+	33,  // 375: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:input_type -> raystack.frontier.v1beta1.UpdateSubscriptionRequest
+	52,  // 376: raystack.frontier.v1beta1.FrontierService.CreateProduct:input_type -> raystack.frontier.v1beta1.CreateProductRequest
+	54,  // 377: raystack.frontier.v1beta1.FrontierService.GetProduct:input_type -> raystack.frontier.v1beta1.GetProductRequest
+	56,  // 378: raystack.frontier.v1beta1.FrontierService.ListProducts:input_type -> raystack.frontier.v1beta1.ListProductsRequest
+	58,  // 379: raystack.frontier.v1beta1.FrontierService.UpdateProduct:input_type -> raystack.frontier.v1beta1.UpdateProductRequest
+	61,  // 380: raystack.frontier.v1beta1.FrontierService.CreateFeature:input_type -> raystack.frontier.v1beta1.CreateFeatureRequest
+	63,  // 381: raystack.frontier.v1beta1.FrontierService.GetFeature:input_type -> raystack.frontier.v1beta1.GetFeatureRequest
+	65,  // 382: raystack.frontier.v1beta1.FrontierService.UpdateFeature:input_type -> raystack.frontier.v1beta1.UpdateFeatureRequest
+	67,  // 383: raystack.frontier.v1beta1.FrontierService.ListFeatures:input_type -> raystack.frontier.v1beta1.ListFeaturesRequest
+	39,  // 384: raystack.frontier.v1beta1.FrontierService.ListPlans:input_type -> raystack.frontier.v1beta1.ListPlansRequest
+	69,  // 385: raystack.frontier.v1beta1.FrontierService.GetPlan:input_type -> raystack.frontier.v1beta1.GetPlanRequest
+	45,  // 386: raystack.frontier.v1beta1.FrontierService.CreateCheckout:input_type -> raystack.frontier.v1beta1.CreateCheckoutRequest
+	47,  // 387: raystack.frontier.v1beta1.FrontierService.ListCheckouts:input_type -> raystack.frontier.v1beta1.ListCheckoutsRequest
+	49,  // 388: raystack.frontier.v1beta1.FrontierService.GetCheckout:input_type -> raystack.frontier.v1beta1.GetCheckoutRequest
+	41,  // 389: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:input_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementRequest
+	43,  // 390: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:input_type -> raystack.frontier.v1beta1.CheckCreditEntitlementRequest
+	21,  // 391: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:input_type -> raystack.frontier.v1beta1.CreateBillingUsageRequest
+	23,  // 392: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:input_type -> raystack.frontier.v1beta1.ListBillingTransactionsRequest
+	27,  // 393: raystack.frontier.v1beta1.FrontierService.SearchOrganizationTokens:input_type -> raystack.frontier.v1beta1.SearchOrganizationTokensRequest
+	25,  // 394: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:input_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsRequest
+	71,  // 395: raystack.frontier.v1beta1.FrontierService.ListInvoices:input_type -> raystack.frontier.v1beta1.ListInvoicesRequest
+	73,  // 396: raystack.frontier.v1beta1.FrontierService.SearchOrganizationInvoices:input_type -> raystack.frontier.v1beta1.SearchOrganizationInvoicesRequest
+	75,  // 397: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:input_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceRequest
+	347, // 398: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:input_type -> raystack.frontier.v1beta1.BillingWebhookCallbackRequest
+	349, // 399: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:input_type -> raystack.frontier.v1beta1.CreateProspectPublicRequest
+	357, // 400: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:input_type -> raystack.frontier.v1beta1.CreateAuditRecordRequest
+	359, // 401: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.CreateCurrentUserPATRequest
+	361, // 402: raystack.frontier.v1beta1.FrontierService.ListRolesForPAT:input_type -> raystack.frontier.v1beta1.ListRolesForPATRequest
+	363, // 403: raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs:input_type -> raystack.frontier.v1beta1.SearchCurrentUserPATsRequest
+	365, // 404: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:input_type -> raystack.frontier.v1beta1.GetCurrentUserPATRequest
+	367, // 405: raystack.frontier.v1beta1.FrontierService.DeleteCurrentUserPAT:input_type -> raystack.frontier.v1beta1.DeleteCurrentUserPATRequest
+	369, // 406: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.UpdateCurrentUserPATRequest
+	371, // 407: raystack.frontier.v1beta1.FrontierService.RegenerateCurrentUserPAT:input_type -> raystack.frontier.v1beta1.RegenerateCurrentUserPATRequest
+	373, // 408: raystack.frontier.v1beta1.FrontierService.CheckCurrentUserPATTitle:input_type -> raystack.frontier.v1beta1.CheckCurrentUserPATTitleRequest
+	92,  // 409: raystack.frontier.v1beta1.FrontierService.ListUsers:output_type -> raystack.frontier.v1beta1.ListUsersResponse
+	94,  // 410: raystack.frontier.v1beta1.FrontierService.CreateUser:output_type -> raystack.frontier.v1beta1.CreateUserResponse
+	109, // 411: raystack.frontier.v1beta1.FrontierService.GetUser:output_type -> raystack.frontier.v1beta1.GetUserResponse
+	119, // 412: raystack.frontier.v1beta1.FrontierService.ListUserGroups:output_type -> raystack.frontier.v1beta1.ListUserGroupsResponse
+	117, // 413: raystack.frontier.v1beta1.FrontierService.ListCurrentUserGroups:output_type -> raystack.frontier.v1beta1.ListCurrentUserGroupsResponse
+	111, // 414: raystack.frontier.v1beta1.FrontierService.GetCurrentUser:output_type -> raystack.frontier.v1beta1.GetCurrentUserResponse
+	112, // 415: raystack.frontier.v1beta1.FrontierService.UpdateUser:output_type -> raystack.frontier.v1beta1.UpdateUserResponse
+	113, // 416: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUser:output_type -> raystack.frontier.v1beta1.UpdateCurrentUserResponse
+	104, // 417: raystack.frontier.v1beta1.FrontierService.EnableUser:output_type -> raystack.frontier.v1beta1.EnableUserResponse
+	106, // 418: raystack.frontier.v1beta1.FrontierService.DisableUser:output_type -> raystack.frontier.v1beta1.DisableUserResponse
+	108, // 419: raystack.frontier.v1beta1.FrontierService.DeleteUser:output_type -> raystack.frontier.v1beta1.DeleteUserResponse
+	96,  // 420: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByUserResponse
+	98,  // 421: raystack.frontier.v1beta1.FrontierService.ListOrganizationsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListOrganizationsByCurrentUserResponse
+	100, // 422: raystack.frontier.v1beta1.FrontierService.ListProjectsByUser:output_type -> raystack.frontier.v1beta1.ListProjectsByUserResponse
+	102, // 423: raystack.frontier.v1beta1.FrontierService.ListProjectsByCurrentUser:output_type -> raystack.frontier.v1beta1.ListProjectsByCurrentUserResponse
+	122, // 424: raystack.frontier.v1beta1.FrontierService.ListUserInvitations:output_type -> raystack.frontier.v1beta1.ListUserInvitationsResponse
+	124, // 425: raystack.frontier.v1beta1.FrontierService.ListCurrentUserInvitations:output_type -> raystack.frontier.v1beta1.ListCurrentUserInvitationsResponse
+	126, // 426: raystack.frontier.v1beta1.FrontierService.ListServiceUsers:output_type -> raystack.frontier.v1beta1.ListServiceUsersResponse
+	129, // 427: raystack.frontier.v1beta1.FrontierService.CreateServiceUser:output_type -> raystack.frontier.v1beta1.CreateServiceUserResponse
+	131, // 428: raystack.frontier.v1beta1.FrontierService.GetServiceUser:output_type -> raystack.frontier.v1beta1.GetServiceUserResponse
+	133, // 429: raystack.frontier.v1beta1.FrontierService.DeleteServiceUser:output_type -> raystack.frontier.v1beta1.DeleteServiceUserResponse
+	135, // 430: raystack.frontier.v1beta1.FrontierService.CreateServiceUserJWK:output_type -> raystack.frontier.v1beta1.CreateServiceUserJWKResponse
+	139, // 431: raystack.frontier.v1beta1.FrontierService.ListServiceUserJWKs:output_type -> raystack.frontier.v1beta1.ListServiceUserJWKsResponse
+	137, // 432: raystack.frontier.v1beta1.FrontierService.GetServiceUserJWK:output_type -> raystack.frontier.v1beta1.GetServiceUserJWKResponse
+	141, // 433: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserJWK:output_type -> raystack.frontier.v1beta1.DeleteServiceUserJWKResponse
+	143, // 434: raystack.frontier.v1beta1.FrontierService.CreateServiceUserCredential:output_type -> raystack.frontier.v1beta1.CreateServiceUserCredentialResponse
+	145, // 435: raystack.frontier.v1beta1.FrontierService.ListServiceUserCredentials:output_type -> raystack.frontier.v1beta1.ListServiceUserCredentialsResponse
+	147, // 436: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserCredential:output_type -> raystack.frontier.v1beta1.DeleteServiceUserCredentialResponse
+	149, // 437: raystack.frontier.v1beta1.FrontierService.CreateServiceUserToken:output_type -> raystack.frontier.v1beta1.CreateServiceUserTokenResponse
+	151, // 438: raystack.frontier.v1beta1.FrontierService.ListServiceUserTokens:output_type -> raystack.frontier.v1beta1.ListServiceUserTokensResponse
+	153, // 439: raystack.frontier.v1beta1.FrontierService.DeleteServiceUserToken:output_type -> raystack.frontier.v1beta1.DeleteServiceUserTokenResponse
+	155, // 440: raystack.frontier.v1beta1.FrontierService.ListServiceUserProjects:output_type -> raystack.frontier.v1beta1.ListServiceUserProjectsResponse
+	157, // 441: raystack.frontier.v1beta1.FrontierService.ListOrganizationGroups:output_type -> raystack.frontier.v1beta1.ListOrganizationGroupsResponse
+	279, // 442: raystack.frontier.v1beta1.FrontierService.CreateGroup:output_type -> raystack.frontier.v1beta1.CreateGroupResponse
+	280, // 443: raystack.frontier.v1beta1.FrontierService.GetGroup:output_type -> raystack.frontier.v1beta1.GetGroupResponse
+	281, // 444: raystack.frontier.v1beta1.FrontierService.UpdateGroup:output_type -> raystack.frontier.v1beta1.UpdateGroupResponse
+	284, // 445: raystack.frontier.v1beta1.FrontierService.ListGroupUsers:output_type -> raystack.frontier.v1beta1.ListGroupUsersResponse
+	292, // 446: raystack.frontier.v1beta1.FrontierService.RemoveGroupUser:output_type -> raystack.frontier.v1beta1.RemoveGroupUserResponse
+	294, // 447: raystack.frontier.v1beta1.FrontierService.SetGroupMemberRole:output_type -> raystack.frontier.v1beta1.SetGroupMemberRoleResponse
+	286, // 448: raystack.frontier.v1beta1.FrontierService.EnableGroup:output_type -> raystack.frontier.v1beta1.EnableGroupResponse
+	288, // 449: raystack.frontier.v1beta1.FrontierService.DisableGroup:output_type -> raystack.frontier.v1beta1.DisableGroupResponse
+	290, // 450: raystack.frontier.v1beta1.FrontierService.DeleteGroup:output_type -> raystack.frontier.v1beta1.DeleteGroupResponse
+	165, // 451: raystack.frontier.v1beta1.FrontierService.ListRoles:output_type -> raystack.frontier.v1beta1.ListRolesResponse
+	167, // 452: raystack.frontier.v1beta1.FrontierService.ListOrganizationRoles:output_type -> raystack.frontier.v1beta1.ListOrganizationRolesResponse
+	159, // 453: raystack.frontier.v1beta1.FrontierService.CreateOrganizationRole:output_type -> raystack.frontier.v1beta1.CreateOrganizationRoleResponse
+	161, // 454: raystack.frontier.v1beta1.FrontierService.GetOrganizationRole:output_type -> raystack.frontier.v1beta1.GetOrganizationRoleResponse
+	163, // 455: raystack.frontier.v1beta1.FrontierService.UpdateOrganizationRole:output_type -> raystack.frontier.v1beta1.UpdateOrganizationRoleResponse
+	169, // 456: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationRole:output_type -> raystack.frontier.v1beta1.DeleteOrganizationRoleResponse
+	172, // 457: raystack.frontier.v1beta1.FrontierService.ListOrganizations:output_type -> raystack.frontier.v1beta1.ListOrganizationsResponse
+	174, // 458: raystack.frontier.v1beta1.FrontierService.CreateOrganization:output_type -> raystack.frontier.v1beta1.CreateOrganizationResponse
+	175, // 459: raystack.frontier.v1beta1.FrontierService.GetOrganization:output_type -> raystack.frontier.v1beta1.GetOrganizationResponse
+	176, // 460: raystack.frontier.v1beta1.FrontierService.UpdateOrganization:output_type -> raystack.frontier.v1beta1.UpdateOrganizationResponse
+	223, // 461: raystack.frontier.v1beta1.FrontierService.ListOrganizationProjects:output_type -> raystack.frontier.v1beta1.ListOrganizationProjectsResponse
+	180, // 462: raystack.frontier.v1beta1.FrontierService.ListOrganizationAdmins:output_type -> raystack.frontier.v1beta1.ListOrganizationAdminsResponse
+	182, // 463: raystack.frontier.v1beta1.FrontierService.ListOrganizationUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationUsersResponse
+	184, // 464: raystack.frontier.v1beta1.FrontierService.SetOrganizationMemberRole:output_type -> raystack.frontier.v1beta1.SetOrganizationMemberRoleResponse
+	186, // 465: raystack.frontier.v1beta1.FrontierService.RemoveOrganizationMember:output_type -> raystack.frontier.v1beta1.RemoveOrganizationMemberResponse
+	218, // 466: raystack.frontier.v1beta1.FrontierService.GetOrganizationKyc:output_type -> raystack.frontier.v1beta1.GetOrganizationKycResponse
+	188, // 467: raystack.frontier.v1beta1.FrontierService.ListOrganizationServiceUsers:output_type -> raystack.frontier.v1beta1.ListOrganizationServiceUsersResponse
+	190, // 468: raystack.frontier.v1beta1.FrontierService.ListOrganizationInvitations:output_type -> raystack.frontier.v1beta1.ListOrganizationInvitationsResponse
+	192, // 469: raystack.frontier.v1beta1.FrontierService.CreateOrganizationInvitation:output_type -> raystack.frontier.v1beta1.CreateOrganizationInvitationResponse
+	194, // 470: raystack.frontier.v1beta1.FrontierService.GetOrganizationInvitation:output_type -> raystack.frontier.v1beta1.GetOrganizationInvitationResponse
+	196, // 471: raystack.frontier.v1beta1.FrontierService.AcceptOrganizationInvitation:output_type -> raystack.frontier.v1beta1.AcceptOrganizationInvitationResponse
+	210, // 472: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationInvitation:output_type -> raystack.frontier.v1beta1.DeleteOrganizationInvitationResponse
+	199, // 473: raystack.frontier.v1beta1.FrontierService.ListOrganizationDomains:output_type -> raystack.frontier.v1beta1.ListOrganizationDomainsResponse
+	205, // 474: raystack.frontier.v1beta1.FrontierService.CreateOrganizationDomain:output_type -> raystack.frontier.v1beta1.CreateOrganizationDomainResponse
+	207, // 475: raystack.frontier.v1beta1.FrontierService.DeleteOrganizationDomain:output_type -> raystack.frontier.v1beta1.DeleteOrganizationDomainResponse
+	203, // 476: raystack.frontier.v1beta1.FrontierService.GetOrganizationDomain:output_type -> raystack.frontier.v1beta1.GetOrganizationDomainResponse
+	209, // 477: raystack.frontier.v1beta1.FrontierService.VerifyOrganizationDomain:output_type -> raystack.frontier.v1beta1.VerifyOrganizationDomainResponse
+	201, // 478: raystack.frontier.v1beta1.FrontierService.JoinOrganization:output_type -> raystack.frontier.v1beta1.JoinOrganizationResponse
+	212, // 479: raystack.frontier.v1beta1.FrontierService.EnableOrganization:output_type -> raystack.frontier.v1beta1.EnableOrganizationResponse
+	214, // 480: raystack.frontier.v1beta1.FrontierService.DisableOrganization:output_type -> raystack.frontier.v1beta1.DisableOrganizationResponse
+	216, // 481: raystack.frontier.v1beta1.FrontierService.DeleteOrganization:output_type -> raystack.frontier.v1beta1.DeleteOrganizationResponse
+	221, // 482: raystack.frontier.v1beta1.FrontierService.CreateProject:output_type -> raystack.frontier.v1beta1.CreateProjectResponse
+	225, // 483: raystack.frontier.v1beta1.FrontierService.GetProject:output_type -> raystack.frontier.v1beta1.GetProjectResponse
+	228, // 484: raystack.frontier.v1beta1.FrontierService.UpdateProject:output_type -> raystack.frontier.v1beta1.UpdateProjectResponse
+	230, // 485: raystack.frontier.v1beta1.FrontierService.ListProjectAdmins:output_type -> raystack.frontier.v1beta1.ListProjectAdminsResponse
+	232, // 486: raystack.frontier.v1beta1.FrontierService.ListProjectUsers:output_type -> raystack.frontier.v1beta1.ListProjectUsersResponse
+	234, // 487: raystack.frontier.v1beta1.FrontierService.ListProjectServiceUsers:output_type -> raystack.frontier.v1beta1.ListProjectServiceUsersResponse
+	236, // 488: raystack.frontier.v1beta1.FrontierService.ListProjectGroups:output_type -> raystack.frontier.v1beta1.ListProjectGroupsResponse
+	238, // 489: raystack.frontier.v1beta1.FrontierService.EnableProject:output_type -> raystack.frontier.v1beta1.EnableProjectResponse
+	240, // 490: raystack.frontier.v1beta1.FrontierService.DisableProject:output_type -> raystack.frontier.v1beta1.DisableProjectResponse
+	242, // 491: raystack.frontier.v1beta1.FrontierService.DeleteProject:output_type -> raystack.frontier.v1beta1.DeleteProjectResponse
+	244, // 492: raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole:output_type -> raystack.frontier.v1beta1.SetProjectMemberRoleResponse
+	246, // 493: raystack.frontier.v1beta1.FrontierService.RemoveProjectMember:output_type -> raystack.frontier.v1beta1.RemoveProjectMemberResponse
+	258, // 494: raystack.frontier.v1beta1.FrontierService.CreatePolicy:output_type -> raystack.frontier.v1beta1.CreatePolicyResponse
+	260, // 495: raystack.frontier.v1beta1.FrontierService.GetPolicy:output_type -> raystack.frontier.v1beta1.GetPolicyResponse
+	262, // 496: raystack.frontier.v1beta1.FrontierService.ListPolicies:output_type -> raystack.frontier.v1beta1.ListPoliciesResponse
+	264, // 497: raystack.frontier.v1beta1.FrontierService.UpdatePolicy:output_type -> raystack.frontier.v1beta1.UpdatePolicyResponse
+	266, // 498: raystack.frontier.v1beta1.FrontierService.DeletePolicy:output_type -> raystack.frontier.v1beta1.DeletePolicyResponse
+	268, // 499: raystack.frontier.v1beta1.FrontierService.CreatePolicyForProject:output_type -> raystack.frontier.v1beta1.CreatePolicyForProjectResponse
+	271, // 500: raystack.frontier.v1beta1.FrontierService.CreateRelation:output_type -> raystack.frontier.v1beta1.CreateRelationResponse
+	273, // 501: raystack.frontier.v1beta1.FrontierService.GetRelation:output_type -> raystack.frontier.v1beta1.GetRelationResponse
+	296, // 502: raystack.frontier.v1beta1.FrontierService.DeleteRelation:output_type -> raystack.frontier.v1beta1.DeleteRelationResponse
+	252, // 503: raystack.frontier.v1beta1.FrontierService.ListPermissions:output_type -> raystack.frontier.v1beta1.ListPermissionsResponse
+	250, // 504: raystack.frontier.v1beta1.FrontierService.GetPermission:output_type -> raystack.frontier.v1beta1.GetPermissionResponse
+	254, // 505: raystack.frontier.v1beta1.FrontierService.ListNamespaces:output_type -> raystack.frontier.v1beta1.ListNamespacesResponse
+	256, // 506: raystack.frontier.v1beta1.FrontierService.GetNamespace:output_type -> raystack.frontier.v1beta1.GetNamespaceResponse
+	298, // 507: raystack.frontier.v1beta1.FrontierService.ListProjectResources:output_type -> raystack.frontier.v1beta1.ListProjectResourcesResponse
+	301, // 508: raystack.frontier.v1beta1.FrontierService.CreateProjectResource:output_type -> raystack.frontier.v1beta1.CreateProjectResourceResponse
+	303, // 509: raystack.frontier.v1beta1.FrontierService.GetProjectResource:output_type -> raystack.frontier.v1beta1.GetProjectResourceResponse
+	305, // 510: raystack.frontier.v1beta1.FrontierService.UpdateProjectResource:output_type -> raystack.frontier.v1beta1.UpdateProjectResourceResponse
+	307, // 511: raystack.frontier.v1beta1.FrontierService.DeleteProjectResource:output_type -> raystack.frontier.v1beta1.DeleteProjectResourceResponse
+	309, // 512: raystack.frontier.v1beta1.FrontierService.CheckResourcePermission:output_type -> raystack.frontier.v1beta1.CheckResourcePermissionResponse
+	312, // 513: raystack.frontier.v1beta1.FrontierService.BatchCheckPermission:output_type -> raystack.frontier.v1beta1.BatchCheckPermissionResponse
+	78,  // 514: raystack.frontier.v1beta1.FrontierService.GetJWKs:output_type -> raystack.frontier.v1beta1.GetJWKsResponse
+	352, // 515: raystack.frontier.v1beta1.FrontierService.ListSessions:output_type -> raystack.frontier.v1beta1.ListSessionsResponse
+	354, // 516: raystack.frontier.v1beta1.FrontierService.RevokeSession:output_type -> raystack.frontier.v1beta1.RevokeSessionResponse
+	356, // 517: raystack.frontier.v1beta1.FrontierService.PingUserSession:output_type -> raystack.frontier.v1beta1.PingUserSessionResponse
+	87,  // 518: raystack.frontier.v1beta1.FrontierService.ListAuthStrategies:output_type -> raystack.frontier.v1beta1.ListAuthStrategiesResponse
+	84,  // 519: raystack.frontier.v1beta1.FrontierService.Authenticate:output_type -> raystack.frontier.v1beta1.AuthenticateResponse
+	82,  // 520: raystack.frontier.v1beta1.FrontierService.AuthCallback:output_type -> raystack.frontier.v1beta1.AuthCallbackResponse
+	89,  // 521: raystack.frontier.v1beta1.FrontierService.AuthToken:output_type -> raystack.frontier.v1beta1.AuthTokenResponse
+	80,  // 522: raystack.frontier.v1beta1.FrontierService.AuthLogout:output_type -> raystack.frontier.v1beta1.AuthLogoutResponse
+	324, // 523: raystack.frontier.v1beta1.FrontierService.ListMetaSchemas:output_type -> raystack.frontier.v1beta1.ListMetaSchemasResponse
+	316, // 524: raystack.frontier.v1beta1.FrontierService.CreateMetaSchema:output_type -> raystack.frontier.v1beta1.CreateMetaSchemaResponse
+	318, // 525: raystack.frontier.v1beta1.FrontierService.GetMetaSchema:output_type -> raystack.frontier.v1beta1.GetMetaSchemaResponse
+	320, // 526: raystack.frontier.v1beta1.FrontierService.UpdateMetaSchema:output_type -> raystack.frontier.v1beta1.UpdateMetaSchemaResponse
+	322, // 527: raystack.frontier.v1beta1.FrontierService.DeleteMetaSchema:output_type -> raystack.frontier.v1beta1.DeleteMetaSchemaResponse
+	326, // 528: raystack.frontier.v1beta1.FrontierService.DescribePreferences:output_type -> raystack.frontier.v1beta1.DescribePreferencesResponse
+	328, // 529: raystack.frontier.v1beta1.FrontierService.CreateOrganizationPreferences:output_type -> raystack.frontier.v1beta1.CreateOrganizationPreferencesResponse
+	330, // 530: raystack.frontier.v1beta1.FrontierService.ListOrganizationPreferences:output_type -> raystack.frontier.v1beta1.ListOrganizationPreferencesResponse
+	332, // 531: raystack.frontier.v1beta1.FrontierService.CreateProjectPreferences:output_type -> raystack.frontier.v1beta1.CreateProjectPreferencesResponse
+	334, // 532: raystack.frontier.v1beta1.FrontierService.ListProjectPreferences:output_type -> raystack.frontier.v1beta1.ListProjectPreferencesResponse
+	336, // 533: raystack.frontier.v1beta1.FrontierService.CreateGroupPreferences:output_type -> raystack.frontier.v1beta1.CreateGroupPreferencesResponse
+	338, // 534: raystack.frontier.v1beta1.FrontierService.ListGroupPreferences:output_type -> raystack.frontier.v1beta1.ListGroupPreferencesResponse
+	340, // 535: raystack.frontier.v1beta1.FrontierService.CreateUserPreferences:output_type -> raystack.frontier.v1beta1.CreateUserPreferencesResponse
+	342, // 536: raystack.frontier.v1beta1.FrontierService.ListUserPreferences:output_type -> raystack.frontier.v1beta1.ListUserPreferencesResponse
+	344, // 537: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPreferencesResponse
+	346, // 538: raystack.frontier.v1beta1.FrontierService.ListCurrentUserPreferences:output_type -> raystack.frontier.v1beta1.ListCurrentUserPreferencesResponse
+	2,   // 539: raystack.frontier.v1beta1.FrontierService.CreateBillingAccount:output_type -> raystack.frontier.v1beta1.CreateBillingAccountResponse
+	4,   // 540: raystack.frontier.v1beta1.FrontierService.GetBillingAccount:output_type -> raystack.frontier.v1beta1.GetBillingAccountResponse
+	6,   // 541: raystack.frontier.v1beta1.FrontierService.UpdateBillingAccount:output_type -> raystack.frontier.v1beta1.UpdateBillingAccountResponse
+	8,   // 542: raystack.frontier.v1beta1.FrontierService.RegisterBillingAccount:output_type -> raystack.frontier.v1beta1.RegisterBillingAccountResponse
+	10,  // 543: raystack.frontier.v1beta1.FrontierService.ListBillingAccounts:output_type -> raystack.frontier.v1beta1.ListBillingAccountsResponse
+	12,  // 544: raystack.frontier.v1beta1.FrontierService.DeleteBillingAccount:output_type -> raystack.frontier.v1beta1.DeleteBillingAccountResponse
+	14,  // 545: raystack.frontier.v1beta1.FrontierService.EnableBillingAccount:output_type -> raystack.frontier.v1beta1.EnableBillingAccountResponse
+	16,  // 546: raystack.frontier.v1beta1.FrontierService.DisableBillingAccount:output_type -> raystack.frontier.v1beta1.DisableBillingAccountResponse
+	18,  // 547: raystack.frontier.v1beta1.FrontierService.GetBillingBalance:output_type -> raystack.frontier.v1beta1.GetBillingBalanceResponse
+	20,  // 548: raystack.frontier.v1beta1.FrontierService.HasTrialed:output_type -> raystack.frontier.v1beta1.HasTrialedResponse
+	30,  // 549: raystack.frontier.v1beta1.FrontierService.GetSubscription:output_type -> raystack.frontier.v1beta1.GetSubscriptionResponse
+	38,  // 550: raystack.frontier.v1beta1.FrontierService.CancelSubscription:output_type -> raystack.frontier.v1beta1.CancelSubscriptionResponse
+	32,  // 551: raystack.frontier.v1beta1.FrontierService.ListSubscriptions:output_type -> raystack.frontier.v1beta1.ListSubscriptionsResponse
+	36,  // 552: raystack.frontier.v1beta1.FrontierService.ChangeSubscription:output_type -> raystack.frontier.v1beta1.ChangeSubscriptionResponse
+	34,  // 553: raystack.frontier.v1beta1.FrontierService.UpdateSubscription:output_type -> raystack.frontier.v1beta1.UpdateSubscriptionResponse
+	53,  // 554: raystack.frontier.v1beta1.FrontierService.CreateProduct:output_type -> raystack.frontier.v1beta1.CreateProductResponse
+	55,  // 555: raystack.frontier.v1beta1.FrontierService.GetProduct:output_type -> raystack.frontier.v1beta1.GetProductResponse
+	57,  // 556: raystack.frontier.v1beta1.FrontierService.ListProducts:output_type -> raystack.frontier.v1beta1.ListProductsResponse
+	59,  // 557: raystack.frontier.v1beta1.FrontierService.UpdateProduct:output_type -> raystack.frontier.v1beta1.UpdateProductResponse
+	62,  // 558: raystack.frontier.v1beta1.FrontierService.CreateFeature:output_type -> raystack.frontier.v1beta1.CreateFeatureResponse
+	64,  // 559: raystack.frontier.v1beta1.FrontierService.GetFeature:output_type -> raystack.frontier.v1beta1.GetFeatureResponse
+	66,  // 560: raystack.frontier.v1beta1.FrontierService.UpdateFeature:output_type -> raystack.frontier.v1beta1.UpdateFeatureResponse
+	68,  // 561: raystack.frontier.v1beta1.FrontierService.ListFeatures:output_type -> raystack.frontier.v1beta1.ListFeaturesResponse
+	40,  // 562: raystack.frontier.v1beta1.FrontierService.ListPlans:output_type -> raystack.frontier.v1beta1.ListPlansResponse
+	70,  // 563: raystack.frontier.v1beta1.FrontierService.GetPlan:output_type -> raystack.frontier.v1beta1.GetPlanResponse
+	46,  // 564: raystack.frontier.v1beta1.FrontierService.CreateCheckout:output_type -> raystack.frontier.v1beta1.CreateCheckoutResponse
+	48,  // 565: raystack.frontier.v1beta1.FrontierService.ListCheckouts:output_type -> raystack.frontier.v1beta1.ListCheckoutsResponse
+	50,  // 566: raystack.frontier.v1beta1.FrontierService.GetCheckout:output_type -> raystack.frontier.v1beta1.GetCheckoutResponse
+	42,  // 567: raystack.frontier.v1beta1.FrontierService.CheckFeatureEntitlement:output_type -> raystack.frontier.v1beta1.CheckFeatureEntitlementResponse
+	44,  // 568: raystack.frontier.v1beta1.FrontierService.CheckCreditEntitlement:output_type -> raystack.frontier.v1beta1.CheckCreditEntitlementResponse
+	22,  // 569: raystack.frontier.v1beta1.FrontierService.CreateBillingUsage:output_type -> raystack.frontier.v1beta1.CreateBillingUsageResponse
+	24,  // 570: raystack.frontier.v1beta1.FrontierService.ListBillingTransactions:output_type -> raystack.frontier.v1beta1.ListBillingTransactionsResponse
+	28,  // 571: raystack.frontier.v1beta1.FrontierService.SearchOrganizationTokens:output_type -> raystack.frontier.v1beta1.SearchOrganizationTokensResponse
+	26,  // 572: raystack.frontier.v1beta1.FrontierService.TotalDebitedTransactions:output_type -> raystack.frontier.v1beta1.TotalDebitedTransactionsResponse
+	72,  // 573: raystack.frontier.v1beta1.FrontierService.ListInvoices:output_type -> raystack.frontier.v1beta1.ListInvoicesResponse
+	74,  // 574: raystack.frontier.v1beta1.FrontierService.SearchOrganizationInvoices:output_type -> raystack.frontier.v1beta1.SearchOrganizationInvoicesResponse
+	76,  // 575: raystack.frontier.v1beta1.FrontierService.GetUpcomingInvoice:output_type -> raystack.frontier.v1beta1.GetUpcomingInvoiceResponse
+	348, // 576: raystack.frontier.v1beta1.FrontierService.BillingWebhookCallback:output_type -> raystack.frontier.v1beta1.BillingWebhookCallbackResponse
+	350, // 577: raystack.frontier.v1beta1.FrontierService.CreateProspectPublic:output_type -> raystack.frontier.v1beta1.CreateProspectPublicResponse
+	358, // 578: raystack.frontier.v1beta1.FrontierService.CreateAuditRecord:output_type -> raystack.frontier.v1beta1.CreateAuditRecordResponse
+	360, // 579: raystack.frontier.v1beta1.FrontierService.CreateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.CreateCurrentUserPATResponse
+	362, // 580: raystack.frontier.v1beta1.FrontierService.ListRolesForPAT:output_type -> raystack.frontier.v1beta1.ListRolesForPATResponse
+	364, // 581: raystack.frontier.v1beta1.FrontierService.SearchCurrentUserPATs:output_type -> raystack.frontier.v1beta1.SearchCurrentUserPATsResponse
+	366, // 582: raystack.frontier.v1beta1.FrontierService.GetCurrentUserPAT:output_type -> raystack.frontier.v1beta1.GetCurrentUserPATResponse
+	368, // 583: raystack.frontier.v1beta1.FrontierService.DeleteCurrentUserPAT:output_type -> raystack.frontier.v1beta1.DeleteCurrentUserPATResponse
+	370, // 584: raystack.frontier.v1beta1.FrontierService.UpdateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.UpdateCurrentUserPATResponse
+	372, // 585: raystack.frontier.v1beta1.FrontierService.RegenerateCurrentUserPAT:output_type -> raystack.frontier.v1beta1.RegenerateCurrentUserPATResponse
+	374, // 586: raystack.frontier.v1beta1.FrontierService.CheckCurrentUserPATTitle:output_type -> raystack.frontier.v1beta1.CheckCurrentUserPATTitleResponse
+	409, // [409:587] is the sub-list for method output_type
+	231, // [231:409] is the sub-list for method input_type
+	231, // [231:231] is the sub-list for extension type_name
+	231, // [231:231] is the sub-list for extension extendee
+	0,   // [0:231] is the sub-list for field type_name
 }
 
 func init() { file_raystack_frontier_v1beta1_frontier_proto_init() }
@@ -26291,42 +25904,6 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PlanRequestBody); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreatePlanRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreatePlanResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPlanRequest); i {
 			case 0:
 				return &v.state
@@ -26338,7 +25915,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPlanResponse); i {
 			case 0:
 				return &v.state
@@ -26350,31 +25927,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdatePlanRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdatePlanResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListInvoicesRequest); i {
 			case 0:
 				return &v.state
@@ -26386,7 +25939,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListInvoicesResponse); i {
 			case 0:
 				return &v.state
@@ -26398,7 +25951,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SearchOrganizationInvoicesRequest); i {
 			case 0:
 				return &v.state
@@ -26410,7 +25963,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SearchOrganizationInvoicesResponse); i {
 			case 0:
 				return &v.state
@@ -26422,7 +25975,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetUpcomingInvoiceRequest); i {
 			case 0:
 				return &v.state
@@ -26434,7 +25987,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetUpcomingInvoiceResponse); i {
 			case 0:
 				return &v.state
@@ -26446,7 +25999,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetJWKsRequest); i {
 			case 0:
 				return &v.state
@@ -26458,7 +26011,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetJWKsResponse); i {
 			case 0:
 				return &v.state
@@ -26470,7 +26023,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthLogoutRequest); i {
 			case 0:
 				return &v.state
@@ -26482,7 +26035,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthLogoutResponse); i {
 			case 0:
 				return &v.state
@@ -26494,7 +26047,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthCallbackRequest); i {
 			case 0:
 				return &v.state
@@ -26506,7 +26059,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthCallbackResponse); i {
 			case 0:
 				return &v.state
@@ -26518,7 +26071,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthenticateRequest); i {
 			case 0:
 				return &v.state
@@ -26530,7 +26083,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthenticateResponse); i {
 			case 0:
 				return &v.state
@@ -26542,7 +26095,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthStrategy); i {
 			case 0:
 				return &v.state
@@ -26554,7 +26107,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAuthStrategiesRequest); i {
 			case 0:
 				return &v.state
@@ -26566,7 +26119,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListAuthStrategiesResponse); i {
 			case 0:
 				return &v.state
@@ -26578,7 +26131,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[93].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthTokenRequest); i {
 			case 0:
 				return &v.state
@@ -26590,7 +26143,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[94].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AuthTokenResponse); i {
 			case 0:
 				return &v.state
@@ -26602,7 +26155,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[95].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UserRequestBody); i {
 			case 0:
 				return &v.state
@@ -26614,7 +26167,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[96].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUsersRequest); i {
 			case 0:
 				return &v.state
@@ -26626,7 +26179,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[97].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUsersResponse); i {
 			case 0:
 				return &v.state
@@ -26638,7 +26191,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[98].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[93].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateUserRequest); i {
 			case 0:
 				return &v.state
@@ -26650,7 +26203,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[99].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[94].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateUserResponse); i {
 			case 0:
 				return &v.state
@@ -26662,7 +26215,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[100].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[95].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsByUserRequest); i {
 			case 0:
 				return &v.state
@@ -26674,7 +26227,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[101].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[96].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsByUserResponse); i {
 			case 0:
 				return &v.state
@@ -26686,7 +26239,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[102].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[97].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsByCurrentUserRequest); i {
 			case 0:
 				return &v.state
@@ -26698,7 +26251,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[103].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[98].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsByCurrentUserResponse); i {
 			case 0:
 				return &v.state
@@ -26710,7 +26263,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[104].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[99].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsByUserRequest); i {
 			case 0:
 				return &v.state
@@ -26722,7 +26275,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[105].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[100].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsByUserResponse); i {
 			case 0:
 				return &v.state
@@ -26734,7 +26287,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[106].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[101].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsByCurrentUserRequest); i {
 			case 0:
 				return &v.state
@@ -26746,7 +26299,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[107].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[102].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsByCurrentUserResponse); i {
 			case 0:
 				return &v.state
@@ -26758,7 +26311,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[108].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[103].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableUserRequest); i {
 			case 0:
 				return &v.state
@@ -26770,7 +26323,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[109].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[104].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableUserResponse); i {
 			case 0:
 				return &v.state
@@ -26782,7 +26335,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[110].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[105].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableUserRequest); i {
 			case 0:
 				return &v.state
@@ -26794,7 +26347,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[111].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[106].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableUserResponse); i {
 			case 0:
 				return &v.state
@@ -26806,7 +26359,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[112].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[107].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteUserRequest); i {
 			case 0:
 				return &v.state
@@ -26818,7 +26371,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[113].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[108].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteUserResponse); i {
 			case 0:
 				return &v.state
@@ -26830,7 +26383,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[114].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[109].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetUserResponse); i {
 			case 0:
 				return &v.state
@@ -26842,7 +26395,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[115].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[110].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetCurrentUserRequest); i {
 			case 0:
 				return &v.state
@@ -26854,7 +26407,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[116].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[111].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetCurrentUserResponse); i {
 			case 0:
 				return &v.state
@@ -26866,7 +26419,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[117].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[112].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateUserResponse); i {
 			case 0:
 				return &v.state
@@ -26878,7 +26431,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[118].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[113].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateCurrentUserResponse); i {
 			case 0:
 				return &v.state
@@ -26890,7 +26443,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[119].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[114].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateUserRequest); i {
 			case 0:
 				return &v.state
@@ -26902,7 +26455,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[120].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[115].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetUserRequest); i {
 			case 0:
 				return &v.state
@@ -26914,7 +26467,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[121].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[116].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListCurrentUserGroupsRequest); i {
 			case 0:
 				return &v.state
@@ -26926,7 +26479,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[122].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[117].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListCurrentUserGroupsResponse); i {
 			case 0:
 				return &v.state
@@ -26938,7 +26491,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[123].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[118].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserGroupsRequest); i {
 			case 0:
 				return &v.state
@@ -26950,7 +26503,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[124].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[119].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserGroupsResponse); i {
 			case 0:
 				return &v.state
@@ -26962,7 +26515,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[125].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[120].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateCurrentUserRequest); i {
 			case 0:
 				return &v.state
@@ -26974,7 +26527,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[126].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[121].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserInvitationsRequest); i {
 			case 0:
 				return &v.state
@@ -26986,7 +26539,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[127].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[122].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserInvitationsResponse); i {
 			case 0:
 				return &v.state
@@ -26998,7 +26551,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[128].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[123].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListCurrentUserInvitationsRequest); i {
 			case 0:
 				return &v.state
@@ -27010,7 +26563,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[129].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[124].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListCurrentUserInvitationsResponse); i {
 			case 0:
 				return &v.state
@@ -27022,7 +26575,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[130].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[125].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUsersRequest); i {
 			case 0:
 				return &v.state
@@ -27034,7 +26587,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[131].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[126].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUsersResponse); i {
 			case 0:
 				return &v.state
@@ -27046,7 +26599,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[132].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[127].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ServiceUserRequestBody); i {
 			case 0:
 				return &v.state
@@ -27058,7 +26611,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[133].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[128].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserRequest); i {
 			case 0:
 				return &v.state
@@ -27070,7 +26623,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[134].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[129].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserResponse); i {
 			case 0:
 				return &v.state
@@ -27082,7 +26635,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[135].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[130].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetServiceUserRequest); i {
 			case 0:
 				return &v.state
@@ -27094,7 +26647,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[136].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[131].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetServiceUserResponse); i {
 			case 0:
 				return &v.state
@@ -27106,7 +26659,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[132].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserRequest); i {
 			case 0:
 				return &v.state
@@ -27118,7 +26671,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[138].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[133].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserResponse); i {
 			case 0:
 				return &v.state
@@ -27130,7 +26683,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[139].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[134].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserJWKRequest); i {
 			case 0:
 				return &v.state
@@ -27142,7 +26695,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[140].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[135].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserJWKResponse); i {
 			case 0:
 				return &v.state
@@ -27154,7 +26707,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[141].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[136].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetServiceUserJWKRequest); i {
 			case 0:
 				return &v.state
@@ -27166,7 +26719,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[142].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[137].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetServiceUserJWKResponse); i {
 			case 0:
 				return &v.state
@@ -27178,7 +26731,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[143].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[138].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserJWKsRequest); i {
 			case 0:
 				return &v.state
@@ -27190,7 +26743,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[144].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[139].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserJWKsResponse); i {
 			case 0:
 				return &v.state
@@ -27202,7 +26755,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[145].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[140].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserJWKRequest); i {
 			case 0:
 				return &v.state
@@ -27214,7 +26767,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[146].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[141].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserJWKResponse); i {
 			case 0:
 				return &v.state
@@ -27226,7 +26779,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[147].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[142].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserCredentialRequest); i {
 			case 0:
 				return &v.state
@@ -27238,7 +26791,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[148].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[143].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserCredentialResponse); i {
 			case 0:
 				return &v.state
@@ -27250,7 +26803,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[149].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[144].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserCredentialsRequest); i {
 			case 0:
 				return &v.state
@@ -27262,7 +26815,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[150].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[145].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserCredentialsResponse); i {
 			case 0:
 				return &v.state
@@ -27274,7 +26827,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[151].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[146].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserCredentialRequest); i {
 			case 0:
 				return &v.state
@@ -27286,7 +26839,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[152].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[147].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserCredentialResponse); i {
 			case 0:
 				return &v.state
@@ -27298,7 +26851,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[153].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[148].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserTokenRequest); i {
 			case 0:
 				return &v.state
@@ -27310,7 +26863,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[154].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[149].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateServiceUserTokenResponse); i {
 			case 0:
 				return &v.state
@@ -27322,7 +26875,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[155].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[150].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserTokensRequest); i {
 			case 0:
 				return &v.state
@@ -27334,7 +26887,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[156].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[151].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserTokensResponse); i {
 			case 0:
 				return &v.state
@@ -27346,7 +26899,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[157].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[152].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserTokenRequest); i {
 			case 0:
 				return &v.state
@@ -27358,7 +26911,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[158].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[153].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteServiceUserTokenResponse); i {
 			case 0:
 				return &v.state
@@ -27370,7 +26923,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[159].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[154].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserProjectsRequest); i {
 			case 0:
 				return &v.state
@@ -27382,7 +26935,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[160].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[155].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserProjectsResponse); i {
 			case 0:
 				return &v.state
@@ -27394,7 +26947,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[161].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[156].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationGroupsRequest); i {
 			case 0:
 				return &v.state
@@ -27406,7 +26959,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[162].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[157].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationGroupsResponse); i {
 			case 0:
 				return &v.state
@@ -27418,7 +26971,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[163].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[158].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationRoleRequest); i {
 			case 0:
 				return &v.state
@@ -27430,7 +26983,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[164].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[159].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationRoleResponse); i {
 			case 0:
 				return &v.state
@@ -27442,7 +26995,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[165].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[160].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationRoleRequest); i {
 			case 0:
 				return &v.state
@@ -27454,7 +27007,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[166].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[161].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationRoleResponse); i {
 			case 0:
 				return &v.state
@@ -27466,7 +27019,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[167].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[162].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateOrganizationRoleRequest); i {
 			case 0:
 				return &v.state
@@ -27478,7 +27031,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[168].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[163].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateOrganizationRoleResponse); i {
 			case 0:
 				return &v.state
@@ -27490,7 +27043,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[169].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[164].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRolesRequest); i {
 			case 0:
 				return &v.state
@@ -27502,7 +27055,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[170].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[165].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRolesResponse); i {
 			case 0:
 				return &v.state
@@ -27514,7 +27067,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[171].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[166].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationRolesRequest); i {
 			case 0:
 				return &v.state
@@ -27526,7 +27079,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[172].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[167].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationRolesResponse); i {
 			case 0:
 				return &v.state
@@ -27538,7 +27091,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[173].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[168].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationRoleRequest); i {
 			case 0:
 				return &v.state
@@ -27550,7 +27103,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[174].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[169].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationRoleResponse); i {
 			case 0:
 				return &v.state
@@ -27562,7 +27115,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[175].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[170].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*OrganizationRequestBody); i {
 			case 0:
 				return &v.state
@@ -27574,7 +27127,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[176].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[171].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsRequest); i {
 			case 0:
 				return &v.state
@@ -27586,7 +27139,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[177].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[172].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationsResponse); i {
 			case 0:
 				return &v.state
@@ -27598,7 +27151,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[178].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[173].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -27610,7 +27163,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[179].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[174].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -27622,7 +27175,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[180].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[175].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -27634,7 +27187,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[181].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[176].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -27646,7 +27199,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[182].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[177].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -27658,7 +27211,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[183].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[178].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -27670,7 +27223,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[184].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[179].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationAdminsRequest); i {
 			case 0:
 				return &v.state
@@ -27682,7 +27235,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[185].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[180].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationAdminsResponse); i {
 			case 0:
 				return &v.state
@@ -27694,7 +27247,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[186].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[181].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationUsersRequest); i {
 			case 0:
 				return &v.state
@@ -27706,7 +27259,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[187].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[182].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationUsersResponse); i {
 			case 0:
 				return &v.state
@@ -27718,7 +27271,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[188].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[183].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetOrganizationMemberRoleRequest); i {
 			case 0:
 				return &v.state
@@ -27730,7 +27283,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[189].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[184].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetOrganizationMemberRoleResponse); i {
 			case 0:
 				return &v.state
@@ -27742,7 +27295,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[190].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[185].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveOrganizationMemberRequest); i {
 			case 0:
 				return &v.state
@@ -27754,7 +27307,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[191].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[186].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveOrganizationMemberResponse); i {
 			case 0:
 				return &v.state
@@ -27766,7 +27319,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[192].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[187].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationServiceUsersRequest); i {
 			case 0:
 				return &v.state
@@ -27778,7 +27331,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[193].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[188].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationServiceUsersResponse); i {
 			case 0:
 				return &v.state
@@ -27790,7 +27343,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[194].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[189].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationInvitationsRequest); i {
 			case 0:
 				return &v.state
@@ -27802,7 +27355,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[195].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[190].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationInvitationsResponse); i {
 			case 0:
 				return &v.state
@@ -27814,7 +27367,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[196].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[191].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationInvitationRequest); i {
 			case 0:
 				return &v.state
@@ -27826,7 +27379,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[197].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[192].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationInvitationResponse); i {
 			case 0:
 				return &v.state
@@ -27838,7 +27391,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[198].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[193].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationInvitationRequest); i {
 			case 0:
 				return &v.state
@@ -27850,7 +27403,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[199].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[194].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationInvitationResponse); i {
 			case 0:
 				return &v.state
@@ -27862,7 +27415,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[200].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[195].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AcceptOrganizationInvitationRequest); i {
 			case 0:
 				return &v.state
@@ -27874,7 +27427,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[201].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[196].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*AcceptOrganizationInvitationResponse); i {
 			case 0:
 				return &v.state
@@ -27886,7 +27439,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[202].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[197].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationInvitationRequest); i {
 			case 0:
 				return &v.state
@@ -27898,7 +27451,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[203].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[198].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationDomainsRequest); i {
 			case 0:
 				return &v.state
@@ -27910,7 +27463,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[204].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[199].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationDomainsResponse); i {
 			case 0:
 				return &v.state
@@ -27922,7 +27475,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[205].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[200].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*JoinOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -27934,7 +27487,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[206].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[201].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*JoinOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -27946,7 +27499,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[207].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[202].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationDomainRequest); i {
 			case 0:
 				return &v.state
@@ -27958,7 +27511,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[208].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[203].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationDomainResponse); i {
 			case 0:
 				return &v.state
@@ -27970,7 +27523,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[209].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[204].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationDomainRequest); i {
 			case 0:
 				return &v.state
@@ -27982,7 +27535,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[210].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[205].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationDomainResponse); i {
 			case 0:
 				return &v.state
@@ -27994,7 +27547,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[211].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[206].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationDomainRequest); i {
 			case 0:
 				return &v.state
@@ -28006,7 +27559,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[212].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[207].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationDomainResponse); i {
 			case 0:
 				return &v.state
@@ -28018,7 +27571,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[213].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[208].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*VerifyOrganizationDomainRequest); i {
 			case 0:
 				return &v.state
@@ -28030,7 +27583,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[214].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[209].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*VerifyOrganizationDomainResponse); i {
 			case 0:
 				return &v.state
@@ -28042,7 +27595,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[215].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[210].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationInvitationResponse); i {
 			case 0:
 				return &v.state
@@ -28054,7 +27607,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[216].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[211].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -28066,7 +27619,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[217].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[212].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -28078,7 +27631,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[218].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[213].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -28090,7 +27643,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[219].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[214].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -28102,7 +27655,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[220].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[215].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationRequest); i {
 			case 0:
 				return &v.state
@@ -28114,7 +27667,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[221].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[216].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteOrganizationResponse); i {
 			case 0:
 				return &v.state
@@ -28126,7 +27679,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[222].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[217].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationKycRequest); i {
 			case 0:
 				return &v.state
@@ -28138,7 +27691,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[223].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[218].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetOrganizationKycResponse); i {
 			case 0:
 				return &v.state
@@ -28150,7 +27703,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[224].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[219].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ProjectRequestBody); i {
 			case 0:
 				return &v.state
@@ -28162,7 +27715,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[225].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[220].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectRequest); i {
 			case 0:
 				return &v.state
@@ -28174,7 +27727,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[226].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[221].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectResponse); i {
 			case 0:
 				return &v.state
@@ -28186,7 +27739,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[227].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[222].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationProjectsRequest); i {
 			case 0:
 				return &v.state
@@ -28198,7 +27751,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[228].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[223].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationProjectsResponse); i {
 			case 0:
 				return &v.state
@@ -28210,7 +27763,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[229].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[224].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetProjectRequest); i {
 			case 0:
 				return &v.state
@@ -28222,7 +27775,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[230].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[225].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetProjectResponse); i {
 			case 0:
 				return &v.state
@@ -28234,7 +27787,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[231].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[226].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateProjectRequestBody); i {
 			case 0:
 				return &v.state
@@ -28246,7 +27799,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[232].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[227].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateProjectRequest); i {
 			case 0:
 				return &v.state
@@ -28258,7 +27811,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[233].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[228].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateProjectResponse); i {
 			case 0:
 				return &v.state
@@ -28270,7 +27823,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[234].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[229].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectAdminsRequest); i {
 			case 0:
 				return &v.state
@@ -28282,7 +27835,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[235].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[230].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectAdminsResponse); i {
 			case 0:
 				return &v.state
@@ -28294,7 +27847,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[236].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[231].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectUsersRequest); i {
 			case 0:
 				return &v.state
@@ -28306,7 +27859,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[237].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[232].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectUsersResponse); i {
 			case 0:
 				return &v.state
@@ -28318,7 +27871,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[238].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[233].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectServiceUsersRequest); i {
 			case 0:
 				return &v.state
@@ -28330,7 +27883,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[239].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[234].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectServiceUsersResponse); i {
 			case 0:
 				return &v.state
@@ -28342,7 +27895,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[240].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[235].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectGroupsRequest); i {
 			case 0:
 				return &v.state
@@ -28354,7 +27907,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[241].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[236].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectGroupsResponse); i {
 			case 0:
 				return &v.state
@@ -28366,7 +27919,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[242].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[237].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableProjectRequest); i {
 			case 0:
 				return &v.state
@@ -28378,7 +27931,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[243].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[238].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableProjectResponse); i {
 			case 0:
 				return &v.state
@@ -28390,7 +27943,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[244].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[239].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableProjectRequest); i {
 			case 0:
 				return &v.state
@@ -28402,7 +27955,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[245].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[240].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableProjectResponse); i {
 			case 0:
 				return &v.state
@@ -28414,7 +27967,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[246].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[241].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteProjectRequest); i {
 			case 0:
 				return &v.state
@@ -28426,7 +27979,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[247].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[242].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteProjectResponse); i {
 			case 0:
 				return &v.state
@@ -28438,7 +27991,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[248].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[243].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetProjectMemberRoleRequest); i {
 			case 0:
 				return &v.state
@@ -28450,7 +28003,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[249].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[244].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetProjectMemberRoleResponse); i {
 			case 0:
 				return &v.state
@@ -28462,7 +28015,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[250].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[245].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveProjectMemberRequest); i {
 			case 0:
 				return &v.state
@@ -28474,7 +28027,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[251].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[246].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveProjectMemberResponse); i {
 			case 0:
 				return &v.state
@@ -28486,7 +28039,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[252].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[247].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PolicyRequestBody); i {
 			case 0:
 				return &v.state
@@ -28498,7 +28051,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[253].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[248].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePolicyForProjectBody); i {
 			case 0:
 				return &v.state
@@ -28510,7 +28063,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[254].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[249].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPermissionRequest); i {
 			case 0:
 				return &v.state
@@ -28522,7 +28075,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[255].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[250].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPermissionResponse); i {
 			case 0:
 				return &v.state
@@ -28534,7 +28087,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[256].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[251].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPermissionsRequest); i {
 			case 0:
 				return &v.state
@@ -28546,7 +28099,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[257].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[252].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPermissionsResponse); i {
 			case 0:
 				return &v.state
@@ -28558,7 +28111,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[258].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[253].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListNamespacesRequest); i {
 			case 0:
 				return &v.state
@@ -28570,7 +28123,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[259].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[254].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListNamespacesResponse); i {
 			case 0:
 				return &v.state
@@ -28582,7 +28135,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[260].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[255].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetNamespaceRequest); i {
 			case 0:
 				return &v.state
@@ -28594,7 +28147,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[261].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[256].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetNamespaceResponse); i {
 			case 0:
 				return &v.state
@@ -28606,7 +28159,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[262].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[257].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePolicyRequest); i {
 			case 0:
 				return &v.state
@@ -28618,7 +28171,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[263].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[258].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePolicyResponse); i {
 			case 0:
 				return &v.state
@@ -28630,7 +28183,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[264].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[259].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPolicyRequest); i {
 			case 0:
 				return &v.state
@@ -28642,7 +28195,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[265].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[260].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetPolicyResponse); i {
 			case 0:
 				return &v.state
@@ -28654,7 +28207,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[266].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[261].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPoliciesRequest); i {
 			case 0:
 				return &v.state
@@ -28666,7 +28219,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[267].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[262].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListPoliciesResponse); i {
 			case 0:
 				return &v.state
@@ -28678,7 +28231,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[268].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[263].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdatePolicyRequest); i {
 			case 0:
 				return &v.state
@@ -28690,7 +28243,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[269].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[264].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdatePolicyResponse); i {
 			case 0:
 				return &v.state
@@ -28702,7 +28255,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[270].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[265].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeletePolicyRequest); i {
 			case 0:
 				return &v.state
@@ -28714,7 +28267,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[271].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[266].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeletePolicyResponse); i {
 			case 0:
 				return &v.state
@@ -28726,7 +28279,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[272].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[267].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePolicyForProjectRequest); i {
 			case 0:
 				return &v.state
@@ -28738,7 +28291,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[273].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[268].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreatePolicyForProjectResponse); i {
 			case 0:
 				return &v.state
@@ -28750,7 +28303,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[274].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[269].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RelationRequestBody); i {
 			case 0:
 				return &v.state
@@ -28762,7 +28315,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[275].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[270].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRelationRequest); i {
 			case 0:
 				return &v.state
@@ -28774,7 +28327,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[276].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[271].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateRelationResponse); i {
 			case 0:
 				return &v.state
@@ -28786,7 +28339,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[277].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[272].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetRelationRequest); i {
 			case 0:
 				return &v.state
@@ -28798,7 +28351,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[278].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[273].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetRelationResponse); i {
 			case 0:
 				return &v.state
@@ -28810,7 +28363,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[279].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[274].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateRelationRequest); i {
 			case 0:
 				return &v.state
@@ -28822,7 +28375,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[280].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[275].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateRelationResponse); i {
 			case 0:
 				return &v.state
@@ -28834,7 +28387,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[281].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[276].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GroupRequestBody); i {
 			case 0:
 				return &v.state
@@ -28846,7 +28399,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[282].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[277].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateGroupRequest); i {
 			case 0:
 				return &v.state
@@ -28858,7 +28411,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[283].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[278].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetGroupRequest); i {
 			case 0:
 				return &v.state
@@ -28870,7 +28423,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[284].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[279].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateGroupResponse); i {
 			case 0:
 				return &v.state
@@ -28882,7 +28435,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[285].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[280].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetGroupResponse); i {
 			case 0:
 				return &v.state
@@ -28894,7 +28447,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[286].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[281].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateGroupResponse); i {
 			case 0:
 				return &v.state
@@ -28906,7 +28459,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[287].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[282].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateGroupRequest); i {
 			case 0:
 				return &v.state
@@ -28918,7 +28471,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[288].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[283].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupUsersRequest); i {
 			case 0:
 				return &v.state
@@ -28930,7 +28483,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[289].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[284].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupUsersResponse); i {
 			case 0:
 				return &v.state
@@ -28942,7 +28495,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[290].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[285].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableGroupRequest); i {
 			case 0:
 				return &v.state
@@ -28954,7 +28507,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[291].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[286].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EnableGroupResponse); i {
 			case 0:
 				return &v.state
@@ -28966,7 +28519,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[292].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[287].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableGroupRequest); i {
 			case 0:
 				return &v.state
@@ -28978,7 +28531,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[293].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[288].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DisableGroupResponse); i {
 			case 0:
 				return &v.state
@@ -28990,7 +28543,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[294].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[289].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteGroupRequest); i {
 			case 0:
 				return &v.state
@@ -29002,7 +28555,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[295].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[290].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteGroupResponse); i {
 			case 0:
 				return &v.state
@@ -29014,7 +28567,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[296].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[291].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveGroupUserRequest); i {
 			case 0:
 				return &v.state
@@ -29026,7 +28579,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[297].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[292].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RemoveGroupUserResponse); i {
 			case 0:
 				return &v.state
@@ -29038,7 +28591,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[298].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[293].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetGroupMemberRoleRequest); i {
 			case 0:
 				return &v.state
@@ -29050,7 +28603,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[299].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[294].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SetGroupMemberRoleResponse); i {
 			case 0:
 				return &v.state
@@ -29062,7 +28615,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[300].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[295].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteRelationRequest); i {
 			case 0:
 				return &v.state
@@ -29074,7 +28627,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[301].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[296].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteRelationResponse); i {
 			case 0:
 				return &v.state
@@ -29086,7 +28639,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[302].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[297].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectResourcesRequest); i {
 			case 0:
 				return &v.state
@@ -29098,7 +28651,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[303].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[298].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectResourcesResponse); i {
 			case 0:
 				return &v.state
@@ -29110,7 +28663,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[304].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[299].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ResourceRequestBody); i {
 			case 0:
 				return &v.state
@@ -29122,7 +28675,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[305].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[300].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectResourceRequest); i {
 			case 0:
 				return &v.state
@@ -29134,7 +28687,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[306].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[301].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectResourceResponse); i {
 			case 0:
 				return &v.state
@@ -29146,7 +28699,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[307].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[302].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetProjectResourceRequest); i {
 			case 0:
 				return &v.state
@@ -29158,7 +28711,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[308].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[303].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetProjectResourceResponse); i {
 			case 0:
 				return &v.state
@@ -29170,7 +28723,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[309].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[304].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateProjectResourceRequest); i {
 			case 0:
 				return &v.state
@@ -29182,7 +28735,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[310].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[305].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateProjectResourceResponse); i {
 			case 0:
 				return &v.state
@@ -29194,7 +28747,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[311].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[306].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteProjectResourceRequest); i {
 			case 0:
 				return &v.state
@@ -29206,7 +28759,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[312].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[307].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteProjectResourceResponse); i {
 			case 0:
 				return &v.state
@@ -29218,7 +28771,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[313].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[308].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckResourcePermissionRequest); i {
 			case 0:
 				return &v.state
@@ -29230,7 +28783,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[314].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[309].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckResourcePermissionResponse); i {
 			case 0:
 				return &v.state
@@ -29242,7 +28795,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[315].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[310].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BatchCheckPermissionRequest); i {
 			case 0:
 				return &v.state
@@ -29254,7 +28807,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[316].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[311].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BatchCheckPermissionBody); i {
 			case 0:
 				return &v.state
@@ -29266,7 +28819,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[317].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[312].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BatchCheckPermissionResponse); i {
 			case 0:
 				return &v.state
@@ -29278,7 +28831,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[318].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[313].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BatchCheckPermissionResponsePair); i {
 			case 0:
 				return &v.state
@@ -29290,7 +28843,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[319].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[314].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*MetaSchemaRequestBody); i {
 			case 0:
 				return &v.state
@@ -29302,7 +28855,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[320].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[315].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateMetaSchemaRequest); i {
 			case 0:
 				return &v.state
@@ -29314,7 +28867,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[321].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[316].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateMetaSchemaResponse); i {
 			case 0:
 				return &v.state
@@ -29326,7 +28879,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[322].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[317].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetMetaSchemaRequest); i {
 			case 0:
 				return &v.state
@@ -29338,7 +28891,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[323].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[318].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetMetaSchemaResponse); i {
 			case 0:
 				return &v.state
@@ -29350,7 +28903,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[324].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[319].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateMetaSchemaRequest); i {
 			case 0:
 				return &v.state
@@ -29362,7 +28915,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[325].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[320].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateMetaSchemaResponse); i {
 			case 0:
 				return &v.state
@@ -29374,7 +28927,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[326].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[321].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteMetaSchemaRequest); i {
 			case 0:
 				return &v.state
@@ -29386,7 +28939,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[327].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[322].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteMetaSchemaResponse); i {
 			case 0:
 				return &v.state
@@ -29398,7 +28951,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[328].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[323].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListMetaSchemasRequest); i {
 			case 0:
 				return &v.state
@@ -29410,7 +28963,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[329].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[324].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListMetaSchemasResponse); i {
 			case 0:
 				return &v.state
@@ -29422,7 +28975,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[330].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[325].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DescribePreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29434,7 +28987,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[331].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[326].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DescribePreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29446,7 +28999,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[332].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[327].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29458,7 +29011,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[333].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[328].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateOrganizationPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29470,7 +29023,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[334].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[329].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29482,7 +29035,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[335].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[330].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29494,7 +29047,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[336].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[331].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29506,7 +29059,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[337].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[332].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProjectPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29518,7 +29071,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[338].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[333].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29530,7 +29083,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[339].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[334].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29542,7 +29095,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[340].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[335].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateGroupPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29554,7 +29107,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[341].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[336].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateGroupPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29566,7 +29119,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[342].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[337].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29578,7 +29131,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[343].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[338].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29590,7 +29143,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[344].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[339].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateUserPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29602,7 +29155,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[345].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[340].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateUserPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29614,7 +29167,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[346].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[341].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29626,7 +29179,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[347].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[342].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListUserPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29638,7 +29191,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[348].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[343].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateCurrentUserPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29650,7 +29203,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[349].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[344].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateCurrentUserPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29662,7 +29215,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[350].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[345].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListCurrentUserPreferencesRequest); i {
 			case 0:
 				return &v.state
@@ -29674,7 +29227,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[351].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[346].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListCurrentUserPreferencesResponse); i {
 			case 0:
 				return &v.state
@@ -29686,7 +29239,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[352].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[347].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BillingWebhookCallbackRequest); i {
 			case 0:
 				return &v.state
@@ -29698,7 +29251,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[353].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[348].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BillingWebhookCallbackResponse); i {
 			case 0:
 				return &v.state
@@ -29710,7 +29263,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[354].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[349].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProspectPublicRequest); i {
 			case 0:
 				return &v.state
@@ -29722,7 +29275,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[355].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[350].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateProspectPublicResponse); i {
 			case 0:
 				return &v.state
@@ -29734,7 +29287,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[356].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[351].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListSessionsRequest); i {
 			case 0:
 				return &v.state
@@ -29746,7 +29299,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[357].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[352].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListSessionsResponse); i {
 			case 0:
 				return &v.state
@@ -29758,7 +29311,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[358].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[353].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RevokeSessionRequest); i {
 			case 0:
 				return &v.state
@@ -29770,7 +29323,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[354].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RevokeSessionResponse); i {
 			case 0:
 				return &v.state
@@ -29782,7 +29335,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[355].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PingUserSessionRequest); i {
 			case 0:
 				return &v.state
@@ -29794,7 +29347,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[356].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PingUserSessionResponse); i {
 			case 0:
 				return &v.state
@@ -29806,7 +29359,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[357].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateAuditRecordRequest); i {
 			case 0:
 				return &v.state
@@ -29818,7 +29371,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[358].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateAuditRecordResponse); i {
 			case 0:
 				return &v.state
@@ -29830,7 +29383,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[359].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateCurrentUserPATRequest); i {
 			case 0:
 				return &v.state
@@ -29842,7 +29395,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[360].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CreateCurrentUserPATResponse); i {
 			case 0:
 				return &v.state
@@ -29854,7 +29407,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[361].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRolesForPATRequest); i {
 			case 0:
 				return &v.state
@@ -29866,7 +29419,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[362].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListRolesForPATResponse); i {
 			case 0:
 				return &v.state
@@ -29878,7 +29431,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[363].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SearchCurrentUserPATsRequest); i {
 			case 0:
 				return &v.state
@@ -29890,7 +29443,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[364].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SearchCurrentUserPATsResponse); i {
 			case 0:
 				return &v.state
@@ -29902,7 +29455,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[365].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetCurrentUserPATRequest); i {
 			case 0:
 				return &v.state
@@ -29914,7 +29467,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[366].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetCurrentUserPATResponse); i {
 			case 0:
 				return &v.state
@@ -29926,7 +29479,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[367].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteCurrentUserPATRequest); i {
 			case 0:
 				return &v.state
@@ -29938,7 +29491,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[368].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteCurrentUserPATResponse); i {
 			case 0:
 				return &v.state
@@ -29950,7 +29503,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[369].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateCurrentUserPATRequest); i {
 			case 0:
 				return &v.state
@@ -29962,7 +29515,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[370].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*UpdateCurrentUserPATResponse); i {
 			case 0:
 				return &v.state
@@ -29974,7 +29527,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[371].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RegenerateCurrentUserPATRequest); i {
 			case 0:
 				return &v.state
@@ -29986,7 +29539,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[377].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[372].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RegenerateCurrentUserPATResponse); i {
 			case 0:
 				return &v.state
@@ -29998,7 +29551,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[378].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[373].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckCurrentUserPATTitleRequest); i {
 			case 0:
 				return &v.state
@@ -30010,7 +29563,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[379].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[374].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*CheckCurrentUserPATTitleResponse); i {
 			case 0:
 				return &v.state
@@ -30022,7 +29575,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[380].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[375].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SearchOrganizationTokensResponse_OrganizationToken); i {
 			case 0:
 				return &v.state
@@ -30034,7 +29587,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[381].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[376].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChangeSubscriptionRequest_PlanChange); i {
 			case 0:
 				return &v.state
@@ -30046,7 +29599,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[382].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[377].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ChangeSubscriptionRequest_PhaseChange); i {
 			case 0:
 				return &v.state
@@ -30058,7 +29611,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[383].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[378].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SearchOrganizationInvoicesResponse_OrganizationInvoice); i {
 			case 0:
 				return &v.state
@@ -30070,7 +29623,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[384].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[379].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectsByCurrentUserResponse_AccessPair); i {
 			case 0:
 				return &v.state
@@ -30082,7 +29635,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[385].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[380].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListCurrentUserGroupsResponse_AccessPair); i {
 			case 0:
 				return &v.state
@@ -30094,7 +29647,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[386].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[381].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListServiceUserProjectsResponse_AccessPair); i {
 			case 0:
 				return &v.state
@@ -30106,7 +29659,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[387].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[382].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListOrganizationUsersResponse_RolePair); i {
 			case 0:
 				return &v.state
@@ -30118,7 +29671,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[388].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[383].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectUsersResponse_RolePair); i {
 			case 0:
 				return &v.state
@@ -30130,7 +29683,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[389].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[384].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectServiceUsersResponse_RolePair); i {
 			case 0:
 				return &v.state
@@ -30142,7 +29695,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[390].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[385].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListProjectGroupsResponse_RolePair); i {
 			case 0:
 				return &v.state
@@ -30154,7 +29707,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[391].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_frontier_proto_msgTypes[386].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListGroupUsersResponse_RolePair); i {
 			case 0:
 				return &v.state
@@ -30177,7 +29730,7 @@ func file_raystack_frontier_v1beta1_frontier_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_raystack_frontier_v1beta1_frontier_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   392,
+			NumMessages:   387,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
