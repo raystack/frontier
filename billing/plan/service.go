@@ -300,7 +300,12 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		} else if err != nil {
 			return err
 		} else {
-			// update plan
+			// update plan; the plan file may omit state on this seed path, so
+			// keep the existing plan's state rather than blanking it
+			state := planToCreate.State
+			if state == "" {
+				state = planOb.State
+			}
 			if _, err = s.planRepository.UpdateByName(ctx, Plan{
 				ID:             planOb.ID,
 				Name:           planToCreate.Name,
@@ -309,7 +314,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Description:    planToCreate.Description,
 				TrialDays:      planToCreate.TrialDays,
 				Metadata:       planToCreate.Metadata,
-				State:          planToCreate.State,
+				State:          state,
 			}); err != nil {
 				return err
 			}
