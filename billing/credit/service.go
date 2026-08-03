@@ -192,7 +192,7 @@ func (s Service) createAuditRecord(ctx context.Context, customerID string, event
 		Target: &auditrecord.Target{
 			ID:   txID,
 			Type: pkgAuditRecord.BillingTransactionType,
-			Metadata: map[string]interface{}{
+			Metadata: map[string]any{
 				"amount":      txEntry.Amount,
 				"source":      txEntry.Source,
 				"description": txEntry.Description,

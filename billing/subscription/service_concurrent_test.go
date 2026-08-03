@@ -20,14 +20,12 @@ func TestService_InitClose_Concurrent(t *testing.T) {
 	}
 
 	var wg sync.WaitGroup
-	for i := 0; i < 2; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 2 {
+		wg.Go(func() {
 			if err := s.Init(context.Background()); err != nil {
 				t.Errorf("Init: %v", err)
 			}
-		}()
+		})
 	}
 	wg.Wait()
 

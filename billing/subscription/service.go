@@ -285,7 +285,7 @@ func getPendingInvoiceItemInterval(p plan.Plan) *stripe.SubscriptionPendingInvoi
 	// Note: the `pending_invoice_item_interval` must be more frequent than the natural
 	// subscription interval.
 	return &stripe.SubscriptionPendingInvoiceItemIntervalParams{
-		Interval:      stripe.String("month"),
+		Interval:      new("month"),
 		IntervalCount: stripe.Int64(1),
 	}
 }
@@ -314,8 +314,8 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			Params: stripe.Params{
 				Context: ctx,
 			},
-			InvoiceNow: stripe.Bool(true),
-			Prorate:    stripe.Bool(true),
+			InvoiceNow: new(true),
+			Prorate:    new(true),
 		})
 		if err != nil {
 			return Subscription{}, fmt.Errorf("failed to cancel subscription at billing provider: %w", err)
@@ -365,7 +365,7 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 			Context: ctx,
 		},
 		Expand: []*string{
-			stripe.String("schedule"),
+			new("schedule"),
 		},
 	})
 	if err != nil {
@@ -382,7 +382,7 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 				Context: ctx,
 			},
 			Expand: []*string{
-				stripe.String("phases.items.price.product"),
+				new("phases.items.price.product"),
 			},
 		})
 		if err != nil {
@@ -403,9 +403,9 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 			Params: stripe.Params{
 				Context: ctx,
 			},
-			FromSubscription: stripe.String(sub.ProviderID),
+			FromSubscription: new(sub.ProviderID),
 			Expand: []*string{
-				stripe.String("phases.items.price.product"),
+				new("phases.items.price.product"),
 			},
 		})
 		if err != nil {
@@ -677,8 +677,8 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 				quantity = userCount
 			}
 			nextPhaseItems = append(nextPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-				Price:    stripe.String(planProductPrice.ProviderID),
-				Quantity: stripe.Int64(quantity),
+				Price:    new(planProductPrice.ProviderID),
+				Quantity: new(quantity),
 				Metadata: map[string]string{
 					"price_id":   planProductPrice.ID,
 					"managed_by": "frontier",
@@ -701,9 +701,9 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	var endDate *int64
 	var endDateNow *bool
 	if immediate {
-		endDateNow = stripe.Bool(true)
+		endDateNow = new(true)
 	} else {
-		endDate = stripe.Int64(stripeSchedule.CurrentPhase.EndDate)
+		endDate = new(stripeSchedule.CurrentPhase.EndDate)
 	}
 	var prorationBehavior = s.config.PlanChangeConfig.ProrationBehavior
 	if immediate {
@@ -718,8 +718,8 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	if currentPhaseItems != nil {
 		updatePhases = append(updatePhases, &stripe.SubscriptionSchedulePhaseParams{
 			Items:      currentPhaseItems,
-			Currency:   stripe.String(customerObj.Currency),
-			StartDate:  stripe.Int64(stripeSchedule.CurrentPhase.StartDate),
+			Currency:   new(customerObj.Currency),
+			StartDate:  new(stripeSchedule.CurrentPhase.StartDate),
 			EndDate:    endDate,
 			EndDateNow: endDateNow,
 			Metadata: map[string]string{
@@ -727,14 +727,14 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 				"managed_by": "frontier",
 			},
 			AutomaticTax: &stripe.SubscriptionSchedulePhaseAutomaticTaxParams{
-				Enabled: stripe.Bool(currentAutoTaxStatus),
+				Enabled: new(currentAutoTaxStatus),
 			},
 		})
 	}
 	if len(nextPhaseItems) > 0 {
 		updatePhases = append(updatePhases, &stripe.SubscriptionSchedulePhaseParams{
 			Items:      nextPhaseItems,
-			Currency:   stripe.String(customerObj.Currency),
+			Currency:   new(customerObj.Currency),
 			Iterations: stripe.Int64(1),
 			Metadata: map[string]string{
 				"plan_id":    planObj.ID,
@@ -743,7 +743,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 
 			// when changing plan, we will set up autotax based on config
 			AutomaticTax: &stripe.SubscriptionSchedulePhaseAutomaticTaxParams{
-				Enabled: stripe.Bool(s.config.StripeAutoTax),
+				Enabled: new(s.config.StripeAutoTax),
 			},
 		})
 	}
@@ -754,10 +754,10 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 			Context: ctx,
 		},
 		Phases:            updatePhases,
-		EndBehavior:       stripe.String("release"),
-		ProrationBehavior: stripe.String(prorationBehavior),
+		EndBehavior:       new("release"),
+		ProrationBehavior: new(prorationBehavior),
 		DefaultSettings: &stripe.SubscriptionScheduleDefaultSettingsParams{
-			CollectionMethod: stripe.String(s.config.PlanChangeConfig.CollectionMethod),
+			CollectionMethod: new(s.config.PlanChangeConfig.CollectionMethod),
 		},
 	})
 	if err != nil {
@@ -803,8 +803,8 @@ func (s *Service) getCurrentPhaseItemsFromSchedule(stripeSchedule *stripe.Subscr
 			currentPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
 			for _, item := range phase.Items {
 				currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-					Price:    stripe.String(item.Price.ID),
-					Quantity: stripe.Int64(item.Quantity),
+					Price:    new(item.Price.ID),
+					Quantity: new(item.Quantity),
 					Metadata: item.Metadata,
 				})
 			}
@@ -837,8 +837,8 @@ func createSchedulePhase(phase *stripe.SubscriptionSchedulePhase) *stripe.Subscr
 	newPhaseItems := make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
 	for _, item := range phase.Items {
 		newPhaseItems = append(newPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-			Price:    stripe.String(item.Price.ID),
-			Quantity: stripe.Int64(item.Quantity),
+			Price:    new(item.Price.ID),
+			Quantity: new(item.Quantity),
 			Metadata: item.Metadata,
 		})
 	}
@@ -849,23 +849,23 @@ func createSchedulePhase(phase *stripe.SubscriptionSchedulePhase) *stripe.Subscr
 	}
 	newPhase := &stripe.SubscriptionSchedulePhaseParams{
 		Items:     newPhaseItems,
-		Currency:  stripe.String(string(phase.Currency)),
-		StartDate: stripe.Int64(phase.StartDate),
-		EndDate:   stripe.Int64(phase.EndDate),
+		Currency:  new(string(phase.Currency)),
+		StartDate: new(phase.StartDate),
+		EndDate:   new(phase.EndDate),
 		Metadata:  phase.Metadata,
 		AutomaticTax: &stripe.SubscriptionSchedulePhaseAutomaticTaxParams{
-			Enabled: stripe.Bool(phaseAutoTaxStatus),
+			Enabled: new(phaseAutoTaxStatus),
 		},
-		Description: stripe.String(phase.Description),
+		Description: new(phase.Description),
 	}
 	if phase.TrialEnd > 0 {
-		newPhase.TrialEnd = stripe.Int64(phase.TrialEnd)
+		newPhase.TrialEnd = new(phase.TrialEnd)
 	}
 	if phase.ProrationBehavior != "" {
-		newPhase.ProrationBehavior = stripe.String(string(phase.ProrationBehavior))
+		newPhase.ProrationBehavior = new(string(phase.ProrationBehavior))
 	}
 	if phase.CollectionMethod != nil {
-		newPhase.CollectionMethod = stripe.String(string(*phase.CollectionMethod))
+		newPhase.CollectionMethod = new(string(*phase.CollectionMethod))
 	}
 	return newPhase
 }
@@ -918,8 +918,8 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 	currentPhaseItems := make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(stripeSchedule.Phases[0].Items))
 	for _, item := range stripeSchedule.Phases[0].Items {
 		currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-			Price:    stripe.String(item.Price.ID),
-			Quantity: stripe.Int64(item.Quantity),
+			Price:    new(item.Price.ID),
+			Quantity: new(item.Quantity),
 			Metadata: item.Metadata,
 		})
 	}
@@ -940,19 +940,19 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 		Phases: []*stripe.SubscriptionSchedulePhaseParams{
 			{
 				Items:     currentPhaseItems,
-				Currency:  stripe.String(currency),
-				StartDate: stripe.Int64(stripeSchedule.CurrentPhase.StartDate),
-				EndDate:   stripe.Int64(stripeSchedule.CurrentPhase.EndDate),
+				Currency:  new(currency),
+				StartDate: new(stripeSchedule.CurrentPhase.StartDate),
+				EndDate:   new(stripeSchedule.CurrentPhase.EndDate),
 				Metadata: map[string]string{
 					"plan_id":    sub.PlanID,
 					"managed_by": "frontier",
 				},
 			},
 		},
-		EndBehavior:       stripe.String(string(endBehavior)),
-		ProrationBehavior: stripe.String(prorationBehavior),
+		EndBehavior:       new(string(endBehavior)),
+		ProrationBehavior: new(prorationBehavior),
 		DefaultSettings: &stripe.SubscriptionScheduleDefaultSettingsParams{
-			CollectionMethod: stripe.String(s.config.PlanChangeConfig.CollectionMethod),
+			CollectionMethod: new(s.config.PlanChangeConfig.CollectionMethod),
 		},
 	})
 	if err != nil {
@@ -1043,7 +1043,7 @@ func (s *Service) findPlanByStripePhase(ctx context.Context, stripePhase *stripe
 
 func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, subPlan plan.Plan) error {
 	customerID := sub.CustomerID
-	txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(fmt.Sprintf("%s:%s", subPlan.ID, customerID))).String()
+	txID := uuid.NewSHA1(credit.TxNamespaceUUID, fmt.Appendf(nil, "%s:%s", subPlan.ID, customerID)).String()
 	if subPlan.OnStartCredits == 0 {
 		// no such product
 		return nil

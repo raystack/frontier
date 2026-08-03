@@ -197,7 +197,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		defer record()
 	}
 	customers, err := s.customerService.List(ctx, customer.Filter{
-		Online: utils.Bool(true),
+		Online: new(true),
 	})
 	if err != nil {
 		s.log.ErrorContext(ctx, "invoice.backgroundSync", "error", err)
@@ -256,12 +256,12 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 
 	var errs []error
 	stripeInvoices := s.stripeClient.Invoices.List(&stripe.InvoiceListParams{
-		Customer: stripe.String(customr.ProviderID),
+		Customer: new(customr.ProviderID),
 		ListParams: stripe.ListParams{
 			Context: ctx,
 		},
 		Expand: []*string{
-			stripe.String("data.lines"),
+			new("data.lines"),
 		},
 	})
 	for stripeInvoices.Next() {
@@ -350,7 +350,7 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 	}
 
 	stripeInvoice, err := s.stripeClient.Invoices.Upcoming(&stripe.InvoiceUpcomingParams{
-		Customer: stripe.String(custmr.ProviderID),
+		Customer: new(custmr.ProviderID),
 		Params: stripe.Params{
 			Context: ctx,
 		},
@@ -477,8 +477,8 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 	}()
 
 	customers, err := s.customerService.List(ctx, customer.Filter{
-		Online:           utils.Bool(true),
-		AllowedOverdraft: utils.Bool(true),
+		Online:           new(true),
+		AllowedOverdraft: new(true),
 	})
 	if err != nil {
 		return err
@@ -651,14 +651,14 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 
 	var daysUntilDue *int64
 	if custmrDetails.DueInDays > 0 {
-		daysUntilDue = stripe.Int64(custmrDetails.DueInDays)
+		daysUntilDue = new(custmrDetails.DueInDays)
 	}
 
 	// invoice payment methods on the basis of amount subtotal
 	var paymentMethodTypes []*string
 	for _, paymentMethodConfig := range s.paymentMethodConfig {
 		if paymentMethodConfig.IsAllowedForAmount(amountSubtotal) {
-			paymentMethodTypes = append(paymentMethodTypes, stripe.String(paymentMethodConfig.Type))
+			paymentMethodTypes = append(paymentMethodTypes, new(paymentMethodConfig.Type))
 		}
 	}
 
@@ -666,16 +666,16 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Customer:         stripe.String(custmr.ProviderID),
-		AutoAdvance:      stripe.Bool(true),
+		Customer:         new(custmr.ProviderID),
+		AutoAdvance:      new(true),
 		DaysUntilDue:     daysUntilDue,
 		CollectionMethod: stripe.String(string(stripe.InvoiceCollectionMethodSendInvoice)),
-		Description:      stripe.String(description),
+		Description:      new(description),
 		AutomaticTax: &stripe.InvoiceAutomaticTaxParams{
-			Enabled: stripe.Bool(s.stripeAutoTax),
+			Enabled: new(s.stripeAutoTax),
 		},
-		Currency:                    stripe.String(currency),
-		PendingInvoiceItemsBehavior: stripe.String("include"),
+		Currency:                    new(currency),
+		PendingInvoiceItemsBehavior: new("include"),
 		Metadata: map[string]string{
 			"org_id":     custmr.OrgID,
 			"managed_by": "frontier",
@@ -686,7 +686,7 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 				CustomerBalance: &stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceParams{
 					FundingType: stripe.String(string(stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceFundingTypeBankTransfer)),
 					BankTransfer: &stripe.InvoicePaymentSettingsPaymentMethodOptionsCustomerBalanceBankTransferParams{
-						Type: stripe.String("us_bank_transfer"),
+						Type: new("us_bank_transfer"),
 					},
 				},
 			},
@@ -707,8 +707,8 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		var itemPeriod *stripe.InvoiceItemPeriodParams
 		if item.TimeRangeStart != nil && item.TimeRangeEnd != nil {
 			itemPeriod = &stripe.InvoiceItemPeriodParams{
-				Start: stripe.Int64(item.TimeRangeStart.Unix()),
-				End:   stripe.Int64(item.TimeRangeEnd.Unix()),
+				Start: new(item.TimeRangeStart.Unix()),
+				End:   new(item.TimeRangeEnd.Unix()),
 			}
 		}
 
@@ -716,13 +716,13 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 			Params: stripe.Params{
 				Context: ctx,
 			},
-			Customer:    stripe.String(custmr.ProviderID),
-			Currency:    stripe.String(custmr.Currency),
-			Invoice:     stripe.String(stripeInvoice.ID),
+			Customer:    new(custmr.ProviderID),
+			Currency:    new(custmr.Currency),
+			Invoice:     new(stripeInvoice.ID),
 			UnitAmount:  &item.UnitAmount,
 			Quantity:    &item.Quantity,
 			Metadata:    itemMetadata,
-			Description: stripe.String(item.Name),
+			Description: new(item.Name),
 			Period:      itemPeriod,
 		})
 		if err != nil {
@@ -736,7 +736,7 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 			Context: ctx,
 		},
 		Expand: []*string{
-			stripe.String("lines"),
+			new("lines"),
 		},
 	})
 }

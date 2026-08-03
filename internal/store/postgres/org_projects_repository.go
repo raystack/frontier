@@ -113,7 +113,7 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 	}, nil
 }
 
-func (r OrgProjectsRepository) prepareDataQuery(orgID string, rqlQuery *rql.Query) (string, []interface{}, error) {
+func (r OrgProjectsRepository) prepareDataQuery(orgID string, rqlQuery *rql.Query) (string, []any, error) {
 	baseQ := r.baseQuery(orgID)
 
 	baseQWithFilters, err := r.applyFilters(rqlQuery, baseQ)

@@ -147,7 +147,7 @@ func (r UserOrgsRepository) Search(ctx context.Context, principalID string, rql 
 // this principal explicitly granted", while the membership path answers "what
 // can this principal access". Do not "fix" one to match the other without a
 // product decision.
-func (r UserOrgsRepository) buildBaseQuery(principalID string) (string, []interface{}, error) {
+func (r UserOrgsRepository) buildBaseQuery(principalID string) (string, []any, error) {
 	projectCountSubquery := dialect.From(TABLE_PROJECTS).
 		Select(
 			goqu.I(COLUMN_ORG_ID),
@@ -160,7 +160,7 @@ func (r UserOrgsRepository) buildBaseQuery(principalID string) (string, []interf
 		GroupBy(COLUMN_ORG_ID).
 		As(ALIAS_PROJECT_COUNTS)
 
-	querySelects := []interface{}{
+	querySelects := []any{
 		goqu.I(TABLE_POLICIES + "." + COLUMN_PRINCIPAL_ID),
 		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID).As(COLUMN_ORG_ID),
 		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_NAME).As(COLUMN_ORG_NAME),

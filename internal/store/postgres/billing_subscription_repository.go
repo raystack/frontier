@@ -32,7 +32,7 @@ type Phase struct {
 	Reason      string    `json:"reason"`
 }
 
-func (c *SubscriptionChanges) Scan(src interface{}) error {
+func (c *SubscriptionChanges) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return json.Unmarshal(src, c)
@@ -226,7 +226,7 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 				tx,
 				pkgAuditRecord.BillingSubscriptionCreatedEvent,
 				result,
-				map[string]interface{}{
+				map[string]any{
 					"plan_id": result.PlanID,
 					"state":   result.State,
 				},
@@ -397,7 +397,7 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 					tx,
 					pkgAuditRecord.BillingSubscriptionChangedEvent,
 					result,
-					map[string]interface{}{
+					map[string]any{
 						"old_plan_id": oldSub.PlanID,
 						"new_plan_id": result.PlanID,
 					},
@@ -497,7 +497,7 @@ func (r BillingSubscriptionRepository) createSubscriptionAuditRecord(
 	tx *sqlx.Tx,
 	event pkgAuditRecord.Event,
 	sub subscriptionWithCustomer,
-	targetMetadata map[string]interface{},
+	targetMetadata map[string]any,
 	occurredAt time.Time,
 ) error {
 	auditRecord := BuildAuditRecord(

@@ -86,7 +86,7 @@ func (r *RelationRepository) Add(ctx context.Context, rel relation.Relation) err
 	if nrCtx != nil {
 		nr := newrelic.DatastoreSegment{
 			Product: nrProductName,
-			QueryParameters: map[string]interface{}{
+			QueryParameters: map[string]any{
 				"relation":          rel.Subject.SubRelationName,
 				"subject_namespace": rel.Subject.Namespace,
 				"object_namespace":  rel.Object.Namespace,
@@ -171,7 +171,7 @@ func (r *RelationRepository) Delete(ctx context.Context, rel relation.Relation) 
 	if nrCtx != nil {
 		nr := newrelic.DatastoreSegment{
 			Product: nrProductName,
-			QueryParameters: map[string]interface{}{
+			QueryParameters: map[string]any{
 				"relation":          rel.Subject.SubRelationName,
 				"subject_namespace": rel.Subject.Namespace,
 				"object_namespace":  rel.Object.Namespace,

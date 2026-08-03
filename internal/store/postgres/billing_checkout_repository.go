@@ -24,7 +24,7 @@ type SubscriptionConfig struct {
 	CancelAfterTrial bool `db:"cancel_after_trial" json:"cancel_after_trial"`
 }
 
-func (s *SubscriptionConfig) Scan(src interface{}) error {
+func (s *SubscriptionConfig) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return json.Unmarshal(src, s)
@@ -186,7 +186,7 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 				&AuditTarget{
 					ID:   checkoutModel.ID,
 					Type: auditrecord.BillingCheckoutType,
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"plan_id":            ptrToString(checkoutModel.PlanID),
 						"feature_id":         ptrToString(checkoutModel.FeatureID),
 						"state":              checkoutModel.State,

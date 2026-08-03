@@ -297,7 +297,7 @@ func (s *UserPATRepositoryTestSuite) TestCountActive_FiltersByUserAndOrg() {
 func (s *UserPATRepositoryTestSuite) TestCountActive_MultipleTokens() {
 	s.truncateTokens()
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		_, err := s.repository.Create(s.ctx, models.PAT{
 			UserID:     s.users[0].ID,
 			OrgID:      s.orgs[0].ID,

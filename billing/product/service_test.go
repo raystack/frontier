@@ -71,9 +71,9 @@ func TestService_Create(t *testing.T) {
 					Params: stripe.Params{
 						Context: ctx,
 					},
-					ID:          stripe.String(""),
-					Name:        stripe.String(""),
-					Description: stripe.String("product 1"),
+					ID:          new(""),
+					Name:        new(""),
+					Description: new("product 1"),
 					Metadata: map[string]string{
 						"behavior":      "basic",
 						"credit_amount": "0",
@@ -174,9 +174,9 @@ func TestService_Create(t *testing.T) {
 					Params: stripe.Params{
 						Context: ctx,
 					},
-					ID:          stripe.String(""),
-					Name:        stripe.String(""),
-					Description: stripe.String("product 1"),
+					ID:          new(""),
+					Name:        new(""),
+					Description: new("product 1"),
 					Metadata: map[string]string{
 						"behavior":      "basic",
 						"credit_amount": "0",
@@ -211,8 +211,8 @@ func TestService_Create(t *testing.T) {
 					Params: stripe.Params{
 						Context: ctx,
 					},
-					Product:    stripe.String("1"),
-					Currency:   stripe.String("usd"),
+					Product:    new("1"),
+					Currency:   new("usd"),
 					UnitAmount: stripe.Int64(100),
 					Metadata: map[string]string{
 						"name":       "price1",
@@ -220,11 +220,11 @@ func TestService_Create(t *testing.T) {
 						"price_id":   "1",
 						"managed_by": "frontier",
 					},
-					BillingScheme: stripe.String("per_unit"),
-					Nickname:      stripe.String("price1"),
+					BillingScheme: new("per_unit"),
+					Nickname:      new("price1"),
 					Recurring: &stripe.PriceRecurringParams{
-						Interval:  stripe.String("month"),
-						UsageType: stripe.String("licensed"),
+						Interval:  new("month"),
+						UsageType: new("licensed"),
 					},
 				}, &stripe.Price{
 					ID: "",
@@ -403,8 +403,8 @@ func TestService_Update(t *testing.T) {
 					Params: stripe.Params{
 						Context: ctx,
 					},
-					Name:        stripe.String(""),
-					Description: stripe.String("product 1 new description"),
+					Name:        new(""),
+					Description: new("product 1 new description"),
 					Metadata: map[string]string{
 						"behavior":   "basic",
 						"managed_by": "frontier",
@@ -822,8 +822,8 @@ func TestService_CreatePrice(t *testing.T) {
 					Params: stripe.Params{
 						Context: ctx,
 					},
-					Product:    stripe.String("1"),
-					Currency:   stripe.String("usd"),
+					Product:    new("1"),
+					Currency:   new("usd"),
 					UnitAmount: stripe.Int64(100),
 					Metadata: map[string]string{
 						"name":       "price1",
@@ -831,11 +831,11 @@ func TestService_CreatePrice(t *testing.T) {
 						"price_id":   "1",
 						"managed_by": "frontier",
 					},
-					BillingScheme: stripe.String("per_unit"),
-					Nickname:      stripe.String("price1"),
+					BillingScheme: new("per_unit"),
+					Nickname:      new("price1"),
 					Recurring: &stripe.PriceRecurringParams{
-						Interval:  stripe.String("month"),
-						UsageType: stripe.String("licensed"),
+						Interval:  new("month"),
+						UsageType: new("licensed"),
 					},
 				}, &stripe.Price{
 					ID: "",
@@ -934,7 +934,7 @@ func TestService_UpdatePrice(t *testing.T) {
 						"price_id":   "1",
 						"managed_by": "frontier",
 					},
-					Nickname: stripe.String("price1.1"),
+					Nickname: new("price1.1"),
 				}, &stripe.Price{
 					ID: "",
 				}).Return(nil)

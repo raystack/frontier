@@ -219,8 +219,8 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		mailParts := strings.Split(mailMsg, "\r\n")
 		emailOTP := ""
 		for _, part := range mailParts {
-			if strings.HasPrefix(part, "Subject: ") {
-				emailOTP = strings.TrimPrefix(part, "Subject: ")
+			if after, ok := strings.CutPrefix(part, "Subject: "); ok {
+				emailOTP = after
 			}
 		}
 		s.Assert().NotEmpty(emailOTP)

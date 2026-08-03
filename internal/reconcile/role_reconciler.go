@@ -3,6 +3,7 @@ package reconcile
 import (
 	"context"
 	"fmt"
+	"maps"
 	"sort"
 
 	"connectrpc.com/connect"
@@ -121,23 +122,19 @@ func (r *RoleReconciler) Export(ctx context.Context) (any, error) {
 		for _, field := range changes {
 			switch field {
 			case "title":
-				entry.Title = strPtr(have.Title)
+				entry.Title = new(have.Title)
 			case "description":
-				entry.Description = strPtr(have.Description)
+				entry.Description = new(have.Description)
 			case "permissions":
-				entry.Permissions = slicePtr(have.Permissions)
+				entry.Permissions = new(have.Permissions)
 			case "scopes":
-				entry.Scopes = slicePtr(have.Scopes)
+				entry.Scopes = new(have.Scopes)
 			}
 		}
 		specs = append(specs, entry)
 	}
 	return specs, nil
 }
-
-func strPtr(s string) *string { return &s }
-
-func slicePtr(s []string) *[]string { return &s }
 
 func (r *RoleReconciler) fetchCurrent(ctx context.Context) ([]currentRole, error) {
 	resp, err := r.client.ListRoles(ctx, authReq(&frontierv1beta1.ListRolesRequest{}, r.header))
@@ -204,9 +201,7 @@ func (r *RoleReconciler) apply(ctx context.Context, op roleOp) error {
 // dropped. An empty managed description clears the key, matching a reset.
 func roleBody(name string, want roleFields, base map[string]any) (*frontierv1beta1.RoleRequestBody, error) {
 	fields := map[string]any{}
-	for k, v := range base {
-		fields[k] = v
-	}
+	maps.Copy(fields, base)
 	fields[managedByKey] = managedByValue
 	if want.Description != "" {
 		fields[descriptionKey] = want.Description

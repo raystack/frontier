@@ -18,7 +18,7 @@ type AuditRecord struct {
 	OrgID          string            `json:"org_id"`
 	OrgName        string            `json:"org_name"`
 	RequestID      *string           `json:"request_id"`
-	CreatedAt      time.Time         `json:"created_at,omitempty"`
+	CreatedAt      time.Time         `json:"created_at"`
 	Metadata       metadata.Metadata `json:"metadata"`
 	IdempotencyKey string            `json:"idempotency_key"`
 }

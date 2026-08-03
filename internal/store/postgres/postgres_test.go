@@ -326,7 +326,7 @@ func bootstrapRelation(client *db.Client) ([]relation.Relation, error) {
 // setTestAuditActorContext sets up audit context for tests without importing service layer
 func setTestAuditActorContext(ctx context.Context) context.Context {
 	testActorID := uuid.New().String()
-	actorMap := map[string]interface{}{
+	actorMap := map[string]any{
 		"id":   testActorID,
 		"type": schema.UserPrincipal,
 		"name": "unit-test",

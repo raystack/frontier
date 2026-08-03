@@ -34,7 +34,7 @@ func (f *fakePlatformUserAPI) RemovePlatformUser(_ context.Context, req *connect
 
 func platformUserPB(t *testing.T, id, email, relation string) *frontierv1beta1.User {
 	t.Helper()
-	md, err := structpb.NewStruct(map[string]interface{}{"relation": relation})
+	md, err := structpb.NewStruct(map[string]any{"relation": relation})
 	if err != nil {
 		t.Fatalf("struct: %v", err)
 	}
@@ -44,11 +44,11 @@ func platformUserPB(t *testing.T, id, email, relation string) *frontierv1beta1.U
 // platformUserPBRelations stamps the full "relations" list the way ListPlatformUsers does.
 func platformUserPBRelations(t *testing.T, id, email string, relations ...string) *frontierv1beta1.User {
 	t.Helper()
-	vals := make([]interface{}, len(relations))
+	vals := make([]any, len(relations))
 	for i, r := range relations {
 		vals[i] = r
 	}
-	md, err := structpb.NewStruct(map[string]interface{}{"relations": vals})
+	md, err := structpb.NewStruct(map[string]any{"relations": vals})
 	if err != nil {
 		t.Fatalf("struct: %v", err)
 	}
@@ -58,11 +58,11 @@ func platformUserPBRelations(t *testing.T, id, email string, relations ...string
 // serviceUserPBRelations builds a platform service-user list entry.
 func serviceUserPBRelations(t *testing.T, id string, relations ...string) *frontierv1beta1.ServiceUser {
 	t.Helper()
-	vals := make([]interface{}, len(relations))
+	vals := make([]any, len(relations))
 	for i, r := range relations {
 		vals[i] = r
 	}
-	md, err := structpb.NewStruct(map[string]interface{}{"relations": vals})
+	md, err := structpb.NewStruct(map[string]any{"relations": vals})
 	if err != nil {
 		t.Fatalf("struct: %v", err)
 	}

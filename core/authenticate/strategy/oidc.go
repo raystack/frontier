@@ -116,7 +116,7 @@ func EmbedFlowInOIDCState(param string) (string, error) {
 	if _, err := io.ReadFull(rand.Reader, randBytes); err != nil {
 		return "", err
 	}
-	return base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf("%s::%s", param, randBytes))), nil
+	return base64.RawURLEncoding.EncodeToString(fmt.Appendf(nil, "%s::%s", param, randBytes)), nil
 }
 
 func ExtractFlowFromOIDCState(state string) (string, error) {

@@ -403,7 +403,7 @@ func (s *Service) setPriceActive(ctx context.Context, price Price, active bool) 
 	if price.ProviderID != "" {
 		if _, err := s.stripeClient.Prices.Update(price.ProviderID, &stripe.PriceParams{
 			Params: stripe.Params{Context: ctx},
-			Active: stripe.Bool(active),
+			Active: new(active),
 		}); err != nil {
 			return err
 		}
@@ -460,7 +460,7 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 		},
 		Product:       &price.ProductID,
 		Nickname:      &price.Name,
-		BillingScheme: stripe.String(price.BillingScheme.ToStripe()),
+		BillingScheme: new(price.BillingScheme.ToStripe()),
 		Currency:      &price.Currency,
 		UnitAmount:    &price.Amount,
 		Metadata: map[string]string{
@@ -472,11 +472,11 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 	}
 	if price.Interval != "" {
 		providerParams.Recurring = &stripe.PriceRecurringParams{
-			Interval:  stripe.String(price.Interval),
-			UsageType: stripe.String(price.UsageType.ToStripe()),
+			Interval:  new(price.Interval),
+			UsageType: new(price.UsageType.ToStripe()),
 		}
 		if price.UsageType == PriceUsageTypeMetered {
-			providerParams.Recurring.AggregateUsage = stripe.String(price.MeteredAggregate)
+			providerParams.Recurring.AggregateUsage = new(price.MeteredAggregate)
 		}
 	}
 	stripePrice, err := s.stripeClient.Prices.New(providerParams)

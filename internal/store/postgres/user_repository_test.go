@@ -634,7 +634,7 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 		name       string
 		rqlQuery   *rql.Query
 		wantSQL    string
-		wantParams []interface{}
+		wantParams []any
 		wantErr    bool
 	}{
 		{
@@ -654,7 +654,7 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 				Limit:  20,
 			},
 			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" ILIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
-			wantParams: []interface{}{int64(123), "%active%", "", "%john%", "%john%", "%john%", "%john%", int64(20), int64(10)},
+			wantParams: []any{int64(123), "%active%", "", "%john%", "%john%", "%john%", "%john%", int64(20), int64(10)},
 		},
 		{
 			name: "query with group by",
@@ -670,7 +670,7 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 				Limit:  15,
 			},
 			wantSQL: `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE ("users"."state" = $1) ORDER BY "state" ASC, "name" ASC LIMIT $2 OFFSET $3`,
-			wantParams: []interface{}{
+			wantParams: []any{
 				"active",
 				int64(15),
 				int64(5),
@@ -700,7 +700,7 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 		name       string
 		rqlQuery   *rql.Query
 		wantSQL    string
-		wantParams []interface{}
+		wantParams []any
 		wantErr    bool
 	}{
 		{
@@ -714,7 +714,7 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 				Search:  "test",
 			},
 			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."state" = $1) AND ("CAST(users"."id AS TEXT)" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
-			wantParams: []interface{}{"active", int64(123), "%test%", "%test%", "%test%", "%test%"},
+			wantParams: []any{"active", int64(123), "%test%", "%test%", "%test%", "%test%"},
 		},
 		{
 			name: "group by state with search only",
@@ -723,7 +723,7 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 				Search:  "pending",
 			},
 			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE ((CAST("id" AS TEXT) ILIKE $1) OR ("title" ILIKE $2) OR ("name" ILIKE $3) OR ("state" ILIKE $4)) GROUP BY "users"."state"`,
-			wantParams: []interface{}{"%pending%", "%pending%", "%pending%", "%pending%"},
+			wantParams: []any{"%pending%", "%pending%", "%pending%", "%pending%"},
 		},
 	}
 

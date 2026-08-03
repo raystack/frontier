@@ -181,7 +181,7 @@ func TestConnectHandler_CreatePolicy(t *testing.T) {
 		{
 			name: "should successfully create policy with metadata",
 			setup: func(ps *mocks.PolicyService) {
-				metadataMap := map[string]interface{}{
+				metadataMap := map[string]any{
 					"description": "Test policy",
 					"priority":    "high",
 				}
@@ -209,7 +209,7 @@ func TestConnectHandler_CreatePolicy(t *testing.T) {
 					Resource:  "organization:" + testResourceID,
 					Principal: "user:" + testUserID,
 					Metadata: func() *structpb.Struct {
-						s, _ := structpb.NewStruct(map[string]interface{}{
+						s, _ := structpb.NewStruct(map[string]any{
 							"description": "Test policy",
 							"priority":    "high",
 						})
@@ -224,7 +224,7 @@ func TestConnectHandler_CreatePolicy(t *testing.T) {
 					Resource:  "app/organization:" + testResourceID,
 					Principal: "app/user:" + testUserID,
 					Metadata: func() *structpb.Struct {
-						s, _ := structpb.NewStruct(map[string]interface{}{
+						s, _ := structpb.NewStruct(map[string]any{
 							"description": "Test policy",
 							"priority":    "high",
 						})

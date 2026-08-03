@@ -27,13 +27,13 @@ func (from Invitation) transformToInvitation() (invitation.Invitation, error) {
 	}
 	var groupIDs []string
 	if val, ok := unmarshalledMetadata["group_ids"]; ok && (val != nil) {
-		for _, groupIDRaw := range val.([]interface{}) {
+		for _, groupIDRaw := range val.([]any) {
 			groupIDs = append(groupIDs, groupIDRaw.(string))
 		}
 	}
 	var roleIDs []string
 	if val, ok := unmarshalledMetadata["role_ids"]; ok && (val != nil) {
-		for _, roleIDRaw := range val.([]interface{}) {
+		for _, roleIDRaw := range val.([]any) {
 			roleIDs = append(roleIDs, roleIDRaw.(string))
 		}
 	}

@@ -90,7 +90,7 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rql 
 	}, nil
 }
 
-func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
+func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery(orgID)
 
 	if rql != nil {

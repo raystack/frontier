@@ -264,7 +264,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			stripe.EventTypeCheckoutSessionAsyncPaymentSucceeded:
 			// trigger checkout sync
 			deDupKey := fmt.Sprintf("checkout-%s-%d", providerID, currentExecutionUnit)
-			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
+			_, err, _ := p.sf.Do(deDupKey, func() (any, error) {
 				return nil, p.checkoutService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {
@@ -276,7 +276,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			stripe.EventTypeCustomerSourceUpdated:
 			// trigger customer sync
 			deDupKey := fmt.Sprintf("customer-%s-%d", providerID, currentExecutionUnit)
-			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
+			_, err, _ := p.sf.Do(deDupKey, func() (any, error) {
 				return nil, p.customerService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {
@@ -287,7 +287,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			stripe.EventTypeCustomerSubscriptionDeleted:
 			// trigger subscriptions sync
 			deDupKey := fmt.Sprintf("subscription-%s-%d", providerID, currentExecutionUnit)
-			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
+			_, err, _ := p.sf.Do(deDupKey, func() (any, error) {
 				return nil, p.subsService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {
@@ -296,7 +296,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 		case stripe.EventTypeInvoicePaid:
 			// trigger invoice sync
 			deDupKey := fmt.Sprintf("invoice-%s-%d", providerID, currentExecutionUnit)
-			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
+			_, err, _ := p.sf.Do(deDupKey, func() (any, error) {
 				return nil, p.invoiceService.TriggerSyncByProviderID(ctx, providerID)
 			})
 			if err != nil {

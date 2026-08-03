@@ -1,8 +1,10 @@
 package utils
 
 // Bool returns a pointer to the bool value passed in.
+//
+//go:fix inline
 func Bool(v bool) *bool {
-	return &v
+	return new(v)
 }
 
 // BoolValue returns the value of the bool pointer passed in or

@@ -8,10 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// ptr and slicePtr build the presence-tracking pointers a RoleSpec now uses:
-// a nil pointer is an omitted field, a non-nil one is a listed value.
-func ptr[T any](v T) *T { return &v }
-
 func TestDiffRoles(t *testing.T) {
 	current := []currentRole{
 		{ID: "r1", Name: "compute_manager", Title: "Compute Manager",
@@ -27,9 +23,9 @@ func TestDiffRoles(t *testing.T) {
 	// file is the whole desired state: an omitted field defaults to empty and
 	// would clear the server value. This is what an export writes.
 	keepCustom := []RoleSpec{
-		{Name: "compute_manager", Title: ptr("Compute Manager"),
-			Permissions: ptr([]string{"compute_order_get", "compute_order_update"}), Scopes: ptr([]string{"compute/order"})},
-		{Name: "old_role", Title: ptr("Old"), Permissions: ptr([]string{"compute_order_get"})},
+		{Name: "compute_manager", Title: new("Compute Manager"),
+			Permissions: new([]string{"compute_order_get", "compute_order_update"}), Scopes: new([]string{"compute/order"})},
+		{Name: "old_role", Title: new("Old"), Permissions: new([]string{"compute_order_get"})},
 	}
 
 	t.Run("no changes when converged, unlisted predefined roles at defaults", func(t *testing.T) {
@@ -63,7 +59,7 @@ func TestDiffRoles(t *testing.T) {
 
 		ops, err := diffRoles(append(keepCustom, RoleSpec{
 			Name:        schema.RoleOrganizationOwner,
-			Permissions: ptr([]string{"app_organization_administer", "app_organization_get"}),
+			Permissions: new([]string{"app_organization_administer", "app_organization_get"}),
 		}), drifted)
 
 		assert.NoError(t, err)
@@ -98,7 +94,7 @@ func TestDiffRoles(t *testing.T) {
 			Permissions: []string{"app_organization_administer"}}) // empty scopes
 
 		ops, err := diffRoles(append(keepCustom, RoleSpec{
-			Name: schema.RoleOrganizationOwner, Scopes: ptr([]string{schema.OrganizationNamespace}),
+			Name: schema.RoleOrganizationOwner, Scopes: new([]string{schema.OrganizationNamespace}),
 		}), legacy)
 		assert.NoError(t, err)
 		if assert.Len(t, ops, 1) {
@@ -110,7 +106,7 @@ func TestDiffRoles(t *testing.T) {
 		// `scopes: []` in the file is a listed value, not an omission, so it
 		// overrides the definition's scopes with an empty set.
 		ops, err := diffRoles(append(keepCustom, RoleSpec{
-			Name: schema.RoleOrganizationOwner, Scopes: ptr([]string{}),
+			Name: schema.RoleOrganizationOwner, Scopes: new([]string{}),
 		}), current)
 		assert.NoError(t, err)
 		if assert.Len(t, ops, 1) {
@@ -121,9 +117,9 @@ func TestDiffRoles(t *testing.T) {
 
 	t.Run("permission references in any form match slugs", func(t *testing.T) {
 		ops, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Title: ptr("Compute Manager"),
-				Permissions: ptr([]string{"compute/order:get", "compute.order.update"}), Scopes: ptr([]string{"compute/order"})},
-			{Name: "old_role", Title: ptr("Old"), Permissions: ptr([]string{"compute_order_get"})},
+			{Name: "compute_manager", Title: new("Compute Manager"),
+				Permissions: new([]string{"compute/order:get", "compute.order.update"}), Scopes: new([]string{"compute/order"})},
+			{Name: "old_role", Title: new("Old"), Permissions: new([]string{"compute_order_get"})},
 		}, current)
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
@@ -131,10 +127,10 @@ func TestDiffRoles(t *testing.T) {
 
 	t.Run("adds, updates, and deletes in that order", func(t *testing.T) {
 		ops, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Title: ptr("Compute Admin"),
-				Permissions: ptr([]string{"compute_order_get", "compute_order_update"}), Scopes: ptr([]string{"compute/order"})},
+			{Name: "compute_manager", Title: new("Compute Admin"),
+				Permissions: new([]string{"compute_order_get", "compute_order_update"}), Scopes: new([]string{"compute/order"})},
 			{Name: "old_role", Delete: true},
-			{Name: "new_role", Title: ptr("New"), Permissions: ptr([]string{"compute_order_get"})},
+			{Name: "new_role", Title: new("New"), Permissions: new([]string{"compute_order_get"})},
 		}, current)
 
 		assert.NoError(t, err)
@@ -151,8 +147,8 @@ func TestDiffRoles(t *testing.T) {
 		// they are not kept from the server. So listing only permissions here also
 		// clears the title and scopes, because the file is the whole desired state.
 		ops, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Permissions: ptr([]string{"compute_order_get"})}, // narrow perms, title and scopes omitted
-			{Name: "old_role", Title: ptr("Old"), Permissions: ptr([]string{"compute_order_get"})},
+			{Name: "compute_manager", Permissions: new([]string{"compute_order_get"})}, // narrow perms, title and scopes omitted
+			{Name: "old_role", Title: new("Old"), Permissions: new([]string{"compute_order_get"})},
 		}, current)
 
 		assert.NoError(t, err)
@@ -171,9 +167,9 @@ func TestDiffRoles(t *testing.T) {
 		// file is the whole desired state. Export writes them all out for exactly
 		// this reason.
 		ops, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Title: ptr("Compute Manager"),
-				Permissions: ptr([]string{"compute_order_get"}), Scopes: ptr([]string{"compute/order"})},
-			{Name: "old_role", Title: ptr("Old"), Permissions: ptr([]string{"compute_order_get"})},
+			{Name: "compute_manager", Title: new("Compute Manager"),
+				Permissions: new([]string{"compute_order_get"}), Scopes: new([]string{"compute/order"})},
+			{Name: "old_role", Title: new("Old"), Permissions: new([]string{"compute_order_get"})},
 		}, current)
 
 		assert.NoError(t, err)
@@ -188,9 +184,9 @@ func TestDiffRoles(t *testing.T) {
 
 	t.Run("a custom role's description is managed like its title", func(t *testing.T) {
 		ops, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Title: ptr("Compute Manager"), Description: ptr("Runs compute orders"),
-				Permissions: ptr([]string{"compute_order_get", "compute_order_update"}), Scopes: ptr([]string{"compute/order"})},
-			{Name: "old_role", Title: ptr("Old"), Permissions: ptr([]string{"compute_order_get"})},
+			{Name: "compute_manager", Title: new("Compute Manager"), Description: new("Runs compute orders"),
+				Permissions: new([]string{"compute_order_get", "compute_order_update"}), Scopes: new([]string{"compute/order"})},
+			{Name: "old_role", Title: new("Old"), Permissions: new([]string{"compute_order_get"})},
 		}, current)
 
 		assert.NoError(t, err)
@@ -219,8 +215,8 @@ func TestDiffRoles(t *testing.T) {
 	t.Run("predefined role title and permissions can be managed", func(t *testing.T) {
 		specs := append(keepCustom, RoleSpec{
 			Name:        schema.RoleOrganizationOwner,
-			Title:       ptr("Workspace Owner"),
-			Permissions: ptr([]string{"app_organization_administer", "app_organization_get"}),
+			Title:       new("Workspace Owner"),
+			Permissions: new([]string{"app_organization_administer", "app_organization_get"}),
 		})
 		ops, err := diffRoles(specs, current)
 
@@ -237,13 +233,13 @@ func TestDiffRoles(t *testing.T) {
 	})
 
 	t.Run("a listed predefined role missing on the server fails the plan", func(t *testing.T) {
-		_, err := diffRoles(append(keepCustom, RoleSpec{Name: schema.GroupOwnerRole, Title: ptr("X")}), current)
+		_, err := diffRoles(append(keepCustom, RoleSpec{Name: schema.GroupOwnerRole, Title: new("X")}), current)
 		assert.ErrorContains(t, err, "not found on the server")
 	})
 
 	t.Run("a custom server role missing from the file fails the plan", func(t *testing.T) {
 		_, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Permissions: ptr([]string{"compute_order_get", "compute_order_update"})},
+			{Name: "compute_manager", Permissions: new([]string{"compute_order_get", "compute_order_update"})},
 		}, current)
 		assert.ErrorContains(t, err, "old_role")
 		assert.ErrorContains(t, err, "delete: true")
@@ -254,8 +250,8 @@ func TestDiffRoles(t *testing.T) {
 		// desired title is empty. A server role that still has a title drifts and
 		// the title is cleared.
 		ops, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Permissions: ptr([]string{"compute_order_get", "compute_order_update"}), Scopes: ptr([]string{"compute/order"})}, // title omitted
-			{Name: "old_role", Title: ptr("Old"), Permissions: ptr([]string{"compute_order_get"})},
+			{Name: "compute_manager", Permissions: new([]string{"compute_order_get", "compute_order_update"}), Scopes: new([]string{"compute/order"})}, // title omitted
+			{Name: "old_role", Title: new("Old"), Permissions: new([]string{"compute_order_get"})},
 		}, current)
 		assert.NoError(t, err)
 		if assert.Len(t, ops, 1) {
@@ -266,8 +262,8 @@ func TestDiffRoles(t *testing.T) {
 
 	t.Run("duplicate names fail", func(t *testing.T) {
 		_, err := diffRoles([]RoleSpec{
-			{Name: "compute_manager", Permissions: ptr([]string{"a"})},
-			{Name: "compute_manager", Permissions: ptr([]string{"b"})},
+			{Name: "compute_manager", Permissions: new([]string{"a"})},
+			{Name: "compute_manager", Permissions: new([]string{"b"})},
 		}, current)
 		assert.ErrorContains(t, err, "listed more than once")
 	})
@@ -286,13 +282,13 @@ func TestDiffRoles(t *testing.T) {
 		_, omitted := diffRoles([]RoleSpec{{Name: "empty_custom"}}, nil)
 		assert.ErrorContains(t, omitted, "at least one permission")
 
-		_, explicit := diffRoles([]RoleSpec{{Name: "empty_custom", Permissions: ptr([]string{})}}, nil)
+		_, explicit := diffRoles([]RoleSpec{{Name: "empty_custom", Permissions: new([]string{})}}, nil)
 		assert.ErrorContains(t, explicit, "at least one permission")
 	})
 
 	t.Run("a predefined role set to empty permissions fails the plan", func(t *testing.T) {
 		cur := []currentRole{{ID: "r1", Name: schema.RoleOrganizationViewer, Permissions: []string{"app_organization_get"}}}
-		_, err := diffRoles([]RoleSpec{{Name: schema.RoleOrganizationViewer, Permissions: ptr([]string{})}}, cur)
+		_, err := diffRoles([]RoleSpec{{Name: schema.RoleOrganizationViewer, Permissions: new([]string{})}}, cur)
 		assert.ErrorContains(t, err, "at least one permission")
 	})
 }

@@ -13,7 +13,7 @@ func TestPrepareDataQuery(t *testing.T) {
 		name           string
 		rqlQuery       *rql.Query
 		wantSQL        string
-		wantParameters []interface{}
+		wantParameters []any
 		wantErr        bool
 	}{
 		{
@@ -23,7 +23,7 @@ func TestPrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:        `SELECT "id", "title", "name", "state", "avatar", "updated_at", "created_at", "created_by", "country", "plan_id", "plan_name", "subscription_state", "subscription_cycle_end_at", "plan_interval", "payment_mode" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE ("row_num" = $2) LIMIT $3`,
-			wantParameters: []interface{}{"canceled", int64(1), int64(10)},
+			wantParameters: []any{"canceled", int64(1), int64(10)},
 			wantErr:        false,
 		},
 		{
@@ -40,7 +40,7 @@ func TestPrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:        `SELECT "id", "title", "name", "state", "avatar", "updated_at", "created_at", "created_by", "country", "plan_id", "plan_name", "subscription_state", "subscription_cycle_end_at", "plan_interval", "payment_mode" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE (("row_num" = $2) AND ("state" = $3)) LIMIT $4`,
-			wantParameters: []interface{}{"canceled", int64(1), "active", int64(10)},
+			wantParameters: []any{"canceled", int64(1), "active", int64(10)},
 			wantErr:        false,
 		},
 		{
@@ -51,7 +51,7 @@ func TestPrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:        `SELECT "id", "title", "name", "state", "avatar", "updated_at", "created_at", "created_by", "country", "plan_id", "plan_name", "subscription_state", "subscription_cycle_end_at", "plan_interval", "payment_mode" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE (("row_num" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR (CAST("title" AS TEXT) ILIKE $4) OR (CAST("name" AS TEXT) ILIKE $5) OR (CAST("state" AS TEXT) ILIKE $6) OR (CAST("plan_name" AS TEXT) ILIKE $7) OR (CAST("subscription_state" AS TEXT) ILIKE $8) OR (CAST("plan_interval" AS TEXT) ILIKE $9))) LIMIT $10`,
-			wantParameters: []interface{}{"canceled", int64(1), "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", int64(10)},
+			wantParameters: []any{"canceled", int64(1), "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", int64(10)},
 			wantErr:        false,
 		},
 		{
@@ -67,7 +67,7 @@ func TestPrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:        `SELECT "id", "title", "name", "state", "avatar", "updated_at", "created_at", "created_by", "country", "plan_id", "plan_name", "subscription_state", "subscription_cycle_end_at", "plan_interval", "payment_mode" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE ("row_num" = $2) ORDER BY "created_at" DESC LIMIT $3`,
-			wantParameters: []interface{}{"canceled", int64(1), int64(10)},
+			wantParameters: []any{"canceled", int64(1), int64(10)},
 			wantErr:        false,
 		},
 		{
@@ -105,7 +105,7 @@ func TestPrepareDataQuery(t *testing.T) {
 				Offset: 40,
 			},
 			wantSQL:        `SELECT "id", "title", "name", "state", "avatar", "updated_at", "created_at", "created_by", "country", "plan_id", "plan_name", "subscription_state", "subscription_cycle_end_at", "plan_interval", "payment_mode" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE (("row_num" = $2) AND ("state" = $3) AND (CAST("plan_name" AS TEXT) IN ($4, $5)) AND (("subscription_state" IS NOT NULL) AND ("subscription_state" != $6)) AND ((CAST("id" AS TEXT) ILIKE $7) OR (CAST("title" AS TEXT) ILIKE $8) OR (CAST("name" AS TEXT) ILIKE $9) OR (CAST("state" AS TEXT) ILIKE $10) OR (CAST("plan_name" AS TEXT) ILIKE $11) OR (CAST("subscription_state" AS TEXT) ILIKE $12) OR (CAST("plan_interval" AS TEXT) ILIKE $13))) ORDER BY "created_at" DESC, "title" ASC LIMIT $14 OFFSET $15`,
-			wantParameters: []interface{}{"canceled", int64(1), "active", "free", "premium", "", "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", int64(20), int64(40)},
+			wantParameters: []any{"canceled", int64(1), "active", "free", "premium", "", "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", "%test%", int64(20), int64(40)},
 			wantErr:        false,
 		},
 		{
@@ -122,7 +122,7 @@ func TestPrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:        `SELECT "id", "title", "name", "state", "avatar", "updated_at", "created_at", "created_by", "country", "plan_id", "plan_name", "subscription_state", "subscription_cycle_end_at", "plan_interval", "payment_mode" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE (("row_num" = $2) AND ("payment_mode" = $3)) LIMIT $4`,
-			wantParameters: []interface{}{"canceled", int64(1), "postpaid", int64(10)},
+			wantParameters: []any{"canceled", int64(1), "postpaid", int64(10)},
 			wantErr:        false,
 		},
 		{
@@ -159,7 +159,7 @@ func TestPrepareGroupByQuery(t *testing.T) {
 		name           string
 		rqlQuery       *rql.Query
 		wantSQL        string
-		wantParameters []interface{}
+		wantParameters []any
 		wantErr        bool
 	}{
 		{
@@ -168,7 +168,7 @@ func TestPrepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"state"},
 			},
 			wantSQL:        `SELECT COUNT(*) AS "count", "state" AS "values" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE ("row_num" = $2) GROUP BY "state"`,
-			wantParameters: []interface{}{"canceled", int64(1)},
+			wantParameters: []any{"canceled", int64(1)},
 			wantErr:        false,
 		},
 		{
@@ -177,7 +177,7 @@ func TestPrepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"plan_name"},
 			},
 			wantSQL:        `SELECT COUNT(*) AS "count", "plan_name" AS "values" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE ("row_num" = $2) GROUP BY "plan_name"`,
-			wantParameters: []interface{}{"canceled", int64(1)},
+			wantParameters: []any{"canceled", int64(1)},
 			wantErr:        false,
 		},
 		{
@@ -186,7 +186,7 @@ func TestPrepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"payment_mode"},
 			},
 			wantSQL:        `SELECT COUNT(*) AS "count", "payment_mode" AS "values" FROM (SELECT "organizations"."id" AS "id", "organizations"."title" AS "title", "organizations"."name" AS "name", "organizations"."avatar" AS "avatar", "organizations"."created_at" AS "created_at", "organizations"."updated_at" AS "updated_at", "organizations"."state" AS "state", organizations.metadata->>'country' AS "country", organizations.metadata->>'poc' AS "created_by", "billing_plans"."id" AS "plan_id", "billing_plans"."name" AS "plan_name", "billing_plans"."interval" AS "plan_interval", "billing_subscriptions"."state" AS "subscription_state", "billing_subscriptions"."trial_ends_at", "billing_subscriptions"."current_period_end_at" AS "subscription_cycle_end_at", "billing_customers"."payment_mode" AS "payment_mode", ROW_NUMBER() OVER (PARTITION BY "organizations"."id" ORDER BY "billing_subscriptions"."created_at" DESC) AS "row_num" FROM "organizations" LEFT JOIN "billing_customers" ON ("organizations"."id" = "billing_customers"."org_id") LEFT JOIN "billing_subscriptions" ON (("billing_subscriptions"."customer_id" = "billing_customers"."id") AND ("billing_subscriptions"."state" != $1)) LEFT JOIN "billing_plans" ON ("billing_plans"."id" = "billing_subscriptions"."plan_id")) AS "ranked_subscriptions" WHERE ("row_num" = $2) GROUP BY "payment_mode"`,
-			wantParameters: []interface{}{"canceled", int64(1)},
+			wantParameters: []any{"canceled", int64(1)},
 			wantErr:        false,
 		},
 		{

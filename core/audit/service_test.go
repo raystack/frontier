@@ -11,9 +11,9 @@ import (
 )
 
 func TestStructPB(t *testing.T) {
-	input := make(map[string]interface{})
+	input := make(map[string]any)
 	input["key"] = "value"
-	input["data"] = map[string]interface{}{
+	input["data"] = map[string]any{
 		"key2": "value2",
 	}
 
@@ -30,7 +30,7 @@ func TestStructPB(t *testing.T) {
 	delete(input, "data2")
 
 	now := time.Now()
-	logDecoded := map[string]interface{}{}
+	logDecoded := map[string]any{}
 	err = mapstructure.Decode(&Log{
 		Source: "source",
 		Target: Target{
@@ -59,7 +59,7 @@ func TestTransformToEventData(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want map[string]interface{}
+		want map[string]any
 	}{
 		{
 			name: "should decode everything except metadata",
@@ -81,7 +81,7 @@ func TestTransformToEventData(t *testing.T) {
 					CreatedAt: now,
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"source":   "source",
 				"target":   map[string]any{"id": "target-id", "type": "target-type"},
 				"actor":    map[string]any{"id": "actor-id", "type": "actor-type", "name": "actor-name"},
@@ -98,7 +98,7 @@ func TestTransformToEventData(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"source": "source",
 				"actor":  map[string]any{},
 				"target": map[string]any{},

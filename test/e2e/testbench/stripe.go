@@ -63,10 +63,10 @@ func StartStripeMock(logger *slog.Logger, network *docker.Network, pool *dockert
 	if err = pool.Retry(func() error {
 		customer, err := stripeClient.Customers.New(&stripe.CustomerParams{
 			Params: stripe.Params{
-				IdempotencyKey: stripe.String(idemKey.String()),
+				IdempotencyKey: new(idemKey.String()),
 			},
-			Email: stripe.String("test@testtest.com"),
-			Name:  stripe.String("Test Customer"),
+			Email: new("test@testtest.com"),
+			Name:  new("Test Customer"),
 		})
 		if customer.Email == "" {
 			return fmt.Errorf("not ready")
@@ -95,7 +95,7 @@ func BuildStripeClient(port, name string, mode recorder.Mode) (StripeClientBuild
 	var closer = func() error { return nil }
 	var stripeURL *string
 	if port != "" {
-		stripeURL = stripe.String("http://localhost:" + port)
+		stripeURL = new("http://localhost:" + port)
 	}
 	if name == "" {
 		name = uuid.NewString()

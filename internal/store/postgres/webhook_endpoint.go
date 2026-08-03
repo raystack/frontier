@@ -18,7 +18,7 @@ type WebhookHeaders struct {
 	KVs map[string]string `json:"kvs"`
 }
 
-func (s *WebhookHeaders) Scan(src interface{}) error {
+func (s *WebhookHeaders) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return json.Unmarshal(src, s)

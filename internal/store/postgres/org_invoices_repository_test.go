@@ -13,7 +13,7 @@ func TestOrgInvoicesRepository_prepareDataQuery(t *testing.T) {
 		orgID      string
 		rql        *rql.Query
 		wantSQL    string
-		wantParams []interface{}
+		wantParams []any
 		wantErr    bool
 	}{
 		{
@@ -24,7 +24,7 @@ func TestOrgInvoicesRepository_prepareDataQuery(t *testing.T) {
 				Offset: 20,
 			},
 			wantSQL:    `SELECT "billing_invoices"."id" AS "invoice_id", "billing_invoices"."amount" AS "invoice_amount", "billing_invoices"."currency" AS "invoice_currency", "billing_invoices"."state" AS "invoice_state", "billing_invoices"."hosted_url" AS "invoice_hosted_url", "billing_invoices"."created_at" AS "invoice_created_at", "billing_customers"."org_id" AS "org_id" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE ("billing_customers"."org_id" = $1) LIMIT $2 OFFSET $3`,
-			wantParams: []interface{}{"org123", int64(10), int64(20)},
+			wantParams: []any{"org123", int64(10), int64(20)},
 			wantErr:    false,
 		},
 		{
@@ -42,7 +42,7 @@ func TestOrgInvoicesRepository_prepareDataQuery(t *testing.T) {
 				Offset: 50,
 			},
 			wantSQL:    `SELECT "billing_invoices"."id" AS "invoice_id", "billing_invoices"."amount" AS "invoice_amount", "billing_invoices"."currency" AS "invoice_currency", "billing_invoices"."state" AS "invoice_state", "billing_invoices"."hosted_url" AS "invoice_hosted_url", "billing_invoices"."created_at" AS "invoice_created_at", "billing_customers"."org_id" AS "org_id" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE (("billing_customers"."org_id" = $1) AND ("billing_invoices"."amount" >= $2)) LIMIT $3 OFFSET $4`,
-			wantParams: []interface{}{"org123", int64(1000), int64(10), int64(50)},
+			wantParams: []any{"org123", int64(1000), int64(10), int64(50)},
 			wantErr:    false,
 		},
 		{
@@ -61,7 +61,7 @@ func TestOrgInvoicesRepository_prepareDataQuery(t *testing.T) {
 				Offset: 30,
 			},
 			wantSQL:    `SELECT "billing_invoices"."id" AS "invoice_id", "billing_invoices"."amount" AS "invoice_amount", "billing_invoices"."currency" AS "invoice_currency", "billing_invoices"."state" AS "invoice_state", "billing_invoices"."hosted_url" AS "invoice_hosted_url", "billing_invoices"."created_at" AS "invoice_created_at", "billing_customers"."org_id" AS "org_id" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE (("billing_customers"."org_id" = $1) AND ("billing_invoices"."state" = $2) AND ((CAST("billing_invoices"."state" AS TEXT) ILIKE $3) OR (CAST("billing_invoices"."hosted_url" AS TEXT) ILIKE $4) OR (CAST("billing_invoices"."amount" AS TEXT) ILIKE $5))) LIMIT $6 OFFSET $7`,
-			wantParams: []interface{}{"org123", "paid", "%test%", "%test%", "%test%", int64(10), int64(30)},
+			wantParams: []any{"org123", "paid", "%test%", "%test%", "%test%", int64(10), int64(30)},
 			wantErr:    false,
 		},
 		{
@@ -78,7 +78,7 @@ func TestOrgInvoicesRepository_prepareDataQuery(t *testing.T) {
 				Offset: 40,
 			},
 			wantSQL:    `SELECT "billing_invoices"."id" AS "invoice_id", "billing_invoices"."amount" AS "invoice_amount", "billing_invoices"."currency" AS "invoice_currency", "billing_invoices"."state" AS "invoice_state", "billing_invoices"."hosted_url" AS "invoice_hosted_url", "billing_invoices"."created_at" AS "invoice_created_at", "billing_customers"."org_id" AS "org_id" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE ("billing_customers"."org_id" = $1) ORDER BY "invoice_state" DESC LIMIT $2 OFFSET $3`,
-			wantParams: []interface{}{"org123", int64(10), int64(40)},
+			wantParams: []any{"org123", int64(10), int64(40)},
 			wantErr:    false,
 		},
 		{
@@ -96,7 +96,7 @@ func TestOrgInvoicesRepository_prepareDataQuery(t *testing.T) {
 				Offset: 25,
 			},
 			wantSQL:    `SELECT "billing_invoices"."id" AS "invoice_id", "billing_invoices"."amount" AS "invoice_amount", "billing_invoices"."currency" AS "invoice_currency", "billing_invoices"."state" AS "invoice_state", "billing_invoices"."hosted_url" AS "invoice_hosted_url", "billing_invoices"."created_at" AS "invoice_created_at", "billing_customers"."org_id" AS "org_id" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE ("billing_customers"."org_id" = $1) ORDER BY "invoice_state" ASC, "invoice_amount" DESC LIMIT $2 OFFSET $3`,
-			wantParams: []interface{}{"org123", int64(10), int64(25)},
+			wantParams: []any{"org123", int64(10), int64(25)},
 			wantErr:    false,
 		},
 		{
@@ -141,7 +141,7 @@ func TestOrgInvoicesRepository_prepareGroupByQuery(t *testing.T) {
 		orgID      string
 		rql        *rql.Query
 		wantSQL    string
-		wantParams []interface{}
+		wantParams []any
 		wantErr    bool
 	}{
 		{
@@ -151,7 +151,7 @@ func TestOrgInvoicesRepository_prepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"state"},
 			},
 			wantSQL:    `SELECT COUNT(*) AS "count", "billing_invoices"."state" AS "values" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE ("billing_customers"."org_id" = $1) GROUP BY "billing_invoices"."state"`,
-			wantParams: []interface{}{"org123"},
+			wantParams: []any{"org123"},
 			wantErr:    false,
 		},
 		{
@@ -168,7 +168,7 @@ func TestOrgInvoicesRepository_prepareGroupByQuery(t *testing.T) {
 				},
 			},
 			wantSQL:    `SELECT COUNT(*) AS "count", "billing_invoices"."state" AS "values" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE (("billing_customers"."org_id" = $1) AND ("billing_invoices"."amount" >= $2)) GROUP BY "billing_invoices"."state"`,
-			wantParams: []interface{}{"org123", int64(1000)},
+			wantParams: []any{"org123", int64(1000)},
 			wantErr:    false,
 		},
 		{
@@ -179,7 +179,7 @@ func TestOrgInvoicesRepository_prepareGroupByQuery(t *testing.T) {
 				Search:  "test",
 			},
 			wantSQL:    `SELECT COUNT(*) AS "count", "billing_invoices"."state" AS "values" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE (("billing_customers"."org_id" = $1) AND ((CAST("billing_invoices"."state" AS TEXT) ILIKE $2) OR (CAST("billing_invoices"."hosted_url" AS TEXT) ILIKE $3) OR (CAST("billing_invoices"."amount" AS TEXT) ILIKE $4))) GROUP BY "billing_invoices"."state"`,
-			wantParams: []interface{}{"org123", "%test%", "%test%", "%test%"},
+			wantParams: []any{"org123", "%test%", "%test%", "%test%"},
 			wantErr:    false,
 		},
 		{
@@ -197,7 +197,7 @@ func TestOrgInvoicesRepository_prepareGroupByQuery(t *testing.T) {
 				Search: "test",
 			},
 			wantSQL:    `SELECT COUNT(*) AS "count", "billing_invoices"."state" AS "values" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") WHERE (("billing_customers"."org_id" = $1) AND ("billing_invoices"."amount" >= $2) AND ((CAST("billing_invoices"."state" AS TEXT) ILIKE $3) OR (CAST("billing_invoices"."hosted_url" AS TEXT) ILIKE $4) OR (CAST("billing_invoices"."amount" AS TEXT) ILIKE $5))) GROUP BY "billing_invoices"."state"`,
-			wantParams: []interface{}{"org123", int64(1000), "%test%", "%test%", "%test%"},
+			wantParams: []any{"org123", int64(1000), "%test%", "%test%", "%test%"},
 			wantErr:    false,
 		},
 	}

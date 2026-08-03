@@ -363,8 +363,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
 		ctxWithSecret := testbench.ContextWithHeaders(context.Background(), map[string]string{
-			"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
-				createServiceUserCredentialResp.Msg.GetSecret().GetSecret()))),
+			"Authorization": "Basic " + base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
+				createServiceUserCredentialResp.Msg.GetSecret().GetSecret())),
 		})
 
 		// create dummy permissions
@@ -508,8 +508,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
 
-		createdSVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
-			createServiceUserCredentialResp.Msg.GetSecret().GetSecret())))
+		createdSVKey := base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
+			createServiceUserCredentialResp.Msg.GetSecret().GetSecret()))
 		ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + createdSVKey,
 		})
@@ -607,8 +607,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().Len(listServiceUserCredentialResp.Msg.GetSecrets(), 2)
 
 		// first org su key
-		createdOrg1SVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
-			createServiceUserCredentialResp.Msg.GetSecret().GetSecret())))
+		createdOrg1SVKey := base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", createServiceUserCredentialResp.Msg.GetSecret().GetId(),
+			createServiceUserCredentialResp.Msg.GetSecret().GetSecret()))
 		ctxOrg1SVUWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
 			"Authorization": "Basic " + createdOrg1SVKey,
 		})
@@ -1050,8 +1050,8 @@ func TestEndToEndServiceUsersRegressionTestSuite(t *testing.T) {
 
 func getSVUCtx(cred *frontierv1beta1.SecretCredential) context.Context {
 	ctxWithKey := testbench.ContextWithHeaders(context.Background(), map[string]string{
-		"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cred.GetId(),
-			cred.GetSecret()))),
+		"Authorization": "Basic " + base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", cred.GetId(),
+			cred.GetSecret())),
 	})
 	return ctxWithKey
 }

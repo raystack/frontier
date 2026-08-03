@@ -141,7 +141,7 @@ func (r OrgInvoicesRepository) Search(ctx context.Context, orgID string, rql *rq
 	}, nil
 }
 
-func (r OrgInvoicesRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
+func (r OrgInvoicesRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery(orgID)
 
 	for _, filter := range rql.Filters {
@@ -161,7 +161,7 @@ func (r OrgInvoicesRepository) prepareDataQuery(orgID string, rql *rql.Query) (s
 	return query.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
 }
 
-func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
+func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []any, error) {
 	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
 		Select(
 			goqu.COUNT("*").As("count"),

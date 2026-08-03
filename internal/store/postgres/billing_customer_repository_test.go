@@ -279,7 +279,7 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 			filter: customer.Filter{
 				OrgID:  s.orgIDs[0],
 				State:  customer.ActiveState,
-				Online: utils.Bool(true),
+				Online: new(true),
 			},
 		},
 		{
@@ -290,8 +290,8 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 			filter: customer.Filter{
 				OrgID:            s.orgIDs[0],
 				State:            customer.ActiveState,
-				Online:           utils.Bool(true),
-				AllowedOverdraft: utils.Bool(true),
+				Online:           new(true),
+				AllowedOverdraft: new(true),
 			},
 		},
 	}

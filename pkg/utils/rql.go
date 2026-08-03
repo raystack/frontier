@@ -63,7 +63,7 @@ func NewRQLQuery(search string, offset int, limit int, filters []rql.Filter, sor
 	}
 }
 
-func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{}) (*rql.Query, error) {
+func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct any) (*rql.Query, error) {
 	filters := make([]rql.Filter, 0)
 	for _, filter := range q.GetFilters() {
 		datatype, err := rql.GetDataTypeOfField(filter.GetName(), checkStruct)
@@ -91,7 +91,7 @@ func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{})
 		q.GetGroupBy()), nil
 }
 
-func TransformExportProtoToRQL(q *frontierv1beta1.RQLExportRequest, checkStruct interface{}) (*rql.Query, error) {
+func TransformExportProtoToRQL(q *frontierv1beta1.RQLExportRequest, checkStruct any) (*rql.Query, error) {
 	// use TransformProtoToRQL by constructing an RQLRequest
 	rqlReq := &frontierv1beta1.RQLRequest{
 		Filters: q.GetFilters(),
@@ -137,7 +137,7 @@ func AddRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query, rqlSearchSup
 	return query.Where(goqu.Or(searchExpressions...)), nil
 }
 
-func AddRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query, rqlFilerSupportedColumns []string, checkStruct interface{}) (*goqu.SelectDataset, error) {
+func AddRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query, rqlFilerSupportedColumns []string, checkStruct any) (*goqu.SelectDataset, error) {
 	for _, filter := range rqlInput.Filters {
 		if !slices.Contains(rqlFilerSupportedColumns, filter.Name) {
 			return nil, fmt.Errorf("%s is not supported in filters", filter.Name)
@@ -237,15 +237,15 @@ func AddGroupInQuery(query *goqu.SelectDataset, rql *rql.Query, allowedGroupByCo
 	return query, nil
 }
 
-func buildGroupByColumns(columns []string) []interface{} {
-	exprs := make([]interface{}, 0, len(columns))
+func buildGroupByColumns(columns []string) []any {
+	exprs := make([]any, 0, len(columns))
 	for _, col := range columns {
 		exprs = append(exprs, goqu.C(col))
 	}
 	return exprs
 }
 
-func buildSelectColumns(columns []string) []interface{} {
+func buildSelectColumns(columns []string) []any {
 	var valueExpr goqu.Expression
 	switch len(columns) {
 	case 1:
@@ -256,7 +256,7 @@ func buildSelectColumns(columns []string) []interface{} {
 		valueExpr = goqu.C(columns[0]).As("values")
 	}
 
-	return []interface{}{
+	return []any{
 		valueExpr,
 		goqu.L("COUNT(*) as count"),
 	}

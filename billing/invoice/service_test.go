@@ -44,38 +44,38 @@ func TestService_computeOverdraftWindow(t *testing.T) {
 		{
 			name:        "first invoice anchors window at its end",
 			endRange:    mar1,
-			lastInvoice: ptr(creditItem(&createdAtTruncated, &feb1)),
+			lastInvoice: new(creditItem(&createdAtTruncated, &feb1)),
 			wantStart:   feb1,
 		},
 		{
 			name:        "first invoice anchors window when its start equals creation time",
 			endRange:    mar1,
-			lastInvoice: ptr(creditItem(&createdAt, &feb1)),
+			lastInvoice: new(creditItem(&createdAt, &feb1)),
 			wantStart:   feb1,
 		},
 		{
 			name:        "later invoice anchors window at its end instead of customer creation",
 			endRange:    jul1,
-			lastInvoice: ptr(creditItem(&may1, &jun1)),
+			lastInvoice: new(creditItem(&may1, &jun1)),
 			wantStart:   jun1,
 		},
 		{
 			name:                "range ending at window end is already invoiced",
 			endRange:            jul1,
-			lastInvoice:         ptr(creditItem(&may1, &jul1)),
+			lastInvoice:         new(creditItem(&may1, &jul1)),
 			wantStart:           jul1,
 			wantAlreadyInvoiced: true,
 		},
 		{
 			name:        "item without range start does not panic",
 			endRange:    jul1,
-			lastInvoice: ptr(creditItem(nil, &jun1)),
+			lastInvoice: new(creditItem(nil, &jun1)),
 			wantStart:   jun1,
 		},
 		{
 			name:        "item without range end keeps window at customer creation",
 			endRange:    jul1,
-			lastInvoice: ptr(creditItem(&may1, nil)),
+			lastInvoice: new(creditItem(&may1, nil)),
 			wantStart:   createdAt,
 		},
 	}
@@ -90,10 +90,6 @@ func TestService_computeOverdraftWindow(t *testing.T) {
 			}
 		})
 	}
-}
-
-func ptr[T any](v T) *T {
-	return &v
 }
 
 func TestService_getCreditOverdraftRange(t *testing.T) {

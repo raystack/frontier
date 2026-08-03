@@ -165,7 +165,7 @@ func TestService_GetPrincipal(t *testing.T) {
 			setup: func() *authenticate.Service {
 				mockFlow, mockUserService, mockTokenService, mockSessionService, mockServiceUserService := createMocks(t)
 
-				mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).Return(userID.String(), map[string]interface{}{}, nil)
+				mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).Return(userID.String(), map[string]any{}, nil)
 				mockUserService.EXPECT().GetByID(mock.Anything, userID.String()).Return(user.User{
 					ID: userID.String(),
 				}, nil)
@@ -186,7 +186,7 @@ func TestService_GetPrincipal(t *testing.T) {
 			setup: func() *authenticate.Service {
 				mockFlow, mockUserService, mockTokenService, mockSessionService, mockServiceUserService := createMocks(t)
 
-				mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).Return("", map[string]interface{}{}, errors.New("invalid token"))
+				mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).Return("", map[string]any{}, errors.New("invalid token"))
 
 				return authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
 					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil)

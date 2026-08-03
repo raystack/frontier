@@ -468,7 +468,7 @@ func TestConnectHandler_GetProjectResource(t *testing.T) {
 			name: "should return internal error if transform fails",
 			setup: func(rs *mocks.ResourceService) {
 				invalidResource := testResource
-				invalidResource.Metadata = map[string]interface{}{
+				invalidResource.Metadata = map[string]any{
 					"invalid": func() {}, // functions can't be marshaled
 				}
 				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(invalidResource, nil)

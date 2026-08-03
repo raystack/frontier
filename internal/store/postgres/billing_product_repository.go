@@ -25,7 +25,7 @@ type BehaviorConfig struct {
 	MaxQuantity  int64 `json:"max_quantity"`
 }
 
-func (b *BehaviorConfig) Scan(src interface{}) error {
+func (b *BehaviorConfig) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return json.Unmarshal(src, b)

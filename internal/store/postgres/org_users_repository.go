@@ -143,7 +143,7 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 
 // prepare a query by joining policy, users and roles tables
 // combines all roles of a user as a comma separated string
-func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (string, []interface{}, error) {
+func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (string, []any, error) {
 	baseQuery := r.buildBaseQuery(orgID)
 
 	if err := r.validateFilters(input.Filters); err != nil {
@@ -169,7 +169,7 @@ func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (st
 }
 
 func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
-	querySelects := []interface{}{
+	querySelects := []any{
 		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID).As(COLUMN_ORG_ID),
 		goqu.I(TABLE_USERS + "." + COLUMN_ID).As(COLUMN_ID),
 		goqu.I(TABLE_USERS + "." + COLUMN_NAME).As(COLUMN_NAME),
@@ -205,8 +205,8 @@ func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		GroupBy(r.getGroupByColumns()...)
 }
 
-func (r OrgUsersRepository) getGroupByColumns() []interface{} {
-	return []interface{}{
+func (r OrgUsersRepository) getGroupByColumns() []any {
+	return []any{
 		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID),
 		goqu.I(TABLE_USERS + "." + COLUMN_ID),
 		goqu.I(TABLE_USERS + "." + COLUMN_NAME),
@@ -293,7 +293,7 @@ func (r OrgUsersRepository) getRoleColumnName(filterName string) string {
 	}
 }
 
-func (r OrgUsersRepository) buildRoleExistsSubquery(orgID string, columnName string, value interface{}) *goqu.SelectDataset {
+func (r OrgUsersRepository) buildRoleExistsSubquery(orgID string, columnName string, value any) *goqu.SelectDataset {
 	return dialect.From(TABLE_POLICIES).Prepared(true).
 		Join(
 			goqu.T(TABLE_ROLES),
