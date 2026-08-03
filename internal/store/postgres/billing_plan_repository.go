@@ -173,6 +173,10 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 	if toCreate.ID == "" {
 		toCreate.ID = uuid.New().String()
 	}
+	// a new plan is active unless told otherwise; never store an empty state
+	if toCreate.State == "" {
+		toCreate.State = "active"
+	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PLANS).Rows(
 		goqu.Record{
@@ -256,10 +260,6 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
 		return plan.Plan{}, fmt.Errorf("%w: %w", errParse, err)
-	}
-
-	if toUpdate.State == "" {
-		toUpdate.State = "active"
 	}
 
 	query, params, err := dialect.Update(TABLE_BILLING_PLANS).Set(
