@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -111,7 +112,14 @@ func (h *ConnectHandler) UpdatePlan(ctx context.Context, request *connect.Reques
 		Metadata:       metadata.Build(body.GetMetadata().AsMap()),
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePlan.UpdatePlan: plan_id=%s: %w", request.Msg.GetId(), err))
+		switch {
+		case errors.Is(err, plan.ErrNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, plan.ErrInvalidName), errors.Is(err, plan.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePlan.UpdatePlan: plan_id=%s: %w", request.Msg.GetId(), err))
+		}
 	}
 
 	planPB, err := transformPlanToPB(updatedPlan)

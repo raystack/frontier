@@ -614,7 +614,7 @@ func TestConnectHandler_UpdatePlan(t *testing.T) {
 			name: "should return internal server error when the plan service fails",
 			request: connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
 				Id:   "plan-1",
-				Body: &frontierv1beta1.PlanRequestBody{Title: "Renamed"},
+				Body: &frontierv1beta1.UpdatePlanRequestBody{Title: "Renamed"},
 			}),
 			setup: func(ps *mocks.PlanService) {
 				ps.On("UpdatePlan", mock.Anything, mock.Anything).Return(plan.Plan{}, errors.New("update failed"))
@@ -626,7 +626,7 @@ func TestConnectHandler_UpdatePlan(t *testing.T) {
 			name: "should carry the full-write fields including state through to the service",
 			request: connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
 				Id: "plan-1",
-				Body: &frontierv1beta1.PlanRequestBody{
+				Body: &frontierv1beta1.UpdatePlanRequestBody{
 					Title:          "Renamed Plan",
 					Description:    "updated",
 					OnStartCredits: 500,
