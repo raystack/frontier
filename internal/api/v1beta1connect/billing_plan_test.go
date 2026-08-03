@@ -631,7 +631,7 @@ func TestConnectHandler_UpdatePlan(t *testing.T) {
 					Description:    "updated",
 					OnStartCredits: 500,
 					TrialDays:      14,
-					State:          "disabled",
+					State:          "inactive",
 					Metadata:       testMetadata,
 				},
 			}),
@@ -642,7 +642,7 @@ func TestConnectHandler_UpdatePlan(t *testing.T) {
 					Description:    "updated",
 					OnStartCredits: 500,
 					TrialDays:      14,
-					State:          "disabled",
+					State:          "inactive",
 					Metadata:       metadata.Metadata{"key1": "value1"},
 				}).Return(plan.Plan{
 					ID:             "plan-1",
@@ -651,7 +651,7 @@ func TestConnectHandler_UpdatePlan(t *testing.T) {
 					Description:    "updated",
 					OnStartCredits: 500,
 					TrialDays:      14,
-					State:          "disabled",
+					State:          "inactive",
 					CreatedAt:      time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
 					UpdatedAt:      time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC),
 				}, nil)
@@ -664,7 +664,7 @@ func TestConnectHandler_UpdatePlan(t *testing.T) {
 					Description:    "updated",
 					OnStartCredits: 500,
 					TrialDays:      14,
-					State:          "disabled",
+					State:          "inactive",
 					CreatedAt:      timestamppb.New(time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)),
 					UpdatedAt:      timestamppb.New(time.Date(2023, 1, 3, 0, 0, 0, 0, time.UTC)),
 				},
@@ -727,7 +727,7 @@ func TestConnectHandler_ListAllPlans(t *testing.T) {
 						ID:        "plan-2",
 						Name:      "old-plan",
 						Title:     "Old Plan",
-						State:     "disabled",
+						State:     "inactive",
 						Products:  []product.Product{},
 						Metadata:  metadata.Metadata{},
 						CreatedAt: time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC),
@@ -749,7 +749,7 @@ func TestConnectHandler_ListAllPlans(t *testing.T) {
 						Id:        "plan-2",
 						Name:      "old-plan",
 						Title:     "Old Plan",
-						State:     "disabled",
+						State:     "inactive",
 						CreatedAt: timestamppb.New(time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC)),
 						UpdatedAt: timestamppb.New(time.Date(2023, 2, 2, 0, 0, 0, 0, time.UTC)),
 					},
@@ -758,9 +758,9 @@ func TestConnectHandler_ListAllPlans(t *testing.T) {
 		},
 		{
 			name:    "should pass a set state through as a filter",
-			request: connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{State: "disabled"}),
+			request: connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{State: "inactive"}),
 			setup: func(ps *mocks.PlanService) {
-				ps.On("List", mock.Anything, plan.Filter{State: "disabled"}).Return([]plan.Plan{}, nil)
+				ps.On("List", mock.Anything, plan.Filter{State: "inactive"}).Return([]plan.Plan{}, nil)
 			},
 			want: connect.NewResponse(&frontierv1beta1.ListAllPlansResponse{Plans: nil}),
 		},
