@@ -54,20 +54,22 @@ type PlanProductRow struct {
 	PlanUpdatedAt time.Time  `db:"plan_updated_at"`
 	PlanDeletedAt *time.Time `db:"plan_deleted_at"`
 
-	ProductID          string         `db:"product_id"`
-	ProductProviderID  string         `db:"product_provider_id"`
+	// product columns are pointers because a left join leaves them null for a
+	// plan that has no products
+	ProductID          *string        `db:"product_id"`
+	ProductProviderID  *string        `db:"product_provider_id"`
 	ProductPlanIDs     pq.StringArray `db:"product_plan_ids"`
-	ProductName        string         `db:"product_name"`
+	ProductName        *string        `db:"product_name"`
 	ProductTitle       *string        `db:"product_title"`
 	ProductDescription *string        `db:"product_description"`
 
-	ProductBehavior string             `db:"product_behavior"`
+	ProductBehavior *string            `db:"product_behavior"`
 	ProductConfig   BehaviorConfig     `db:"product_config"`
-	ProductState    string             `db:"product_state"`
+	ProductState    *string            `db:"product_state"`
 	ProductMetadata types.NullJSONText `db:"product_metadata"`
 
-	ProductCreatedAt time.Time  `db:"product_created_at"`
-	ProductUpdatedAt time.Time  `db:"product_updated_at"`
+	ProductCreatedAt *time.Time `db:"product_created_at"`
+	ProductUpdatedAt *time.Time `db:"product_updated_at"`
 	ProductDeletedAt *time.Time `db:"product_deleted_at"`
 }
 
@@ -91,20 +93,34 @@ func (pr PlanProductRow) getPlan() (plan.Plan, error) {
 	return pln.transform()
 }
 
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func derefTime(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
+}
+
 func (pr PlanProductRow) getProduct() (product.Product, error) {
 	prod := Product{
-		ID:          pr.ProductID,
-		ProviderID:  pr.ProductProviderID,
+		ID:          derefString(pr.ProductID),
+		ProviderID:  derefString(pr.ProductProviderID),
 		PlanIDs:     pr.ProductPlanIDs,
-		Name:        pr.ProductName,
+		Name:        derefString(pr.ProductName),
 		Title:       pr.ProductTitle,
 		Description: pr.ProductDescription,
-		Behavior:    pr.ProductBehavior,
+		Behavior:    derefString(pr.ProductBehavior),
 		Config:      pr.ProductConfig,
-		State:       pr.ProductState,
+		State:       derefString(pr.ProductState),
 		Metadata:    pr.ProductMetadata,
-		CreatedAt:   pr.ProductCreatedAt,
-		UpdatedAt:   pr.ProductUpdatedAt,
+		CreatedAt:   derefTime(pr.ProductCreatedAt),
+		UpdatedAt:   derefTime(pr.ProductUpdatedAt),
 		DeletedAt:   pr.ProductDeletedAt,
 	}
 
@@ -353,8 +369,9 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan.Filter) ([]plan.Plan, error) {
 	pln := goqu.T(TABLE_BILLING_PLANS).As("plan")
 	prd := goqu.T(TABLE_BILLING_PRODUCTS).As("product")
+	// a left join keeps plans that have no products; an inner join would drop them
 	stmt := dialect.From(pln).
-		Join(
+		LeftJoin(
 			prd,
 			goqu.On(
 				goqu.L("CAST(plan.id AS text)").Eq(goqu.L("ANY(product.plan_ids)")),
@@ -437,19 +454,19 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		if err != nil {
 			return nil, err
 		}
-
-		prod, err := row.getProduct()
-		if err != nil {
-			return nil, err
+		if existing, ok := planMap[pln.ID]; ok {
+			pln = existing
 		}
 
-		planInMap, exists := planMap[pln.ID]
-		if exists {
-			planInMap.Products = append(planInMap.Products, prod)
-		} else {
+		// a left join gives a null product id for a plan that has no products
+		if row.ProductID != nil {
+			prod, err := row.getProduct()
+			if err != nil {
+				return nil, err
+			}
 			pln.Products = append(pln.Products, prod)
-			planMap[pln.ID] = pln
 		}
+		planMap[pln.ID] = pln
 	}
 
 	plans := []plan.Plan{}
