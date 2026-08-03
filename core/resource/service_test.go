@@ -420,6 +420,56 @@ func TestCreate(t *testing.T) {
 		assert.Equal(t, schema.UserPrincipal, got.PrincipalType)
 	})
 
+	t.Run("audit record target name uses title when set", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
+		userID := uuid.New().String()
+
+		projectSvc.EXPECT().Get(mock.Anything, testProject.ID).Return(testProject, nil)
+
+		repo.EXPECT().Create(mock.Anything, mock.Anything).Return(resource.Resource{
+			ID: uuid.New().String(), Name: "aoi-uuid-1", Title: "My AOI", NamespaceID: "resource/item",
+			ProjectID: testProject.ID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		}, nil)
+
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		relationSvc.EXPECT().Create(mock.Anything, mock.Anything).Return(relation.Relation{}, nil).Times(2)
+
+		auditRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r auditmodels.AuditRecord) bool {
+			return r.Target != nil && r.Target.Name == "My AOI"
+		})).Return(auditmodels.AuditRecord{}, nil)
+
+		_, err := svc.Create(ctx, resource.Resource{
+			Name: "aoi-uuid-1", Title: "My AOI", NamespaceID: "resource/item", ProjectID: testProject.ID,
+			PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		})
+		assert.NoError(t, err)
+	})
+
+	t.Run("audit record target name falls back to name when title empty", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
+		userID := uuid.New().String()
+
+		projectSvc.EXPECT().Get(mock.Anything, testProject.ID).Return(testProject, nil)
+
+		repo.EXPECT().Create(mock.Anything, mock.Anything).Return(resource.Resource{
+			ID: uuid.New().String(), Name: "res-slug", NamespaceID: "resource/item",
+			ProjectID: testProject.ID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		}, nil)
+
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		relationSvc.EXPECT().Create(mock.Anything, mock.Anything).Return(relation.Relation{}, nil).Times(2)
+
+		auditRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r auditmodels.AuditRecord) bool {
+			return r.Target != nil && r.Target.Name == "res-slug"
+		})).Return(auditmodels.AuditRecord{}, nil)
+
+		_, err := svc.Create(ctx, resource.Resource{
+			Name: "res-slug", NamespaceID: "resource/item", ProjectID: testProject.ID,
+			PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		})
+		assert.NoError(t, err)
+	})
+
 	t.Run("explicit principal skips authn lookup", func(t *testing.T) {
 		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
 		userID := uuid.New().String()

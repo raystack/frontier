@@ -152,6 +152,10 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 }
 
 func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Event, res Resource, proj project.Project) {
+	targetName := res.Title
+	if targetName == "" {
+		targetName = res.Name
+	}
 	if _, err := s.auditRecordRepository.Create(ctx, auditmodels.AuditRecord{
 		Event: event,
 		Resource: auditmodels.Resource{
@@ -162,7 +166,7 @@ func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Eve
 		Target: &auditmodels.Target{
 			ID:   res.ID,
 			Type: pkgauditrecord.EntityType(res.NamespaceID),
-			Name: res.Name,
+			Name: targetName,
 		},
 		OrgID:      proj.Organization.ID,
 		OrgName:    proj.Organization.Title,
