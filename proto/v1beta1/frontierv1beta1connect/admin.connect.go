@@ -290,7 +290,7 @@ type AdminServiceClient interface {
 	// Plans
 	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
 	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
-	// ListAllPlans returns every plan, including disabled ones, unlike
+	// ListAllPlans returns every plan, including inactive ones, unlike
 	// FrontierService.ListPlans which returns active plans only.
 	ListAllPlans(context.Context, *connect.Request[v1beta1.ListAllPlansRequest]) (*connect.Response[v1beta1.ListAllPlansResponse], error)
 	// Usage
@@ -1191,7 +1191,7 @@ type AdminServiceHandler interface {
 	// Plans
 	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
 	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
-	// ListAllPlans returns every plan, including disabled ones, unlike
+	// ListAllPlans returns every plan, including inactive ones, unlike
 	// FrontierService.ListPlans which returns active plans only.
 	ListAllPlans(context.Context, *connect.Request[v1beta1.ListAllPlansRequest]) (*connect.Response[v1beta1.ListAllPlansResponse], error)
 	// Usage
