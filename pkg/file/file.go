@@ -29,7 +29,7 @@ func DirExists(path string) bool {
 // in the 2nd argument
 // File extension matters, only file with extension
 // json, yaml, or yml that is parsable
-func Parse(filePath string, v interface{}) error {
+func Parse(filePath string, v any) error {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
 		return err

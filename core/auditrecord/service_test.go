@@ -1340,7 +1340,7 @@ func TestSetAuditRecordActorContext(t *testing.T) {
 		assert.NotNil(t, val)
 
 		// The value should be assertable as map[string]interface{} (not metadata.Metadata)
-		actorMap, ok := val.(map[string]interface{})
+		actorMap, ok := val.(map[string]any)
 		assert.True(t, ok, "context value should be map[string]interface{}")
 
 		assert.Equal(t, "actor-123", actorMap["id"])
@@ -1349,7 +1349,7 @@ func TestSetAuditRecordActorContext(t *testing.T) {
 		assert.Equal(t, "Test Token", actorMap["title"])
 
 		// Metadata should also be map[string]interface{}, not metadata.Metadata
-		metadataVal, ok := actorMap["metadata"].(map[string]interface{})
+		metadataVal, ok := actorMap["metadata"].(map[string]any)
 		assert.True(t, ok, "metadata should be map[string]interface{}")
 		assert.Equal(t, "value1", metadataVal["key1"])
 		assert.Equal(t, 42, metadataVal["key2"])
@@ -1364,7 +1364,7 @@ func TestSetAuditRecordActorContext(t *testing.T) {
 
 		ctx := auditrecord.SetAuditRecordActorContext(context.Background(), actor)
 		val := ctx.Value(consts.AuditRecordActorContextKey)
-		actorMap, ok := val.(map[string]interface{})
+		actorMap, ok := val.(map[string]any)
 		assert.True(t, ok)
 
 		// Metadata should be nil, not an empty map
@@ -1380,10 +1380,10 @@ func TestSetAuditRecordActorContext(t *testing.T) {
 
 		ctx := auditrecord.SetAuditRecordActorContext(context.Background(), actor)
 		val := ctx.Value(consts.AuditRecordActorContextKey)
-		actorMap, ok := val.(map[string]interface{})
+		actorMap, ok := val.(map[string]any)
 		assert.True(t, ok)
 
-		metadataVal, ok := actorMap["metadata"].(map[string]interface{})
+		metadataVal, ok := actorMap["metadata"].(map[string]any)
 		assert.True(t, ok, "empty metadata should still be map[string]interface{}")
 		assert.Empty(t, metadataVal)
 	})

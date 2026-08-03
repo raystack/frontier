@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"strings"
 
 	"github.com/google/uuid"
@@ -236,14 +237,12 @@ func computeHash(auditRecord AuditRecord) string {
 // SetAuditRecordActorContext sets the audit record actor in context
 // It accepts an Actor struct but stores it as a map to avoid layer violations in repositories
 func SetAuditRecordActorContext(ctx context.Context, actor Actor) context.Context {
-	var metadataMap map[string]interface{}
+	var metadataMap map[string]any
 	if actor.Metadata != nil {
-		metadataMap = make(map[string]interface{}, len(actor.Metadata))
-		for k, v := range actor.Metadata {
-			metadataMap[k] = v
-		}
+		metadataMap = make(map[string]any, len(actor.Metadata))
+		maps.Copy(metadataMap, actor.Metadata)
 	}
-	actorMap := map[string]interface{}{
+	actorMap := map[string]any{
 		"id":       actor.ID,
 		"type":     actor.Type,
 		"name":     actor.Name,

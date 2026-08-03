@@ -52,7 +52,7 @@ func PromoteBootstrapAdmin(ctx context.Context, ad frontierv1beta1connect.AdminS
 	// suites run in one process, a prior suite's Close() SIGINTs the process, so the
 	// next testbench's server can take a moment to accept connections.
 	var lastErr error
-	for i := 0; i < 60; i++ {
+	for range 60 {
 		_, err := ad.AddPlatformUser(authCtx, connect.NewRequest(&frontierv1beta1.AddPlatformUserRequest{
 			UserId:   email,
 			Relation: schema.AdminRelationName,

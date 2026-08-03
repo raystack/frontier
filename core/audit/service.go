@@ -107,7 +107,7 @@ func (s *Service) GetByID(ctx context.Context, id string) (Log, error) {
 	return s.repository.GetByID(ctx, id)
 }
 
-func TransformToEventData(l *Log) map[string]interface{} {
+func TransformToEventData(l *Log) map[string]any {
 	anyMap := make(map[string]any)
 	for k, v := range l.Metadata {
 		anyMap[k] = v

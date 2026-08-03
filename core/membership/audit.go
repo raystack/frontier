@@ -37,7 +37,7 @@ func (s *Service) createAuditRecord(ctx context.Context, record auditrecord.Audi
 		}
 		// The actor is enriched from the context by the repository, so the
 		// failed record carries none; read it from the same place.
-		if actorMap, ok := ctx.Value(consts.AuditRecordActorContextKey).(map[string]interface{}); ok {
+		if actorMap, ok := ctx.Value(consts.AuditRecordActorContextKey).(map[string]any); ok {
 			if id, ok := actorMap["id"].(string); ok {
 				args = append(args, "actor_id", id)
 			}

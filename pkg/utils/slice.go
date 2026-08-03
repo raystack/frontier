@@ -1,5 +1,7 @@
 package utils
 
+import "slices"
+
 func AppendIfUnique[T comparable](slice1 []T, slice2 []T) []T {
 	for _, i := range slice2 {
 		if !Contains(slice1, i) {
@@ -11,21 +13,11 @@ func AppendIfUnique[T comparable](slice1 []T, slice2 []T) []T {
 }
 
 func Contains[T comparable](s []T, e T) bool {
-	for _, v := range s {
-		if v == e {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s, e)
 }
 
 func ContainsFunc[T any](s []T, f func(T) bool) bool {
-	for _, v := range s {
-		if f(v) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(s, f)
 }
 
 func ContainsAny[T comparable](s []T, e []T) bool {

@@ -613,7 +613,7 @@ func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.Sear
 	}, nil
 }
 
-func (r UserRepository) PrepareDataQuery(input *rql.Query) (string, []interface{}, error) {
+func (r UserRepository) PrepareDataQuery(input *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery()
 
 	for _, filter := range input.Filters {
@@ -705,7 +705,7 @@ func (r UserRepository) addSort(query *goqu.SelectDataset, input *rql.Query) (*g
 	return query, nil
 }
 
-func (r UserRepository) PrepareGroupByQuery(input *rql.Query) (string, []interface{}, error) {
+func (r UserRepository) PrepareGroupByQuery(input *rql.Query) (string, []any, error) {
 	// Start with base query that includes COUNT and group by field
 	query := dialect.From(TABLE_USERS).Prepared(true).
 		Select(

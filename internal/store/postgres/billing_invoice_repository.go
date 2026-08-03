@@ -45,7 +45,7 @@ type Items struct {
 	Data []invoice.Item `json:"data"`
 }
 
-func (t *Items) Scan(src interface{}) error {
+func (t *Items) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return json.Unmarshal(src, t)
@@ -361,7 +361,7 @@ func (r BillingInvoiceRepository) Search(ctx context.Context, rqlQuery *rql.Quer
 	return invoices, nil
 }
 
-func (r BillingInvoiceRepository) prepareDataQuery(rqlQuery *rql.Query) (string, []interface{}, error) {
+func (r BillingInvoiceRepository) prepareDataQuery(rqlQuery *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery()
 
 	// Apply filters

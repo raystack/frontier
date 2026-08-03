@@ -1,6 +1,8 @@
 package metadata
 
 import (
+	"maps"
+
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -13,9 +15,7 @@ type Metadata map[string]any
 func (m Metadata) ToStructPB() (*structpb.Struct, error) {
 	newMap := make(map[string]any)
 
-	for key, value := range m {
-		newMap[key] = value
-	}
+	maps.Copy(newMap, m)
 
 	return structpb.NewStruct(newMap)
 }
@@ -23,9 +23,7 @@ func (m Metadata) ToStructPB() (*structpb.Struct, error) {
 // Build transforms a Metadata from map[string]any
 func Build(m map[string]any) Metadata {
 	newMap := make(Metadata)
-	for key, value := range m {
-		newMap[key] = value
-	}
+	maps.Copy(newMap, m)
 	return newMap
 }
 

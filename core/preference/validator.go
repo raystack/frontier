@@ -45,7 +45,7 @@ type SelectValidator struct {
 
 func NewSelectValidator(inputHints string) *SelectValidator {
 	var allowed []string
-	for _, v := range strings.Split(inputHints, ",") {
+	for v := range strings.SplitSeq(inputHints, ",") {
 		trimmed := strings.TrimSpace(v)
 		if trimmed != "" {
 			allowed = append(allowed, trimmed)

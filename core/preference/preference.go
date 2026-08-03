@@ -2,6 +2,7 @@ package preference
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -91,12 +92,7 @@ type Trait struct {
 
 // IsValidScope checks if the given scope type is allowed for this trait
 func (t Trait) IsValidScope(scopeType string) bool {
-	for _, allowed := range t.AllowedScopes {
-		if allowed == scopeType {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(t.AllowedScopes, scopeType)
 }
 
 func (t Trait) GetValidator() PreferenceValidator {

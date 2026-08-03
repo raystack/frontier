@@ -17,7 +17,7 @@ func TestOrgUsersRepository_PrepareDataQuery(t *testing.T) {
 		orgID      string
 		rqlQuery   *rql.Query
 		wantSQL    string
-		wantParams []interface{}
+		wantParams []any
 		wantErr    bool
 	}{
 		{
@@ -28,7 +28,7 @@ func TestOrgUsersRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:    `SELECT "policies"."resource_id" AS "org_id", "users"."id" AS "id", "users"."name" AS "name", "users"."title" AS "title", "users"."email" AS "email", "users"."state" AS "state", "users"."avatar" AS "avatar", MIN("policies"."created_at") AS "org_joined_at", ARRAY_AGG("roles"."name") AS "role_names", ARRAY_AGG(COALESCE("roles"."title", '')) AS "role_titles", ARRAY_AGG(CAST("roles"."id" AS TEXT)) AS "role_ids" FROM "policies" INNER JOIN "users" ON ("users"."id" = "policies"."principal_id") LEFT JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("policies"."principal_type" = $3) AND ("users"."deleted_at" IS NULL) AND ("roles"."deleted_at" IS NULL)) GROUP BY "policies"."resource_id", "users"."id", "users"."name", "users"."title", "users"."email", "users"."state", "users"."created_at", "users"."updated_at" LIMIT $4`,
-			wantParams: []interface{}{"org123", "app/organization", "app/user", int64(10)},
+			wantParams: []any{"org123", "app/organization", "app/user", int64(10)},
 		},
 		{
 			name:  "query with email filter",
@@ -45,7 +45,7 @@ func TestOrgUsersRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:    `SELECT "policies"."resource_id" AS "org_id", "users"."id" AS "id", "users"."name" AS "name", "users"."title" AS "title", "users"."email" AS "email", "users"."state" AS "state", "users"."avatar" AS "avatar", MIN("policies"."created_at") AS "org_joined_at", ARRAY_AGG("roles"."name") AS "role_names", ARRAY_AGG(COALESCE("roles"."title", '')) AS "role_titles", ARRAY_AGG(CAST("roles"."id" AS TEXT)) AS "role_ids" FROM "policies" INNER JOIN "users" ON ("users"."id" = "policies"."principal_id") LEFT JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("policies"."principal_type" = $3) AND ("users"."deleted_at" IS NULL) AND ("roles"."deleted_at" IS NULL) AND ("users"."email" = $4)) GROUP BY "policies"."resource_id", "users"."id", "users"."name", "users"."title", "users"."email", "users"."state", "users"."created_at", "users"."updated_at" LIMIT $5`,
-			wantParams: []interface{}{"org123", "app/organization", "app/user", "test@example.com", int64(10)},
+			wantParams: []any{"org123", "app/organization", "app/user", "test@example.com", int64(10)},
 		},
 		{
 			name:  "query with role filter",
@@ -62,7 +62,7 @@ func TestOrgUsersRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:    `SELECT "policies"."resource_id" AS "org_id", "users"."id" AS "id", "users"."name" AS "name", "users"."title" AS "title", "users"."email" AS "email", "users"."state" AS "state", "users"."avatar" AS "avatar", MIN("policies"."created_at") AS "org_joined_at", ARRAY_AGG("roles"."name") AS "role_names", ARRAY_AGG(COALESCE("roles"."title", '')) AS "role_titles", ARRAY_AGG(CAST("roles"."id" AS TEXT)) AS "role_ids" FROM "policies" INNER JOIN "users" ON ("users"."id" = "policies"."principal_id") LEFT JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("policies"."principal_type" = $3) AND ("users"."deleted_at" IS NULL) AND ("roles"."deleted_at" IS NULL) AND EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = $4) AND ("policies"."resource_type" = $5) AND ("roles"."name" = $6)) LIMIT $7)) GROUP BY "policies"."resource_id", "users"."id", "users"."name", "users"."title", "users"."email", "users"."state", "users"."created_at", "users"."updated_at" LIMIT $8`,
-			wantParams: []interface{}{"org123", "app/organization", "app/user", "org123", "app/organization", "admin", int64(1), int64(10)},
+			wantParams: []any{"org123", "app/organization", "app/user", "org123", "app/organization", "admin", int64(1), int64(10)},
 		},
 		{
 			name:  "query with search",
@@ -73,7 +73,7 @@ func TestOrgUsersRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:    `SELECT "policies"."resource_id" AS "org_id", "users"."id" AS "id", "users"."name" AS "name", "users"."title" AS "title", "users"."email" AS "email", "users"."state" AS "state", "users"."avatar" AS "avatar", MIN("policies"."created_at") AS "org_joined_at", ARRAY_AGG("roles"."name") AS "role_names", ARRAY_AGG(COALESCE("roles"."title", '')) AS "role_titles", ARRAY_AGG(CAST("roles"."id" AS TEXT)) AS "role_ids" FROM "policies" INNER JOIN "users" ON ("users"."id" = "policies"."principal_id") LEFT JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("policies"."principal_type" = $3) AND ("users"."deleted_at" IS NULL) AND ("roles"."deleted_at" IS NULL) AND ((CAST("users"."name" AS TEXT) ILIKE $4) OR (CAST("users"."title" AS TEXT) ILIKE $5) OR (CAST("users"."email" AS TEXT) ILIKE $6) OR (CAST("users"."state" AS TEXT) ILIKE $7))) GROUP BY "policies"."resource_id", "users"."id", "users"."name", "users"."title", "users"."email", "users"."state", "users"."created_at", "users"."updated_at" LIMIT $8`,
-			wantParams: []interface{}{"org123", "app/organization", "app/user", "%john%", "%john%", "%john%", "%john%", int64(10)},
+			wantParams: []any{"org123", "app/organization", "app/user", "%john%", "%john%", "%john%", "%john%", int64(10)},
 		},
 		{
 			name:  "query with sort",
@@ -87,7 +87,7 @@ func TestOrgUsersRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 0,
 			},
 			wantSQL:    `SELECT "policies"."resource_id" AS "org_id", "users"."id" AS "id", "users"."name" AS "name", "users"."title" AS "title", "users"."email" AS "email", "users"."state" AS "state", "users"."avatar" AS "avatar", MIN("policies"."created_at") AS "org_joined_at", ARRAY_AGG("roles"."name") AS "role_names", ARRAY_AGG(COALESCE("roles"."title", '')) AS "role_titles", ARRAY_AGG(CAST("roles"."id" AS TEXT)) AS "role_ids" FROM "policies" INNER JOIN "users" ON ("users"."id" = "policies"."principal_id") LEFT JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("policies"."principal_type" = $3) AND ("users"."deleted_at" IS NULL) AND ("roles"."deleted_at" IS NULL)) GROUP BY "policies"."resource_id", "users"."id", "users"."name", "users"."title", "users"."email", "users"."state", "users"."created_at", "users"."updated_at" ORDER BY "name" ASC, "email" DESC LIMIT $4`,
-			wantParams: []interface{}{"org123", "app/organization", "app/user", int64(10)},
+			wantParams: []any{"org123", "app/organization", "app/user", int64(10)},
 		},
 	}
 
@@ -113,7 +113,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 		name     string
 		filter   rql.Filter
 		wantSQL  string
-		wantArgs []interface{}
+		wantArgs []any
 		wantErr  bool
 	}{
 		{
@@ -124,7 +124,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Value:    "test@example.com",
 			},
 			wantSQL:  `("users"."email" = $1)`,
-			wantArgs: []interface{}{"test@example.com"},
+			wantArgs: []any{"test@example.com"},
 		},
 		{
 			name: "like operator",
@@ -134,7 +134,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Value:    "%john%",
 			},
 			wantSQL:  `(CAST("users"."name" AS TEXT) LIKE $1)`,
-			wantArgs: []interface{}{"%john%"},
+			wantArgs: []any{"%john%"},
 		},
 		{
 			name: "notlike operator",
@@ -144,7 +144,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Value:    "%john%",
 			},
 			wantSQL:  `(CAST("users"."name" AS TEXT) NOT LIKE $1)`,
-			wantArgs: []interface{}{"%john%"},
+			wantArgs: []any{"%john%"},
 		},
 		{
 			name: "ilike operator",
@@ -154,7 +154,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Value:    "%john%",
 			},
 			wantSQL:  `(CAST("users"."title" AS TEXT) ILIKE $1)`,
-			wantArgs: []interface{}{"%john%"},
+			wantArgs: []any{"%john%"},
 		},
 		{
 			name: "notilike operator",
@@ -164,7 +164,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Value:    "%john%",
 			},
 			wantSQL:  `(CAST("users"."title" AS TEXT) NOT ILIKE $1)`,
-			wantArgs: []interface{}{"%john%"},
+			wantArgs: []any{"%john%"},
 		},
 		{
 			name: "in operator",
@@ -174,7 +174,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Value:    "active,inactive",
 			},
 			wantSQL:  `("users"."state" IN ($1, $2))`,
-			wantArgs: []interface{}{"active", "inactive"},
+			wantArgs: []any{"active", "inactive"},
 		},
 		{
 			name: "empty operator",
@@ -183,7 +183,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Operator: "empty",
 			},
 			wantSQL:  `(("users"."title" IS NULL) OR ("users"."title" = $1))`,
-			wantArgs: []interface{}{""},
+			wantArgs: []any{""},
 		},
 		{
 			name: "datetime gte operator",
@@ -193,7 +193,7 @@ func TestOrgUsersRepository_BuildNonRoleFilterCondition(t *testing.T) {
 				Value:    "2024-01-01T00:00:00Z",
 			},
 			wantSQL:  `("policies"."created_at" >= $1)`,
-			wantArgs: []interface{}{"2024-01-01T00:00:00Z"},
+			wantArgs: []any{"2024-01-01T00:00:00Z"},
 		},
 		{
 			name: "ilike operator not allowed on datetime column",
@@ -250,7 +250,7 @@ func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 		orgID    string
 		filter   rql.Filter
 		wantSQL  string
-		wantArgs []interface{}
+		wantArgs []any
 		wantErr  bool
 	}{
 		{
@@ -262,7 +262,7 @@ func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 				Value:    "admin",
 			},
 			wantSQL:  `EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("roles"."name" = $3)) LIMIT $4)`,
-			wantArgs: []interface{}{"org123", "app/organization", "admin", int64(1)},
+			wantArgs: []any{"org123", "app/organization", "admin", int64(1)},
 		},
 		{
 			name:  "neq operator",
@@ -273,7 +273,7 @@ func TestOrgUsersRepository_BuildRoleFilterCondition(t *testing.T) {
 				Value:    "admin",
 			},
 			wantSQL:  `(NOT EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = $1) AND ("policies"."resource_type" = $2) AND ("roles"."name" = $3)) LIMIT $4) AND EXISTS (SELECT 1 FROM "policies" INNER JOIN "roles" ON ("roles"."id" = "policies"."role_id") WHERE (("policies"."principal_id" = "users"."id") AND ("policies"."resource_id" = $5) AND ("policies"."resource_type" = $6)) LIMIT $7))`,
-			wantArgs: []interface{}{"org123", "app/organization", "admin", int64(1), "org123", "app/organization", int64(1)},
+			wantArgs: []any{"org123", "app/organization", "admin", int64(1), "org123", "app/organization", int64(1)},
 		},
 		{
 			name:  "invalid operator",

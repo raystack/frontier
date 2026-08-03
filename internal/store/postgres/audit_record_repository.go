@@ -64,7 +64,7 @@ var (
 	}
 )
 
-func buildOrgNameQuery(orgID interface{}) (string, []interface{}, error) {
+func buildOrgNameQuery(orgID any) (string, []any, error) {
 	return dialect.Select("title").
 		From(TABLE_ORGANIZATIONS).
 		Where(goqu.Ex{"id": orgID}).
@@ -124,7 +124,7 @@ func (r AuditRecordRepository) GetByIdempotencyKey(ctx context.Context, key stri
 	return r.getByField(ctx, "idempotency_key", key, "GetByIdempotencyKey")
 }
 
-func (r AuditRecordRepository) getByField(ctx context.Context, field string, value interface{}, operation string) (auditrecord.AuditRecord, error) {
+func (r AuditRecordRepository) getByField(ctx context.Context, field string, value any, operation string) (auditrecord.AuditRecord, error) {
 	if str, ok := value.(string); ok && str == "" {
 		return auditrecord.AuditRecord{}, auditrecord.ErrNotFound
 	}
@@ -424,7 +424,7 @@ func (r AuditRecordRepository) streamCursorToCSV(ctx context.Context, tx *sql.Tx
 		for rows.Next() {
 			// Scan all columns into string slice
 			values := make([]string, len(headers))
-			valuePtrs := make([]interface{}, len(headers))
+			valuePtrs := make([]any, len(headers))
 			for i := range values {
 				valuePtrs[i] = &values[i]
 			}

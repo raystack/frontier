@@ -285,8 +285,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 					quantity = userCount
 				}
 				itemParams := &stripe.CheckoutSessionLineItemParams{
-					Price:    stripe.String(productPrice.ProviderID),
-					Quantity: stripe.Int64(quantity),
+					Price:    new(productPrice.ProviderID),
+					Quantity: new(quantity),
 				}
 				subsItems = append(subsItems, itemParams)
 			}
@@ -302,7 +302,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			return Checkout{}, err
 		}
 		if plan.TrialDays > 0 && !ch.SkipTrial && !userHasTrialedBefore {
-			trialDays = stripe.Int64(plan.TrialDays)
+			trialDays = new(plan.TrialDays)
 		}
 
 		// create subscription checkout link
@@ -311,10 +311,10 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				Context: ctx,
 			},
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
-				Enabled: stripe.Bool(s.stripeAutoTax),
+				Enabled: new(s.stripeAutoTax),
 			},
-			Currency:  stripe.String(billingCustomer.Currency),
-			Customer:  stripe.String(billingCustomer.ProviderID),
+			Currency:  new(billingCustomer.Currency),
+			Customer:  new(billingCustomer.ProviderID),
 			LineItems: subsItems,
 			Metadata: map[string]string{
 				"org_id":               billingCustomer.OrgID,
@@ -324,11 +324,11 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"managed_by":           "frontier",
 			},
 			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(addressCollectionParam),
+				Address: new(addressCollectionParam),
 			},
 			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
+				Description: new(fmt.Sprintf("Checkout for %s", plan.Name)),
 				Metadata: map[string]string{
 					"org_id":                            billingCustomer.OrgID,
 					CheckoutIDMetadataKey:               checkoutID,
@@ -342,10 +342,10 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 					},
 				},
 			},
-			AllowPromotionCodes:     stripe.Bool(true),
-			CancelURL:               stripe.String(ch.CancelUrl),
-			SuccessURL:              stripe.String(ch.SuccessUrl),
-			ExpiresAt:               stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			AllowPromotionCodes:     new(true),
+			CancelURL:               new(ch.CancelUrl),
+			SuccessURL:              new(ch.SuccessUrl),
+			ExpiresAt:               new(time.Now().Add(SessionValidity).Unix()),
 			PaymentMethodCollection: stripe.String(string(stripe.PaymentLinkPaymentMethodCollectionIfRequired)),
 		})
 		if err != nil {
@@ -408,17 +408,17 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				continue
 			}
 			itemParams := &stripe.CheckoutSessionLineItemParams{
-				Price: stripe.String(productPrice.ProviderID),
+				Price: new(productPrice.ProviderID),
 				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
-					Enabled: stripe.Bool(adjustableQuantity),
+					Enabled: new(adjustableQuantity),
 				},
 			}
 			if adjustableQuantity {
-				itemParams.AdjustableQuantity.Minimum = stripe.Int64(minQ)
-				itemParams.AdjustableQuantity.Maximum = stripe.Int64(maxQ)
+				itemParams.AdjustableQuantity.Minimum = new(minQ)
+				itemParams.AdjustableQuantity.Maximum = new(maxQ)
 			}
 			if productPrice.UsageType == product.PriceUsageTypeLicensed {
-				itemParams.Quantity = stripe.Int64(defaultQ)
+				itemParams.Quantity = new(defaultQ)
 			}
 
 			if productPrice.Currency == s.defaultCurrency {
@@ -435,7 +435,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		var paymentMethodTypes []*string
 		for _, paymentMethodConfig := range s.paymentMethodConfig {
 			if paymentMethodConfig.IsAllowedForAmount(amountSubtotal) {
-				paymentMethodTypes = append(paymentMethodTypes, stripe.String(paymentMethodConfig.Type))
+				paymentMethodTypes = append(paymentMethodTypes, new(paymentMethodConfig.Type))
 			}
 		}
 
@@ -445,12 +445,12 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				Context: ctx,
 			},
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
-				Enabled: stripe.Bool(s.stripeAutoTax),
+				Enabled: new(s.stripeAutoTax),
 			},
-			Currency: stripe.String(s.defaultCurrency),
-			Customer: stripe.String(billingCustomer.ProviderID),
+			Currency: new(s.defaultCurrency),
+			Customer: new(billingCustomer.ProviderID),
 			InvoiceCreation: &stripe.CheckoutSessionInvoiceCreationParams{
-				Enabled: stripe.Bool(true),
+				Enabled: new(true),
 			},
 			LineItems: subsItems,
 			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
@@ -463,12 +463,12 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"managed_by":           "frontier",
 			},
 			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(addressCollectionParam),
+				Address: new(addressCollectionParam),
 			},
-			AllowPromotionCodes: stripe.Bool(true),
-			CancelURL:           stripe.String(ch.CancelUrl),
-			SuccessURL:          stripe.String(ch.SuccessUrl),
-			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			AllowPromotionCodes: new(true),
+			CancelURL:           new(ch.CancelUrl),
+			SuccessURL:          new(ch.SuccessUrl),
+			ExpiresAt:           new(time.Now().Add(SessionValidity).Unix()),
 			PaymentMethodTypes:  paymentMethodTypes,
 			PaymentMethodOptions: &stripe.CheckoutSessionPaymentMethodOptionsParams{
 				CustomerBalance: &stripe.CheckoutSessionPaymentMethodOptionsCustomerBalanceParams{
@@ -554,7 +554,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 				Context: ctx,
 			},
 			Expand: []*string{
-				stripe.String("line_items.data.price.product"),
+				new("line_items.data.price.product"),
 			},
 		})
 		if err != nil {
@@ -782,12 +782,12 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Customer:   stripe.String(billingCustomer.ProviderID),
-		Currency:   stripe.String(billingCustomer.Currency),
+		Customer:   new(billingCustomer.ProviderID),
+		Currency:   new(billingCustomer.Currency),
 		Mode:       stripe.String(string(stripe.CheckoutSessionModeSetup)),
-		CancelURL:  stripe.String(ch.CancelUrl),
-		SuccessURL: stripe.String(ch.SuccessUrl),
-		ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+		CancelURL:  new(ch.CancelUrl),
+		SuccessURL: new(ch.SuccessUrl),
+		ExpiresAt:  new(time.Now().Add(SessionValidity).Unix()),
 		Metadata: map[string]string{
 			"org_id":      billingCustomer.OrgID,
 			"checkout_id": checkoutID,
@@ -827,11 +827,11 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Customer: stripe.String(billingCustomer.ProviderID),
+		Customer: new(billingCustomer.ProviderID),
 	}
 
 	if ch.CancelUrl != "" {
-		sessionParams.ReturnURL = stripe.String(ch.CancelUrl)
+		sessionParams.ReturnURL = new(ch.CancelUrl)
 	}
 
 	session, err := s.stripeClient.BillingPortalSessions.New(sessionParams)
@@ -870,7 +870,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 	}
 
 	autoTaxParams := &stripe.SubscriptionAutomaticTaxParams{
-		Enabled: stripe.Bool(s.stripeAutoTax),
+		Enabled: new(s.stripeAutoTax),
 	}
 
 	// checkout could be for a plan or a product
@@ -929,8 +929,8 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				}
 
 				itemParams := &stripe.SubscriptionItemsParams{
-					Price:    stripe.String(productPrice.ProviderID),
-					Quantity: stripe.Int64(quantity),
+					Price:    new(productPrice.ProviderID),
+					Quantity: new(quantity),
 					Metadata: map[string]string{
 						"org_id":     billingCustomer.OrgID,
 						"product_id": planProduct.ID,
@@ -946,19 +946,19 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 
 		var trialDays *int64 = nil
 		if plan.TrialDays > 0 && !ch.SkipTrial {
-			trialDays = stripe.Int64(plan.TrialDays)
+			trialDays = new(plan.TrialDays)
 		}
 
 		if totalExpectedPrice == 0 {
 			// if total price is 0, disable auto tax. This ensures that when the subscription is created without
 			// user billing details while onboarding, creating 0 amount invoice doesn't fail
 			// This will be toggled back on when the user changes it's plan to a paid one
-			autoTaxParams.Enabled = stripe.Bool(false)
+			autoTaxParams.Enabled = new(false)
 		}
 
 		var couponID *string
 		if ch.ProviderCouponID != "" {
-			couponID = stripe.String(ch.ProviderCouponID)
+			couponID = new(ch.ProviderCouponID)
 		}
 		// create subscription directly
 		stripeSubscription, err := s.stripeClient.Subscriptions.New(&stripe.SubscriptionParams{
@@ -966,8 +966,8 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				Context: ctx,
 			},
 			AutomaticTax: autoTaxParams,
-			Customer:     stripe.String(billingCustomer.ProviderID),
-			Currency:     stripe.String(billingCustomer.Currency),
+			Customer:     new(billingCustomer.ProviderID),
+			Currency:     new(billingCustomer.Currency),
 			Items:        subsItems,
 			Metadata: map[string]string{
 				"org_id":     billingCustomer.OrgID,

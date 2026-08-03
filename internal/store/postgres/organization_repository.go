@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/raystack/frontier/pkg/auditrecord"
@@ -280,17 +281,15 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 }
 
 // buildOrgUpdateAuditRecord creates an audit record for organization updates
-func buildOrgUpdateAuditRecord(ctx context.Context, orgBeforeUpdate, orgAfterUpdate Organization, metadata map[string]interface{}) AuditRecord {
+func buildOrgUpdateAuditRecord(ctx context.Context, orgBeforeUpdate, orgAfterUpdate Organization, metadata map[string]any) AuditRecord {
 	title := nullStringToString(orgBeforeUpdate.Title)
 	updatedTitle := nullStringToString(orgAfterUpdate.Title)
 
 	auditMetadata := metadata
 	if title != updatedTitle {
 		// Create a new one to avoid mutating the original
-		auditMetadata = make(map[string]interface{})
-		for k, v := range metadata {
-			auditMetadata[k] = v
-		}
+		auditMetadata = make(map[string]any)
+		maps.Copy(auditMetadata, metadata)
 		auditMetadata["title"] = title
 		auditMetadata["updated_title"] = updatedTitle
 	}
@@ -486,7 +485,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 					ID:   orgModel.ID,
 					Type: auditrecord.OrganizationType,
 					Name: nullStringToString(orgModel.Title),
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"state": state.String(),
 					},
 				},

@@ -77,7 +77,7 @@ func (r OrgKycRepository) GetByOrgID(ctx context.Context, orgID string) (kyc.KYC
 
 func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, error) {
 	var query string
-	var params []interface{}
+	var params []any
 
 	// Struct to hold KYC data + org name
 	type kycWithOrgName struct {
@@ -160,7 +160,7 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 				&AuditTarget{
 					ID:   result.OrgID,
 					Type: auditrecord.KycType,
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"status": result.Status,
 						"link":   result.Link,
 					},

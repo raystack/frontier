@@ -24,7 +24,7 @@ type Tax struct {
 	TaxIDs []customer.Tax `json:"taxids"`
 }
 
-func (t *Tax) Scan(src interface{}) error {
+func (t *Tax) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return json.Unmarshal(src, t)
@@ -168,7 +168,7 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 					ID:   customerModel.ID,
 					Type: auditrecord.BillingCustomerType,
 					Name: customerModel.Name,
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"email":       customerModel.Email,
 						"currency":    customerModel.Currency,
 						"address":     customerModel.Address,
@@ -327,7 +327,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 				return err
 			}
 
-			auditMetadata := map[string]interface{}{
+			auditMetadata := map[string]any{
 				"email":       customerModel.Email,
 				"currency":    customerModel.Currency,
 				"address":     customerModel.Address,
@@ -466,7 +466,7 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 					ID:   customerModel.ID,
 					Type: auditrecord.BillingCustomerType,
 					Name: customerModel.Name,
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"credit_min":  customerModel.CreditMin,
 						"due_in_days": customerModel.DueInDays,
 					},
@@ -526,7 +526,7 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 					ID:   customerModel.ID,
 					Type: auditrecord.BillingCustomerType,
 					Name: customerModel.Name,
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"email":    customerModel.Email,
 						"currency": customerModel.Currency,
 						"address":  customerModel.Address,

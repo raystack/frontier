@@ -147,16 +147,12 @@ func (s *AuditRecordRepositoryTestSuite) createValidAuditRecord() auditrecord.Au
 		},
 		OccurredAt: time.Now().UTC(),
 		OrgID:      uuid.New().String(),
-		RequestID:  stringPtr("req-" + uuid.New().String()),
+		RequestID:  new("req-" + uuid.New().String()),
 		Metadata: metadata.Metadata{
 			"ip_address": "192.168.1.1",
 		},
 		IdempotencyKey: uuid.New().String(),
 	}
-}
-
-func stringPtr(s string) *string {
-	return &s
 }
 
 // TEST 1: Create audit record - Success cases
@@ -528,7 +524,7 @@ func (s *AuditRecordRepositoryTestSuite) TestConcurrency() {
 		const numGoroutines = 10
 		errChan := make(chan error, numGoroutines)
 
-		for i := 0; i < numGoroutines; i++ {
+		for i := range numGoroutines {
 			go func(index int) {
 				record := s.createValidAuditRecord()
 				record.IdempotencyKey = uuid.New().String() // Each goroutine gets unique UUID
@@ -538,7 +534,7 @@ func (s *AuditRecordRepositoryTestSuite) TestConcurrency() {
 			}(i)
 		}
 
-		for i := 0; i < numGoroutines; i++ {
+		for range numGoroutines {
 			err := <-errChan
 			s.NoError(err, "Concurrent create should succeed")
 		}
@@ -551,7 +547,7 @@ func (s *AuditRecordRepositoryTestSuite) TestConcurrency() {
 		successes := 0
 		conflicts := 0
 
-		for i := 0; i < numGoroutines; i++ {
+		for range numGoroutines {
 			go func() {
 				record := s.createValidAuditRecord()
 				record.IdempotencyKey = sharedKey // All use the same key
@@ -562,7 +558,7 @@ func (s *AuditRecordRepositoryTestSuite) TestConcurrency() {
 		}
 
 		// Collect results
-		for i := 0; i < numGoroutines; i++ {
+		for range numGoroutines {
 			err := <-errChan
 			if err == nil {
 				successes++

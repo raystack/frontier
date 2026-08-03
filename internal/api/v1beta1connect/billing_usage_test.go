@@ -58,7 +58,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "api",
 						Description: "API usage",
 						UserID:      "user-123",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 				}
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(errors.New("service error"))
@@ -96,7 +96,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "api",
 						Description: "API usage",
 						UserID:      "user-123",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 				}
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(credit.ErrInsufficientCredits)
@@ -134,7 +134,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "api",
 						Description: "API usage",
 						UserID:      "user-123",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 				}
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(credit.ErrAlreadyApplied)
@@ -171,7 +171,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "api",
 						Description: "API usage",
 						UserID:      "user-123",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 				}
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(nil)
@@ -209,7 +209,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "dashboard",
 						Description: "Dashboard usage",
 						UserID:      "user-456",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 				}
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(nil)
@@ -256,7 +256,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "api",
 						Description: "API usage",
 						UserID:      "user-123",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 					{
 						ID:          "usage-2",
@@ -266,7 +266,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "dashboard",
 						Description: "Dashboard usage",
 						UserID:      "user-456",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 				}
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(nil)
@@ -303,7 +303,7 @@ func TestConnectHandler_CreateBillingUsage(t *testing.T) {
 						Source:      "",
 						Description: "Empty source usage",
 						UserID:      "user-123",
-						Metadata:    map[string]interface{}{},
+						Metadata:    map[string]any{},
 					},
 				}
 				us.EXPECT().Report(mock.Anything, expectedUsages).Return(nil)

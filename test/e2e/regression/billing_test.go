@@ -476,7 +476,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 				Name:       "test-feature-3",
 				Title:      "Test Feature-3",
 				ProductIds: []string{createProductResp.Msg.GetProduct().GetId()},
-				Metadata: Must(structpb.NewStruct(map[string]interface{}{
+				Metadata: Must(structpb.NewStruct(map[string]any{
 					"key": "value",
 				})),
 			},
@@ -683,7 +683,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -701,7 +701,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      -20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -735,7 +735,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -768,7 +768,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -809,7 +809,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -843,7 +843,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -877,7 +877,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -926,7 +926,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -975,7 +975,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      20,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -1030,7 +1030,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      5,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -1081,7 +1081,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      beforeBalance + 10,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -1106,7 +1106,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 					Description: "billing test",
 					Amount:      50,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -1143,7 +1143,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		// Create multiple concurrent usage requests
 		numRequests := 20
 		errChan := make(chan error, numRequests)
-		for i := 0; i < numRequests; i++ {
+		for range numRequests {
 			go func() {
 				_, err := s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
 					OrgId: createOrgResp.Msg.GetOrganization().GetId(),
@@ -1162,7 +1162,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 
 		// Wait for all requests to complete
 		var successCount int
-		for i := 0; i < numRequests; i++ {
+		for range numRequests {
 			err := <-errChan
 			if err == nil {
 				successCount++
@@ -1241,7 +1241,7 @@ func (s *BillingRegressionTestSuite) TestInvoiceAPI() {
 					Description: "billing test",
 					Amount:      30,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},
@@ -1251,7 +1251,7 @@ func (s *BillingRegressionTestSuite) TestInvoiceAPI() {
 					Description: "billing test",
 					Amount:      50,
 					UserId:      testUserID,
-					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					Metadata: Must(structpb.NewStruct(map[string]any{
 						"key": "value",
 					})),
 				},

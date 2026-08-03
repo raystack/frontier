@@ -271,7 +271,7 @@ func TestRoleReconciler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []RoleSpec{{
 			Name:        schema.RoleOrganizationOwner,
-			Permissions: ptr([]string{"app_organization_get", "app_organization_policymanage", "app_organization_update"}),
+			Permissions: new([]string{"app_organization_get", "app_organization_policymanage", "app_organization_update"}),
 		}}, spec)
 
 		out, err := Export(context.Background(), registry, KindRole)
@@ -294,7 +294,7 @@ func TestRoleReconciler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []RoleSpec{{
 			Name:   schema.RoleOrganizationOwner,
-			Scopes: ptr([]string{schema.OrganizationNamespace, "compute/order"}),
+			Scopes: new([]string{schema.OrganizationNamespace, "compute/order"}),
 		}}, spec)
 
 		out, err := Export(context.Background(), registry, KindRole)

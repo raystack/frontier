@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 
@@ -339,10 +340,8 @@ func (s Service) isUserOrgMember(ctx context.Context, orgID, userID string) (use
 	if err != nil {
 		return userOb, false, err
 	}
-	for _, id := range orgIDs {
-		if id == orgID {
-			return userOb, true, nil
-		}
+	if slices.Contains(orgIDs, orgID) {
+		return userOb, true, nil
 	}
 	return userOb, false, nil
 }

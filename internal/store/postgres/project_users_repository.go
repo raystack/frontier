@@ -97,7 +97,7 @@ func (r ProjectUsersRepository) Search(ctx context.Context, projectID string, rq
 	}, nil
 }
 
-func (r ProjectUsersRepository) prepareDataQuery(projectID string, rql *rql.Query) (string, []interface{}, error) {
+func (r ProjectUsersRepository) prepareDataQuery(projectID string, rql *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery(projectID)
 
 	if rql.Search != "" {

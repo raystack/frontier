@@ -158,7 +158,7 @@ func (r OrgPATsRepository) buildInnerSubquery(orgID string, rqlQuery *rql.Query)
 	return inner, nil
 }
 
-func (r OrgPATsRepository) buildCountQuery(orgID string, rqlQuery *rql.Query) (string, []interface{}, error) {
+func (r OrgPATsRepository) buildCountQuery(orgID string, rqlQuery *rql.Query) (string, []any, error) {
 	inner, err := r.buildInnerSubquery(orgID, rqlQuery)
 	if err != nil {
 		return "", nil, err
@@ -166,7 +166,7 @@ func (r OrgPATsRepository) buildCountQuery(orgID string, rqlQuery *rql.Query) (s
 	return inner.Select(goqu.L("COUNT(*)")).Prepared(true).ToSQL()
 }
 
-func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (string, []interface{}, error) {
+func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (string, []any, error) {
 	inner, err := r.buildInnerSubquery(orgID, rqlQuery)
 	if err != nil {
 		return "", nil, err

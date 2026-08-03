@@ -188,8 +188,8 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 }
 
 // for each organization, fetch the last created billing_subscription entry
-func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
-	dataQuerySelects := []interface{}{
+func prepareDataQuery(rql *rql.Query) (string, []any, error) {
+	dataQuerySelects := []any{
 		goqu.I(COLUMN_ID),
 		goqu.I(COLUMN_TITLE),
 		goqu.I(COLUMN_NAME),
@@ -234,7 +234,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 // for each organization, fetch the last created billing_subscription entry grouped by first key in rql.GroupBy list
 // RQL supports multiple group_by key, but for simplicity of implementation
 // and view of Frontier Admin Console only one group_by key is being supported
-func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
+func prepareGroupByQuery(rql *rql.Query) (string, []any, error) {
 	validGroupByKeys := []string{
 		COLUMN_STATE,
 		COLUMN_PLAN_NAME,
@@ -253,7 +253,7 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 		return "", nil, fmt.Errorf("invalid group_by key %s", groupByKey)
 	}
 
-	finalQuerySelects := []interface{}{
+	finalQuerySelects := []any{
 		goqu.COUNT("*").As(COLUMN_COUNT),
 		goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES),
 	}
@@ -281,7 +281,7 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 // prepare a subquery by left joining organizations and billing subscriptions tables
 // and sort by descending order of billing_subscriptions.created_at column
 func getSubQuery() *goqu.SelectDataset {
-	subquerySelects := []interface{}{
+	subquerySelects := []any{
 		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_ID).As(COLUMN_ID),
 		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_TITLE).As(COLUMN_TITLE),
 		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_NAME).As(COLUMN_NAME),

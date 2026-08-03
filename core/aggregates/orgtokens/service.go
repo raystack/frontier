@@ -84,7 +84,7 @@ func NewCSVExport(token AggregatedToken) CSVExport {
 
 // GetHeaders returns the CSV headers based on struct tags
 func (c CSVExport) GetHeaders() []string {
-	t := reflect.TypeOf(c)
+	t := reflect.TypeFor[CSVExport]()
 	headers := make([]string, t.NumField())
 
 	for i := 0; i < t.NumField(); i++ {

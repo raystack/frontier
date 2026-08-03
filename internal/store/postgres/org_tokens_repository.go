@@ -94,7 +94,7 @@ func (r OrgTokensRepository) Search(ctx context.Context, orgID string, rql *rql.
 	}, nil
 }
 
-func (r OrgTokensRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
+func (r OrgTokensRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery(orgID)
 
 	var err error
@@ -171,7 +171,7 @@ func (r OrgTokensRepository) addFilter(query *goqu.SelectDataset, filter rql.Fil
 		// in/notin only applies to string-type RQL fields (source, type, etc.)
 		// numeric fields like amount are rejected by rql.ValidateQuery before reaching here
 		values := make([]string, 0)
-		for _, v := range strings.Split(filter.Value.(string), ",") {
+		for v := range strings.SplitSeq(filter.Value.(string), ",") {
 			if trimmed := strings.TrimSpace(v); trimmed != "" {
 				values = append(values, trimmed)
 			}

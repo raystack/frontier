@@ -2,6 +2,7 @@ package audit
 
 import (
 	"context"
+	"maps"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,9 +48,7 @@ func (s *Logger) LogWithAttrs(action EventName, target Target, attrs map[string]
 		}
 	}
 	// merge existing metadata with attrs
-	for k, v := range attrs {
-		l.Metadata[k] = v
-	}
+	maps.Copy(l.Metadata, attrs)
 
 	// extract actor
 	if s.service.actorExtractor != nil {

@@ -149,12 +149,12 @@ func transformFromDomain(record auditrecord.AuditRecord) (AuditRecord, error) {
 	}, nil
 }
 
-func extractActorFromContext(ctx context.Context) (string, string, string, string, map[string]interface{}) {
+func extractActorFromContext(ctx context.Context) (string, string, string, string, map[string]any) {
 	var id, actorType, name, title string
-	var actorMetadata map[string]interface{}
+	var actorMetadata map[string]any
 
 	if val := ctx.Value(consts.AuditRecordActorContextKey); val != nil {
-		if actorMap, ok := val.(map[string]interface{}); ok {
+		if actorMap, ok := val.(map[string]any); ok {
 			if v, ok := actorMap["id"].(string); ok {
 				id = v
 			}
@@ -167,7 +167,7 @@ func extractActorFromContext(ctx context.Context) (string, string, string, strin
 			if v, ok := actorMap["title"].(string); ok {
 				title = v
 			}
-			if v, ok := actorMap["metadata"].(map[string]interface{}); ok {
+			if v, ok := actorMap["metadata"].(map[string]any); ok {
 				actorMetadata = v
 			}
 		}
@@ -175,9 +175,9 @@ func extractActorFromContext(ctx context.Context) (string, string, string, strin
 	return id, actorType, name, title, actorMetadata
 }
 
-func extractSessionMetadataFromContext(ctx context.Context) map[string]interface{} {
+func extractSessionMetadataFromContext(ctx context.Context) map[string]any {
 	if val := ctx.Value(consts.SessionContextKey); val != nil {
-		if sessionMetadataMap, ok := val.(map[string]interface{}); ok {
+		if sessionMetadataMap, ok := val.(map[string]any); ok {
 			return sessionMetadataMap
 		}
 	}
@@ -213,7 +213,7 @@ func enrichActorFromContext(ctx context.Context, actor *auditrecord.Actor) {
 
 	// Add additional enrichments
 	if actor.Metadata == nil {
-		actor.Metadata = make(map[string]interface{})
+		actor.Metadata = make(map[string]any)
 	}
 
 	if isSuperUser := extractSuperUserFromContext(ctx); isSuperUser {

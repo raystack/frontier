@@ -99,7 +99,7 @@ func (r OrgServiceUserCredentialsRepository) buildBaseQuery(orgID string) *goqu.
 		})
 }
 
-func (r OrgServiceUserCredentialsRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
+func (r OrgServiceUserCredentialsRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery(orgID)
 
 	// Apply filters

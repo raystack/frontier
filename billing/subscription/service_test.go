@@ -389,7 +389,7 @@ func TestService_SyncWithProvider(t *testing.T) {
 							},
 						},
 					},
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"price_id": "price_123",
 					},
 				}, nil).Times(2) // Called for both current and next phase
@@ -587,7 +587,7 @@ func TestService_Create(t *testing.T) {
 				CustomerID: "customer-1",
 				PlanID:     "plan-1",
 				State:      subscription.StateActive.String(),
-				Metadata: map[string]interface{}{
+				Metadata: map[string]any{
 					"test": "data",
 				},
 			},
@@ -599,7 +599,7 @@ func TestService_Create(t *testing.T) {
 					CustomerID: "customer-1",
 					PlanID:     "plan-1",
 					State:      subscription.StateActive.String(),
-					Metadata: map[string]interface{}{
+					Metadata: map[string]any{
 						"test": "data",
 					},
 				}, nil)
@@ -609,7 +609,7 @@ func TestService_Create(t *testing.T) {
 				CustomerID: "customer-1",
 				PlanID:     "plan-1",
 				State:      subscription.StateActive.String(),
-				Metadata: map[string]interface{}{
+				Metadata: map[string]any{
 					"test": "data",
 				},
 			},

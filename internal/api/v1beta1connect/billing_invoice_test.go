@@ -20,7 +20,7 @@ import (
 
 func TestConnectHandler_ListInvoices(t *testing.T) {
 	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
-	emptyStruct, _ := structpb.NewStruct(map[string]interface{}{})
+	emptyStruct, _ := structpb.NewStruct(map[string]any{})
 
 	tests := []struct {
 		name          string
@@ -312,7 +312,7 @@ func TestConnectHandler_ListInvoices(t *testing.T) {
 
 func TestConnectHandler_GetUpcomingInvoice(t *testing.T) {
 	fixedTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
-	emptyStruct, _ := structpb.NewStruct(map[string]interface{}{})
+	emptyStruct, _ := structpb.NewStruct(map[string]any{})
 
 	tests := []struct {
 		name          string

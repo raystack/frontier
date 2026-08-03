@@ -106,8 +106,8 @@ func (s *Service) RegisterToProvider(ctx context.Context, customer Customer) (*s
 	var customerTaxes []*stripe.CustomerTaxIDDataParams = nil
 	for _, tax := range customer.TaxData {
 		customerTaxes = append(customerTaxes, &stripe.CustomerTaxIDDataParams{
-			Type:  stripe.String(tax.Type),
-			Value: stripe.String(tax.ID),
+			Type:  new(tax.Type),
+			Value: new(tax.ID),
 		})
 	}
 	// create a new customer in stripe
@@ -318,12 +318,12 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 	}
 
 	stripePaymentMethodItr := s.stripeClient.PaymentMethods.List(&stripe.PaymentMethodListParams{
-		Customer: stripe.String(customer.ProviderID),
+		Customer: new(customer.ProviderID),
 		ListParams: stripe.ListParams{
 			Context: ctx,
 		},
 		Expand: []*string{
-			stripe.String("data.customer"),
+			new("data.customer"),
 		},
 	})
 

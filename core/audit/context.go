@@ -3,6 +3,7 @@ package audit
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/raystack/frontier/pkg/server/consts"
 )
@@ -37,9 +38,7 @@ func SetContextWithMetadata(ctx context.Context, md map[string]string) context.C
 	}
 
 	// append new metadata
-	for k, v := range md {
-		existingMetadata[k] = v
-	}
+	maps.Copy(existingMetadata, md)
 	return context.WithValue(ctx, consts.AuditMetadataContextKey, existingMetadata)
 }
 

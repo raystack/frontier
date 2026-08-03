@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/url"
 	"strings"
 	"time"
@@ -197,9 +198,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 			}
 
 			requestHeaders := make(map[string]string)
-			for k, v := range endpoint.Headers {
-				requestHeaders[k] = v
-			}
+			maps.Copy(requestHeaders, endpoint.Headers)
 			if id, ok := consts.GetRequestIDFromCtx(ctx); ok {
 				requestHeaders[consts.RequestIDHeader] = id
 			}

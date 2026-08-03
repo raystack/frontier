@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -575,9 +576,7 @@ func (r PolicyRepository) buildPolicyAuditRecord(ctx context.Context, tx *sqlx.T
 		"principal_type": pol.PrincipalType,
 		"grant_relation": pol.GrantRelation,
 	}
-	for k, v := range additionalMetadata {
-		targetMetadata[k] = v
-	}
+	maps.Copy(targetMetadata, additionalMetadata)
 
 	return BuildAuditRecord(
 		ctx,
