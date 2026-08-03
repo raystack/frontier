@@ -318,6 +318,7 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 				Title:       "Test Plan 2",
 				Description: "Test Plan 2",
 				Interval:    "month",
+				State:       "active",
 				Products: []*frontierv1beta1.Product{
 					{
 						Name:        "test-plan-product-2",
@@ -346,6 +347,55 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().Equal(createPlanResp.Msg.GetPlan().GetId(), getPlanResp.Msg.GetPlan().GetId())
 		s.Assert().Equal(createPlanResp.Msg.GetPlan().GetProducts(), getPlanResp.Msg.GetPlan().GetProducts())
 	})
+	s.Run("3. update a plan and disable it", func() {
+		updatePlanResp, err := s.testBench.AdminClient.UpdatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+			Id: "test-plan-2",
+			Body: &frontierv1beta1.UpdatePlanRequestBody{
+				Title:       "Test Plan 2 Renamed",
+				Description: "Test Plan 2 Renamed",
+				State:       "disabled",
+			},
+		}))
+		s.Assert().NoError(err)
+		s.Assert().NotNil(updatePlanResp)
+		s.Assert().Equal("Test Plan 2 Renamed", updatePlanResp.Msg.GetPlan().GetTitle())
+		s.Assert().Equal("disabled", updatePlanResp.Msg.GetPlan().GetState())
+		// UpdatePlan does not touch a plan's products
+		s.Assert().NotEmpty(updatePlanResp.Msg.GetPlan().GetProducts())
+	})
+	s.Run("4. update a missing plan returns not found", func() {
+		_, err := s.testBench.AdminClient.UpdatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+			Id:   "does-not-exist",
+			Body: &frontierv1beta1.UpdatePlanRequestBody{Title: "x", State: "active"},
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+	s.Run("5. list all plans surfaces the disabled plan, ListPlans hides it", func() {
+		// ListPlans returns active plans only
+		listPlansResp, err := s.testBench.Client.ListPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlansRequest{}))
+		s.Assert().NoError(err)
+		s.Assert().False(hasPlanNamed(listPlansResp.Msg.GetPlans(), "test-plan-2"))
+
+		// ListAllPlans with an empty state returns every plan, including disabled ones
+		listAllResp, err := s.testBench.AdminClient.ListAllPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{}))
+		s.Assert().NoError(err)
+		s.Assert().True(hasPlanNamed(listAllResp.Msg.GetPlans(), "test-plan-2"))
+
+		// the state filter narrows to a single state
+		listDisabledResp, err := s.testBench.AdminClient.ListAllPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{State: "disabled"}))
+		s.Assert().NoError(err)
+		s.Assert().True(hasPlanNamed(listDisabledResp.Msg.GetPlans(), "test-plan-2"))
+	})
+}
+
+func hasPlanNamed(plans []*frontierv1beta1.Plan, name string) bool {
+	for _, p := range plans {
+		if p.GetName() == name {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *BillingRegressionTestSuite) TestProductsAPI() {
@@ -1311,6 +1361,7 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 			Title:       "Test Plan 1",
 			Description: "Test Plan 1",
 			Interval:    "month",
+			State:       "active",
 			Products: []*frontierv1beta1.Product{
 				{
 					Name:        "test-plan-product-2",
