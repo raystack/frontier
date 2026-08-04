@@ -16,9 +16,19 @@ var (
 	ErrInvalidDetail = errors.New("invalid plan detail")
 )
 
-// StateAll is a Filter.State sentinel that matches plans in any state. An empty
-// Filter.State defaults to active, so this is the way to list every plan.
-const StateAll = "all"
+const (
+	StateActive   = "active"
+	StateInactive = "inactive"
+	// StateAll is a Filter.State sentinel that matches plans in any state. An
+	// empty Filter.State defaults to active, so this is the way to list every plan.
+	StateAll = "all"
+)
+
+// IsInactive reports whether the plan is retired: hidden from ListPlans and
+// closed to new subscriptions. Existing subscriptions on it keep working.
+func (p Plan) IsInactive() bool {
+	return p.State == StateInactive
+}
 
 // Plan is a collection of products
 // it is a logical grouping of products and doesn't have
