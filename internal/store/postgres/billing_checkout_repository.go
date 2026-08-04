@@ -304,6 +304,23 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 	return customerModel.transform()
 }
 
+func (r BillingCheckoutRepository) DeleteByCustomerID(ctx context.Context, customerID string) error {
+	query, params, err := dialect.Delete(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
+		"customer_id": customerID,
+	}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", errParse, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "DeleteByCustomerID", func(ctx context.Context) error {
+		_, err := r.dbc.ExecContext(ctx, query, params...)
+		return err
+	}); err != nil {
+		return fmt.Errorf("%w: %s", errDB, err)
+	}
+	return nil
+}
+
 func (r BillingCheckoutRepository) List(ctx context.Context, flt checkout.Filter) ([]checkout.Checkout, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_CHECKOUTS).Order(goqu.I("created_at").Desc())
 	if flt.CustomerID != "" {
