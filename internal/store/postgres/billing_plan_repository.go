@@ -93,34 +93,20 @@ func (pr PlanProductRow) getPlan() (plan.Plan, error) {
 	return pln.transform()
 }
 
-func derefString(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
-
-func derefTime(t *time.Time) time.Time {
-	if t == nil {
-		return time.Time{}
-	}
-	return *t
-}
-
 func (pr PlanProductRow) getProduct() (product.Product, error) {
 	prod := Product{
-		ID:          derefString(pr.ProductID),
-		ProviderID:  derefString(pr.ProductProviderID),
+		ID:          ptrToString(pr.ProductID),
+		ProviderID:  ptrToString(pr.ProductProviderID),
 		PlanIDs:     pr.ProductPlanIDs,
-		Name:        derefString(pr.ProductName),
+		Name:        ptrToString(pr.ProductName),
 		Title:       pr.ProductTitle,
 		Description: pr.ProductDescription,
-		Behavior:    derefString(pr.ProductBehavior),
+		Behavior:    ptrToString(pr.ProductBehavior),
 		Config:      pr.ProductConfig,
-		State:       derefString(pr.ProductState),
+		State:       ptrToString(pr.ProductState),
 		Metadata:    pr.ProductMetadata,
-		CreatedAt:   derefTime(pr.ProductCreatedAt),
-		UpdatedAt:   derefTime(pr.ProductUpdatedAt),
+		CreatedAt:   ptrToTime(pr.ProductCreatedAt),
+		UpdatedAt:   ptrToTime(pr.ProductUpdatedAt),
 		DeletedAt:   pr.ProductDeletedAt,
 	}
 
