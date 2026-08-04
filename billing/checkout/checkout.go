@@ -26,6 +26,7 @@ var (
 	ErrInvalidDetail     = errors.New("invalid checkout detail")
 	ErrKycCompleted      = errors.New("organization kyc completed")
 	ErrAlreadySubscribed = errors.New("already subscribed to the plan")
+	ErrPlanInactive      = errors.New("plan is inactive and cannot be subscribed to")
 )
 
 type Checkout struct {
