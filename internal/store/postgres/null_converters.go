@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -72,6 +73,14 @@ func ptrToString(ptr *string) string {
 		return *ptr
 	}
 	return ""
+}
+
+// ptrToTime safely converts a time pointer to a time.Time, returning zero time if nil
+func ptrToTime(ptr *time.Time) time.Time {
+	if ptr != nil {
+		return *ptr
+	}
+	return time.Time{}
 }
 
 // unmarshalNullJSONText unmarshals NullJSONText to map[string]any
