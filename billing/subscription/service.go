@@ -634,6 +634,11 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 		return change, ErrAlreadyOnSamePlan
 	}
 
+	// cannot move a subscription onto a retired (inactive) plan; moving off one is allowed
+	if planObj.IsInactive() {
+		return change, fmt.Errorf("plan %q is inactive and cannot be subscribed to", planObj.Name)
+	}
+
 	// check if schedule exists
 	stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
 	if err != nil {
@@ -1004,6 +1009,9 @@ func (s *Service) findPlanByStripeSubscription(ctx context.Context, stripeSubscr
 	plans, err := s.planService.List(ctx, plan.Filter{
 		IDs:      productPlanIDs,
 		Interval: interval,
+		// resolve an existing subscription's plan regardless of state; an
+		// inactive (retired) plan must still resolve for its current subscribers
+		State: plan.StateAll,
 	})
 	if err != nil {
 		return plan.Plan{}, err
@@ -1040,6 +1048,9 @@ func (s *Service) findPlanByStripePhase(ctx context.Context, stripePhase *stripe
 	plans, err := s.planService.List(ctx, plan.Filter{
 		IDs:      productPlanIDs,
 		Interval: interval,
+		// resolve an existing subscription's plan regardless of state; an
+		// inactive (retired) plan must still resolve for its current subscribers
+		State: plan.StateAll,
 	})
 	if err != nil {
 		return plan.Plan{}, err
