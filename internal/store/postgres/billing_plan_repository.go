@@ -380,7 +380,7 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		prd.Col("name").As("product_name"),
 		prd.Col("title").As("product_title"),
 		prd.Col("description").As("product_description"),
-		prd.Col("title").As("product_behavior"),
+		prd.Col("behavior").As("product_behavior"),
 		prd.Col("config").As("product_config"),
 		prd.Col("state").As("product_state"),
 		prd.Col("metadata").As("product_metadata"),
