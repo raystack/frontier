@@ -175,7 +175,7 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 	}
 	// a new plan is active unless told otherwise; never store an empty state
 	if toCreate.State == "" {
-		toCreate.State = "active"
+		toCreate.State = plan.StateActive
 	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PLANS).Rows(
@@ -323,11 +323,14 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 		})
 	}
 	if filter.State == "" {
-		filter.State = "active"
+		filter.State = plan.StateActive
 	}
-	stmt = stmt.Where(goqu.Ex{
-		"state": filter.State,
-	})
+	// StateAll lists plans in every state; any other value filters to that state.
+	if filter.State != plan.StateAll {
+		stmt = stmt.Where(goqu.Ex{
+			"state": filter.State,
+		})
+	}
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
@@ -415,7 +418,7 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		})
 	}
 	if filter.State == "" {
-		filter.State = "active"
+		filter.State = plan.StateActive
 	}
 	// StateAll lists plans in every state; any other value filters to that state.
 	if filter.State != plan.StateAll {
