@@ -270,6 +270,12 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		}
 	}
 
+	// delete the org's kyc record; its row references the org row. It goes
+	// before the policies so a failure here leaves the org owned
+	if err := d.kycService.DeleteKyc(ctx, id); err != nil {
+		return fmt.Errorf("failed to delete org while deleting its kyc record: %w", err)
+	}
+
 	// delete all policies; this removes the org owners, so it stays after the
 	// steps above. Policies must go before roles as they refer to them.
 	policies, err := d.policyService.List(ctx, policy.Filter{
@@ -297,11 +303,6 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		}
 	}
 
-	// delete the org's kyc record; its row references the org row
-	if err := d.kycService.DeleteKyc(ctx, id); err != nil {
-		return fmt.Errorf("failed to delete org while deleting its kyc record: %w", err)
-	}
-
 	if err := d.orgService.DeleteModel(ctx, id); err != nil {
 		return err
 	}
@@ -327,8 +328,6 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 		if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
 		}
-		// checkouts and credit transactions reference the billing account row,
-		// so they must go before it
 		if err := d.checkoutService.DeleteByCustomer(ctx, c.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account checkouts[%s]: %w", c.ID, err)
 		}

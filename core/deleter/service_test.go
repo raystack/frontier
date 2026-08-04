@@ -169,6 +169,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]invitation.Invitation{{ID: invID}}, nil)
 		m.invSvc.EXPECT().Delete(mock.Anything, invID).Return(nil)
 
+		// kyc goes before the org policies
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+
 		// org policies
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
 			Return([]policy.Policy{{ID: "org-pol-1"}}, nil)
@@ -179,8 +182,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]role.Role{{ID: "role-1", Name: "r1"}}, nil)
 		m.roleSvc.EXPECT().Delete(mock.Anything, "role-1").Return(nil)
 
-		// kyc, then the org model
-		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		// org model
 		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
@@ -197,6 +199,27 @@ func TestDeleteOrganization(t *testing.T) {
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorIs(t, err, deleter.ErrDeleteNotAllowed)
+	})
+
+	t.Run("kyc delete failure keeps owner policies", func(t *testing.T) {
+		m := newMocks(t)
+
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").
+			Return(errors.New("kyc delete failed"))
+		// strict mocks: no org policy, role, or org model deletion may happen
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.ErrorContains(t, err, "kyc delete failed")
 	})
 
 	t.Run("billing failure stops the cascade before identity teardown", func(t *testing.T) {
