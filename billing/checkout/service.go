@@ -244,6 +244,11 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		// ensure we use uuid
 		ch.PlanID = plan.ID
 
+		// a retired (inactive) plan is closed to new subscriptions
+		if plan.IsInactive() {
+			return Checkout{}, fmt.Errorf("plan %q is inactive and cannot be subscribed to", plan.Name)
+		}
+
 		// if already subscribed to the plan, return
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
 			return Checkout{}, err
