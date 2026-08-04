@@ -226,6 +226,23 @@ func TestService_ChangePlan(t *testing.T) {
 			},
 			wantErr: errors.New("plan not found"),
 		},
+		{
+			name: "should return error if the target plan is inactive",
+			id:   "test-id",
+			change: subscription.ChangeRequest{
+				PlanID:    "new-plan",
+				Immediate: true,
+			},
+			setup: func(r *mocks.Repository, p *mocks.PlanService, c *mocks.CustomerService, o *mocks.OrganizationService) {
+				r.EXPECT().GetByID(mock.Anything, "test-id").Return(subscription.Subscription{
+					ID:     "test-id",
+					PlanID: "old-plan",
+					State:  subscription.StateActive.String(),
+				}, nil)
+				p.EXPECT().GetByID(mock.Anything, "new-plan").Return(plan.Plan{ID: "new-plan", State: "inactive"}, nil)
+			},
+			wantErr: subscription.ErrPlanInactive,
+		},
 	}
 
 	for _, tt := range tests {

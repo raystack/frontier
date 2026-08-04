@@ -623,6 +623,30 @@ func TestConnectHandler_UpdatePlan(t *testing.T) {
 			errCode: connect.CodeInternal,
 		},
 		{
+			name: "should map a missing plan to not found",
+			request: connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+				Id:   "missing",
+				Body: &frontierv1beta1.UpdatePlanRequestBody{Title: "x", State: "active"},
+			}),
+			setup: func(ps *mocks.PlanService) {
+				ps.On("UpdatePlan", mock.Anything, mock.Anything).Return(plan.Plan{}, plan.ErrNotFound)
+			},
+			wantErr: ErrNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should map an invalid name to invalid argument",
+			request: connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+				Id:   "plan-1",
+				Body: &frontierv1beta1.UpdatePlanRequestBody{Title: "x", State: "active"},
+			}),
+			setup: func(ps *mocks.PlanService) {
+				ps.On("UpdatePlan", mock.Anything, mock.Anything).Return(plan.Plan{}, plan.ErrInvalidName)
+			},
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
 			name: "should carry the full-write fields including state through to the service",
 			request: connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
 				Id: "plan-1",
