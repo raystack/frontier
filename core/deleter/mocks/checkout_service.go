@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	checkout "github.com/raystack/frontier/billing/checkout"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -64,6 +66,65 @@ func (_c *CheckoutService_DeleteByCustomer_Call) Return(_a0 error) *CheckoutServ
 }
 
 func (_c *CheckoutService_DeleteByCustomer_Call) RunAndReturn(run func(context.Context, string) error) *CheckoutService_DeleteByCustomer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// List provides a mock function with given fields: ctx, filter
+func (_m *CheckoutService) List(ctx context.Context, filter checkout.Filter) ([]checkout.Checkout, error) {
+	ret := _m.Called(ctx, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for List")
+	}
+
+	var r0 []checkout.Checkout
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, checkout.Filter) ([]checkout.Checkout, error)); ok {
+		return rf(ctx, filter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, checkout.Filter) []checkout.Checkout); ok {
+		r0 = rf(ctx, filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]checkout.Checkout)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, checkout.Filter) error); ok {
+		r1 = rf(ctx, filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CheckoutService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type CheckoutService_List_Call struct {
+	*mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - filter checkout.Filter
+func (_e *CheckoutService_Expecter) List(ctx interface{}, filter interface{}) *CheckoutService_List_Call {
+	return &CheckoutService_List_Call{Call: _e.mock.On("List", ctx, filter)}
+}
+
+func (_c *CheckoutService_List_Call) Run(run func(ctx context.Context, filter checkout.Filter)) *CheckoutService_List_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(checkout.Filter))
+	})
+	return _c
+}
+
+func (_c *CheckoutService_List_Call) Return(_a0 []checkout.Checkout, _a1 error) *CheckoutService_List_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CheckoutService_List_Call) RunAndReturn(run func(context.Context, checkout.Filter) ([]checkout.Checkout, error)) *CheckoutService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
