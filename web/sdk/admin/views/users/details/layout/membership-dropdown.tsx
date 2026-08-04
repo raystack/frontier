@@ -4,14 +4,9 @@ import { useMemo, useState } from "react";
 import {
   type SearchUserOrganizationsResponse_UserOrganization,
   SearchOrganizationUsersResponse_OrganizationUserSchema,
-  type Role,
-  FrontierServiceQueries,
-  ListRolesRequestSchema,
-  ListOrganizationRolesRequestSchema,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
-import { useQuery } from "@connectrpc/connect-query";
-import { SCOPES } from "../../../../utils/constants";
+import { useOrganizationRoles } from "~/admin/hooks/useOrganizationRoles";
 import { AssignRole } from "../../../../components/AssignRole";
 import { useUser } from "../user-context";
 import { SuspendUser } from "./suspend-user";
@@ -29,40 +24,7 @@ export const MembershipDropdown = ({
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const { user } = useUser();
 
-  const { data: defaultRoles = [], isLoading: isDefaultRolesLoading, error: defaultRolesError } = useQuery(
-    FrontierServiceQueries.listRoles,
-    create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
-    {
-      select: (data) => data?.roles || [],
-    }
-  );
-
-  const { data: organizationRoles = [], isLoading: isOrgRolesLoading, error: orgRolesError } = useQuery(
-    FrontierServiceQueries.listOrganizationRoles,
-    create(ListOrganizationRolesRequestSchema, {
-      orgId: data?.orgId || "",
-      scopes: [SCOPES.ORG],
-    }),
-    {
-      enabled: !!data?.orgId,
-      select: (data) => data?.roles || [],
-    }
-  );
-
-  // Log errors if they occur
-  if (defaultRolesError) {
-    console.error("Failed to fetch default roles:", defaultRolesError);
-  }
-  if (orgRolesError) {
-    console.error("Failed to fetch organization roles:", orgRolesError);
-  }
-
-  const roles = useMemo(
-    () => [...defaultRoles, ...organizationRoles],
-    [defaultRoles, organizationRoles]
-  );
-
-  const isLoading = isDefaultRolesLoading || isOrgRolesLoading;
+  const { roles, isLoading } = useOrganizationRoles(data?.orgId);
 
   const toggleAssignRoleDialog = () => {
     setIsAssignRoleDialogOpen(value => !value);
