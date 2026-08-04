@@ -3,6 +3,7 @@ package authenticate_test
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -575,7 +576,7 @@ func TestService_FinishFlow(t *testing.T) {
 			},
 		},
 		{
-			name: "destroy the flow if the code is wrong past the attempt cap",
+			name: "destroy the flow if the wrong code reaches the attempt cap",
 			args: args{
 				ctx: context.Background(),
 				request: authenticate.RegistrationFinishRequest{
@@ -590,7 +591,7 @@ func TestService_FinishFlow(t *testing.T) {
 				mockFlowRepo, _, _, _, _ := createMocks(t)
 				ctx := context.Background()
 				mockFlowRepo.EXPECT().Get(ctx, flowID).
-					Return(mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": "", "attempt": 3}), nil)
+					Return(mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": "", "attempt": 2}), nil)
 				mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
 				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
 					nil, nil, nil, nil, nil, nil)
@@ -655,6 +656,91 @@ func TestService_FinishFlow_WrongThenRightOTP(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	assert.Equal(t, sampleUser, got.User)
+}
+
+// jsonFlowRepository keeps flow metadata as JSON bytes, the same way the
+// Postgres repository stores it. Numbers in metadata come back from Get as
+// float64, matching a real database round trip.
+type jsonFlowRepository struct {
+	flows map[uuid.UUID]jsonStoredFlow
+}
+
+type jsonStoredFlow struct {
+	flow        authenticate.Flow
+	rawMetadata []byte
+}
+
+func (r *jsonFlowRepository) Set(_ context.Context, flow *authenticate.Flow) error {
+	raw, err := json.Marshal(flow.Metadata)
+	if err != nil {
+		return err
+	}
+	r.flows[flow.ID] = jsonStoredFlow{flow: *flow, rawMetadata: raw}
+	return nil
+}
+
+func (r *jsonFlowRepository) Get(_ context.Context, id uuid.UUID) (*authenticate.Flow, error) {
+	stored, ok := r.flows[id]
+	if !ok {
+		return nil, authenticate.ErrFlowInvalid
+	}
+	flow := stored.flow
+	var md pkgMetadata.Metadata
+	if err := json.Unmarshal(stored.rawMetadata, &md); err != nil {
+		return nil, err
+	}
+	flow.Metadata = md
+	return &flow, nil
+}
+
+func (r *jsonFlowRepository) Delete(_ context.Context, id uuid.UUID) error {
+	delete(r.flows, id)
+	return nil
+}
+
+func (r *jsonFlowRepository) DeleteExpiredFlows(_ context.Context) error {
+	return nil
+}
+
+func TestService_FinishFlow_OTPAttemptCapAfterJSONRoundTrip(t *testing.T) {
+	flowID := uuid.New()
+	timeNow := time.Now()
+	otpHash, err := bcrypt.GenerateFromPassword([]byte("111111"), bcrypt.MinCost)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	flowRepo := &jsonFlowRepository{flows: map[uuid.UUID]jsonStoredFlow{}}
+	require.NoError(t, flowRepo.Set(ctx, mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": ""})))
+
+	srv := authenticate.NewService(nil, authenticate.Config{}, flowRepo, nil,
+		nil, nil, nil, nil, nil, nil)
+	srv.Now = func() time.Time {
+		return timeNow
+	}
+
+	wrongCode := authenticate.RegistrationFinishRequest{
+		Method: authenticate.MailOTPAuthMethod.String(),
+		State:  flowID.String(),
+		Code:   "222222",
+	}
+
+	for attempt := 1; attempt <= 2; attempt++ {
+		got, err := srv.FinishFlow(ctx, wrongCode)
+		assert.ErrorIs(t, err, authenticate.ErrInvalidMailOTP)
+		assert.Nil(t, got)
+
+		flow, err := flowRepo.Get(ctx, flowID)
+		require.NoError(t, err)
+		assert.Equal(t, float64(attempt), flow.Metadata["attempt"])
+	}
+
+	// the third wrong code reaches the cap and destroys the flow
+	got, err := srv.FinishFlow(ctx, wrongCode)
+	assert.ErrorIs(t, err, authenticate.ErrInvalidMailOTP)
+	assert.Nil(t, got)
+
+	_, err = flowRepo.Get(ctx, flowID)
+	assert.ErrorIs(t, err, authenticate.ErrFlowInvalid)
 }
 
 func TestService_GetPrincipal_JWTGrantSkipsNonGrantToken(t *testing.T) {
