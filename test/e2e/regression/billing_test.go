@@ -348,6 +348,12 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().Equal(createPlanResp.Msg.GetPlan().GetProducts(), getPlanResp.Msg.GetPlan().GetProducts())
 	})
 	s.Run("3. update a plan and disable it", func() {
+		// capture the fields UpdatePlan must not change
+		before, err := s.testBench.Client.GetPlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPlanRequest{
+			Id: "test-plan-2",
+		}))
+		s.Require().NoError(err)
+
 		updatePlanResp, err := s.testBench.AdminClient.UpdatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
 			Id: "test-plan-2",
 			Body: &frontierv1beta1.UpdatePlanRequestBody{
@@ -360,8 +366,10 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().NotNil(updatePlanResp)
 		s.Assert().Equal("Test Plan 2 Renamed", updatePlanResp.Msg.GetPlan().GetTitle())
 		s.Assert().Equal("inactive", updatePlanResp.Msg.GetPlan().GetState())
-		// UpdatePlan does not touch a plan's products
-		s.Assert().NotEmpty(updatePlanResp.Msg.GetPlan().GetProducts())
+		// UpdatePlan must not touch name, interval, or products
+		s.Assert().Equal(before.Msg.GetPlan().GetName(), updatePlanResp.Msg.GetPlan().GetName())
+		s.Assert().Equal(before.Msg.GetPlan().GetInterval(), updatePlanResp.Msg.GetPlan().GetInterval())
+		s.Assert().Equal(before.Msg.GetPlan().GetProducts(), updatePlanResp.Msg.GetPlan().GetProducts())
 	})
 	s.Run("4. update a missing plan returns not found", func() {
 		_, err := s.testBench.AdminClient.UpdatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
@@ -381,11 +389,13 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		listAllResp, err := s.testBench.AdminClient.ListAllPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{}))
 		s.Assert().NoError(err)
 		s.Assert().True(hasPlanNamed(listAllResp.Msg.GetPlans(), "test-plan-2"))
+		s.Assert().True(hasPlanWithState(listAllResp.Msg.GetPlans(), "active"), "empty filter should also return active plans")
 
-		// the state filter narrows to a single state
+		// the state filter narrows to exactly that state
 		listInactiveResp, err := s.testBench.AdminClient.ListAllPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{State: "inactive"}))
 		s.Assert().NoError(err)
 		s.Assert().True(hasPlanNamed(listInactiveResp.Msg.GetPlans(), "test-plan-2"))
+		s.Assert().True(allPlansHaveState(listInactiveResp.Msg.GetPlans(), "inactive"), "inactive filter should return only inactive plans")
 	})
 }
 
@@ -396,6 +406,27 @@ func hasPlanNamed(plans []*frontierv1beta1.Plan, name string) bool {
 		}
 	}
 	return false
+}
+
+func hasPlanWithState(plans []*frontierv1beta1.Plan, state string) bool {
+	for _, p := range plans {
+		if p.GetState() == state {
+			return true
+		}
+	}
+	return false
+}
+
+func allPlansHaveState(plans []*frontierv1beta1.Plan, state string) bool {
+	if len(plans) == 0 {
+		return false
+	}
+	for _, p := range plans {
+		if p.GetState() != state {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *BillingRegressionTestSuite) TestProductsAPI() {
