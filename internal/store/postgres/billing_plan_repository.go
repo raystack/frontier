@@ -388,7 +388,7 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		pln.Col("metadata").As("plan_metadata"),
 		pln.Col("created_at").As("plan_created_at"),
 		pln.Col("updated_at").As("plan_updated_at"),
-		prd.Col("deleted_at").As("plan_deleted_at"),
+		pln.Col("deleted_at").As("plan_deleted_at"),
 		prd.Col("id").As("product_id"),
 		prd.Col("provider_id").As("product_provider_id"),
 		prd.Col("name").As("product_name"),
