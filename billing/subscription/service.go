@@ -309,8 +309,11 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		return sub, err
 	}
 
-	if stripeSubscription != nil && stripeSubscription.Status == stripe.SubscriptionStatusCanceled {
-		// already canceled on the provider, just sync the local state
+	if stripeSubscription != nil && (stripeSubscription.Status == stripe.SubscriptionStatusCanceled ||
+		stripeSubscription.Status == stripe.SubscriptionStatusIncompleteExpired) {
+		// nothing to cancel on the provider: canceled is already done and
+		// incomplete_expired is terminal, a cancel call would be rejected.
+		// Just sync the local state
 		sub.State = string(stripeSubscription.Status)
 		if stripeSubscription.CanceledAt > 0 {
 			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
