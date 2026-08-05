@@ -187,6 +187,29 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 	return result.KYC.transformToKyc()
 }
 
+// Delete removes the kyc record of an org. Deleting is idempotent: an org
+// without a kyc record returns success.
+func (r OrgKycRepository) Delete(ctx context.Context, orgID string) error {
+	query, params, err := dialect.Delete(TABLE_ORGANIZATIONS_KYC).Where(goqu.Ex{
+		"org_id": orgID,
+	}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errQuery, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS_KYC, "Delete", func(ctx context.Context) error {
+		_, err := r.dbc.ExecContext(ctx, query, params...)
+		return err
+	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, ErrInvalidTextRepresentation) {
+			return kyc.ErrInvalidUUID
+		}
+		return err
+	}
+	return nil
+}
+
 func (r OrgKycRepository) List(ctx context.Context) ([]kyc.KYC, error) {
 	// Define table references
 	orgs := goqu.T(TABLE_ORGANIZATIONS)

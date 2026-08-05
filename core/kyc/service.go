@@ -6,6 +6,7 @@ type Repository interface {
 	GetByOrgID(context.Context, string) (KYC, error)
 	List(context.Context) ([]KYC, error)
 	Upsert(context.Context, KYC) (KYC, error)
+	Delete(context.Context, string) error
 }
 
 type Service struct {
@@ -28,4 +29,8 @@ func (s Service) SetKyc(ctx context.Context, kyc KYC) (KYC, error) {
 
 func (s Service) ListKycs(ctx context.Context) ([]KYC, error) {
 	return s.repository.List(ctx)
+}
+
+func (s Service) DeleteKyc(ctx context.Context, orgID string) error {
+	return s.repository.Delete(ctx, orgID)
 }
