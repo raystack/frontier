@@ -309,14 +309,14 @@ func (r BillingCheckoutRepository) DeleteByCustomerID(ctx context.Context, custo
 		"customer_id": customerID,
 	}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", errParse, err)
+		return fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "DeleteByCustomerID", func(ctx context.Context) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		return fmt.Errorf("%w: %s", errDB, err)
+		return fmt.Errorf("%w: %w", errDB, err)
 	}
 	return nil
 }
