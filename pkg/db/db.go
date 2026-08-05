@@ -80,7 +80,7 @@ func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc fu
 			panic(p)
 		} else if err != nil {
 			if rlbErr := txn.Rollback(); rlbErr != nil {
-				err = fmt.Errorf("rollback error: %s while executing: %w", rlbErr, err)
+				err = fmt.Errorf("rollback error: %w while executing: %w", rlbErr, err)
 			} else {
 				err = fmt.Errorf("rollback: %w", err)
 			}

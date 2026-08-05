@@ -95,7 +95,8 @@ func TestWithTxn(t *testing.T) {
 
 	t.Run("reports both errors when rollback fails", func(t *testing.T) {
 		callbackErr := errors.New("insert failed")
-		conn := &fakeConn{rollbackErr: errors.New("connection lost")}
+		rollbackErr := errors.New("connection lost")
+		conn := &fakeConn{rollbackErr: rollbackErr}
 		client := newFakeClient(t, conn)
 
 		err := client.WithTxn(context.Background(), sql.TxOptions{}, func(*sqlx.Tx) error {
@@ -104,6 +105,7 @@ func TestWithTxn(t *testing.T) {
 
 		assert.EqualError(t, err, "rollback error: connection lost while executing: insert failed")
 		assert.ErrorIs(t, err, callbackErr)
+		assert.ErrorIs(t, err, rollbackErr)
 		assert.Equal(t, 1, conn.rollbacks)
 	})
 
