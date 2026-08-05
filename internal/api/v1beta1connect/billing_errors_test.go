@@ -19,7 +19,11 @@ import (
 func TestMapBillingError(t *testing.T) {
 	deadCustomer := billingerrors.TranslateStripeError(&stripe.Error{
 		Code: stripe.ErrorCodeResourceMissing,
-		Msg:  "No such customer: 'cus_123'",
+		Msg:  "No such customer: 'cus_QhBNKtbzOZzumU'",
+	})
+	deadCoupon := billingerrors.TranslateStripeError(&stripe.Error{
+		Code: stripe.ErrorCodeResourceMissing,
+		Msg:  "No such coupon: 'SUMMER20'",
 	})
 	cardDeclined := billingerrors.TranslateStripeError(&stripe.Error{
 		Type: stripe.ErrorTypeCard,
@@ -36,10 +40,16 @@ func TestMapBillingError(t *testing.T) {
 		wantMsg  string
 	}{
 		{
-			name:     "provider resource missing keeps provider message",
+			name:     "provider resource missing masks the provider id",
 			err:      fmt.Errorf("GetUpcomingInvoice: org_id=abc: %w", deadCustomer),
 			wantCode: connect.CodeFailedPrecondition,
-			wantMsg:  "record no longer exists on the billing provider: No such customer: 'cus_123'",
+			wantMsg:  "record no longer exists on the billing provider: No such customer: 'cus_*****'",
+		},
+		{
+			name:     "provider resource missing keeps a caller-supplied value",
+			err:      fmt.Errorf("DelegatedCheckout: %w", deadCoupon),
+			wantCode: connect.CodeFailedPrecondition,
+			wantMsg:  "record no longer exists on the billing provider: No such coupon: 'SUMMER20'",
 		},
 		{
 			name:     "provider resource missing without provider error",
