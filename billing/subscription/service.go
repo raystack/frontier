@@ -20,6 +20,7 @@ import (
 	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/raystack/frontier/billing"
+	billingerrors "github.com/raystack/frontier/billing/errors"
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
@@ -330,7 +331,7 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			Prorate:    new(true),
 		})
 		if err != nil {
-			return Subscription{}, fmt.Errorf("failed to cancel subscription at billing provider: %w", err)
+			return Subscription{}, fmt.Errorf("failed to cancel subscription at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 		sub.State = string(stripeSubscription.Status)
 		if stripeSubscription.CanceledAt > 0 {
@@ -359,7 +360,7 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			EndBehavior: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
 		})
 		if err != nil {
-			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", err)
+			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 		sub.Phase.PlanID = ""
 		sub.Phase.Reason = SubscriptionCancel.String()
@@ -381,8 +382,8 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 		},
 	})
 	if err != nil {
-		// check if it's a subscription not found err
-		if stripeErr, ok := err.(*stripe.Error); ok && stripeErr.Code == stripe.ErrorCodeResourceMissing {
+		err = billingerrors.TranslateStripeError(err)
+		if errors.Is(err, billingerrors.ErrProviderResourceMissing) {
 			return nil, nil, ErrSubscriptionOnProviderNotFound
 		}
 		return nil, nil, fmt.Errorf("failed to get subscription from billing provider: %w", err)
@@ -398,7 +399,7 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 			},
 		})
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get subscription schedule from billing provider: %w", err)
+			return nil, nil, fmt.Errorf("failed to get subscription schedule from billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 		stripeSubscription.Schedule = schedule
 	}
@@ -421,7 +422,7 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 			},
 		})
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to create subscription schedule at billing provider: %w", err)
+			return nil, nil, fmt.Errorf("failed to create subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 	}
 	return stripeSubscription, stripeSubscription.Schedule, nil
@@ -483,7 +484,7 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, curre
 				PendingInvoiceItemInterval: getPendingInvoiceItemInterval(currentPlan),
 			})
 			if err != nil {
-				return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
+				return fmt.Errorf("failed to update subscription quantity at billing provider: %w", billingerrors.TranslateStripeError(err))
 			}
 		}
 	}
@@ -561,7 +562,7 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, curre
 			Phases: updatedPhases,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+			return fmt.Errorf("failed to update subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 	}
 
@@ -773,7 +774,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 		},
 	})
 	if err != nil {
-		return change, fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+		return change, fmt.Errorf("failed to update subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	// update subscription with new phase
@@ -968,7 +969,7 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	sub.Phase.Reason = ""
