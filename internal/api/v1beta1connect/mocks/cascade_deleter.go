@@ -68,17 +68,17 @@ func (_c *CascadeDeleter_DeleteGroup_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
-// DeleteOrganization provides a mock function with given fields: ctx, id
-func (_m *CascadeDeleter) DeleteOrganization(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// DeleteOrganization provides a mock function with given fields: ctx, id, ackTokenForfeit
+func (_m *CascadeDeleter) DeleteOrganization(ctx context.Context, id string, ackTokenForfeit bool) error {
+	ret := _m.Called(ctx, id, ackTokenForfeit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteOrganization")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) error); ok {
+		r0 = rf(ctx, id, ackTokenForfeit)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -94,13 +94,14 @@ type CascadeDeleter_DeleteOrganization_Call struct {
 // DeleteOrganization is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *CascadeDeleter_Expecter) DeleteOrganization(ctx interface{}, id interface{}) *CascadeDeleter_DeleteOrganization_Call {
-	return &CascadeDeleter_DeleteOrganization_Call{Call: _e.mock.On("DeleteOrganization", ctx, id)}
+//   - ackTokenForfeit bool
+func (_e *CascadeDeleter_Expecter) DeleteOrganization(ctx interface{}, id interface{}, ackTokenForfeit interface{}) *CascadeDeleter_DeleteOrganization_Call {
+	return &CascadeDeleter_DeleteOrganization_Call{Call: _e.mock.On("DeleteOrganization", ctx, id, ackTokenForfeit)}
 }
 
-func (_c *CascadeDeleter_DeleteOrganization_Call) Run(run func(ctx context.Context, id string)) *CascadeDeleter_DeleteOrganization_Call {
+func (_c *CascadeDeleter_DeleteOrganization_Call) Run(run func(ctx context.Context, id string, ackTokenForfeit bool)) *CascadeDeleter_DeleteOrganization_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(bool))
 	})
 	return _c
 }
@@ -110,7 +111,7 @@ func (_c *CascadeDeleter_DeleteOrganization_Call) Return(_a0 error) *CascadeDele
 	return _c
 }
 
-func (_c *CascadeDeleter_DeleteOrganization_Call) RunAndReturn(run func(context.Context, string) error) *CascadeDeleter_DeleteOrganization_Call {
+func (_c *CascadeDeleter_DeleteOrganization_Call) RunAndReturn(run func(context.Context, string, bool) error) *CascadeDeleter_DeleteOrganization_Call {
 	_c.Call.Return(run)
 	return _c
 }

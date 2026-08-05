@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 
 	"github.com/raystack/frontier/core/audit"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/raystack/frontier/billing/invoice"
 
 	"github.com/raystack/frontier/billing/customer"
+
+	"github.com/raystack/frontier/billing/subscription"
 
 	"github.com/raystack/frontier/core/organization"
 
@@ -32,10 +35,6 @@ import (
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/serviceuser"
-)
-
-const (
-	DisableDeleteIfBilled = true
 )
 
 type ProjectService interface {
@@ -98,6 +97,7 @@ type CustomerService interface {
 }
 
 type SubscriptionService interface {
+	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
 	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
 }
 
@@ -112,6 +112,7 @@ type CheckoutService interface {
 }
 
 type CreditService interface {
+	GetBalance(ctx context.Context, accountID string) (int64, error)
 	DeleteByAccountID(ctx context.Context, accountID string) error
 }
 
@@ -216,10 +217,14 @@ func (d Service) DeleteGroup(ctx context.Context, id string) error {
 // org policies (the org owners) near the end. This way a failure at any step
 // leaves the org owned and the delete can simply be run again. Every step
 // treats already-deleted data as success for the same reason.
-func (d Service) DeleteOrganization(ctx context.Context, id string) error {
-	// check if delete is allowed
-	if err := d.canDelete(ctx, id); err != nil {
-		return fmt.Errorf("%s: %w", err.Error(), ErrDeleteNotAllowed)
+//
+// ackTokenForfeit is the caller's consent to forfeit any unused tokens left
+// on the org's billing accounts; without it a positive token balance blocks
+// the delete.
+func (d Service) DeleteOrganization(ctx context.Context, id string, ackTokenForfeit bool) error {
+	// collect everything that blocks the delete before touching any data
+	if err := d.preflight(ctx, id, ackTokenForfeit); err != nil {
+		return err
 	}
 
 	// delete all billing accounts
@@ -364,6 +369,24 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingCheckoutDeletedEvent, "checkout_id", ch.ID)
 			}
 		}
+		// tokens still on the account are forfeited by this delete; the
+		// pre-flight only lets a positive balance through once the caller has
+		// acknowledged the forfeit, so record the amount before the
+		// transactions are removed
+		balance, err := d.creditService.GetBalance(ctx, c.ID)
+		if err != nil {
+			return fmt.Errorf("failed to delete org while checking balance of billing account[%s]: %w", c.ID, err)
+		}
+		if balance > 0 {
+			if err := auditLogger.LogWithAttrs(audit.BillingTokensForfeitedEvent, audit.Target{
+				ID:   c.ID,
+				Type: "billing_account",
+			}, map[string]string{
+				"amount": strconv.FormatInt(balance, 10),
+			}); err != nil {
+				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingTokensForfeitedEvent, "customer_id", c.ID)
+			}
+		}
 		if err := d.creditService.DeleteByAccountID(ctx, c.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account transactions[%s]: %w", c.ID, err)
 		}
@@ -412,8 +435,15 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 	return d.userService.Delete(ctx, userID)
 }
 
-func (d Service) canDelete(ctx context.Context, id string) error {
-	// check if any invoice is present for customer
+// preflight collects everything that blocks deleting the organization and
+// returns it all as one BlockedError, so the caller gets a full checklist
+// instead of discovering blockers one retry at a time. It runs before any
+// deletion starts, so a blocked delete changes nothing.
+//
+// Accounts without a billing provider are only checked for token balances:
+// their subscription and invoice rows have nothing behind them the caller
+// could cancel or pay.
+func (d Service) preflight(ctx context.Context, id string, ackTokenForfeit bool) error {
 	customers, err := d.customerService.List(ctx, customer.Filter{
 		OrgID: id,
 	})
@@ -421,14 +451,64 @@ func (d Service) canDelete(ctx context.Context, id string) error {
 		return err
 	}
 
+	var blockers []Blocker
 	for _, c := range customers {
-		if invoices, err := d.invoiceService.List(ctx, invoice.Filter{CustomerID: c.ID}); err != nil {
-			return fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
-		} else if len(invoices) > 0 {
-			if DisableDeleteIfBilled {
-				return fmt.Errorf("cannot delete organization with billing account[%s]", c.ID)
+		if !c.IsOffline() {
+			subs, err := d.subService.List(ctx, subscription.Filter{CustomerID: c.ID})
+			if err != nil {
+				return fmt.Errorf("failed to check subscriptions for billing account[%s]: %w", c.ID, err)
+			}
+			for _, sub := range subs {
+				if sub.IsActive() {
+					blockers = append(blockers, Blocker{
+						Type:    BlockerActiveSubscription,
+						Subject: sub.ID,
+						Message: fmt.Sprintf("subscription[%s] is %s: cancel it, then retry the delete", sub.ID, sub.State),
+					})
+				}
+			}
+
+			// only invoices the caller can still pay block the delete; paid,
+			// void, and draft invoices don't. The billing provider keeps its
+			// own permanent copy of every invoice, so deleting our rows loses
+			// nothing.
+			invoices, err := d.invoiceService.List(ctx, invoice.Filter{CustomerID: c.ID, NonZeroOnly: true})
+			if err != nil {
+				return fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
+			}
+			for _, inv := range invoices {
+				if inv.State == invoice.OpenState || inv.State == invoice.UncollectibleState {
+					blockers = append(blockers, Blocker{
+						Type:    BlockerUnpaidInvoice,
+						Subject: inv.ID,
+						Message: fmt.Sprintf("invoice[%s] is unpaid: pay it via its hosted payment page, then retry the delete", inv.ID),
+					})
+				}
 			}
 		}
+
+		balance, err := d.creditService.GetBalance(ctx, c.ID)
+		if err != nil {
+			return fmt.Errorf("failed to check token balance of billing account[%s]: %w", c.ID, err)
+		}
+		switch {
+		case balance < 0:
+			blockers = append(blockers, Blocker{
+				Type:    BlockerNegativeTokenBalance,
+				Subject: c.ID,
+				Message: fmt.Sprintf("billing account[%s] owes %d tokens: buy tokens to clear the debt, then retry the delete", c.ID, -balance),
+			})
+		case balance > 0 && !ackTokenForfeit:
+			blockers = append(blockers, Blocker{
+				Type:    BlockerUnusedTokens,
+				Subject: c.ID,
+				Message: fmt.Sprintf("billing account[%s] has %d unused tokens that deleting the organization forfeits: retry the delete with acknowledge_token_forfeit set to proceed", c.ID, balance),
+			})
+		}
+	}
+
+	if len(blockers) > 0 {
+		return &BlockedError{OrgID: id, Blockers: blockers}
 	}
 	return nil
 }

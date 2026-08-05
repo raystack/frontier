@@ -68,6 +68,63 @@ func (_c *CreditService_DeleteByAccountID_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// GetBalance provides a mock function with given fields: ctx, accountID
+func (_m *CreditService) GetBalance(ctx context.Context, accountID string) (int64, error) {
+	ret := _m.Called(ctx, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBalance")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return rf(ctx, accountID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = rf(ctx, accountID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreditService_GetBalance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBalance'
+type CreditService_GetBalance_Call struct {
+	*mock.Call
+}
+
+// GetBalance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountID string
+func (_e *CreditService_Expecter) GetBalance(ctx interface{}, accountID interface{}) *CreditService_GetBalance_Call {
+	return &CreditService_GetBalance_Call{Call: _e.mock.On("GetBalance", ctx, accountID)}
+}
+
+func (_c *CreditService_GetBalance_Call) Run(run func(ctx context.Context, accountID string)) *CreditService_GetBalance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CreditService_GetBalance_Call) Return(_a0 int64, _a1 error) *CreditService_GetBalance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CreditService_GetBalance_Call) RunAndReturn(run func(context.Context, string) (int64, error)) *CreditService_GetBalance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewCreditService creates a new instance of CreditService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewCreditService(t interface {

@@ -43,6 +43,9 @@ const (
 	DraftState State = "draft"
 	OpenState  State = "open"
 	PaidState  State = "paid"
+	// UncollectibleState marks an invoice the provider has written off; it
+	// can still be paid.
+	UncollectibleState State = "uncollectible"
 )
 
 type Invoice struct {
