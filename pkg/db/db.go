@@ -76,21 +76,14 @@ func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc fu
 
 	defer func() {
 		if p := recover(); p != nil {
-			switch p := p.(type) {
-			case error:
-				err = p
-			default:
-				err = fmt.Errorf("%s", p)
-			}
-			err = txn.Rollback()
+			_ = txn.Rollback()
 			panic(p)
 		} else if err != nil {
-			if rlbErr := txn.Rollback(); err != nil {
-				err = fmt.Errorf("rollback error: %s while executing: %w", rlbErr, err)
+			if rlbErr := txn.Rollback(); rlbErr != nil {
+				err = fmt.Errorf("rollback error: %w while executing: %w", rlbErr, err)
 			} else {
 				err = fmt.Errorf("rollback: %w", err)
 			}
-			err = fmt.Errorf("rollback: %w", err)
 		} else {
 			err = txn.Commit()
 		}

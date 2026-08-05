@@ -366,8 +366,8 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.UpdateByEmail(s.ctx, tc.UserToUpdate)
 			if tc.Err != nil && tc.Err.Error() != "" {
-				if errors.Unwrap(err) == tc.Err {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				if !errors.Is(err, tc.Err) {
+					s.T().Fatalf("got error %v, expected was %v", err, tc.Err)
 				}
 			}
 
@@ -451,8 +451,8 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.UpdateByID(s.ctx, tc.UserToUpdate)
 			if tc.Err != nil && tc.Err.Error() != "" {
-				if errors.Unwrap(err) == tc.Err {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				if !errors.Is(err, tc.Err) {
+					s.T().Fatalf("got error %v, expected was %v", err, tc.Err)
 				}
 			}
 			// TODO(kushsharma): remove metadata field from ignore once metadata is refactored
@@ -559,8 +559,8 @@ func (s *UserRepositoryTestSuite) TestGetByName() {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.GetByName(s.ctx, tc.Name)
 			if tc.Err != nil && tc.Err.Error() != "" {
-				if errors.Unwrap(err) == tc.Err {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				if !errors.Is(err, tc.Err) {
+					s.T().Fatalf("got error %v, expected was %v", err, tc.Err)
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedUser) {
@@ -610,8 +610,8 @@ func (s *UserRepositoryTestSuite) TestUpdateByName() {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.UpdateByName(s.ctx, tc.UserToUpdate)
 			if tc.Err != nil && tc.Err.Error() != "" {
-				if errors.Unwrap(err) == tc.Err {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				if !errors.Is(err, tc.Err) {
+					s.T().Fatalf("got error %v, expected was %v", err, tc.Err)
 				}
 			}
 
