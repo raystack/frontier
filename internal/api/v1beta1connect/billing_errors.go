@@ -5,8 +5,10 @@ import (
 
 	"connectrpc.com/connect"
 
+	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/customer"
 	billingerrors "github.com/raystack/frontier/billing/errors"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 )
 
@@ -16,6 +18,10 @@ import (
 func mapBillingError(err error) *connect.Error {
 	switch {
 	case errors.Is(err, billingerrors.ErrProviderResourceMissing):
+		var providerErr *billingerrors.ProviderError
+		if errors.As(err, &providerErr) {
+			return connect.NewError(connect.CodeFailedPrecondition, providerErr)
+		}
 		return connect.NewError(connect.CodeFailedPrecondition, ErrBillingProviderResourceMissing)
 	case errors.Is(err, billingerrors.ErrPaymentFailed):
 		var providerErr *billingerrors.ProviderError
@@ -31,6 +37,14 @@ func mapBillingError(err error) *connect.Error {
 		return connect.NewError(connect.CodeFailedPrecondition, subscription.ErrPhaseIsUpdating)
 	case errors.Is(err, customer.ErrExistingAccountWithPendingDues):
 		return connect.NewError(connect.CodeFailedPrecondition, customer.ErrExistingAccountWithPendingDues)
+	case errors.Is(err, customer.ErrNotFound):
+		return connect.NewError(connect.CodeNotFound, ErrCustomerNotFound)
+	case errors.Is(err, checkout.ErrAlreadySubscribed):
+		return connect.NewError(connect.CodeAlreadyExists, checkout.ErrAlreadySubscribed)
+	case errors.Is(err, product.ErrProductNotFound):
+		return connect.NewError(connect.CodeNotFound, product.ErrProductNotFound)
+	case errors.Is(err, product.ErrFeatureNotFound):
+		return connect.NewError(connect.CodeNotFound, product.ErrFeatureNotFound)
 	default:
 		return connect.NewError(connect.CodeInternal, err)
 	}

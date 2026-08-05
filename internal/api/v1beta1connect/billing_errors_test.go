@@ -9,8 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	stripe "github.com/stripe/stripe-go/v79"
 
+	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/customer"
 	billingerrors "github.com/raystack/frontier/billing/errors"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 )
 
@@ -34,8 +36,14 @@ func TestMapBillingError(t *testing.T) {
 		wantMsg  string
 	}{
 		{
-			name:     "provider resource missing",
+			name:     "provider resource missing keeps provider message",
 			err:      fmt.Errorf("GetUpcomingInvoice: org_id=abc: %w", deadCustomer),
+			wantCode: connect.CodeFailedPrecondition,
+			wantMsg:  "record no longer exists on the billing provider: No such customer: 'cus_123'",
+		},
+		{
+			name:     "provider resource missing without provider error",
+			err:      fmt.Errorf("GetUpcomingInvoice: %w", billingerrors.ErrProviderResourceMissing),
 			wantCode: connect.CodeFailedPrecondition,
 			wantMsg:  ErrBillingProviderResourceMissing.Error(),
 		},
@@ -68,6 +76,30 @@ func TestMapBillingError(t *testing.T) {
 			err:      fmt.Errorf("CreateBillingAccount: %w", customer.ErrExistingAccountWithPendingDues),
 			wantCode: connect.CodeFailedPrecondition,
 			wantMsg:  customer.ErrExistingAccountWithPendingDues.Error(),
+		},
+		{
+			name:     "customer not found",
+			err:      fmt.Errorf("CreateCheckout.GetBillingAccountFromOrgID: org_id=abc: %w", customer.ErrNotFound),
+			wantCode: connect.CodeNotFound,
+			wantMsg:  ErrCustomerNotFound.Error(),
+		},
+		{
+			name:     "already subscribed to the plan",
+			err:      fmt.Errorf("CreateCheckout.Create: %w", checkout.ErrAlreadySubscribed),
+			wantCode: connect.CodeAlreadyExists,
+			wantMsg:  checkout.ErrAlreadySubscribed.Error(),
+		},
+		{
+			name:     "product not found",
+			err:      fmt.Errorf("GetProduct.GetByID: product_id=abc: %w", product.ErrProductNotFound),
+			wantCode: connect.CodeNotFound,
+			wantMsg:  product.ErrProductNotFound.Error(),
+		},
+		{
+			name:     "feature not found",
+			err:      fmt.Errorf("CheckFeatureEntitlement: feature=abc: %w", product.ErrFeatureNotFound),
+			wantCode: connect.CodeNotFound,
+			wantMsg:  product.ErrFeatureNotFound.Error(),
 		},
 		{
 			name:     "unknown error stays internal",
