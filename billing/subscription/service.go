@@ -304,9 +304,21 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 	}
 
 	// check if schedule exists
-	_, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
+	stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
 	if err != nil {
 		return sub, err
+	}
+
+	if stripeSubscription != nil && (stripeSubscription.Status == stripe.SubscriptionStatusCanceled ||
+		stripeSubscription.Status == stripe.SubscriptionStatusIncompleteExpired) {
+		// nothing to cancel on the provider: canceled is already done and
+		// incomplete_expired is terminal, a cancel call would be rejected.
+		// Just sync the local state
+		sub.State = string(stripeSubscription.Status)
+		if stripeSubscription.CanceledAt > 0 {
+			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
+		}
+		return s.repository.UpdateByID(ctx, sub)
 	}
 
 	if immediate || stripeSchedule == nil {
@@ -1076,6 +1088,11 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, su
 	return nil
 }
 
+// DeleteByCustomer tears down all subscriptions of a billing account. Active
+// subscriptions are canceled on the billing provider first. A subscription
+// that is already gone or canceled on the provider counts as canceled, so a
+// teardown that failed midway can be run again. Offline accounts have nothing
+// on the provider; only their local records are removed.
 func (s *Service) DeleteByCustomer(ctx context.Context, customr customer.Customer) error {
 	subs, err := s.List(ctx, Filter{
 		CustomerID: customr.ID,
@@ -1083,12 +1100,9 @@ func (s *Service) DeleteByCustomer(ctx context.Context, customr customer.Custome
 	if err != nil {
 		return err
 	}
-	if err := s.SyncWithProvider(ctx, customr); err != nil {
-		return err
-	}
 	for _, sub := range subs {
-		if sub.IsActive() {
-			if _, err := s.Cancel(ctx, sub.ID, true); err != nil {
+		if !customr.IsOffline() && sub.IsActive() {
+			if _, err := s.Cancel(ctx, sub.ID, true); err != nil && !errors.Is(err, ErrSubscriptionOnProviderNotFound) {
 				return err
 			}
 		}
