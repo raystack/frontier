@@ -92,6 +92,7 @@ func buildReconcileRegistry(host, header string) (map[string]reconcile.Reconcile
 		reconcile.KindPreference:     reconcile.NewPreferenceReconciler(api, header),
 		reconcile.KindWebhook:        reconcile.NewWebhookReconciler(adminClient, header),
 		reconcile.KindBillingProduct: reconcile.NewBillingProductReconciler(api, header),
+		reconcile.KindBillingPlan:    reconcile.NewBillingPlanReconciler(api, header),
 	}, nil
 }
 
