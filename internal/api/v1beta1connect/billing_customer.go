@@ -55,12 +55,12 @@ func (h *ConnectHandler) CreateBillingAccount(ctx context.Context, request *conn
 		if errors.Is(err, customer.ErrActiveConflict) {
 			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateBillingAccount.Create: org_id=%s customer_name=%s customer_email=%s currency=%s offline=%v: %w", request.Msg.GetOrgId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetEmail(), request.Msg.GetBody().GetCurrency(), request.Msg.GetOffline(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CreateBillingAccount.Create: org_id=%s customer_name=%s customer_email=%s currency=%s offline=%v: %w", request.Msg.GetOrgId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetEmail(), request.Msg.GetBody().GetCurrency(), request.Msg.GetOffline(), err))
 	}
 
 	customerPB, err := transformCustomerToPB(newCustomer)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateBillingAccount: customer_id=%s: %w", newCustomer.ID, err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CreateBillingAccount: customer_id=%s: %w", newCustomer.ID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateBillingAccountResponse{
 		BillingAccount: customerPB,
@@ -105,12 +105,12 @@ func (h *ConnectHandler) UpdateBillingAccount(ctx context.Context, request *conn
 		TaxData:  customerTaxes,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccount.Update: customer_id=%s customer_name=%s customer_email=%s currency=%s: %w", request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetEmail(), request.Msg.GetBody().GetCurrency(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("UpdateBillingAccount.Update: customer_id=%s customer_name=%s customer_email=%s currency=%s: %w", request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetEmail(), request.Msg.GetBody().GetCurrency(), err))
 	}
 
 	customerPB, err := transformCustomerToPB(updatedCustomer)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccount: customer_id=%s: %w", updatedCustomer.ID, err))
+		return nil, mapBillingError(ctx, fmt.Errorf("UpdateBillingAccount: customer_id=%s: %w", updatedCustomer.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountResponse{
@@ -124,7 +124,7 @@ func (h *ConnectHandler) RegisterBillingAccount(ctx context.Context, request *co
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, ErrCustomerNotFound)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("RegisterBillingAccount.RegisterToProviderIfRequired: customer_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("RegisterBillingAccount.RegisterToProviderIfRequired: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.RegisterBillingAccountResponse{}), nil
 }
@@ -138,12 +138,12 @@ func (h *ConnectHandler) ListBillingAccounts(ctx context.Context, request *conne
 		OrgID: request.Msg.GetOrgId(),
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListBillingAccounts.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("ListBillingAccounts.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	for _, v := range customerList {
 		customerPB, err := transformCustomerToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListBillingAccounts: customer_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("ListBillingAccounts: customer_id=%s: %w", v.ID, err))
 		}
 		customers = append(customers, customerPB)
 	}
@@ -161,7 +161,7 @@ func (h *ConnectHandler) ListBillingAccounts(ctx context.Context, request *conne
 func (h *ConnectHandler) DeleteBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteBillingAccountRequest]) (*connect.Response[frontierv1beta1.DeleteBillingAccountResponse], error) {
 	err := h.customerService.Delete(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteBillingAccount.Delete: customer_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("DeleteBillingAccount.Delete: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteBillingAccountResponse{}), nil
 }
@@ -169,7 +169,7 @@ func (h *ConnectHandler) DeleteBillingAccount(ctx context.Context, request *conn
 func (h *ConnectHandler) EnableBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.EnableBillingAccountRequest]) (*connect.Response[frontierv1beta1.EnableBillingAccountResponse], error) {
 	err := h.customerService.Enable(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("EnableBillingAccount.Enable: customer_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("EnableBillingAccount.Enable: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.EnableBillingAccountResponse{}), nil
 }
@@ -177,7 +177,7 @@ func (h *ConnectHandler) EnableBillingAccount(ctx context.Context, request *conn
 func (h *ConnectHandler) DisableBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.DisableBillingAccountRequest]) (*connect.Response[frontierv1beta1.DisableBillingAccountResponse], error) {
 	err := h.customerService.Disable(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DisableBillingAccount.Disable: customer_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("DisableBillingAccount.Disable: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DisableBillingAccountResponse{}), nil
 }
@@ -185,7 +185,7 @@ func (h *ConnectHandler) DisableBillingAccount(ctx context.Context, request *con
 func (h *ConnectHandler) GetBillingBalance(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingBalanceRequest]) (*connect.Response[frontierv1beta1.GetBillingBalanceResponse], error) {
 	balanceAmount, err := h.creditService.GetBalance(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingBalance.GetBalance: customer_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("GetBillingBalance.GetBalance: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GetBillingBalanceResponse{
 		Balance: &frontierv1beta1.BillingAccount_Balance{
@@ -198,7 +198,7 @@ func (h *ConnectHandler) GetBillingBalance(ctx context.Context, request *connect
 func (h *ConnectHandler) HasTrialed(ctx context.Context, request *connect.Request[frontierv1beta1.HasTrialedRequest]) (*connect.Response[frontierv1beta1.HasTrialedResponse], error) {
 	hasTrialed, err := h.subscriptionService.HasUserSubscribedBefore(ctx, request.Msg.GetId(), request.Msg.GetPlanId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("HasTrialed.HasUserSubscribedBefore: customer_id=%s plan_id=%s: %w", request.Msg.GetId(), request.Msg.GetPlanId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("HasTrialed.HasUserSubscribedBefore: customer_id=%s plan_id=%s: %w", request.Msg.GetId(), request.Msg.GetPlanId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.HasTrialedResponse{
 		Trialed: hasTrialed,
@@ -211,12 +211,12 @@ func (h *ConnectHandler) ListAllBillingAccounts(ctx context.Context, request *co
 		OrgID: request.Msg.GetOrgId(),
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllBillingAccounts.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("ListAllBillingAccounts.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	for _, v := range customerList {
 		customerPB, err := transformCustomerToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllBillingAccounts: customer_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("ListAllBillingAccounts: customer_id=%s: %w", v.ID, err))
 		}
 		customers = append(customers, customerPB)
 	}
@@ -265,7 +265,7 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 func (h *ConnectHandler) UpdateBillingAccountLimits(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateBillingAccountLimitsRequest]) (*connect.Response[frontierv1beta1.UpdateBillingAccountLimitsResponse], error) {
 	_, err := h.customerService.UpdateCreditMinByID(ctx, request.Msg.GetId(), request.Msg.GetCreditMin())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccountLimits.UpdateCreditMinByID: customer_id=%s credit_min=%d: %w", request.Msg.GetId(), request.Msg.GetCreditMin(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("UpdateBillingAccountLimits.UpdateCreditMinByID: customer_id=%s credit_min=%d: %w", request.Msg.GetId(), request.Msg.GetCreditMin(), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateBillingAccountLimitsResponse{}), nil
@@ -274,7 +274,7 @@ func (h *ConnectHandler) UpdateBillingAccountLimits(ctx context.Context, request
 func (h *ConnectHandler) GetBillingAccountDetails(ctx context.Context, request *connect.Request[frontierv1beta1.GetBillingAccountDetailsRequest]) (*connect.Response[frontierv1beta1.GetBillingAccountDetailsResponse], error) {
 	details, err := h.customerService.GetDetails(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccountDetails.GetDetails: customer_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("GetBillingAccountDetails.GetDetails: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetBillingAccountDetailsResponse{
@@ -289,19 +289,19 @@ func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount.GetByID: customer_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("GetBillingAccount.GetByID: customer_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	var paymentMethodsPbs []*frontierv1beta1.PaymentMethod
 	if request.Msg.GetWithPaymentMethods() {
 		pms, err := h.customerService.ListPaymentMethods(ctx, request.Msg.GetId())
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount.ListPaymentMethods: customer_id=%s: %w", request.Msg.GetId(), err))
+			return nil, mapBillingError(ctx, fmt.Errorf("GetBillingAccount.ListPaymentMethods: customer_id=%s: %w", request.Msg.GetId(), err))
 		}
 		for _, v := range pms {
 			pmPB, err := transformPaymentMethodToPB(v)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount: payment_method_id=%s: %w", v.ID, err))
+				return nil, mapBillingError(ctx, fmt.Errorf("GetBillingAccount: payment_method_id=%s: %w", v.ID, err))
 			}
 			paymentMethodsPbs = append(paymentMethodsPbs, pmPB)
 		}
@@ -311,7 +311,7 @@ func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect
 	if request.Msg.GetWithBillingDetails() {
 		billingDetails, err := h.customerService.GetDetails(ctx, request.Msg.GetId())
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount.GetDetails: customer_id=%s: %w", request.Msg.GetId(), err))
+			return nil, mapBillingError(ctx, fmt.Errorf("GetBillingAccount.GetDetails: customer_id=%s: %w", request.Msg.GetId(), err))
 		}
 		billingDetailsPb = &frontierv1beta1.BillingAccountDetails{
 			CreditMin: billingDetails.CreditMin,
@@ -321,7 +321,7 @@ func (h *ConnectHandler) GetBillingAccount(ctx context.Context, request *connect
 
 	customerPB, err := transformCustomerToPB(customerOb)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetBillingAccount: customer_id=%s: %w", customerOb.ID, err))
+		return nil, mapBillingError(ctx, fmt.Errorf("GetBillingAccount: customer_id=%s: %w", customerOb.ID, err))
 	}
 
 	response := &frontierv1beta1.GetBillingAccountResponse{
@@ -367,7 +367,7 @@ func (h *ConnectHandler) UpdateBillingAccountDetails(ctx context.Context, reques
 		DueInDays: request.Msg.GetDueInDays(),
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateBillingAccountDetails.UpdateDetails: customer_id=%s credit_min=%d due_in_days=%d: %w", request.Msg.GetId(), request.Msg.GetCreditMin(), request.Msg.GetDueInDays(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("UpdateBillingAccountDetails.UpdateDetails: customer_id=%s credit_min=%d due_in_days=%d: %w", request.Msg.GetId(), request.Msg.GetCreditMin(), request.Msg.GetDueInDays(), err))
 	}
 
 	// Add audit log - infer org_id from billing account

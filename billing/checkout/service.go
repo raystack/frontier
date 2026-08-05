@@ -248,7 +248,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
 			return Checkout{}, err
 		} else if subID != "" {
-			return Checkout{}, fmt.Errorf("already subscribed to the plan")
+			return Checkout{}, ErrAlreadySubscribed
 		}
 
 		// create subscription items
@@ -894,7 +894,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
 			return nil, nil, err
 		} else if subID != "" {
-			return nil, nil, fmt.Errorf("already subscribed to the plan")
+			return nil, nil, ErrAlreadySubscribed
 		}
 
 		if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {

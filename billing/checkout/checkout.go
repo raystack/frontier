@@ -20,11 +20,12 @@ func (s State) String() string {
 }
 
 var (
-	ErrNotFound      = errors.New("checkout not found")
-	ErrInvalidUUID   = errors.New("invalid syntax of uuid")
-	ErrInvalidID     = errors.New("invalid checkout id")
-	ErrInvalidDetail = errors.New("invalid checkout detail")
-	ErrKycCompleted  = errors.New("organization kyc completed")
+	ErrNotFound          = errors.New("checkout not found")
+	ErrInvalidUUID       = errors.New("invalid syntax of uuid")
+	ErrInvalidID         = errors.New("invalid checkout id")
+	ErrInvalidDetail     = errors.New("invalid checkout detail")
+	ErrKycCompleted      = errors.New("organization kyc completed")
+	ErrAlreadySubscribed = errors.New("already subscribed to the plan")
 )
 
 type Checkout struct {
