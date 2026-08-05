@@ -63,6 +63,7 @@ type Repository interface {
 	Create(ctx context.Context, ch Checkout) (Checkout, error)
 	UpdateByID(ctx context.Context, ch Checkout) (Checkout, error)
 	List(ctx context.Context, filter Filter) ([]Checkout, error)
+	DeleteByCustomerID(ctx context.Context, customerID string) error
 }
 
 type CustomerService interface {
@@ -766,6 +767,12 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 
 func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
 	return s.repository.List(ctx, filter)
+}
+
+// DeleteByCustomer removes all checkout records of a billing account. Checkout
+// sessions on the billing provider are not touched as they expire on their own.
+func (s *Service) DeleteByCustomer(ctx context.Context, customerID string) error {
+	return s.repository.DeleteByCustomerID(ctx, customerID)
 }
 
 func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout) (Checkout, error) {
