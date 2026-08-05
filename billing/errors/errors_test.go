@@ -78,10 +78,15 @@ func TestTranslateStripeError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := TranslateStripeError(tt.err)
 			if tt.wantKind == nil {
-				assert.Equal(t, tt.err, got)
+				if tt.err == nil {
+					assert.Nil(t, got)
+				} else {
+					assert.Same(t, tt.err, got)
+				}
 				return
 			}
 			assert.ErrorIs(t, got, tt.wantKind)
+			assert.ErrorIs(t, got, tt.err)
 			if tt.wantMsg != "" {
 				assert.Equal(t, tt.wantMsg, got.Error())
 			}
