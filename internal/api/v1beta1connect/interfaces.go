@@ -386,7 +386,7 @@ type NamespaceService interface {
 
 type CascadeDeleter interface {
 	DeleteProject(ctx context.Context, id string) error
-	DeleteOrganization(ctx context.Context, id string) error
+	DeleteOrganization(ctx context.Context, id string, ackTokenForfeit bool) error
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, userID string) error
 }
