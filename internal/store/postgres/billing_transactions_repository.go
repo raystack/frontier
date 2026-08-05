@@ -305,6 +305,23 @@ func (r BillingTransactionRepository) UpdateByID(ctx context.Context, toUpdate c
 	return customerModel.transform()
 }
 
+func (r BillingTransactionRepository) DeleteByAccountID(ctx context.Context, accountID string) error {
+	query, params, err := dialect.Delete(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+		"account_id": accountID,
+	}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errParse, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "DeleteByAccountID", func(ctx context.Context) error {
+		_, err := r.dbc.ExecContext(ctx, query, params...)
+		return err
+	}); err != nil {
+		return fmt.Errorf("%w: %w", errTxn, err)
+	}
+	return nil
+}
+
 func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Filter) ([]credit.Transaction, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_TRANSACTIONS).Order(goqu.I("created_at").Desc())
 	if filter.CustomerID != "" {

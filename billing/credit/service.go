@@ -20,6 +20,7 @@ type TransactionRepository interface {
 	GetByID(ctx context.Context, id string) (Transaction, error)
 	GetBalanceForRange(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
 	GetBalanceForRangeWithoutOverdraft(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
+	DeleteByAccountID(ctx context.Context, accountID string) error
 }
 
 type CustomerRepository interface {
@@ -173,6 +174,12 @@ func (s Service) GetBalanceForRangeWithoutOverdraft(ctx context.Context, account
 
 func (s Service) GetByID(ctx context.Context, id string) (Transaction, error) {
 	return s.transactionRepository.GetByID(ctx, id)
+}
+
+// DeleteByAccountID removes all credit transactions of a billing account. It is
+// meant for account teardown.
+func (s Service) DeleteByAccountID(ctx context.Context, accountID string) error {
+	return s.transactionRepository.DeleteByAccountID(ctx, accountID)
 }
 
 // createAuditRecord creates an audit record for billing transaction events.
