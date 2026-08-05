@@ -1,8 +1,10 @@
 package errors
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -58,6 +60,16 @@ func TestTranslateStripeError(t *testing.T) {
 			wantKind: ErrProviderUnavailable,
 		},
 		{
+			name:     "connection failure",
+			err:      &url.Error{Op: "Post", URL: "https://api.stripe.com/v1/customers", Err: errors.New("connection refused")},
+			wantKind: ErrProviderUnavailable,
+			wantMsg:  "billing provider is unavailable: could not reach the billing provider",
+		},
+		{
+			name: "canceled request stays unchanged",
+			err:  fmt.Errorf("get customer: %w", context.Canceled),
+		},
+		{
 			name:     "stripe server error",
 			err:      &stripe.Error{Type: stripe.ErrorTypeAPI, Msg: "An unknown error occurred."},
 			wantKind: ErrProviderUnavailable,
@@ -91,8 +103,11 @@ func TestTranslateStripeError(t *testing.T) {
 				assert.Equal(t, tt.wantMsg, got.Error())
 			}
 
-			var stripeErr *stripe.Error
-			assert.ErrorAs(t, got, &stripeErr)
+			var inputStripeErr *stripe.Error
+			if errors.As(tt.err, &inputStripeErr) {
+				var stripeErr *stripe.Error
+				assert.ErrorAs(t, got, &stripeErr)
+			}
 		})
 	}
 }
@@ -101,4 +116,22 @@ func TestTranslateStripeErrorKeepsOtherKindsApart(t *testing.T) {
 	got := TranslateStripeError(&stripe.Error{Code: stripe.ErrorCodeResourceMissing})
 	assert.NotErrorIs(t, got, ErrPaymentFailed)
 	assert.NotErrorIs(t, got, ErrProviderUnavailable)
+}
+
+func TestTranslateStripeErrorKeepsRequestID(t *testing.T) {
+	got := TranslateStripeError(&stripe.Error{
+		Code:      stripe.ErrorCodeResourceMissing,
+		RequestID: "req_AbCdEf123",
+	})
+	var providerErr *ProviderError
+	assert.ErrorAs(t, got, &providerErr)
+	assert.Equal(t, "req_AbCdEf123", providerErr.RequestID)
+}
+
+func TestProviderErrorUnwrapWithoutCause(t *testing.T) {
+	err := &ProviderError{Kind: ErrPaymentFailed}
+	for _, unwrapped := range err.Unwrap() {
+		assert.NotNil(t, unwrapped)
+	}
+	assert.ErrorIs(t, err, ErrPaymentFailed)
 }

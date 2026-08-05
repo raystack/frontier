@@ -1,8 +1,11 @@
 package errors
 
 import (
+	"context"
 	"errors"
+	"net"
 	"net/http"
+	"net/url"
 
 	stripe "github.com/stripe/stripe-go/v79"
 )
@@ -14,11 +17,13 @@ var (
 )
 
 // ProviderError is a billing provider failure classified as one of the
-// Err* kinds above. Message carries the provider's human-readable message.
+// Err* kinds above. Message carries the provider's human-readable message,
+// RequestID the provider's id for the failed request (for support tickets).
 type ProviderError struct {
-	Kind    error
-	Message string
-	cause   error
+	Kind      error
+	Message   string
+	RequestID string
+	cause     error
 }
 
 func (e *ProviderError) Error() string {
@@ -29,15 +34,36 @@ func (e *ProviderError) Error() string {
 }
 
 func (e *ProviderError) Unwrap() []error {
-	return []error{e.Kind, e.cause}
+	errs := []error{e.Kind}
+	if e.cause != nil {
+		errs = append(errs, e.cause)
+	}
+	return errs
 }
 
-// TranslateStripeError converts a stripe error into a *ProviderError so
-// callers can match it with errors.Is against the Err* kinds. Errors that
-// don't match a known kind are returned unchanged.
+// TranslateStripeError converts a stripe or network error into a
+// *ProviderError so callers can match it with errors.Is against the Err*
+// kinds. Errors that don't match a known kind are returned unchanged.
 func TranslateStripeError(err error) error {
+	if err == nil {
+		return nil
+	}
+
 	var stripeErr *stripe.Error
-	if err == nil || !errors.As(err, &stripeErr) {
+	if !errors.As(err, &stripeErr) {
+		// a canceled request is the caller's doing, not a provider outage
+		if errors.Is(err, context.Canceled) {
+			return err
+		}
+		var urlErr *url.Error
+		var netErr net.Error
+		if errors.As(err, &urlErr) || errors.As(err, &netErr) {
+			return &ProviderError{
+				Kind:    ErrProviderUnavailable,
+				Message: "could not reach the billing provider",
+				cause:   err,
+			}
+		}
 		return err
 	}
 
@@ -55,5 +81,10 @@ func TranslateStripeError(err error) error {
 	default:
 		return err
 	}
-	return &ProviderError{Kind: kind, Message: stripeErr.Msg, cause: err}
+	return &ProviderError{
+		Kind:      kind,
+		Message:   stripeErr.Msg,
+		RequestID: stripeErr.RequestID,
+		cause:     err,
+	}
 }
