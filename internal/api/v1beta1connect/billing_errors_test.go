@@ -52,6 +52,15 @@ func TestMapBillingError(t *testing.T) {
 			wantMsg:  "record no longer exists on the billing provider: No such coupon: 'SUMMER20'",
 		},
 		{
+			name: "provider resource missing masks a test-mode checkout session id",
+			err: fmt.Errorf("GetCheckout: %w", billingerrors.TranslateStripeError(&stripe.Error{
+				Code: stripe.ErrorCodeResourceMissing,
+				Msg:  "No such checkout.session: 'cs_test_c1GSMJhe9lzCEkJAVj3R5ife'",
+			})),
+			wantCode: connect.CodeFailedPrecondition,
+			wantMsg:  "record no longer exists on the billing provider: No such checkout.session: 'cs_*****'",
+		},
+		{
 			name:     "provider resource missing without provider error",
 			err:      fmt.Errorf("GetUpcomingInvoice: %w", billingerrors.ErrProviderResourceMissing),
 			wantCode: connect.CodeFailedPrecondition,

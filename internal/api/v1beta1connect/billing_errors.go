@@ -15,7 +15,7 @@ import (
 
 // provider-generated object ids (random alphanumeric after the prefix).
 // Caller-supplied values like coupon codes don't match this shape.
-var providerIDPattern = regexp.MustCompile(`\b(cus|sub_sched|sub|in|ii|il|pi|pm|seti|si|price|prod|cs|coup|promo)_[A-Za-z0-9]{8,}\b`)
+var providerIDPattern = regexp.MustCompile(`\b(cus|sub_sched|sub|in|ii|il|pi|pm|seti|si|price|prod|cs|ch|coup|promo)_(?:(?:test|live)_)?[A-Za-z0-9]{8,}\b`)
 
 // redactedProviderError hides provider object ids in a message shown to the
 // caller, keeping the rest of the provider's text.
