@@ -10,6 +10,8 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 
+	"github.com/raystack/frontier/billing/checkout"
+
 	"github.com/raystack/frontier/billing/invoice"
 
 	"github.com/raystack/frontier/billing/customer"
@@ -105,6 +107,7 @@ type InvoiceService interface {
 }
 
 type CheckoutService interface {
+	List(ctx context.Context, filter checkout.Filter) ([]checkout.Checkout, error)
 	DeleteByCustomer(ctx context.Context, customerID string) error
 }
 
@@ -328,8 +331,38 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 		if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
 		}
+		checkouts, err := d.checkoutService.List(ctx, checkout.Filter{CustomerID: c.ID})
+		if err != nil {
+			return fmt.Errorf("failed to delete org while listing billing account checkouts[%s]: %w", c.ID, err)
+		}
 		if err := d.checkoutService.DeleteByCustomer(ctx, c.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account checkouts[%s]: %w", c.ID, err)
+		}
+		// the checkout rows are gone after this; the audit records keep the
+		// provider references so the sessions can still be found on the provider.
+		// The records are only written when ctx carries the audit service (the
+		// API path seeds it); otherwise audit.NewLogger falls back to a noop
+		auditLogger := audit.NewLogger(ctx, id)
+		for _, ch := range checkouts {
+			attrs := map[string]string{
+				"provider_id":    ch.ProviderID,
+				"customer_id":    ch.CustomerID,
+				"plan_id":        ch.PlanID,
+				"product_id":     ch.ProductID,
+				"state":          ch.State,
+				"payment_status": ch.PaymentStatus,
+			}
+			for k, v := range attrs {
+				if v == "" {
+					delete(attrs, k)
+				}
+			}
+			if err := auditLogger.LogWithAttrs(audit.BillingCheckoutDeletedEvent, audit.Target{
+				ID:   ch.ID,
+				Type: "billing_checkout",
+			}, attrs); err != nil {
+				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingCheckoutDeletedEvent, "checkout_id", ch.ID)
+			}
 		}
 		if err := d.creditService.DeleteByAccountID(ctx, c.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account transactions[%s]: %w", c.ID, err)

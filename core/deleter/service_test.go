@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/core/deleter"
@@ -139,6 +140,8 @@ func TestDeleteOrganization(t *testing.T) {
 		// billing teardown
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
 		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{{ID: "chk-1", ProviderID: "cs_1", CustomerID: "cust-1"}}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
@@ -282,6 +285,11 @@ func TestDeleteCustomers(t *testing.T) {
 			Return([]customer.Customer{c}, nil)
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
 		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{
+				{ID: "chk-1", ProviderID: "cs_1", CustomerID: "cust-1", PlanID: "plan-1", State: "complete", PaymentStatus: "paid"},
+				{ID: "chk-2", ProviderID: "cs_2", CustomerID: "cust-1", State: "expired"},
+			}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
@@ -298,6 +306,8 @@ func TestDeleteCustomers(t *testing.T) {
 			Return([]customer.Customer{c}, nil)
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
 		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-no-provider"}).
+			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-no-provider").Return(nil)
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-no-provider").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-no-provider").Return(nil)
@@ -314,12 +324,30 @@ func TestDeleteCustomers(t *testing.T) {
 			Return([]customer.Customer{c}, nil)
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
 		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").
 			Return(errors.New("checkout delete failed"))
 		// strict mocks: custSvc.Delete must not be called
 
 		err := m.build().DeleteCustomers(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "checkout delete failed")
+	})
+
+	t.Run("checkout list failure stops the customer delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return(nil, errors.New("checkout list failed"))
+		// strict mocks: checkoutSvc.DeleteByCustomer and custSvc.Delete must not be called
+
+		err := m.build().DeleteCustomers(context.Background(), "org-1")
+		assert.ErrorContains(t, err, "checkout list failed")
 	})
 }
 
