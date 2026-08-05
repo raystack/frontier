@@ -302,6 +302,62 @@ spec:
   so reconciling an export plans nothing. Provider ids, timestamps, and price state are
   server-owned and not written; metadata and out-of-scope products are left out too.
 
+## The BillingPlan kind
+
+`BillingPlan` manages billing plans: a named bundle of products a customer subscribes to, at
+one billing interval. The plan name is the identity and never changes. Plans live on the admin
+API, so reconciling this kind needs a superuser token.
+
+```yaml
+apiVersion: v1
+kind: BillingPlan
+spec:
+  - name: standard_monthly
+    title: Standard (monthly)
+    description: The standard plan, billed each month
+    interval: month
+    on_start_credits: 500
+    trial_days: 14
+    state: active
+    products:
+      - name: standard_plan_product
+      - name: tokens
+  - name: standard_yearly
+    title: Standard (yearly)
+    interval: year
+    state: active
+    products:
+      - name: standard_plan_product
+```
+
+- The plan name is the identity and must be at least three characters. A `title` is required.
+  `title`, `description`, `on_start_credits`, `trial_days`, and `state` are the managed fields.
+  Each one states the whole desired value, so leaving it out resets it: an omitted
+  `description` clears it, and an omitted `on_start_credits` or `trial_days` sets it to zero.
+- `state` is `active` or `inactive`, and an omitted state means `active`. An `inactive` plan
+  is retired: customers already on it keep it, but no one new can subscribe, a subscription on
+  it cannot renew, and it does not show up in the public plan list. The value is checked
+  against the API's own rules when the file is validated, up front, so a wrong value fails
+  before anything applies.
+- `interval` and the product set are set only when the plan is created and cannot change
+  afterward. A file that asks to change either fails the plan. To change them, add a new plan
+  under a new name and retire the old one by setting it `inactive`.
+- `products` lists the products in the plan by name. The products must already exist, so a
+  `BillingProduct` document that creates them should come first; a plan does not create its
+  own products. Order does not matter, and listing a product twice fails the plan.
+- Metadata is out of scope for this kind: it is never set, changed, or exported here. An
+  update keeps whatever metadata the plan already holds.
+- Every plan on the server must appear in the file. A plan that is missing fails the plan.
+  There is no API to remove a plan, so `delete: true` is rejected; retire a plan by setting it
+  `inactive` instead. The one exception is a plan this kind cannot represent, one with an empty
+  title or a name shorter than three characters. That plan is out of scope: it is left
+  untouched, not required in the file, and not exported, and a file that names it fails the
+  plan instead of trying to recreate it.
+- Export writes each plan sorted by name, and each plan's products sorted by name, so
+  reconciling an export plans nothing. State is written, so an inactive plan round-trips. Ids,
+  timestamps, and metadata are server-owned or out of scope and not written; out-of-scope
+  plans are left out too.
+
 ## Running it
 
 Log in as a superuser. The bootstrap service user exists for exactly this; its client id
@@ -344,8 +400,8 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 
 ## More kinds
 
-This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, `Webhook`, and
-`BillingProduct`. The design and
+This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, `Webhook`,
+`BillingProduct`, and `BillingPlan`. The design and
 the rules every kind follows live in
 [RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
 which also lists the kinds proposed next. The flag reference for both commands is in the
