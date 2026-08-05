@@ -20,7 +20,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 	// Always infer billing_id from org_id (ignore billing_id from request for security)
 	billingID, err := h.GetBillingAccountFromOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
-		return nil, mapBillingError(fmt.Errorf("CreateCheckout.GetBillingAccountFromOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CreateCheckout.GetBillingAccountFromOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	// check if setup requested
@@ -31,7 +31,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 			CancelUrl:  request.Msg.GetCancelUrl(),
 		})
 		if err != nil {
-			return nil, mapBillingError(fmt.Errorf("CreateCheckout.CreateSessionForPaymentMethod: billing_id=%s: %w", billingID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("CreateCheckout.CreateSessionForPaymentMethod: billing_id=%s: %w", billingID, err))
 		}
 
 		return connect.NewResponse(&frontierv1beta1.CreateCheckoutResponse{
@@ -50,7 +50,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 			if errors.Is(err, checkout.ErrKycCompleted) {
 				return nil, connect.NewError(connect.CodeFailedPrecondition, ErrPortalChangesKycCompleted)
 			}
-			return nil, mapBillingError(fmt.Errorf("CreateCheckout.CreateSessionForCustomerPortal: billing_id=%s: %w", billingID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("CreateCheckout.CreateSessionForCustomerPortal: billing_id=%s: %w", billingID, err))
 		}
 
 		// Audit the customer portal session creation so we can trace who (a super
@@ -120,7 +120,7 @@ func (h *ConnectHandler) CreateCheckout(ctx context.Context, request *connect.Re
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPerSeatLimitReached)
 		}
-		return nil, mapBillingError(fmt.Errorf("CreateCheckout.Create: billing_id=%s plan_id=%s product_id=%s quantity=%d skip_trial=%v cancel_after_trial=%v: %w", billingID, planID, featureID, quantity, skipTrial, cancelAfterTrial, err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CreateCheckout.Create: billing_id=%s plan_id=%s product_id=%s quantity=%d skip_trial=%v cancel_after_trial=%v: %w", billingID, planID, featureID, quantity, skipTrial, cancelAfterTrial, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateCheckoutResponse{
@@ -132,7 +132,7 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 	// Always infer billing_id from org_id (ignore billing_id from request for security)
 	billingID, err := h.GetBillingAccountFromOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
-		return nil, mapBillingError(fmt.Errorf("DelegatedCheckout.GetBillingAccountFromOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("DelegatedCheckout.GetBillingAccountFromOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	var planID string
@@ -161,19 +161,19 @@ func (h *ConnectHandler) DelegatedCheckout(ctx context.Context, request *connect
 		ProviderCouponID: providerCouponID,
 	})
 	if err != nil {
-		return nil, mapBillingError(fmt.Errorf("DelegatedCheckout.Apply: billing_id=%s plan_id=%s product_id=%s product_quantity=%d skip_trial=%v cancel_after_trial=%v provider_coupon_id=%s: %w", billingID, planID, productID, productQuantity, skipTrial, cancelAfterTrail, providerCouponID, err))
+		return nil, mapBillingError(ctx, fmt.Errorf("DelegatedCheckout.Apply: billing_id=%s plan_id=%s product_id=%s product_quantity=%d skip_trial=%v cancel_after_trial=%v provider_coupon_id=%s: %w", billingID, planID, productID, productQuantity, skipTrial, cancelAfterTrail, providerCouponID, err))
 	}
 
 	var subsPb *frontierv1beta1.Subscription
 	if subs != nil {
 		if subsPb, err = transformSubscriptionToPB(*subs); err != nil {
-			return nil, mapBillingError(fmt.Errorf("DelegatedCheckout: subscription_id=%s: %w", subs.ID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("DelegatedCheckout: subscription_id=%s: %w", subs.ID, err))
 		}
 	}
 	var productPb *frontierv1beta1.Product
 	if prod != nil {
 		if productPb, err = transformProductToPB(*prod); err != nil {
-			return nil, mapBillingError(fmt.Errorf("DelegatedCheckout: product_id=%s: %w", prod.ID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("DelegatedCheckout: product_id=%s: %w", prod.ID, err))
 		}
 	}
 
@@ -191,7 +191,7 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 	// Always infer billing_id from org_id (ignore billing_id from request for security)
 	billingID, err := h.GetBillingAccountFromOrgID(ctx, request.Msg.GetOrgId())
 	if err != nil {
-		return nil, mapBillingError(fmt.Errorf("ListCheckouts.GetBillingAccountFromOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("ListCheckouts.GetBillingAccountFromOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	var checkouts []*frontierv1beta1.CheckoutSession
@@ -199,7 +199,7 @@ func (h *ConnectHandler) ListCheckouts(ctx context.Context, request *connect.Req
 		CustomerID: billingID,
 	})
 	if err != nil {
-		return nil, mapBillingError(fmt.Errorf("ListCheckouts.List: billing_id=%s org_id=%s: %w", billingID, request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("ListCheckouts.List: billing_id=%s org_id=%s: %w", billingID, request.Msg.GetOrgId(), err))
 	}
 	for _, v := range checkoutList {
 		checkouts = append(checkouts, transformCheckoutToPB(v))
@@ -217,7 +217,7 @@ func (h *ConnectHandler) GetCheckout(ctx context.Context, request *connect.Reque
 
 	ch, err := h.checkoutService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, mapBillingError(fmt.Errorf("GetCheckout.GetByID: checkout_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("GetCheckout.GetByID: checkout_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetCheckoutResponse{

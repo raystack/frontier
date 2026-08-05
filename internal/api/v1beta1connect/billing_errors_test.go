@@ -1,6 +1,7 @@
 package v1beta1connect
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -64,7 +65,16 @@ func TestMapBillingError(t *testing.T) {
 			name:     "provider resource missing without provider error",
 			err:      fmt.Errorf("GetUpcomingInvoice: %w", billingerrors.ErrProviderResourceMissing),
 			wantCode: connect.CodeFailedPrecondition,
-			wantMsg:  ErrBillingProviderResourceMissing.Error(),
+			wantMsg:  billingerrors.ErrProviderResourceMissing.Error(),
+		},
+		{
+			name: "provider resource missing masks an unlisted id kind",
+			err: fmt.Errorf("GetTransaction: %w", billingerrors.TranslateStripeError(&stripe.Error{
+				Code: stripe.ErrorCodeResourceMissing,
+				Msg:  "No such balance transaction: 'txn_3PqR7sTuVwXyZ012'",
+			})),
+			wantCode: connect.CodeFailedPrecondition,
+			wantMsg:  "record no longer exists on the billing provider: No such balance transaction: 'txn_*****'",
 		},
 		{
 			name:     "payment failed keeps provider message",
@@ -129,7 +139,7 @@ func TestMapBillingError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := mapBillingError(tt.err)
+			got := mapBillingError(context.Background(), tt.err)
 			assert.Equal(t, tt.wantCode, got.Code())
 			assert.Equal(t, tt.wantMsg, got.Message())
 		})
