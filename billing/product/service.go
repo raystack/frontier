@@ -12,6 +12,7 @@ import (
 	"slices"
 
 	"github.com/google/uuid"
+	billingerrors "github.com/raystack/frontier/billing/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/stripe/stripe-go/v79/client"
 )
@@ -85,7 +86,7 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 		},
 	})
 	if err != nil {
-		return Product{}, err
+		return Product{}, fmt.Errorf("failed to create product at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	productOb, err := s.productRepository.Create(ctx, product)
@@ -213,7 +214,7 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		},
 	})
 	if err != nil {
-		return Product{}, err
+		return Product{}, fmt.Errorf("failed to update product at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	// check feature updates in product
@@ -405,7 +406,7 @@ func (s *Service) setPriceActive(ctx context.Context, price Price, active bool) 
 			Params: stripe.Params{Context: ctx},
 			Active: new(active),
 		}); err != nil {
-			return err
+			return fmt.Errorf("failed to update price at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 	}
 	if active {
@@ -481,7 +482,7 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 	}
 	stripePrice, err := s.stripeClient.Prices.New(providerParams)
 	if err != nil {
-		return Price{}, err
+		return Price{}, fmt.Errorf("failed to create price at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	price.ProviderID = stripePrice.ID
@@ -533,7 +534,7 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 		},
 	})
 	if err != nil {
-		return Price{}, err
+		return Price{}, fmt.Errorf("failed to update price at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	return s.priceRepository.UpdateByID(ctx, existingPrice)
