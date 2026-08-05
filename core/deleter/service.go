@@ -104,6 +104,18 @@ type InvoiceService interface {
 	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
 }
 
+type CheckoutService interface {
+	DeleteByCustomer(ctx context.Context, customerID string) error
+}
+
+type CreditService interface {
+	DeleteByAccountID(ctx context.Context, accountID string) error
+}
+
+type KycService interface {
+	DeleteKyc(ctx context.Context, orgID string) error
+}
+
 type Service struct {
 	projService        ProjectService
 	orgService         OrganizationService
@@ -119,6 +131,9 @@ type Service struct {
 	customerService    CustomerService
 	subService         SubscriptionService
 	invoiceService     InvoiceService
+	checkoutService    CheckoutService
+	creditService      CreditService
+	kycService         KycService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
@@ -129,7 +144,8 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	userPATService UserPATService,
 	serviceUserService ServiceUserService,
 	customerService CustomerService, subService SubscriptionService,
-	invoiceService InvoiceService) *Service {
+	invoiceService InvoiceService, checkoutService CheckoutService,
+	creditService CreditService, kycService KycService) *Service {
 	return &Service{
 		projService:        projService,
 		orgService:         orgService,
@@ -145,6 +161,9 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		customerService:    customerService,
 		subService:         subService,
 		invoiceService:     invoiceService,
+		checkoutService:    checkoutService,
+		creditService:      creditService,
+		kycService:         kycService,
 	}
 }
 
@@ -188,26 +207,24 @@ func (d Service) DeleteGroup(ctx context.Context, id string) error {
 	return d.groupService.DeleteModel(ctx, id)
 }
 
+// DeleteOrganization removes an org and everything belonging to it. Billing is
+// torn down first: it talks to the billing provider and is the step most
+// likely to fail. Identity (projects, policies, and so on) goes after, with
+// org policies (the org owners) near the end. This way a failure at any step
+// leaves the org owned and the delete can simply be run again. Every step
+// treats already-deleted data as success for the same reason.
 func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	// check if delete is allowed
 	if err := d.canDelete(ctx, id); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrDeleteNotAllowed)
 	}
 
-	// delete all policies
-	policies, err := d.policyService.List(ctx, policy.Filter{
-		OrgID: id,
-	})
-	if err != nil {
+	// delete all billing accounts
+	if err := d.DeleteCustomers(ctx, id); err != nil {
 		return err
 	}
-	for _, p := range policies {
-		if err = d.policyService.Delete(ctx, p.ID); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a policy[%s]: %w", p.ID, err)
-		}
-	}
 
-	// delete all related projects first
+	// delete all related projects
 	projects, err := d.projService.List(ctx, project.Filter{
 		OrgID: id,
 	})
@@ -242,19 +259,6 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		}
 	}
 
-	// delete all roles
-	roles, err := d.roleService.List(ctx, role.Filter{
-		OrgID: id,
-	})
-	if err != nil {
-		return err
-	}
-	for _, p := range roles {
-		if err = d.roleService.Delete(ctx, p.ID); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a role[%s]: %w", p.Name, err)
-		}
-	}
-
 	// delete all invitations
 	invitations, err := d.invitationService.List(ctx, invitation.Filter{OrgID: id})
 	if err != nil {
@@ -266,9 +270,37 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		}
 	}
 
-	// delete all billing accounts
-	if err := d.DeleteCustomers(ctx, id); err != nil {
+	// delete the org's kyc record; its row references the org row. It goes
+	// before the policies so a failure here leaves the org owned
+	if err := d.kycService.DeleteKyc(ctx, id); err != nil {
+		return fmt.Errorf("failed to delete org while deleting its kyc record: %w", err)
+	}
+
+	// delete all policies; this removes the org owners, so it stays after the
+	// steps above. Policies must go before roles as they refer to them.
+	policies, err := d.policyService.List(ctx, policy.Filter{
+		OrgID: id,
+	})
+	if err != nil {
 		return err
+	}
+	for _, p := range policies {
+		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a policy[%s]: %w", p.ID, err)
+		}
+	}
+
+	// delete all roles
+	roles, err := d.roleService.List(ctx, role.Filter{
+		OrgID: id,
+	})
+	if err != nil {
+		return err
+	}
+	for _, p := range roles {
+		if err = d.roleService.Delete(ctx, p.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a role[%s]: %w", p.Name, err)
+		}
 	}
 
 	if err := d.orgService.DeleteModel(ctx, id); err != nil {
@@ -289,15 +321,18 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 		return err
 	}
 	for _, c := range customers {
-		if c.ProviderID != "" {
-			// delete all subscription first
-			if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
-				return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
-			}
-			// delete all invoices
-			if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
-				return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
-			}
+		// cancels active subscriptions on the billing provider and removes local records
+		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
+		}
+		if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
+		}
+		if err := d.checkoutService.DeleteByCustomer(ctx, c.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a billing account checkouts[%s]: %w", c.ID, err)
+		}
+		if err := d.creditService.DeleteByAccountID(ctx, c.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a billing account transactions[%s]: %w", c.ID, err)
 		}
 
 		// delete customer
