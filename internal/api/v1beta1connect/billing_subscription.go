@@ -28,7 +28,7 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 				Subscriptions: []*frontierv1beta1.Subscription{},
 			}), nil
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListSubscriptions.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(fmt.Errorf("ListSubscriptions.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
 
@@ -48,13 +48,13 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 		PlanID:     planID,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListSubscriptions.List: billing_id=%s org_id=%s state=%s plan_id=%s: %w",
+		return nil, mapBillingError(fmt.Errorf("ListSubscriptions.List: billing_id=%s org_id=%s state=%s plan_id=%s: %w",
 			billingID, request.Msg.GetOrgId(), request.Msg.GetState(), planID, err))
 	}
 	for _, v := range subscriptionList {
 		subscriptionPB, err := transformSubscriptionToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListSubscriptions: entity_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(fmt.Errorf("ListSubscriptions: entity_id=%s: %w", v.ID, err))
 		}
 		subscriptions = append(subscriptions, subscriptionPB)
 	}
@@ -72,12 +72,12 @@ func (h *ConnectHandler) ListSubscriptions(ctx context.Context, request *connect
 func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.GetSubscriptionRequest]) (*connect.Response[frontierv1beta1.GetSubscriptionResponse], error) {
 	subscription, err := h.subscriptionService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetSubscription.GetByID: subscription_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(fmt.Errorf("GetSubscription.GetByID: subscription_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	subscriptionPB, err := transformSubscriptionToPB(subscription)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetSubscription: entity_id=%s: %w", subscription.ID, err))
+		return nil, mapBillingError(fmt.Errorf("GetSubscription: entity_id=%s: %w", subscription.ID, err))
 	}
 	response := &frontierv1beta1.GetSubscriptionResponse{
 		Subscription: subscriptionPB,
@@ -92,7 +92,7 @@ func (h *ConnectHandler) GetSubscription(ctx context.Context, request *connect.R
 func (h *ConnectHandler) CancelSubscription(ctx context.Context, request *connect.Request[frontierv1beta1.CancelSubscriptionRequest]) (*connect.Response[frontierv1beta1.CancelSubscriptionResponse], error) {
 	_, err := h.subscriptionService.Cancel(ctx, request.Msg.GetId(), request.Msg.GetImmediate())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CancelSubscription.Cancel: subscription_id=%s immediate=%v: %w", request.Msg.GetId(), request.Msg.GetImmediate(), err))
+		return nil, mapBillingError(fmt.Errorf("CancelSubscription.Cancel: subscription_id=%s immediate=%v: %w", request.Msg.GetId(), request.Msg.GetImmediate(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.CancelSubscriptionResponse{}), nil
 }
@@ -126,7 +126,7 @@ func (h *ConnectHandler) ChangeSubscription(ctx context.Context, request *connec
 		if errors.Is(err, subscription.ErrAlreadyOnSamePlan) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrAlreadyOnSamePlan)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ChangeSubscription.ChangePlan: subscription_id=%s plan_id=%s immediate=%v cancel_upcoming=%v: %w",
+		return nil, mapBillingError(fmt.Errorf("ChangeSubscription.ChangePlan: subscription_id=%s plan_id=%s immediate=%v cancel_upcoming=%v: %w",
 			request.Msg.GetId(), changeReq.PlanID, changeReq.Immediate, changeReq.CancelUpcoming, err))
 	}
 

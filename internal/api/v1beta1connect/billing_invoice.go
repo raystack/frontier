@@ -22,13 +22,13 @@ func (h *ConnectHandler) ListAllInvoices(ctx context.Context, request *connect.R
 		Pagination: paginate,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllInvoices.ListAll: page_num=%d page_size=%d: %w", request.Msg.GetPageNum(), request.Msg.GetPageSize(), err))
+		return nil, mapBillingError(fmt.Errorf("ListAllInvoices.ListAll: page_num=%d page_size=%d: %w", request.Msg.GetPageNum(), request.Msg.GetPageSize(), err))
 	}
 	var invoicePBs []*frontierv1beta1.Invoice
 	for _, v := range invoices {
 		invoicePB, err := transformInvoiceToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllInvoices: invoice_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(fmt.Errorf("ListAllInvoices: invoice_id=%s: %w", v.ID, err))
 		}
 		invoicePBs = append(invoicePBs, invoicePB)
 	}
@@ -53,7 +53,7 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListInvoices.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(fmt.Errorf("ListInvoices.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
 
@@ -62,13 +62,13 @@ func (h *ConnectHandler) ListInvoices(ctx context.Context, request *connect.Requ
 		NonZeroOnly: request.Msg.GetNonzeroAmountOnly(),
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListInvoices.List: org_id=%s billing_id=%s nonzero_amount_only=%v: %w", request.Msg.GetOrgId(), billingID, request.Msg.GetNonzeroAmountOnly(), err))
+		return nil, mapBillingError(fmt.Errorf("ListInvoices.List: org_id=%s billing_id=%s nonzero_amount_only=%v: %w", request.Msg.GetOrgId(), billingID, request.Msg.GetNonzeroAmountOnly(), err))
 	}
 	var invoicePBs []*frontierv1beta1.Invoice
 	for _, v := range invoices {
 		invoicePB, err := transformInvoiceToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListInvoices: invoice_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(fmt.Errorf("ListInvoices: invoice_id=%s: %w", v.ID, err))
 		}
 		invoicePBs = append(invoicePBs, invoicePB)
 	}
@@ -97,17 +97,17 @@ func (h *ConnectHandler) GetUpcomingInvoice(ctx context.Context, request *connec
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetUpcomingInvoice.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(fmt.Errorf("GetUpcomingInvoice.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 	billingID := cust.ID
 
 	invoice, err := h.invoiceService.GetUpcoming(ctx, billingID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetUpcomingInvoice.GetUpcoming: org_id=%s billing_id=%s: %w", request.Msg.GetOrgId(), billingID, err))
+		return nil, mapBillingError(fmt.Errorf("GetUpcomingInvoice.GetUpcoming: org_id=%s billing_id=%s: %w", request.Msg.GetOrgId(), billingID, err))
 	}
 	invoicePB, err := transformInvoiceToPB(invoice)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetUpcomingInvoice: invoice_id=%s: %w", invoice.ID, err))
+		return nil, mapBillingError(fmt.Errorf("GetUpcomingInvoice: invoice_id=%s: %w", invoice.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetUpcomingInvoiceResponse{
@@ -152,7 +152,7 @@ func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 func (h *ConnectHandler) GenerateInvoices(ctx context.Context, request *connect.Request[frontierv1beta1.GenerateInvoicesRequest]) (*connect.Response[frontierv1beta1.GenerateInvoicesResponse], error) {
 	err := h.invoiceService.TriggerCreditOverdraftInvoices(ctx)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GenerateInvoices.TriggerCreditOverdraftInvoices: %w", err))
+		return nil, mapBillingError(fmt.Errorf("GenerateInvoices.TriggerCreditOverdraftInvoices: %w", err))
 	}
 	return connect.NewResponse(&frontierv1beta1.GenerateInvoicesResponse{}), nil
 }
@@ -175,7 +175,7 @@ func (h *ConnectHandler) SearchInvoices(ctx context.Context, request *connect.Re
 		if errors.Is(err, invoice.ErrBadInput) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchInvoices.SearchInvoices: query_offset=%d query_limit=%d: %w", rqlQuery.Offset, rqlQuery.Limit, err))
+		return nil, mapBillingError(fmt.Errorf("SearchInvoices.SearchInvoices: query_offset=%d query_limit=%d: %w", rqlQuery.Offset, rqlQuery.Limit, err))
 	}
 
 	for _, v := range invoicesData {

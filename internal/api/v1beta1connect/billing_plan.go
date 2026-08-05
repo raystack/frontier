@@ -79,17 +79,17 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 		Products: products,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePlan.UpsertPlans: plan_name=%s plan_title=%s interval=%s product_count=%d: %w", planToCreate.Name, planToCreate.Title, planToCreate.Interval, len(products), err))
+		return nil, mapBillingError(fmt.Errorf("CreatePlan.UpsertPlans: plan_name=%s plan_title=%s interval=%s product_count=%d: %w", planToCreate.Name, planToCreate.Title, planToCreate.Interval, len(products), err))
 	}
 
 	newPlan, err := h.planService.GetByID(ctx, planToCreate.Name)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePlan.GetByID: plan_name=%s: %w", planToCreate.Name, err))
+		return nil, mapBillingError(fmt.Errorf("CreatePlan.GetByID: plan_name=%s: %w", planToCreate.Name, err))
 	}
 
 	planPB, err := transformPlanToPB(newPlan)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreatePlan: plan_id=%s: %w", newPlan.ID, err))
+		return nil, mapBillingError(fmt.Errorf("CreatePlan: plan_id=%s: %w", newPlan.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreatePlanResponse{Plan: planPB}), nil
@@ -99,12 +99,12 @@ func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request
 	var plans []*frontierv1beta1.Plan
 	planList, err := h.planService.List(ctx, plan.Filter{})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlans.List: %w", err))
+		return nil, mapBillingError(fmt.Errorf("ListPlans.List: %w", err))
 	}
 	for _, v := range planList {
 		planPB, err := transformPlanToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListPlans: plan_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(fmt.Errorf("ListPlans: plan_id=%s: %w", v.ID, err))
 		}
 		plans = append(plans, planPB)
 	}
@@ -115,12 +115,12 @@ func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request
 func (h *ConnectHandler) GetPlan(ctx context.Context, request *connect.Request[frontierv1beta1.GetPlanRequest]) (*connect.Response[frontierv1beta1.GetPlanResponse], error) {
 	planOb, err := h.planService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetPlan.GetByID: plan_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(fmt.Errorf("GetPlan.GetByID: plan_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	planPB, err := transformPlanToPB(planOb)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetPlan: plan_id=%s: %w", planOb.ID, err))
+		return nil, mapBillingError(fmt.Errorf("GetPlan: plan_id=%s: %w", planOb.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetPlanResponse{Plan: planPB}), nil

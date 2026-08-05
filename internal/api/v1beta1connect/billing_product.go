@@ -15,12 +15,12 @@ func (h *ConnectHandler) ListProducts(ctx context.Context, request *connect.Requ
 	var products []*frontierv1beta1.Product
 	productsList, err := h.productService.List(ctx, product.Filter{})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProducts.List: %w", err))
+		return nil, mapBillingError(fmt.Errorf("ListProducts.List: %w", err))
 	}
 	for _, v := range productsList {
 		productPB, err := transformProductToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListProducts: entity_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(fmt.Errorf("ListProducts: entity_id=%s: %w", v.ID, err))
 		}
 		products = append(products, productPB)
 	}
@@ -33,12 +33,12 @@ func (h *ConnectHandler) ListProducts(ctx context.Context, request *connect.Requ
 func (h *ConnectHandler) GetProduct(ctx context.Context, request *connect.Request[frontierv1beta1.GetProductRequest]) (*connect.Response[frontierv1beta1.GetProductResponse], error) {
 	product, err := h.productService.GetByID(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProduct.GetByID: product_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(fmt.Errorf("GetProduct.GetByID: product_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	productPB, err := transformProductToPB(product)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetProduct: entity_id=%s: %w", product.ID, err))
+		return nil, mapBillingError(fmt.Errorf("GetProduct: entity_id=%s: %w", product.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetProductResponse{
@@ -93,14 +93,14 @@ func (h *ConnectHandler) CreateProduct(ctx context.Context, request *connect.Req
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProduct.Create: product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
+		return nil, mapBillingError(fmt.Errorf("CreateProduct.Create: product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
 			request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(),
 			request.Msg.GetBody().GetBehavior(), len(productPrices), len(productFeatures), err))
 	}
 
 	productPB, err := transformProductToPB(newProduct)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProduct: entity_id=%s: %w", newProduct.ID, err))
+		return nil, mapBillingError(fmt.Errorf("CreateProduct: entity_id=%s: %w", newProduct.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateProductResponse{
@@ -161,19 +161,19 @@ func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Req
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
+		wrapped := fmt.Errorf("UpdateProduct.Update: product_id=%s product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
+			request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(),
+			request.Msg.GetBody().GetBehavior(), len(productPrices), len(productFeatures), err)
 		// an invalid price (bad name, duplicate, or a change to an immutable
 		// field) is the caller's fault, so report it as an invalid argument.
-		code := connect.CodeInternal
 		if errors.Is(err, product.ErrInvalidDetail) {
-			code = connect.CodeInvalidArgument
+			return nil, connect.NewError(connect.CodeInvalidArgument, wrapped)
 		}
-		return nil, connect.NewError(code, fmt.Errorf("UpdateProduct.Update: product_id=%s product_name=%s product_title=%s behavior=%s price_count=%d feature_count=%d: %w",
-			request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(),
-			request.Msg.GetBody().GetBehavior(), len(productPrices), len(productFeatures), err))
+		return nil, mapBillingError(wrapped)
 	}
 	productPb, err := transformProductToPB(updatedProduct)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateProduct: entity_id=%s: %w", updatedProduct.ID, err))
+		return nil, mapBillingError(fmt.Errorf("UpdateProduct: entity_id=%s: %w", updatedProduct.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateProductResponse{
@@ -184,14 +184,14 @@ func (h *ConnectHandler) UpdateProduct(ctx context.Context, request *connect.Req
 func (h *ConnectHandler) ListFeatures(ctx context.Context, request *connect.Request[frontierv1beta1.ListFeaturesRequest]) (*connect.Response[frontierv1beta1.ListFeaturesResponse], error) {
 	features, err := h.productService.ListFeatures(ctx, product.Filter{})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListFeatures.ListFeatures: %w", err))
+		return nil, mapBillingError(fmt.Errorf("ListFeatures.ListFeatures: %w", err))
 	}
 
 	var featuresPB []*frontierv1beta1.Feature
 	for _, v := range features {
 		f, err := transformFeatureToPB(v)
 		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListFeatures: entity_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(fmt.Errorf("ListFeatures: entity_id=%s: %w", v.ID, err))
 		}
 		featuresPB = append(featuresPB, f)
 	}
@@ -213,13 +213,13 @@ func (h *ConnectHandler) CreateFeature(ctx context.Context, request *connect.Req
 		if errors.Is(err, product.ErrInvalidFeatureDetail) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateFeature.UpsertFeature: feature_name=%s feature_title=%s product_ids=%v: %w",
+		return nil, mapBillingError(fmt.Errorf("CreateFeature.UpsertFeature: feature_name=%s feature_title=%s product_ids=%v: %w",
 			request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetProductIds(), err))
 	}
 
 	featurePB, err := transformFeatureToPB(newFeature)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateFeature: entity_id=%s: %w", newFeature.ID, err))
+		return nil, mapBillingError(fmt.Errorf("CreateFeature: entity_id=%s: %w", newFeature.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateFeatureResponse{
@@ -240,13 +240,13 @@ func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Req
 		if errors.Is(err, product.ErrInvalidFeatureDetail) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateFeature.UpsertFeature: feature_id=%s feature_name=%s feature_title=%s product_ids=%v: %w",
+		return nil, mapBillingError(fmt.Errorf("UpdateFeature.UpsertFeature: feature_id=%s feature_name=%s feature_title=%s product_ids=%v: %w",
 			request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetProductIds(), err))
 	}
 
 	featurePB, err := transformFeatureToPB(updatedFeature)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateFeature: entity_id=%s: %w", updatedFeature.ID, err))
+		return nil, mapBillingError(fmt.Errorf("UpdateFeature: entity_id=%s: %w", updatedFeature.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.UpdateFeatureResponse{
@@ -257,12 +257,12 @@ func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Req
 func (h *ConnectHandler) GetFeature(ctx context.Context, request *connect.Request[frontierv1beta1.GetFeatureRequest]) (*connect.Response[frontierv1beta1.GetFeatureResponse], error) {
 	feature, err := h.productService.GetFeatureByID(ctx, request.Msg.GetId())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetFeature.GetFeatureByID: feature_id=%s: %w", request.Msg.GetId(), err))
+		return nil, mapBillingError(fmt.Errorf("GetFeature.GetFeatureByID: feature_id=%s: %w", request.Msg.GetId(), err))
 	}
 
 	featurePB, err := transformFeatureToPB(feature)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetFeature: entity_id=%s: %w", feature.ID, err))
+		return nil, mapBillingError(fmt.Errorf("GetFeature: entity_id=%s: %w", feature.ID, err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.GetFeatureResponse{
