@@ -314,11 +314,13 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 	s.Run("2. create a plan successfully", func() {
 		createPlanResp, err := s.testBench.AdminClient.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
 			Body: &frontierv1beta1.PlanRequestBody{
-				Name:        "test-plan-2",
-				Title:       "Test Plan 2",
-				Description: "Test Plan 2",
-				Interval:    "month",
-				State:       "active",
+				Name:           "test-plan-2",
+				Title:          "Test Plan 2",
+				Description:    "Test Plan 2",
+				Interval:       "month",
+				State:          "active",
+				OnStartCredits: 500,
+				TrialDays:      14,
 				Products: []*frontierv1beta1.Product{
 					{
 						Name:        "test-plan-product-2",
@@ -338,6 +340,8 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPlanResp)
 		s.Assert().NotNil(createPlanResp.Msg.GetPlan().GetProducts())
+		s.Assert().Equal(int64(500), createPlanResp.Msg.GetPlan().GetOnStartCredits())
+		s.Assert().Equal(int64(14), createPlanResp.Msg.GetPlan().GetTrialDays())
 
 		getPlanResp, err := s.testBench.Client.GetPlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPlanRequest{
 			Id: createPlanResp.Msg.GetPlan().GetId(),
@@ -354,6 +358,9 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		}))
 		s.Require().NoError(err)
 
+		// UpdatePlan is a full write: on_start_credits and trial_days are left out of
+		// the body, so they are cleared to zero even though the plan was created with
+		// 500 and 14. A caller must send every field it wants to keep.
 		updatePlanResp, err := s.testBench.AdminClient.UpdatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
 			Id: "test-plan-2",
 			Body: &frontierv1beta1.UpdatePlanRequestBody{
@@ -366,6 +373,9 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().NotNil(updatePlanResp)
 		s.Assert().Equal("Test Plan 2 Renamed", updatePlanResp.Msg.GetPlan().GetTitle())
 		s.Assert().Equal("inactive", updatePlanResp.Msg.GetPlan().GetState())
+		// the omitted fields are cleared by the full write
+		s.Assert().Zero(updatePlanResp.Msg.GetPlan().GetOnStartCredits())
+		s.Assert().Zero(updatePlanResp.Msg.GetPlan().GetTrialDays())
 		// UpdatePlan must not touch name, interval, or products
 		s.Assert().Equal(before.Msg.GetPlan().GetName(), updatePlanResp.Msg.GetPlan().GetName())
 		s.Assert().Equal(before.Msg.GetPlan().GetInterval(), updatePlanResp.Msg.GetPlan().GetInterval())
