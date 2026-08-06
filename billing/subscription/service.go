@@ -1009,9 +1009,8 @@ func (s *Service) findPlanByStripeSubscription(ctx context.Context, stripeSubscr
 	plans, err := s.planService.List(ctx, plan.Filter{
 		IDs:      productPlanIDs,
 		Interval: interval,
-		// resolve an existing subscription's plan regardless of state; an
-		// inactive (retired) plan must still resolve for its current subscribers
-		State: plan.StateAll,
+		// no State filter: resolve an existing subscription's plan regardless of
+		// state, so an inactive (retired) plan still resolves for its subscribers.
 	})
 	if err != nil {
 		return plan.Plan{}, err
@@ -1048,9 +1047,8 @@ func (s *Service) findPlanByStripePhase(ctx context.Context, stripePhase *stripe
 	plans, err := s.planService.List(ctx, plan.Filter{
 		IDs:      productPlanIDs,
 		Interval: interval,
-		// resolve an existing subscription's plan regardless of state; an
-		// inactive (retired) plan must still resolve for its current subscribers
-		State: plan.StateAll,
+		// no State filter: resolve an existing subscription's plan regardless of
+		// state, so an inactive (retired) plan still resolves for its subscribers.
 	})
 	if err != nil {
 		return plan.Plan{}, err

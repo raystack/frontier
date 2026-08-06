@@ -23,9 +23,6 @@ var (
 const (
 	StateActive   = "active"
 	StateInactive = "inactive"
-	// StateAll is a Filter.State sentinel that matches plans in any state. An
-	// empty Filter.State defaults to active, so this is the way to list every plan.
-	StateAll = "all"
 )
 
 // IsInactive reports whether the plan is retired: hidden from ListPlans and

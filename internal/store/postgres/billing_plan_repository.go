@@ -322,11 +322,8 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 			"interval": filter.Interval,
 		})
 	}
-	if filter.State == "" {
-		filter.State = plan.StateActive
-	}
-	// StateAll lists plans in every state; any other value filters to that state.
-	if filter.State != plan.StateAll {
+	// an empty state is no filter (every state); a set state filters to it.
+	if filter.State != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"state": filter.State,
 		})
@@ -417,11 +414,8 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 			"plan.interval": filter.Interval,
 		})
 	}
-	if filter.State == "" {
-		filter.State = plan.StateActive
-	}
-	// StateAll lists plans in every state; any other value filters to that state.
-	if filter.State != plan.StateAll {
+	// an empty state is no filter (every state); a set state filters to it.
+	if filter.State != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"plan.state": filter.State,
 		})

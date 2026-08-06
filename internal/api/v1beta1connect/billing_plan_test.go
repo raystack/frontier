@@ -376,7 +376,7 @@ func TestConnectHandler_ListPlans(t *testing.T) {
 			name:    "should return internal server error when plan service fails",
 			request: connect.NewRequest(&frontierv1beta1.ListPlansRequest{}),
 			setup: func(ps *mocks.PlanService) {
-				ps.On("List", mock.Anything, plan.Filter{}).Return([]plan.Plan{}, errors.New("service failed"))
+				ps.On("List", mock.Anything, plan.Filter{State: plan.StateActive}).Return([]plan.Plan{}, errors.New("service failed"))
 			},
 			wantErr: errors.New("service failed"),
 			errCode: connect.CodeInternal,
@@ -385,7 +385,7 @@ func TestConnectHandler_ListPlans(t *testing.T) {
 			name:    "should successfully list plans with empty result",
 			request: connect.NewRequest(&frontierv1beta1.ListPlansRequest{}),
 			setup: func(ps *mocks.PlanService) {
-				ps.On("List", mock.Anything, plan.Filter{}).Return([]plan.Plan{}, nil)
+				ps.On("List", mock.Anything, plan.Filter{State: plan.StateActive}).Return([]plan.Plan{}, nil)
 			},
 			want: connect.NewResponse(&frontierv1beta1.ListPlansResponse{
 				Plans: nil,
@@ -395,7 +395,7 @@ func TestConnectHandler_ListPlans(t *testing.T) {
 			name:    "should successfully list multiple plans",
 			request: connect.NewRequest(&frontierv1beta1.ListPlansRequest{}),
 			setup: func(ps *mocks.PlanService) {
-				ps.On("List", mock.Anything, plan.Filter{}).Return([]plan.Plan{
+				ps.On("List", mock.Anything, plan.Filter{State: plan.StateActive}).Return([]plan.Plan{
 					{
 						ID:             "plan-1",
 						Name:           "basic-plan",
@@ -454,7 +454,7 @@ func TestConnectHandler_ListPlans(t *testing.T) {
 			name:    "should return internal error when transformPlanToPB fails",
 			request: connect.NewRequest(&frontierv1beta1.ListPlansRequest{}),
 			setup: func(ps *mocks.PlanService) {
-				ps.On("List", mock.Anything, plan.Filter{}).Return([]plan.Plan{
+				ps.On("List", mock.Anything, plan.Filter{State: plan.StateActive}).Return([]plan.Plan{
 					{
 						ID:       "plan-1",
 						Name:     "invalid-plan",
@@ -736,7 +736,7 @@ func TestConnectHandler_ListAllPlans(t *testing.T) {
 			name:    "should default an empty state to all plans and carry state through",
 			request: connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{}),
 			setup: func(ps *mocks.PlanService) {
-				ps.On("List", mock.Anything, plan.Filter{State: plan.StateAll}).Return([]plan.Plan{
+				ps.On("List", mock.Anything, plan.Filter{}).Return([]plan.Plan{
 					{
 						ID:        "plan-1",
 						Name:      "basic-plan",
@@ -792,7 +792,7 @@ func TestConnectHandler_ListAllPlans(t *testing.T) {
 			name:    "should return internal server error when the plan service fails",
 			request: connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{}),
 			setup: func(ps *mocks.PlanService) {
-				ps.On("List", mock.Anything, plan.Filter{State: plan.StateAll}).Return([]plan.Plan{}, errors.New("service failed"))
+				ps.On("List", mock.Anything, plan.Filter{}).Return([]plan.Plan{}, errors.New("service failed"))
 			},
 			wantErr: errors.New("service failed"),
 			errCode: connect.CodeInternal,
