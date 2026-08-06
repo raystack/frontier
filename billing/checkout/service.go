@@ -253,7 +253,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 		// a retired (inactive) plan is closed to new subscriptions
 		if plan.IsInactive() {
-			return Checkout{}, fmt.Errorf("plan %q is inactive and cannot be subscribed to: %w", plan.Name, ErrPlanInactive)
+			return Checkout{}, fmt.Errorf("plan %q: %w", plan.Name, ErrPlanInactive)
 		}
 
 		// create subscription items

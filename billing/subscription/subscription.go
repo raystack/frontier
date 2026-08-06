@@ -13,7 +13,6 @@ var (
 	ErrInvalidID                      = fmt.Errorf("invalid subscription id")
 	ErrInvalidDetail                  = fmt.Errorf("invalid subscription detail")
 	ErrAlreadyOnSamePlan              = fmt.Errorf("already on the same plan")
-	ErrPlanInactive                   = fmt.Errorf("plan is inactive and cannot be subscribed to")
 	ErrNoPhaseActive                  = fmt.Errorf("no phase active")
 	ErrPhaseIsUpdating                = fmt.Errorf("phase is in the middle of a change, please try again later")
 	ErrSubscriptionOnProviderNotFound = fmt.Errorf("failed to get subscription from billing provider")

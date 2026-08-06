@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/customer"
 	billingerrors "github.com/raystack/frontier/billing/errors"
+	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 )
@@ -72,8 +73,8 @@ func mapBillingErrorCode(err error) *connect.Error {
 		return connect.NewError(connect.CodeNotFound, ErrCustomerNotFound)
 	case errors.Is(err, checkout.ErrAlreadySubscribed):
 		return connect.NewError(connect.CodeAlreadyExists, checkout.ErrAlreadySubscribed)
-	case errors.Is(err, checkout.ErrPlanInactive), errors.Is(err, subscription.ErrPlanInactive):
-		return connect.NewError(connect.CodeFailedPrecondition, ErrPlanInactive)
+	case errors.Is(err, plan.ErrPlanInactive):
+		return connect.NewError(connect.CodeFailedPrecondition, plan.ErrPlanInactive)
 	case errors.Is(err, product.ErrProductNotFound):
 		return connect.NewError(connect.CodeNotFound, product.ErrProductNotFound)
 	case errors.Is(err, product.ErrFeatureNotFound):

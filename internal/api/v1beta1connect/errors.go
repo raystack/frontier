@@ -49,7 +49,6 @@ var (
 	ErrNoChangeRequested           = errors.New("no change requested")
 	ErrPerSeatLimitReached         = errors.New("per seat limit reached")
 	ErrAlreadyOnSamePlan           = errors.New("already on same plan")
-	ErrPlanInactive                = errors.New("plan is inactive and cannot be subscribed to")
 	ErrBillingProviderNotSupported = errors.New("provider not supported")
 	ErrBillingProviderUnavailable  = errors.New("billing provider is unavailable, retry later")
 	ErrSubscriptionProviderMissing = errors.New("subscription no longer exists on the billing provider")

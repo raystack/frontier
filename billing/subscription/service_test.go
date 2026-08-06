@@ -241,7 +241,7 @@ func TestService_ChangePlan(t *testing.T) {
 				}, nil)
 				p.EXPECT().GetByID(mock.Anything, "new-plan").Return(plan.Plan{ID: "new-plan", State: "inactive"}, nil)
 			},
-			wantErr: subscription.ErrPlanInactive,
+			wantErr: plan.ErrPlanInactive,
 		},
 	}
 

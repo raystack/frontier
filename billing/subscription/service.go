@@ -636,7 +636,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 
 	// cannot move a subscription onto a retired (inactive) plan; moving off one is allowed
 	if planObj.IsInactive() {
-		return change, fmt.Errorf("plan %q is inactive and cannot be subscribed to: %w", planObj.Name, ErrPlanInactive)
+		return change, fmt.Errorf("plan %q: %w", planObj.Name, plan.ErrPlanInactive)
 	}
 
 	// check if schedule exists
