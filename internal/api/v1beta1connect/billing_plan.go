@@ -130,40 +130,42 @@ func (h *ConnectHandler) UpdatePlan(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.UpdatePlanResponse{Plan: planPB}), nil
 }
 
-func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListPlansRequest]) (*connect.Response[frontierv1beta1.ListPlansResponse], error) {
-	// ListPlans surfaces active plans only.
-	var plans []*frontierv1beta1.Plan
-	planList, err := h.planService.List(ctx, plan.Filter{State: plan.StateActive})
+// listPlansToPB fetches the plans matching filter and transforms them to proto.
+// Shared by ListPlans (FrontierService, active only) and ListAllPlans
+// (AdminService, any state) so the two endpoints cannot drift; both route
+// failures through mapBillingError.
+func (h *ConnectHandler) listPlansToPB(ctx context.Context, filter plan.Filter) ([]*frontierv1beta1.Plan, error) {
+	planList, err := h.planService.List(ctx, filter)
 	if err != nil {
-		return nil, mapBillingError(ctx, fmt.Errorf("ListPlans.List: %w", err))
+		return nil, mapBillingError(ctx, fmt.Errorf("listPlans.List: %w", err))
 	}
+	var plans []*frontierv1beta1.Plan
 	for _, v := range planList {
 		planPB, err := transformPlanToPB(v)
 		if err != nil {
-			return nil, mapBillingError(ctx, fmt.Errorf("ListPlans: plan_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("listPlans: plan_id=%s: %w", v.ID, err))
 		}
 		plans = append(plans, planPB)
 	}
+	return plans, nil
+}
 
+func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListPlansRequest]) (*connect.Response[frontierv1beta1.ListPlansResponse], error) {
+	// ListPlans surfaces active plans only.
+	plans, err := h.listPlansToPB(ctx, plan.Filter{State: plan.StateActive})
+	if err != nil {
+		return nil, err
+	}
 	return connect.NewResponse(&frontierv1beta1.ListPlansResponse{Plans: plans}), nil
 }
 
 func (h *ConnectHandler) ListAllPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllPlansRequest]) (*connect.Response[frontierv1beta1.ListAllPlansResponse], error) {
-	// ListPlans lists active plans only. ListAllPlans lists every plan: an empty
-	// state means all states, and a set state filters to that state.
-	var plans []*frontierv1beta1.Plan
-	planList, err := h.planService.List(ctx, plan.Filter{State: request.Msg.GetState()})
+	// ListAllPlans lists every plan: an empty state means all states, a set state
+	// filters to it. (ListPlans lists active plans only.)
+	plans, err := h.listPlansToPB(ctx, plan.Filter{State: request.Msg.GetState()})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllPlans.List: %w", err))
+		return nil, err
 	}
-	for _, v := range planList {
-		planPB, err := transformPlanToPB(v)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListAllPlans: plan_id=%s: %w", v.ID, err))
-		}
-		plans = append(plans, planPB)
-	}
-
 	return connect.NewResponse(&frontierv1beta1.ListAllPlansResponse{Plans: plans}), nil
 }
 
