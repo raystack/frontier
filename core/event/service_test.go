@@ -238,6 +238,34 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 		},
 		{
+			name: "return error if defaultPlan is inactive",
+			args: args{
+				ctx:   ctx,
+				orgID: "",
+			},
+			wantErr: ErrDefaultPlanInactive,
+			setup: func() *Service {
+				billingConf, checkoutService, customerService, orgService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, membershipService, roleService, subsService, creditService, invoiceService)
+
+				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
+				org := organization.Organization{ID: "org_1", Title: "org_title"}
+				orgService.On("GetRaw", ctx, "").Return(org, nil).Once()
+				expectAdminLookup(ctx, roleService, membershipService, userService, "org_1", []user.User{{ID: "admin-1", Email: "email@example.com"}})
+				customerService.On("Create", ctx, customer.Customer{
+					OrgID:    "org_1",
+					Name:     getCustomerName(org),
+					Email:    "email@example.com",
+					Currency: "USD",
+					Metadata: map[string]any{
+						"auto_created": "true",
+					}}, false).Return(customer.Customer{ID: "cid_1"}, nil).Once()
+				planService.On("GetByID", ctx, "default_plan").
+					Return(plan.Plan{State: plan.StateInactive}, nil).Once()
+				return service
+			},
+		},
+		{
 			name: "return error if checkoutService.Apply returns error",
 			args: args{
 				ctx:   ctx,
