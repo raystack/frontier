@@ -22,6 +22,12 @@ func (fakeCustomerSvc) RegisterToProviderIfRequired(_ context.Context, id string
 	return customer.Customer{ID: id, OrgID: "org-1"}, nil
 }
 
+func (fakeCustomerSvc) GetByID(_ context.Context, id string) (customer.Customer, error) {
+	// a non-empty ProviderID means the customer is not offline, so Apply runs the
+	// plan branch and reaches the inactive-plan gate.
+	return customer.Customer{ID: id, OrgID: "org-1", ProviderID: "cus_test"}, nil
+}
+
 type fakeAuthnSvc struct{ AuthnService }
 
 func (fakeAuthnSvc) GetPrincipal(_ context.Context, _ ...authenticate.ClientAssertion) (authenticate.Principal, error) {
@@ -56,6 +62,22 @@ func TestService_Create_RejectsInactivePlan(t *testing.T) {
 	}
 
 	_, err := s.Create(context.Background(), Checkout{CustomerID: "cust-1", PlanID: "plan-1"})
+
+	require.ErrorIs(t, err, plan.ErrPlanInactive)
+}
+
+// Apply (the delegated/direct path behind DelegatedCheckout) must also reject a
+// retired plan, so an admin assignment cannot land a new subscription on one.
+func TestService_Apply_RejectsInactivePlan(t *testing.T) {
+	s := &Service{
+		log:                 slog.New(slog.NewTextHandler(io.Discard, nil)),
+		customerService:     fakeCustomerSvc{},
+		authnService:        fakeAuthnSvc{},
+		planService:         fakePlanSvc{p: plan.Plan{ID: "plan-1", Name: "retired", State: plan.StateInactive}},
+		subscriptionService: fakeSubscriptionSvc{},
+	}
+
+	_, _, err := s.Apply(context.Background(), Checkout{CustomerID: "cust-1", PlanID: "plan-1"})
 
 	require.ErrorIs(t, err, plan.ErrPlanInactive)
 }

@@ -888,10 +888,6 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 
 	// checkout could be for a plan or a product
 	if ch.PlanID != "" && !billingCustomer.IsOffline() {
-		// Unlike Create, Apply deliberately does NOT reject an inactive plan. Apply
-		// backs admin/delegated assignment (DelegatedCheckout) and org auto-onboarding
-		// onto the configured default plan; both must keep working even if that plan is
-		// later retired, so a config slip never blocks a new user's signup.
 		plan, err := s.planService.GetByID(ctx, ch.PlanID)
 		if err != nil {
 			return nil, nil, err
@@ -904,6 +900,11 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, err
 		} else if subID != "" {
 			return nil, nil, ErrAlreadySubscribed
+		}
+
+		// a retired (inactive) plan is closed to new subscriptions
+		if plan.IsInactive() {
+			return nil, nil, fmt.Errorf("plan %q: %w", plan.Name, ErrPlanInactive)
 		}
 
 		if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {
