@@ -87,10 +87,14 @@ func (s Service) UpdatePlan(ctx context.Context, p Plan) (Plan, error) {
 	existing.TrialDays = p.TrialDays
 	existing.State = p.State
 	existing.Metadata = p.Metadata
-	if _, err := s.planRepository.UpdateByName(ctx, existing); err != nil {
+	updated, err := s.planRepository.UpdateByName(ctx, existing)
+	if err != nil {
 		return Plan{}, err
 	}
-	return s.GetByID(ctx, existing.ID)
+	// UpdateByName returns the updated row, and an update never touches products,
+	// so reuse the ones already loaded instead of re-fetching and re-enriching.
+	updated.Products = existing.Products
+	return updated, nil
 }
 
 func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
