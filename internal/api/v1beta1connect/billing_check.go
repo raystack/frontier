@@ -20,12 +20,12 @@ func (h *ConnectHandler) CheckFeatureEntitlement(ctx context.Context, request *c
 		if errors.Is(err, customer.ErrInvalidUUID) || errors.Is(err, customer.ErrInvalidID) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckFeatureEntitlement.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CheckFeatureEntitlement.GetByOrgID: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	checkStatus, err := h.entitlementService.Check(ctx, cust.ID, request.Msg.GetFeature())
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckFeatureEntitlement: billing_id=%s org_id=%s feature=%s: %w", cust.ID, request.Msg.GetOrgId(), request.Msg.GetFeature(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CheckFeatureEntitlement: billing_id=%s org_id=%s feature=%s: %w", cust.ID, request.Msg.GetOrgId(), request.Msg.GetFeature(), err))
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CheckFeatureEntitlementResponse{
@@ -38,7 +38,7 @@ func (h *ConnectHandler) CheckCreditEntitlement(ctx context.Context, request *co
 		OrgID: request.Msg.GetOrgId(),
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckCreditEntitlement.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CheckCreditEntitlement.List: org_id=%s: %w", request.Msg.GetOrgId(), err))
 	}
 
 	if len(customerList) == 0 {
@@ -48,12 +48,12 @@ func (h *ConnectHandler) CheckCreditEntitlement(ctx context.Context, request *co
 	customer := customerList[0]
 	customerDetails, err := h.customerService.GetDetails(ctx, customer.ID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckCreditEntitlement.GetDetails: customer_id=%s org_id=%s: %w", customer.ID, request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CheckCreditEntitlement.GetDetails: customer_id=%s org_id=%s: %w", customer.ID, request.Msg.GetOrgId(), err))
 	}
 
 	creditBalance, err := h.creditService.GetBalance(ctx, customer.ID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckCreditEntitlement.GetBalance: customer_id=%s org_id=%s: %w", customer.ID, request.Msg.GetOrgId(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("CheckCreditEntitlement.GetBalance: customer_id=%s org_id=%s: %w", customer.ID, request.Msg.GetOrgId(), err))
 	}
 
 	if creditBalance-request.Msg.GetAmount() >= customerDetails.CreditMin {

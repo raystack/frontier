@@ -2,6 +2,7 @@ package customer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"math/rand"
@@ -14,6 +15,7 @@ import (
 	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing"
+	billingerrors "github.com/raystack/frontier/billing/errors"
 	"github.com/raystack/frontier/internal/metrics"
 
 	"slices"
@@ -134,14 +136,11 @@ func (s *Service) RegisterToProvider(ctx context.Context, customer Customer) (*s
 		TestClock: customer.StripeTestClockID,
 	})
 	if err != nil {
-		if stripeErr, ok := err.(*stripe.Error); ok {
-			switch stripeErr.Code {
-			case stripe.ErrorCodeParameterMissing:
-				// stripe error
-				return nil, fmt.Errorf("missing parameter while registering to biller: %s", stripeErr.Error())
-			}
+		var stripeErr *stripe.Error
+		if errors.As(err, &stripeErr) && stripeErr.Code == stripe.ErrorCodeParameterMissing {
+			return nil, fmt.Errorf("missing parameter while registering to biller: %s: %w", stripeErr.Msg, err)
 		}
-		return nil, fmt.Errorf("failed to register in billing provider: %w", err)
+		return nil, fmt.Errorf("failed to register in billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	return stripeCustomer, nil
@@ -194,14 +193,11 @@ func (s *Service) Update(ctx context.Context, customer Customer) (Customer, erro
 		},
 	})
 	if err != nil {
-		if stripeErr, ok := err.(*stripe.Error); ok {
-			switch stripeErr.Code {
-			case stripe.ErrorCodeParameterMissing:
-				// stripe error
-				return Customer{}, fmt.Errorf("missing parameter while registering to biller: %s", stripeErr.Error())
-			}
+		var stripeErr *stripe.Error
+		if errors.As(err, &stripeErr) && stripeErr.Code == stripe.ErrorCodeParameterMissing {
+			return Customer{}, fmt.Errorf("missing parameter while registering to biller: %s: %w", stripeErr.Msg, err)
 		}
-		return Customer{}, fmt.Errorf("failed to register in billing provider: %w", err)
+		return Customer{}, fmt.Errorf("failed to register in billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 	customer.ProviderID = stripeCustomer.ID
 	return s.repository.UpdateByID(ctx, customer)
@@ -286,17 +282,9 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 				Context: ctx,
 			},
 		}); err != nil {
-			var throw = true
-			// Try to safely cast a generic error to a stripe.Error so that we can get at
-			// some additional Stripe-specific information about what went wrong.
-			if stripeErr, ok := err.(*stripe.Error); ok {
-				// The Code field will contain a basic identifier for the failure.
-				if stripeErr.Code == stripe.ErrorCodeResourceMissing {
-					// it's ok if the customer is already deleted
-					throw = false
-				}
-			}
-			if throw {
+			err = billingerrors.TranslateStripeError(err)
+			// it's ok if the customer is already deleted
+			if !errors.Is(err, billingerrors.ErrProviderResourceMissing) {
 				return fmt.Errorf("failed to delete customer from billing provider: %w", err)
 			}
 		}
@@ -351,6 +339,9 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 		}
 
 		paymentMethods = append(paymentMethods, pm)
+	}
+	if err := stripePaymentMethodItr.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list payment methods from billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 	return paymentMethods, nil
 }
@@ -432,7 +423,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get customer from billing provider: %w", err)
+		return fmt.Errorf("failed to get customer from billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	var shouldUpdate bool

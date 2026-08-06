@@ -20,6 +20,7 @@ import (
 	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing"
+	billingerrors "github.com/raystack/frontier/billing/errors"
 	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/billing/customer"
@@ -287,7 +288,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		return errors.Join(errs...)
 	}
 	if err := stripeInvoices.Err(); err != nil {
-		return fmt.Errorf("failed to list invoices: %w", err)
+		return fmt.Errorf("failed to list invoices: %w", billingerrors.TranslateStripeError(err))
 	}
 	return nil
 }
@@ -361,7 +362,7 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 			s.log.DebugContext(ctx, "no upcoming invoice", "error", stripeErr)
 			return Invoice{}, nil
 		}
-		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", err)
+		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	return stripeInvoiceToInvoice(customerID, stripeInvoice), nil
@@ -693,7 +694,7 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create invoice: %w", err)
+		return nil, fmt.Errorf("failed to create invoice: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	// create line item for the invoice
@@ -726,12 +727,12 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 			Period:      itemPeriod,
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to create invoice item: %w", err)
+			return nil, fmt.Errorf("failed to create invoice item: %w", billingerrors.TranslateStripeError(err))
 		}
 	}
 
 	// fetch updated stripe invoice
-	return s.stripeClient.Invoices.Get(stripeInvoice.ID, &stripe.InvoiceParams{
+	updatedInvoice, err := s.stripeClient.Invoices.Get(stripeInvoice.ID, &stripe.InvoiceParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
@@ -739,6 +740,10 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 			new("lines"),
 		},
 	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get invoice from billing provider: %w", billingerrors.TranslateStripeError(err))
+	}
+	return updatedInvoice, nil
 }
 
 // Reconcile checks all paid invoices and reconciles them with the system.
@@ -835,7 +840,7 @@ func (s *Service) reconcileCreditInvoice(ctx context.Context, inv Invoice) error
 func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
 	stripeInvoice, err := s.stripeClient.Invoices.Get(id, &stripe.InvoiceParams{})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get invoice from billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	customrs, err := s.customerService.List(ctx, customer.Filter{

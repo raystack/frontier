@@ -26,7 +26,7 @@ func (h *ConnectHandler) BillingWebhookCallback(ctx context.Context, request *co
 		Name: request.Msg.GetProvider(),
 		Body: request.Msg.GetBody(),
 	}); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("BillingWebhookCallback.BillingWebhook: provider=%s: %w", request.Msg.GetProvider(), err))
+		return nil, mapBillingError(ctx, fmt.Errorf("BillingWebhookCallback.BillingWebhook: provider=%s: %w", request.Msg.GetProvider(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.BillingWebhookCallbackResponse{}), nil
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/raystack/frontier/billing"
+	billingerrors "github.com/raystack/frontier/billing/errors"
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
@@ -304,9 +305,21 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 	}
 
 	// check if schedule exists
-	_, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
+	stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
 	if err != nil {
 		return sub, err
+	}
+
+	if stripeSubscription != nil && (stripeSubscription.Status == stripe.SubscriptionStatusCanceled ||
+		stripeSubscription.Status == stripe.SubscriptionStatusIncompleteExpired) {
+		// nothing to cancel on the provider: canceled is already done and
+		// incomplete_expired is terminal, a cancel call would be rejected.
+		// Just sync the local state
+		sub.State = string(stripeSubscription.Status)
+		if stripeSubscription.CanceledAt > 0 {
+			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
+		}
+		return s.repository.UpdateByID(ctx, sub)
 	}
 
 	if immediate || stripeSchedule == nil {
@@ -318,7 +331,7 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			Prorate:    new(true),
 		})
 		if err != nil {
-			return Subscription{}, fmt.Errorf("failed to cancel subscription at billing provider: %w", err)
+			return Subscription{}, fmt.Errorf("failed to cancel subscription at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 		sub.State = string(stripeSubscription.Status)
 		if stripeSubscription.CanceledAt > 0 {
@@ -347,7 +360,7 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			EndBehavior: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
 		})
 		if err != nil {
-			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", err)
+			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 		sub.Phase.PlanID = ""
 		sub.Phase.Reason = SubscriptionCancel.String()
@@ -369,8 +382,8 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 		},
 	})
 	if err != nil {
-		// check if it's a subscription not found err
-		if stripeErr, ok := err.(*stripe.Error); ok && stripeErr.Code == stripe.ErrorCodeResourceMissing {
+		err = billingerrors.TranslateStripeError(err)
+		if errors.Is(err, billingerrors.ErrProviderResourceMissing) {
 			return nil, nil, ErrSubscriptionOnProviderNotFound
 		}
 		return nil, nil, fmt.Errorf("failed to get subscription from billing provider: %w", err)
@@ -386,7 +399,7 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 			},
 		})
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get subscription schedule from billing provider: %w", err)
+			return nil, nil, fmt.Errorf("failed to get subscription schedule from billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 		stripeSubscription.Schedule = schedule
 	}
@@ -409,7 +422,7 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 			},
 		})
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to create subscription schedule at billing provider: %w", err)
+			return nil, nil, fmt.Errorf("failed to create subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 	}
 	return stripeSubscription, stripeSubscription.Schedule, nil
@@ -471,7 +484,7 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, curre
 				PendingInvoiceItemInterval: getPendingInvoiceItemInterval(currentPlan),
 			})
 			if err != nil {
-				return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
+				return fmt.Errorf("failed to update subscription quantity at billing provider: %w", billingerrors.TranslateStripeError(err))
 			}
 		}
 	}
@@ -549,7 +562,7 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, curre
 			Phases: updatedPhases,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+			return fmt.Errorf("failed to update subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 	}
 
@@ -761,7 +774,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 		},
 	})
 	if err != nil {
-		return change, fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+		return change, fmt.Errorf("failed to update subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	// update subscription with new phase
@@ -956,7 +969,7 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	sub.Phase.Reason = ""
@@ -1076,6 +1089,11 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, su
 	return nil
 }
 
+// DeleteByCustomer tears down all subscriptions of a billing account. Active
+// subscriptions are canceled on the billing provider first. A subscription
+// that is already gone or canceled on the provider counts as canceled, so a
+// teardown that failed midway can be run again. Offline accounts have nothing
+// on the provider; only their local records are removed.
 func (s *Service) DeleteByCustomer(ctx context.Context, customr customer.Customer) error {
 	subs, err := s.List(ctx, Filter{
 		CustomerID: customr.ID,
@@ -1083,12 +1101,9 @@ func (s *Service) DeleteByCustomer(ctx context.Context, customr customer.Custome
 	if err != nil {
 		return err
 	}
-	if err := s.SyncWithProvider(ctx, customr); err != nil {
-		return err
-	}
 	for _, sub := range subs {
-		if sub.IsActive() {
-			if _, err := s.Cancel(ctx, sub.ID, true); err != nil {
+		if !customr.IsOffline() && sub.IsActive() {
+			if _, err := s.Cancel(ctx, sub.ID, true); err != nil && !errors.Is(err, ErrSubscriptionOnProviderNotFound) {
 				return err
 			}
 		}

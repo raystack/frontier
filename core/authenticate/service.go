@@ -363,6 +363,20 @@ func (s Service) FinishFlow(ctx context.Context, request RegistrationFinishReque
 	return nil, ErrUnsupportedMethod
 }
 
+// otpAttempts reads the wrong-code attempt counter from flow metadata.
+// The counter is written as an int, but flow metadata is stored as JSON
+// in the database, and JSON unmarshaling returns numbers as float64.
+func otpAttempts(md metadata.Metadata) int {
+	switch attempts := md[otpAttemptKey].(type) {
+	case int:
+		return attempts
+	case float64:
+		return int(attempts)
+	default:
+		return 0
+	}
+}
+
 // applyMailOTP actions when user submitted otp from the email
 // user can be considered as verified if code is valid
 // create a new user if required
@@ -384,12 +398,9 @@ func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishReq
 
 	if bcrypt.CompareHashAndPassword([]byte(flow.Nonce), []byte(request.Code)) != nil {
 		// avoid brute forcing otp
-		attemptInt := 0
-		if attempts, ok := flow.Metadata[otpAttemptKey]; ok {
-			attemptInt, _ = attempts.(int)
-		}
+		attemptInt := otpAttempts(flow.Metadata) + 1
 		if attemptInt < maxOTPAttempt {
-			flow.Metadata[otpAttemptKey] = attemptInt + 1
+			flow.Metadata[otpAttemptKey] = attemptInt
 			if err = s.flowRepo.Set(ctx, flow); err != nil {
 				return nil, fmt.Errorf("failed to process flow code missmatch")
 			}

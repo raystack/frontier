@@ -13,6 +13,7 @@ import (
 	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing"
+	billingerrors "github.com/raystack/frontier/billing/errors"
 	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/pkg/metadata"
@@ -63,6 +64,7 @@ type Repository interface {
 	Create(ctx context.Context, ch Checkout) (Checkout, error)
 	UpdateByID(ctx context.Context, ch Checkout) (Checkout, error)
 	List(ctx context.Context, filter Filter) ([]Checkout, error)
+	DeleteByCustomerID(ctx context.Context, customerID string) error
 }
 
 type CustomerService interface {
@@ -246,7 +248,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
 			return Checkout{}, err
 		} else if subID != "" {
-			return Checkout{}, fmt.Errorf("already subscribed to the plan")
+			return Checkout{}, ErrAlreadySubscribed
 		}
 
 		// create subscription items
@@ -349,7 +351,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			PaymentMethodCollection: stripe.String(string(stripe.PaymentLinkPaymentMethodCollectionIfRequired)),
 		})
 		if err != nil {
-			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
+			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 
 		return s.repository.Create(ctx, Checkout{
@@ -480,7 +482,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			},
 		})
 		if err != nil {
-			return Checkout{}, fmt.Errorf("failed to buy product at billing provider: %w", err)
+			return Checkout{}, fmt.Errorf("failed to buy product at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 
 		return s.repository.Create(ctx, Checkout{
@@ -558,7 +560,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			},
 		})
 		if err != nil {
-			errs = append(errs, fmt.Errorf("failed to get checkout session from billing provider: %w", err))
+			errs = append(errs, fmt.Errorf("failed to get checkout session from billing provider: %w", billingerrors.TranslateStripeError(err)))
 			continue
 		}
 		if ch.PaymentStatus != string(checkoutSession.PaymentStatus) {
@@ -734,7 +736,7 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 			},
 		})
 	if err != nil {
-		return "", fmt.Errorf("failed to get subscription from billing provider: %w", err)
+		return "", fmt.Errorf("failed to get subscription from billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	// create subscription
@@ -768,6 +770,12 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
 	return s.repository.List(ctx, filter)
 }
 
+// DeleteByCustomer removes all checkout records of a billing account. Checkout
+// sessions on the billing provider are not touched as they expire on their own.
+func (s *Service) DeleteByCustomer(ctx context.Context, customerID string) error {
+	return s.repository.DeleteByCustomerID(ctx, customerID)
+}
+
 func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout) (Checkout, error) {
 	billingCustomer, err := s.customerService.RegisterToProviderIfRequired(ctx, ch.CustomerID)
 	if err != nil {
@@ -795,7 +803,7 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 		},
 	})
 	if err != nil {
-		return Checkout{}, fmt.Errorf("failed to create checkout at billing provider: %w", err)
+		return Checkout{}, fmt.Errorf("failed to create checkout at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	return s.repository.Create(ctx, Checkout{
@@ -837,7 +845,7 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 	session, err := s.stripeClient.BillingPortalSessions.New(sessionParams)
 
 	if err != nil {
-		return Checkout{}, fmt.Errorf("failed to create session for customer portal: %w", err)
+		return Checkout{}, fmt.Errorf("failed to create session for customer portal: %w", billingerrors.TranslateStripeError(err))
 	}
 
 	return Checkout{
@@ -886,7 +894,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
 			return nil, nil, err
 		} else if subID != "" {
-			return nil, nil, fmt.Errorf("already subscribed to the plan")
+			return nil, nil, ErrAlreadySubscribed
 		}
 
 		if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {
@@ -982,7 +990,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			Coupon: couponID,
 		})
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to create subscription at billing provider: %w", err)
+			return nil, nil, fmt.Errorf("failed to create subscription at billing provider: %w", billingerrors.TranslateStripeError(err))
 		}
 
 		// register subscription in frontier
