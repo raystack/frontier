@@ -177,6 +177,13 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 	if toCreate.State == "" {
 		toCreate.State = plan.StateActive
 	}
+	// interval is set only at creation and has no default. A plan with no interval
+	// could never round-trip through reconcile export, so never store one. The
+	// connect API blocks this through its validate interceptor, but the boot-time
+	// plan loader writes through this repository directly and bypasses that check.
+	if strings.TrimSpace(toCreate.Interval) == "" {
+		return plan.Plan{}, fmt.Errorf("plan %q must have an interval (one of day, week, month, year)", toCreate.Name)
+	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PLANS).Rows(
 		goqu.Record{
