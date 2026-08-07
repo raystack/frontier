@@ -23,3 +23,22 @@ func TestBillingPlanRepository_Create_RejectsEmptyInterval(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "interval")
 }
+
+// on_start_credits and trial_days are bounded non-negative by the proto, so a
+// negative value could never round-trip through reconcile export either. Create
+// rejects a negative value before it touches the database, for the same boot-time
+// loader reason as the interval guard.
+func TestBillingPlanRepository_Create_RejectsNegativeCreditsAndTrial(t *testing.T) {
+	r := postgres.NewBillingPlanRepository(nil)
+
+	t.Run("negative on_start_credits", func(t *testing.T) {
+		_, err := r.Create(context.Background(), plan.Plan{Name: "neg_credits", Interval: "month", OnStartCredits: -5})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "on_start_credits")
+	})
+	t.Run("negative trial_days", func(t *testing.T) {
+		_, err := r.Create(context.Background(), plan.Plan{Name: "neg_trial", Interval: "month", TrialDays: -3})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "trial_days")
+	})
+}

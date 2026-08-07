@@ -184,6 +184,15 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 	if strings.TrimSpace(toCreate.Interval) == "" {
 		return plan.Plan{}, fmt.Errorf("plan %q must have an interval (one of day, week, month, year)", toCreate.Name)
 	}
+	// on_start_credits and trial_days are bounded non-negative by the proto, so a
+	// negative value could never round-trip through reconcile export either. Guard
+	// them here too, since the boot-time loader bypasses the validate interceptor.
+	if toCreate.OnStartCredits < 0 {
+		return plan.Plan{}, fmt.Errorf("plan %q on_start_credits cannot be negative", toCreate.Name)
+	}
+	if toCreate.TrialDays < 0 {
+		return plan.Plan{}, fmt.Errorf("plan %q trial_days cannot be negative", toCreate.Name)
+	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PLANS).Rows(
 		goqu.Record{
