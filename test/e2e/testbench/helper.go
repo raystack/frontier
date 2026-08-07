@@ -94,19 +94,41 @@ func HeadersFromContext(ctx context.Context) map[string]string {
 	return nil
 }
 
-// headerInterceptor is a ConnectRPC unary interceptor that reads headers
-// from the context and sets them on the outgoing request.
-func headerInterceptor() connect.UnaryInterceptorFunc {
-	return connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
-		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			if headers := HeadersFromContext(ctx); headers != nil {
-				for k, v := range headers {
-					req.Header().Set(k, v)
-				}
+// headerInterceptor reads headers from the context and sets them on
+// outgoing requests.
+func headerInterceptor() connect.Interceptor {
+	return ctxHeaderInterceptor{}
+}
+
+// ctxHeaderInterceptor applies headers stored in the context to outgoing
+// ConnectRPC requests, for both unary and streaming calls.
+type ctxHeaderInterceptor struct{}
+
+func (ctxHeaderInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
+	return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		if headers := HeadersFromContext(ctx); headers != nil {
+			for k, v := range headers {
+				req.Header().Set(k, v)
 			}
-			return next(ctx, req)
-		})
+		}
+		return next(ctx, req)
 	})
+}
+
+func (ctxHeaderInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+	return connect.StreamingClientFunc(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
+		conn := next(ctx, spec)
+		if headers := HeadersFromContext(ctx); headers != nil {
+			for k, v := range headers {
+				conn.RequestHeader().Set(k, v)
+			}
+		}
+		return conn
+	})
+}
+
+func (ctxHeaderInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
+	return next
 }
 
 // AuthenticateUser authenticates a user via mail OTP using the test_users config
