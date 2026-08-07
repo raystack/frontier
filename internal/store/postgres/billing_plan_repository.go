@@ -173,6 +173,26 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 	if toCreate.ID == "" {
 		toCreate.ID = uuid.New().String()
 	}
+	// a new plan is active unless told otherwise; never store an empty state
+	if toCreate.State == "" {
+		toCreate.State = plan.StateActive
+	}
+	// interval is set only at creation and has no default. A plan with no interval
+	// could never round-trip through reconcile export, so never store one. The
+	// connect API blocks this through its validate interceptor, but the boot-time
+	// plan loader writes through this repository directly and bypasses that check.
+	if strings.TrimSpace(toCreate.Interval) == "" {
+		return plan.Plan{}, fmt.Errorf("plan %q must have an interval (one of day, week, month, year)", toCreate.Name)
+	}
+	// on_start_credits and trial_days are bounded non-negative by the proto, so a
+	// negative value could never round-trip through reconcile export either. Guard
+	// them here too, since the boot-time loader bypasses the validate interceptor.
+	if toCreate.OnStartCredits < 0 {
+		return plan.Plan{}, fmt.Errorf("plan %q on_start_credits cannot be negative", toCreate.Name)
+	}
+	if toCreate.TrialDays < 0 {
+		return plan.Plan{}, fmt.Errorf("plan %q trial_days cannot be negative", toCreate.Name)
+	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PLANS).Rows(
 		goqu.Record{
@@ -258,10 +278,6 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 		return plan.Plan{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
-	if toUpdate.State == "" {
-		toUpdate.State = "active"
-	}
-
 	query, params, err := dialect.Update(TABLE_BILLING_PLANS).Set(
 		goqu.Record{
 			"title":            toUpdate.Title,
@@ -322,12 +338,12 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 			"interval": filter.Interval,
 		})
 	}
-	if filter.State == "" {
-		filter.State = "active"
+	// an empty state is no filter (every state); a set state filters to it.
+	if filter.State != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"state": filter.State,
+		})
 	}
-	stmt = stmt.Where(goqu.Ex{
-		"state": filter.State,
-	})
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
@@ -380,7 +396,7 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		prd.Col("name").As("product_name"),
 		prd.Col("title").As("product_title"),
 		prd.Col("description").As("product_description"),
-		prd.Col("title").As("product_behavior"),
+		prd.Col("behavior").As("product_behavior"),
 		prd.Col("config").As("product_config"),
 		prd.Col("state").As("product_state"),
 		prd.Col("metadata").As("product_metadata"),
@@ -414,12 +430,12 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 			"plan.interval": filter.Interval,
 		})
 	}
-	if filter.State == "" {
-		filter.State = "active"
+	// an empty state is no filter (every state); a set state filters to it.
+	if filter.State != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"plan.state": filter.State,
+		})
 	}
-	stmt = stmt.Where(goqu.Ex{
-		"plan.state": filter.State,
-	})
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {

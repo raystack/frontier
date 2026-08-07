@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/customer"
 	billingerrors "github.com/raystack/frontier/billing/errors"
+	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 )
@@ -117,6 +118,12 @@ func TestMapBillingError(t *testing.T) {
 			err:      fmt.Errorf("CreateCheckout.Create: %w", checkout.ErrAlreadySubscribed),
 			wantCode: connect.CodeAlreadyExists,
 			wantMsg:  checkout.ErrAlreadySubscribed.Error(),
+		},
+		{
+			name:     "inactive plan is rejected",
+			err:      fmt.Errorf("CreateCheckout.Create: %w", plan.ErrPlanInactive),
+			wantCode: connect.CodeFailedPrecondition,
+			wantMsg:  plan.ErrPlanInactive.Error(),
 		},
 		{
 			name:     "product not found",

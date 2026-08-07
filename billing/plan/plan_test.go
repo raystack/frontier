@@ -42,3 +42,22 @@ func TestPlan_IsFree(t *testing.T) {
 		})
 	}
 }
+
+func TestPlan_IsInactive(t *testing.T) {
+	tests := []struct {
+		name  string
+		state string
+		want  bool
+	}{
+		{name: "inactive is inactive", state: "inactive", want: true},
+		{name: "active is not inactive", state: "active", want: false},
+		{name: "empty state is not inactive", state: "", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := (plan.Plan{State: tt.state}).IsInactive(); got != tt.want {
+				t.Errorf("IsInactive() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

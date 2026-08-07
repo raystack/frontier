@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
@@ -26,6 +27,9 @@ var (
 	ErrInvalidDetail     = errors.New("invalid checkout detail")
 	ErrKycCompleted      = errors.New("organization kyc completed")
 	ErrAlreadySubscribed = errors.New("already subscribed to the plan")
+	// ErrPlanInactive aliases the single sentinel in billing/plan; the local
+	// alias lets this package reference it where the identifier `plan` is shadowed.
+	ErrPlanInactive = plan.ErrPlanInactive
 )
 
 type Checkout struct {

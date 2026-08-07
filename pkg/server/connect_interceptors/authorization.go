@@ -995,14 +995,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: orgID}, schema.DeletePermission, req)
 	},
 
-	// plans
-	"/raystack.frontier.v1beta1.FrontierService/CreatePlan": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		return handler.IsSuperUser(ctx, req)
-	},
-	"/raystack.frontier.v1beta1.FrontierService/UpdatePlan": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
-		return handler.IsSuperUser(ctx, req)
-	},
-
 	// products
 	"/raystack.frontier.v1beta1.FrontierService/CreateProduct": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
@@ -1172,6 +1164,16 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx, req)
+	},
+	// plans
+	"/raystack.frontier.v1beta1.AdminService/CreatePlan": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx, req)
+	},
+	"/raystack.frontier.v1beta1.AdminService/UpdatePlan": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		return handler.IsSuperUser(ctx, req)
+	},
+	"/raystack.frontier.v1beta1.AdminService/ListAllPlans": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		return handler.IsSuperUser(ctx, req)
 	},
 	"/raystack.frontier.v1beta1.AdminService/GenerateInvoices": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
