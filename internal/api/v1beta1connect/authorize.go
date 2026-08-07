@@ -51,12 +51,10 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 			"subject_id", currentUser.ID)
 		return handleAuthErr(err)
 	}
-	if result {
-		return nil
-	}
+	allowed := result
 
 	// for invitation, we need to check if the user is the owner of the invitation by checking its email as well
-	if object.Namespace == schema.InvitationNamespace &&
+	if !allowed && object.Namespace == schema.InvitationNamespace &&
 		currentUser.Type == schema.UserPrincipal {
 		result2, checkErr := h.resourceService.CheckAuthz(ctx, resource.Check{
 			Object: object,
@@ -76,12 +74,15 @@ func (h *ConnectHandler) IsAuthorized(ctx context.Context, object relation.Objec
 				"user_email", currentUser.User.Email)
 			return handleAuthErr(checkErr)
 		}
-		if result2 {
-			return nil
-		}
+		allowed = result2
 	}
 
-	return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+	if !allowed {
+		return connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+	}
+
+	// the caller has permission; the target must also live in an enabled org
+	return h.ensureObjectOrgActive(ctx, object)
 }
 
 func handleAuthErr(err error) error {
