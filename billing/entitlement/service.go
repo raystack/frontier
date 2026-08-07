@@ -63,6 +63,13 @@ func (s *Service) Check(ctx context.Context, customerID, featureID string) (bool
 		return false, err
 	}
 
+	// a feature attached to no product cannot belong to any plan, so it grants no
+	// entitlement. Guard explicitly: an empty ProductIDs filter would otherwise match
+	// every product in the store and wrongly grant the feature to any active subscriber.
+	if len(feature.ProductIDs) == 0 {
+		return false, nil
+	}
+
 	// get all the products this feature is in
 	products, err := s.productService.List(ctx, product.Filter{
 		ProductIDs: feature.ProductIDs,

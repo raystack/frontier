@@ -153,6 +153,13 @@ const (
 	// AdminServiceListAllBillingAccountsProcedure is the fully-qualified name of the AdminService's
 	// ListAllBillingAccounts RPC.
 	AdminServiceListAllBillingAccountsProcedure = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
+	// AdminServiceCreatePlanProcedure is the fully-qualified name of the AdminService's CreatePlan RPC.
+	AdminServiceCreatePlanProcedure = "/raystack.frontier.v1beta1.AdminService/CreatePlan"
+	// AdminServiceUpdatePlanProcedure is the fully-qualified name of the AdminService's UpdatePlan RPC.
+	AdminServiceUpdatePlanProcedure = "/raystack.frontier.v1beta1.AdminService/UpdatePlan"
+	// AdminServiceListAllPlansProcedure is the fully-qualified name of the AdminService's ListAllPlans
+	// RPC.
+	AdminServiceListAllPlansProcedure = "/raystack.frontier.v1beta1.AdminService/ListAllPlans"
 	// AdminServiceRevertBillingUsageProcedure is the fully-qualified name of the AdminService's
 	// RevertBillingUsage RPC.
 	AdminServiceRevertBillingUsageProcedure = "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage"
@@ -280,6 +287,12 @@ type AdminServiceClient interface {
 	ListAllInvoices(context.Context, *connect.Request[v1beta1.ListAllInvoicesRequest]) (*connect.Response[v1beta1.ListAllInvoicesResponse], error)
 	GenerateInvoices(context.Context, *connect.Request[v1beta1.GenerateInvoicesRequest]) (*connect.Response[v1beta1.GenerateInvoicesResponse], error)
 	ListAllBillingAccounts(context.Context, *connect.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect.Response[v1beta1.ListAllBillingAccountsResponse], error)
+	// Plans
+	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
+	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
+	// ListAllPlans returns every plan, including inactive ones, unlike
+	// FrontierService.ListPlans which returns active plans only.
+	ListAllPlans(context.Context, *connect.Request[v1beta1.ListAllPlansRequest]) (*connect.Response[v1beta1.ListAllPlansResponse], error)
 	// Usage
 	RevertBillingUsage(context.Context, *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error)
 	// Webhooks
@@ -572,6 +585,24 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(adminServiceMethods.ByName("ListAllBillingAccounts")),
 			connect.WithClientOptions(opts...),
 		),
+		createPlan: connect.NewClient[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse](
+			httpClient,
+			baseURL+AdminServiceCreatePlanProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("CreatePlan")),
+			connect.WithClientOptions(opts...),
+		),
+		updatePlan: connect.NewClient[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse](
+			httpClient,
+			baseURL+AdminServiceUpdatePlanProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("UpdatePlan")),
+			connect.WithClientOptions(opts...),
+		),
+		listAllPlans: connect.NewClient[v1beta1.ListAllPlansRequest, v1beta1.ListAllPlansResponse](
+			httpClient,
+			baseURL+AdminServiceListAllPlansProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("ListAllPlans")),
+			connect.WithClientOptions(opts...),
+		),
 		revertBillingUsage: connect.NewClient[v1beta1.RevertBillingUsageRequest, v1beta1.RevertBillingUsageResponse](
 			httpClient,
 			baseURL+AdminServiceRevertBillingUsageProcedure,
@@ -738,6 +769,9 @@ type adminServiceClient struct {
 	listAllInvoices                          *connect.Client[v1beta1.ListAllInvoicesRequest, v1beta1.ListAllInvoicesResponse]
 	generateInvoices                         *connect.Client[v1beta1.GenerateInvoicesRequest, v1beta1.GenerateInvoicesResponse]
 	listAllBillingAccounts                   *connect.Client[v1beta1.ListAllBillingAccountsRequest, v1beta1.ListAllBillingAccountsResponse]
+	createPlan                               *connect.Client[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse]
+	updatePlan                               *connect.Client[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse]
+	listAllPlans                             *connect.Client[v1beta1.ListAllPlansRequest, v1beta1.ListAllPlansResponse]
 	revertBillingUsage                       *connect.Client[v1beta1.RevertBillingUsageRequest, v1beta1.RevertBillingUsageResponse]
 	createWebhook                            *connect.Client[v1beta1.CreateWebhookRequest, v1beta1.CreateWebhookResponse]
 	updateWebhook                            *connect.Client[v1beta1.UpdateWebhookRequest, v1beta1.UpdateWebhookResponse]
@@ -970,6 +1004,21 @@ func (c *adminServiceClient) ListAllBillingAccounts(ctx context.Context, req *co
 	return c.listAllBillingAccounts.CallUnary(ctx, req)
 }
 
+// CreatePlan calls raystack.frontier.v1beta1.AdminService.CreatePlan.
+func (c *adminServiceClient) CreatePlan(ctx context.Context, req *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error) {
+	return c.createPlan.CallUnary(ctx, req)
+}
+
+// UpdatePlan calls raystack.frontier.v1beta1.AdminService.UpdatePlan.
+func (c *adminServiceClient) UpdatePlan(ctx context.Context, req *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error) {
+	return c.updatePlan.CallUnary(ctx, req)
+}
+
+// ListAllPlans calls raystack.frontier.v1beta1.AdminService.ListAllPlans.
+func (c *adminServiceClient) ListAllPlans(ctx context.Context, req *connect.Request[v1beta1.ListAllPlansRequest]) (*connect.Response[v1beta1.ListAllPlansResponse], error) {
+	return c.listAllPlans.CallUnary(ctx, req)
+}
+
 // RevertBillingUsage calls raystack.frontier.v1beta1.AdminService.RevertBillingUsage.
 func (c *adminServiceClient) RevertBillingUsage(ctx context.Context, req *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error) {
 	return c.revertBillingUsage.CallUnary(ctx, req)
@@ -1139,6 +1188,12 @@ type AdminServiceHandler interface {
 	ListAllInvoices(context.Context, *connect.Request[v1beta1.ListAllInvoicesRequest]) (*connect.Response[v1beta1.ListAllInvoicesResponse], error)
 	GenerateInvoices(context.Context, *connect.Request[v1beta1.GenerateInvoicesRequest]) (*connect.Response[v1beta1.GenerateInvoicesResponse], error)
 	ListAllBillingAccounts(context.Context, *connect.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect.Response[v1beta1.ListAllBillingAccountsResponse], error)
+	// Plans
+	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
+	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
+	// ListAllPlans returns every plan, including inactive ones, unlike
+	// FrontierService.ListPlans which returns active plans only.
+	ListAllPlans(context.Context, *connect.Request[v1beta1.ListAllPlansRequest]) (*connect.Response[v1beta1.ListAllPlansResponse], error)
 	// Usage
 	RevertBillingUsage(context.Context, *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error)
 	// Webhooks
@@ -1427,6 +1482,24 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(adminServiceMethods.ByName("ListAllBillingAccounts")),
 		connect.WithHandlerOptions(opts...),
 	)
+	adminServiceCreatePlanHandler := connect.NewUnaryHandler(
+		AdminServiceCreatePlanProcedure,
+		svc.CreatePlan,
+		connect.WithSchema(adminServiceMethods.ByName("CreatePlan")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceUpdatePlanHandler := connect.NewUnaryHandler(
+		AdminServiceUpdatePlanProcedure,
+		svc.UpdatePlan,
+		connect.WithSchema(adminServiceMethods.ByName("UpdatePlan")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceListAllPlansHandler := connect.NewUnaryHandler(
+		AdminServiceListAllPlansProcedure,
+		svc.ListAllPlans,
+		connect.WithSchema(adminServiceMethods.ByName("ListAllPlans")),
+		connect.WithHandlerOptions(opts...),
+	)
 	adminServiceRevertBillingUsageHandler := connect.NewUnaryHandler(
 		AdminServiceRevertBillingUsageProcedure,
 		svc.RevertBillingUsage,
@@ -1631,6 +1704,12 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 			adminServiceGenerateInvoicesHandler.ServeHTTP(w, r)
 		case AdminServiceListAllBillingAccountsProcedure:
 			adminServiceListAllBillingAccountsHandler.ServeHTTP(w, r)
+		case AdminServiceCreatePlanProcedure:
+			adminServiceCreatePlanHandler.ServeHTTP(w, r)
+		case AdminServiceUpdatePlanProcedure:
+			adminServiceUpdatePlanHandler.ServeHTTP(w, r)
+		case AdminServiceListAllPlansProcedure:
+			adminServiceListAllPlansHandler.ServeHTTP(w, r)
 		case AdminServiceRevertBillingUsageProcedure:
 			adminServiceRevertBillingUsageHandler.ServeHTTP(w, r)
 		case AdminServiceCreateWebhookProcedure:
@@ -1842,6 +1921,18 @@ func (UnimplementedAdminServiceHandler) GenerateInvoices(context.Context, *conne
 
 func (UnimplementedAdminServiceHandler) ListAllBillingAccounts(context.Context, *connect.Request[v1beta1.ListAllBillingAccountsRequest]) (*connect.Response[v1beta1.ListAllBillingAccountsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.CreatePlan is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.UpdatePlan is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) ListAllPlans(context.Context, *connect.Request[v1beta1.ListAllPlansRequest]) (*connect.Response[v1beta1.ListAllPlansResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.AdminService.ListAllPlans is not implemented"))
 }
 
 func (UnimplementedAdminServiceHandler) RevertBillingUsage(context.Context, *connect.Request[v1beta1.RevertBillingUsageRequest]) (*connect.Response[v1beta1.RevertBillingUsageResponse], error) {

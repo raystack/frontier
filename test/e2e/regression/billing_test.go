@@ -312,12 +312,15 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().NotEmpty(listPlansResp.Msg.GetPlans())
 	})
 	s.Run("2. create a plan successfully", func() {
-		createPlanResp, err := s.testBench.Client.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
+		createPlanResp, err := s.testBench.AdminClient.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
 			Body: &frontierv1beta1.PlanRequestBody{
-				Name:        "test-plan-2",
-				Title:       "Test Plan 2",
-				Description: "Test Plan 2",
-				Interval:    "month",
+				Name:           "test-plan-2",
+				Title:          "Test Plan 2",
+				Description:    "Test Plan 2",
+				Interval:       "month",
+				State:          "active",
+				OnStartCredits: 500,
+				TrialDays:      14,
 				Products: []*frontierv1beta1.Product{
 					{
 						Name:        "test-plan-product-2",
@@ -337,6 +340,8 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPlanResp)
 		s.Assert().NotNil(createPlanResp.Msg.GetPlan().GetProducts())
+		s.Assert().Equal(int64(500), createPlanResp.Msg.GetPlan().GetOnStartCredits())
+		s.Assert().Equal(int64(14), createPlanResp.Msg.GetPlan().GetTrialDays())
 
 		getPlanResp, err := s.testBench.Client.GetPlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPlanRequest{
 			Id: createPlanResp.Msg.GetPlan().GetId(),
@@ -346,6 +351,92 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().Equal(createPlanResp.Msg.GetPlan().GetId(), getPlanResp.Msg.GetPlan().GetId())
 		s.Assert().Equal(createPlanResp.Msg.GetPlan().GetProducts(), getPlanResp.Msg.GetPlan().GetProducts())
 	})
+	s.Run("3. update a plan and disable it", func() {
+		// capture the fields UpdatePlan must not change
+		before, err := s.testBench.Client.GetPlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPlanRequest{
+			Id: "test-plan-2",
+		}))
+		s.Require().NoError(err)
+
+		// UpdatePlan is a full write: on_start_credits and trial_days are left out of
+		// the body, so they are cleared to zero even though the plan was created with
+		// 500 and 14. A caller must send every field it wants to keep.
+		updatePlanResp, err := s.testBench.AdminClient.UpdatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+			Id: "test-plan-2",
+			Body: &frontierv1beta1.UpdatePlanRequestBody{
+				Title:       "Test Plan 2 Renamed",
+				Description: "Test Plan 2 Renamed",
+				State:       "inactive",
+			},
+		}))
+		s.Assert().NoError(err)
+		s.Assert().NotNil(updatePlanResp)
+		s.Assert().Equal("Test Plan 2 Renamed", updatePlanResp.Msg.GetPlan().GetTitle())
+		s.Assert().Equal("inactive", updatePlanResp.Msg.GetPlan().GetState())
+		// the omitted fields are cleared by the full write
+		s.Assert().Zero(updatePlanResp.Msg.GetPlan().GetOnStartCredits())
+		s.Assert().Zero(updatePlanResp.Msg.GetPlan().GetTrialDays())
+		// UpdatePlan must not touch name, interval, or products
+		s.Assert().Equal(before.Msg.GetPlan().GetName(), updatePlanResp.Msg.GetPlan().GetName())
+		s.Assert().Equal(before.Msg.GetPlan().GetInterval(), updatePlanResp.Msg.GetPlan().GetInterval())
+		s.Assert().Equal(before.Msg.GetPlan().GetProducts(), updatePlanResp.Msg.GetPlan().GetProducts())
+	})
+	s.Run("4. update a missing plan returns not found", func() {
+		_, err := s.testBench.AdminClient.UpdatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdatePlanRequest{
+			Id:   "does-not-exist",
+			Body: &frontierv1beta1.UpdatePlanRequestBody{Title: "x", State: "active"},
+		}))
+		s.Assert().Error(err)
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+	s.Run("5. list all plans surfaces the inactive plan, ListPlans hides it", func() {
+		// ListPlans returns active plans only
+		listPlansResp, err := s.testBench.Client.ListPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPlansRequest{}))
+		s.Assert().NoError(err)
+		s.Assert().False(hasPlanNamed(listPlansResp.Msg.GetPlans(), "test-plan-2"))
+
+		// ListAllPlans with an empty state returns every plan, including inactive ones
+		listAllResp, err := s.testBench.AdminClient.ListAllPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{}))
+		s.Assert().NoError(err)
+		s.Assert().True(hasPlanNamed(listAllResp.Msg.GetPlans(), "test-plan-2"))
+		s.Assert().True(hasPlanWithState(listAllResp.Msg.GetPlans(), "active"), "empty filter should also return active plans")
+
+		// the state filter narrows to exactly that state
+		listInactiveResp, err := s.testBench.AdminClient.ListAllPlans(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAllPlansRequest{State: "inactive"}))
+		s.Assert().NoError(err)
+		s.Assert().True(hasPlanNamed(listInactiveResp.Msg.GetPlans(), "test-plan-2"))
+		s.Assert().True(allPlansHaveState(listInactiveResp.Msg.GetPlans(), "inactive"), "inactive filter should return only inactive plans")
+	})
+}
+
+func hasPlanNamed(plans []*frontierv1beta1.Plan, name string) bool {
+	for _, p := range plans {
+		if p.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
+func hasPlanWithState(plans []*frontierv1beta1.Plan, state string) bool {
+	for _, p := range plans {
+		if p.GetState() == state {
+			return true
+		}
+	}
+	return false
+}
+
+func allPlansHaveState(plans []*frontierv1beta1.Plan, state string) bool {
+	if len(plans) == 0 {
+		return false
+	}
+	for _, p := range plans {
+		if p.GetState() != state {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *BillingRegressionTestSuite) TestProductsAPI() {
@@ -1305,12 +1396,13 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 	s.Assert().NoError(err)
 	s.disableExistingBillingAccounts(ctxOrgAdminAuth, createOrgResp.Msg.GetOrganization().GetId())
 
-	createPlanResp, err := s.testBench.Client.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
+	createPlanResp, err := s.testBench.AdminClient.CreatePlan(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
 		Body: &frontierv1beta1.PlanRequestBody{
 			Name:        "test-plan-entitlement-1",
 			Title:       "Test Plan 1",
 			Description: "Test Plan 1",
 			Interval:    "month",
+			State:       "active",
 			Products: []*frontierv1beta1.Product{
 				{
 					Name:        "test-plan-product-2",

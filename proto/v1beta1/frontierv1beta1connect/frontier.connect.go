@@ -490,17 +490,11 @@ const (
 	// FrontierServiceListFeaturesProcedure is the fully-qualified name of the FrontierService's
 	// ListFeatures RPC.
 	FrontierServiceListFeaturesProcedure = "/raystack.frontier.v1beta1.FrontierService/ListFeatures"
-	// FrontierServiceCreatePlanProcedure is the fully-qualified name of the FrontierService's
-	// CreatePlan RPC.
-	FrontierServiceCreatePlanProcedure = "/raystack.frontier.v1beta1.FrontierService/CreatePlan"
 	// FrontierServiceListPlansProcedure is the fully-qualified name of the FrontierService's ListPlans
 	// RPC.
 	FrontierServiceListPlansProcedure = "/raystack.frontier.v1beta1.FrontierService/ListPlans"
 	// FrontierServiceGetPlanProcedure is the fully-qualified name of the FrontierService's GetPlan RPC.
 	FrontierServiceGetPlanProcedure = "/raystack.frontier.v1beta1.FrontierService/GetPlan"
-	// FrontierServiceUpdatePlanProcedure is the fully-qualified name of the FrontierService's
-	// UpdatePlan RPC.
-	FrontierServiceUpdatePlanProcedure = "/raystack.frontier.v1beta1.FrontierService/UpdatePlan"
 	// FrontierServiceCreateCheckoutProcedure is the fully-qualified name of the FrontierService's
 	// CreateCheckout RPC.
 	FrontierServiceCreateCheckoutProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateCheckout"
@@ -750,10 +744,8 @@ type FrontierServiceClient interface {
 	UpdateFeature(context.Context, *connect.Request[v1beta1.UpdateFeatureRequest]) (*connect.Response[v1beta1.UpdateFeatureResponse], error)
 	ListFeatures(context.Context, *connect.Request[v1beta1.ListFeaturesRequest]) (*connect.Response[v1beta1.ListFeaturesResponse], error)
 	// Plans
-	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
 	ListPlans(context.Context, *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error)
 	GetPlan(context.Context, *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error)
-	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
 	// Checkout
 	CreateCheckout(context.Context, *connect.Request[v1beta1.CreateCheckoutRequest]) (*connect.Response[v1beta1.CreateCheckoutResponse], error)
 	ListCheckouts(context.Context, *connect.Request[v1beta1.ListCheckoutsRequest]) (*connect.Response[v1beta1.ListCheckoutsResponse], error)
@@ -1716,12 +1708,6 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("ListFeatures")),
 			connect.WithClientOptions(opts...),
 		),
-		createPlan: connect.NewClient[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse](
-			httpClient,
-			baseURL+FrontierServiceCreatePlanProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("CreatePlan")),
-			connect.WithClientOptions(opts...),
-		),
 		listPlans: connect.NewClient[v1beta1.ListPlansRequest, v1beta1.ListPlansResponse](
 			httpClient,
 			baseURL+FrontierServiceListPlansProcedure,
@@ -1732,12 +1718,6 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceGetPlanProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("GetPlan")),
-			connect.WithClientOptions(opts...),
-		),
-		updatePlan: connect.NewClient[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse](
-			httpClient,
-			baseURL+FrontierServiceUpdatePlanProcedure,
-			connect.WithSchema(frontierServiceMethods.ByName("UpdatePlan")),
 			connect.WithClientOptions(opts...),
 		),
 		createCheckout: connect.NewClient[v1beta1.CreateCheckoutRequest, v1beta1.CreateCheckoutResponse](
@@ -2036,10 +2016,8 @@ type frontierServiceClient struct {
 	getFeature                     *connect.Client[v1beta1.GetFeatureRequest, v1beta1.GetFeatureResponse]
 	updateFeature                  *connect.Client[v1beta1.UpdateFeatureRequest, v1beta1.UpdateFeatureResponse]
 	listFeatures                   *connect.Client[v1beta1.ListFeaturesRequest, v1beta1.ListFeaturesResponse]
-	createPlan                     *connect.Client[v1beta1.CreatePlanRequest, v1beta1.CreatePlanResponse]
 	listPlans                      *connect.Client[v1beta1.ListPlansRequest, v1beta1.ListPlansResponse]
 	getPlan                        *connect.Client[v1beta1.GetPlanRequest, v1beta1.GetPlanResponse]
-	updatePlan                     *connect.Client[v1beta1.UpdatePlanRequest, v1beta1.UpdatePlanResponse]
 	createCheckout                 *connect.Client[v1beta1.CreateCheckoutRequest, v1beta1.CreateCheckoutResponse]
 	listCheckouts                  *connect.Client[v1beta1.ListCheckoutsRequest, v1beta1.ListCheckoutsResponse]
 	getCheckout                    *connect.Client[v1beta1.GetCheckoutRequest, v1beta1.GetCheckoutResponse]
@@ -2853,11 +2831,6 @@ func (c *frontierServiceClient) ListFeatures(ctx context.Context, req *connect.R
 	return c.listFeatures.CallUnary(ctx, req)
 }
 
-// CreatePlan calls raystack.frontier.v1beta1.FrontierService.CreatePlan.
-func (c *frontierServiceClient) CreatePlan(ctx context.Context, req *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error) {
-	return c.createPlan.CallUnary(ctx, req)
-}
-
 // ListPlans calls raystack.frontier.v1beta1.FrontierService.ListPlans.
 func (c *frontierServiceClient) ListPlans(ctx context.Context, req *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error) {
 	return c.listPlans.CallUnary(ctx, req)
@@ -2866,11 +2839,6 @@ func (c *frontierServiceClient) ListPlans(ctx context.Context, req *connect.Requ
 // GetPlan calls raystack.frontier.v1beta1.FrontierService.GetPlan.
 func (c *frontierServiceClient) GetPlan(ctx context.Context, req *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error) {
 	return c.getPlan.CallUnary(ctx, req)
-}
-
-// UpdatePlan calls raystack.frontier.v1beta1.FrontierService.UpdatePlan.
-func (c *frontierServiceClient) UpdatePlan(ctx context.Context, req *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error) {
-	return c.updatePlan.CallUnary(ctx, req)
 }
 
 // CreateCheckout calls raystack.frontier.v1beta1.FrontierService.CreateCheckout.
@@ -3172,10 +3140,8 @@ type FrontierServiceHandler interface {
 	UpdateFeature(context.Context, *connect.Request[v1beta1.UpdateFeatureRequest]) (*connect.Response[v1beta1.UpdateFeatureResponse], error)
 	ListFeatures(context.Context, *connect.Request[v1beta1.ListFeaturesRequest]) (*connect.Response[v1beta1.ListFeaturesResponse], error)
 	// Plans
-	CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error)
 	ListPlans(context.Context, *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error)
 	GetPlan(context.Context, *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error)
-	UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error)
 	// Checkout
 	CreateCheckout(context.Context, *connect.Request[v1beta1.CreateCheckoutRequest]) (*connect.Response[v1beta1.CreateCheckoutResponse], error)
 	ListCheckouts(context.Context, *connect.Request[v1beta1.ListCheckoutsRequest]) (*connect.Response[v1beta1.ListCheckoutsResponse], error)
@@ -4134,12 +4100,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("ListFeatures")),
 		connect.WithHandlerOptions(opts...),
 	)
-	frontierServiceCreatePlanHandler := connect.NewUnaryHandler(
-		FrontierServiceCreatePlanProcedure,
-		svc.CreatePlan,
-		connect.WithSchema(frontierServiceMethods.ByName("CreatePlan")),
-		connect.WithHandlerOptions(opts...),
-	)
 	frontierServiceListPlansHandler := connect.NewUnaryHandler(
 		FrontierServiceListPlansProcedure,
 		svc.ListPlans,
@@ -4150,12 +4110,6 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceGetPlanProcedure,
 		svc.GetPlan,
 		connect.WithSchema(frontierServiceMethods.ByName("GetPlan")),
-		connect.WithHandlerOptions(opts...),
-	)
-	frontierServiceUpdatePlanHandler := connect.NewUnaryHandler(
-		FrontierServiceUpdatePlanProcedure,
-		svc.UpdatePlan,
-		connect.WithSchema(frontierServiceMethods.ByName("UpdatePlan")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceCreateCheckoutHandler := connect.NewUnaryHandler(
@@ -4604,14 +4558,10 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceUpdateFeatureHandler.ServeHTTP(w, r)
 		case FrontierServiceListFeaturesProcedure:
 			frontierServiceListFeaturesHandler.ServeHTTP(w, r)
-		case FrontierServiceCreatePlanProcedure:
-			frontierServiceCreatePlanHandler.ServeHTTP(w, r)
 		case FrontierServiceListPlansProcedure:
 			frontierServiceListPlansHandler.ServeHTTP(w, r)
 		case FrontierServiceGetPlanProcedure:
 			frontierServiceGetPlanHandler.ServeHTTP(w, r)
-		case FrontierServiceUpdatePlanProcedure:
-			frontierServiceUpdatePlanHandler.ServeHTTP(w, r)
 		case FrontierServiceCreateCheckoutProcedure:
 			frontierServiceCreateCheckoutHandler.ServeHTTP(w, r)
 		case FrontierServiceListCheckoutsProcedure:
@@ -5279,20 +5229,12 @@ func (UnimplementedFrontierServiceHandler) ListFeatures(context.Context, *connec
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListFeatures is not implemented"))
 }
 
-func (UnimplementedFrontierServiceHandler) CreatePlan(context.Context, *connect.Request[v1beta1.CreatePlanRequest]) (*connect.Response[v1beta1.CreatePlanResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreatePlan is not implemented"))
-}
-
 func (UnimplementedFrontierServiceHandler) ListPlans(context.Context, *connect.Request[v1beta1.ListPlansRequest]) (*connect.Response[v1beta1.ListPlansResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListPlans is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) GetPlan(context.Context, *connect.Request[v1beta1.GetPlanRequest]) (*connect.Response[v1beta1.GetPlanResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.GetPlan is not implemented"))
-}
-
-func (UnimplementedFrontierServiceHandler) UpdatePlan(context.Context, *connect.Request[v1beta1.UpdatePlanRequest]) (*connect.Response[v1beta1.UpdatePlanResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdatePlan is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) CreateCheckout(context.Context, *connect.Request[v1beta1.CreateCheckoutRequest]) (*connect.Response[v1beta1.CreateCheckoutResponse], error) {

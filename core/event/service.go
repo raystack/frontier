@@ -30,7 +30,10 @@ import (
 	"github.com/raystack/frontier/core/organization"
 )
 
-var ErrDefaultPlanNotFree = errors.New("default plan is not free")
+var (
+	ErrDefaultPlanNotFree  = errors.New("default plan is not free")
+	ErrDefaultPlanInactive = errors.New("default plan is inactive")
+)
 
 type CheckoutService interface {
 	Apply(ctx context.Context, ch checkout.Checkout) (*subscription.Subscription, *product.Product, error)
@@ -154,6 +157,13 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 			defaultPlan, err := p.planService.GetByID(ctx, p.billingConf.AccountConfig.DefaultPlan)
 			if err != nil {
 				return fmt.Errorf("failed to get default plan: %w", err)
+			}
+
+			// a retired (inactive) default plan is config drift: do not silently
+			// onboard new orgs onto it. Fail loudly so the misconfiguration surfaces
+			// (the listener logs it); the org already exists, so no signup is lost.
+			if defaultPlan.IsInactive() {
+				return ErrDefaultPlanInactive
 			}
 
 			if !defaultPlan.IsFree() {
