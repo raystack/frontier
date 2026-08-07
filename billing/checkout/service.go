@@ -251,6 +251,11 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			return Checkout{}, ErrAlreadySubscribed
 		}
 
+		// a retired (inactive) plan is closed to new subscriptions
+		if plan.IsInactive() {
+			return Checkout{}, fmt.Errorf("plan %q: %w", plan.Name, ErrPlanInactive)
+		}
+
 		// create subscription items
 		var subsItems []*stripe.CheckoutSessionLineItemParams
 
@@ -895,6 +900,11 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, err
 		} else if subID != "" {
 			return nil, nil, ErrAlreadySubscribed
+		}
+
+		// a retired (inactive) plan is closed to new subscriptions
+		if plan.IsInactive() {
+			return nil, nil, fmt.Errorf("plan %q: %w", plan.Name, ErrPlanInactive)
 		}
 
 		if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {

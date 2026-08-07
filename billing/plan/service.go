@@ -73,6 +73,30 @@ func (s Service) Create(ctx context.Context, p Plan) (Plan, error) {
 	return s.planRepository.Create(ctx, p)
 }
 
+// UpdatePlan updates a plan's own fields: title, description, credits, trial
+// days, state, and metadata. A plan's products are managed through UpsertPlans,
+// so they are left untouched here. The plan is looked up by id or name.
+func (s Service) UpdatePlan(ctx context.Context, p Plan) (Plan, error) {
+	existing, err := s.GetByID(ctx, p.ID)
+	if err != nil {
+		return Plan{}, err
+	}
+	existing.Title = p.Title
+	existing.Description = p.Description
+	existing.OnStartCredits = p.OnStartCredits
+	existing.TrialDays = p.TrialDays
+	existing.State = p.State
+	existing.Metadata = p.Metadata
+	updated, err := s.planRepository.UpdateByName(ctx, existing)
+	if err != nil {
+		return Plan{}, err
+	}
+	// UpdateByName returns the updated row, and an update never touches products,
+	// so reuse the ones already loaded instead of re-fetching and re-enriching.
+	updated.Products = existing.Products
+	return updated, nil
+}
+
 func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
 	var fetchedPlan Plan
 	var err error
@@ -280,7 +304,12 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		} else if err != nil {
 			return err
 		} else {
-			// update plan
+			// update plan; the plan file may omit state on this seed path, so
+			// keep the existing plan's state rather than blanking it
+			state := planToCreate.State
+			if state == "" {
+				state = planOb.State
+			}
 			if _, err = s.planRepository.UpdateByName(ctx, Plan{
 				ID:             planOb.ID,
 				Name:           planToCreate.Name,
@@ -289,7 +318,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Description:    planToCreate.Description,
 				TrialDays:      planToCreate.TrialDays,
 				Metadata:       planToCreate.Metadata,
-				State:          planToCreate.State,
+				State:          state,
 			}); err != nil {
 				return err
 			}

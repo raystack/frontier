@@ -14,7 +14,22 @@ var (
 	ErrInvalidUUID   = errors.New("invalid syntax of uuid")
 	ErrInvalidName   = errors.New("plan name is invalid")
 	ErrInvalidDetail = errors.New("invalid plan detail")
+	// ErrPlanInactive is the single sentinel for "a retired plan cannot take a new
+	// subscription". checkout and subscription both surface it, so a handler maps
+	// one error to one client code.
+	ErrPlanInactive = errors.New("plan is inactive and cannot be subscribed to")
 )
+
+const (
+	StateActive   = "active"
+	StateInactive = "inactive"
+)
+
+// IsInactive reports whether the plan is retired: hidden from ListPlans and
+// closed to new subscriptions. Existing subscriptions on it keep working.
+func (p Plan) IsInactive() bool {
+	return p.State == StateInactive
+}
 
 // Plan is a collection of products
 // it is a logical grouping of products and doesn't have

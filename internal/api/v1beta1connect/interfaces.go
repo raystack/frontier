@@ -197,6 +197,7 @@ type PlanService interface {
 	Create(ctx context.Context, plan plan.Plan) (plan.Plan, error)
 	List(ctx context.Context, filter plan.Filter) ([]plan.Plan, error)
 	UpsertPlans(ctx context.Context, planFile plan.File) error
+	UpdatePlan(ctx context.Context, plan plan.Plan) (plan.Plan, error)
 }
 
 type PreferenceService interface {

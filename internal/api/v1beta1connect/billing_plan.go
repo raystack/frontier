@@ -2,6 +2,7 @@ package v1beta1connect
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -71,6 +72,7 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 		Products:       products,
 		OnStartCredits: request.Msg.GetBody().GetOnStartCredits(),
 		TrialDays:      request.Msg.GetBody().GetTrialDays(),
+		State:          request.Msg.GetBody().GetState(),
 		Metadata:       metaDataMap,
 	}
 
@@ -95,21 +97,76 @@ func (h *ConnectHandler) CreatePlan(ctx context.Context, request *connect.Reques
 	return connect.NewResponse(&frontierv1beta1.CreatePlanResponse{Plan: planPB}), nil
 }
 
-func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListPlansRequest]) (*connect.Response[frontierv1beta1.ListPlansResponse], error) {
-	var plans []*frontierv1beta1.Plan
-	planList, err := h.planService.List(ctx, plan.Filter{})
+func (h *ConnectHandler) UpdatePlan(ctx context.Context, request *connect.Request[frontierv1beta1.UpdatePlanRequest]) (*connect.Response[frontierv1beta1.UpdatePlanResponse], error) {
+	body := request.Msg.GetBody()
+	// UpdatePlan changes a plan's own fields (title, description, credits, trial
+	// days, state, metadata). A plan's products are managed through CreatePlan's
+	// upsert, not here, so they are not read from the request.
+	updatedPlan, err := h.planService.UpdatePlan(ctx, plan.Plan{
+		ID:             request.Msg.GetId(),
+		Title:          body.GetTitle(),
+		Description:    body.GetDescription(),
+		OnStartCredits: body.GetOnStartCredits(),
+		TrialDays:      body.GetTrialDays(),
+		State:          body.GetState(),
+		Metadata:       metadata.Build(body.GetMetadata().AsMap()),
+	})
 	if err != nil {
-		return nil, mapBillingError(ctx, fmt.Errorf("ListPlans.List: %w", err))
+		switch {
+		case errors.Is(err, plan.ErrNotFound):
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, plan.ErrInvalidName), errors.Is(err, plan.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePlan.UpdatePlan: plan_id=%s: %w", request.Msg.GetId(), err))
+		}
 	}
+
+	planPB, err := transformPlanToPB(updatedPlan)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdatePlan: plan_id=%s: %w", updatedPlan.ID, err))
+	}
+
+	return connect.NewResponse(&frontierv1beta1.UpdatePlanResponse{Plan: planPB}), nil
+}
+
+// listPlansToPB fetches the plans matching filter and transforms them to proto.
+// Shared by ListPlans (FrontierService, active only) and ListAllPlans
+// (AdminService, any state) so the two endpoints cannot drift; both route
+// failures through mapBillingError.
+func (h *ConnectHandler) listPlansToPB(ctx context.Context, filter plan.Filter) ([]*frontierv1beta1.Plan, error) {
+	planList, err := h.planService.List(ctx, filter)
+	if err != nil {
+		return nil, mapBillingError(ctx, fmt.Errorf("listPlans.List: %w", err))
+	}
+	var plans []*frontierv1beta1.Plan
 	for _, v := range planList {
 		planPB, err := transformPlanToPB(v)
 		if err != nil {
-			return nil, mapBillingError(ctx, fmt.Errorf("ListPlans: plan_id=%s: %w", v.ID, err))
+			return nil, mapBillingError(ctx, fmt.Errorf("listPlans: plan_id=%s: %w", v.ID, err))
 		}
 		plans = append(plans, planPB)
 	}
+	return plans, nil
+}
 
+func (h *ConnectHandler) ListPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListPlansRequest]) (*connect.Response[frontierv1beta1.ListPlansResponse], error) {
+	// ListPlans surfaces active plans only.
+	plans, err := h.listPlansToPB(ctx, plan.Filter{State: plan.StateActive})
+	if err != nil {
+		return nil, err
+	}
 	return connect.NewResponse(&frontierv1beta1.ListPlansResponse{Plans: plans}), nil
+}
+
+func (h *ConnectHandler) ListAllPlans(ctx context.Context, request *connect.Request[frontierv1beta1.ListAllPlansRequest]) (*connect.Response[frontierv1beta1.ListAllPlansResponse], error) {
+	// ListAllPlans lists every plan: an empty state means all states, a set state
+	// filters to it. (ListPlans lists active plans only.)
+	plans, err := h.listPlansToPB(ctx, plan.Filter{State: request.Msg.GetState()})
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&frontierv1beta1.ListAllPlansResponse{Plans: plans}), nil
 }
 
 func (h *ConnectHandler) GetPlan(ctx context.Context, request *connect.Request[frontierv1beta1.GetPlanRequest]) (*connect.Response[frontierv1beta1.GetPlanResponse], error) {
@@ -153,6 +210,7 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 		OnStartCredits: p.OnStartCredits,
 		Products:       products,
 		TrialDays:      p.TrialDays,
+		State:          p.State,
 		Metadata:       metaData,
 		CreatedAt:      timestamppb.New(p.CreatedAt),
 		UpdatedAt:      timestamppb.New(p.UpdatedAt),
