@@ -38,6 +38,7 @@ type ProjectService interface {
 
 type OrgService interface {
 	Get(ctx context.Context, idOrName string) (organization.Organization, error)
+	GetRaw(ctx context.Context, idOrName string) (organization.Organization, error)
 }
 
 type PATService interface {
@@ -282,8 +283,11 @@ func (s Service) buildRelationObject(ctx context.Context, obj relation.Object) (
 				obj.ID = project.ID
 			}
 			if obj.Namespace == schema.OrganizationNamespace {
-				// if object is org, then fetch org by name
-				org, err := s.orgService.Get(ctx, obj.ID)
+				// if object is org, then fetch org by name. The lookup is
+				// state blind on purpose: the permission check must run
+				// before org state matters, so a disabled org resolves here
+				// and the authorization layer decides the outcome
+				org, err := s.orgService.GetRaw(ctx, obj.ID)
 				if err != nil {
 					return obj, err
 				}

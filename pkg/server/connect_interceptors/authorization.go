@@ -144,12 +144,7 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/PingUserSession": true,
 	"/raystack.frontier.v1beta1.FrontierService/RevokeSession":   true,
 
-	"/raystack.frontier.v1beta1.FrontierService/CheckCurrentUserPATTitle": true,
-	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUserPAT":        true,
-	"/raystack.frontier.v1beta1.FrontierService/DeleteCurrentUserPAT":     true,
-	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUserPAT":     true,
-	"/raystack.frontier.v1beta1.FrontierService/RegenerateCurrentUserPAT": true,
-	"/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT":          true,
+	"/raystack.frontier.v1beta1.FrontierService/ListRolesForPAT": true,
 }
 
 // patDeniedEndpoints lists endpoints that (org scoped) PATs cannot call. Will be called by SDK(UI)
@@ -791,6 +786,31 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	frontierv1beta1connect.FrontierServiceSearchCurrentUserPATsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
 		pbreq := req.(*connect.Request[frontierv1beta1.SearchCurrentUserPATsRequest])
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+	},
+
+	frontierv1beta1connect.FrontierServiceCheckCurrentUserPATTitleProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.CheckCurrentUserPATTitleRequest])
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId()}, schema.GetPermission, req)
+	},
+
+	// the id based PAT RPCs scope ownership by the logged-in user inside the
+	// handler; authorization here only makes sure the token's org is not
+	// disabled
+	frontierv1beta1connect.FrontierServiceGetCurrentUserPATProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.GetCurrentUserPATRequest])
+		return handler.EnsurePATOrgActive(ctx, pbreq.Msg.GetId())
+	},
+	frontierv1beta1connect.FrontierServiceUpdateCurrentUserPATProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.UpdateCurrentUserPATRequest])
+		return handler.EnsurePATOrgActive(ctx, pbreq.Msg.GetId())
+	},
+	frontierv1beta1connect.FrontierServiceDeleteCurrentUserPATProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.DeleteCurrentUserPATRequest])
+		return handler.EnsurePATOrgActive(ctx, pbreq.Msg.GetId())
+	},
+	frontierv1beta1connect.FrontierServiceRegenerateCurrentUserPATProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.RegenerateCurrentUserPATRequest])
+		return handler.EnsurePATOrgActive(ctx, pbreq.Msg.GetId())
 	},
 
 	frontierv1beta1connect.AdminServiceListAuditRecordsProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
