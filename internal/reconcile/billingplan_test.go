@@ -66,6 +66,32 @@ func TestValidateBillingPlanSpec(t *testing.T) {
 	}
 }
 
+// The docs and the diff both treat an omitted state as active, so a file that
+// leaves state out is valid and must pass the up-front check. Before the fix the
+// create and update bodies sent an empty state, which the proto's state enum
+// rejected, so a valid file failed at Validate even though the diff and the store
+// would have defaulted it to active.
+func TestValidateBillingPlanRequest_DefaultsOmittedStateToActive(t *testing.T) {
+	s := newBillingPlan()
+	s.State = "" // omitted
+
+	t.Run("create", func(t *testing.T) {
+		assert.NoError(t, validateBillingPlanRequest(billingPlanOp{action: opAdd, spec: s}))
+	})
+	t.Run("update", func(t *testing.T) {
+		assert.NoError(t, validateBillingPlanRequest(billingPlanOp{action: opUpdate, id: "p1", spec: s}))
+	})
+}
+
+// Validate is the up-front, server-free check Run calls on every document before
+// anything applies. A hand-written file that omits state relies on the documented
+// default of active, so Validate must accept it.
+func TestBillingPlanReconciler_Validate_AcceptsOmittedState(t *testing.T) {
+	spec := []byte("- name: standard_monthly\n  title: Standard\n  interval: month\n  products:\n    - name: prod_a\n")
+	r := NewBillingPlanReconciler(nil, "")
+	assert.NoError(t, r.Validate(spec))
+}
+
 func TestDiffBillingPlans(t *testing.T) {
 	t.Run("adds a plan the server does not have", func(t *testing.T) {
 		desired := []BillingPlanSpec{

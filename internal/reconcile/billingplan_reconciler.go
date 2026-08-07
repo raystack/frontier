@@ -231,7 +231,9 @@ func (r *BillingPlanReconciler) apply(ctx context.Context, op billingPlanOp) err
 
 // billingPlanCreateBody builds the CreatePlan body. The whole desired plan is
 // sent, including its product references by name; CreatePlan's upsert associates
-// them. Metadata is out of scope, so it is not set on create.
+// them. An omitted state defaults to active (as the docs, the diff, and the store
+// all treat it), so a file that leaves state out passes the proto's state enum.
+// Metadata is out of scope, so it is not set on create.
 func billingPlanCreateBody(s BillingPlanSpec) *frontierv1beta1.PlanRequestBody {
 	products := make([]*frontierv1beta1.Product, 0, len(s.Products))
 	for _, p := range s.Products {
@@ -244,22 +246,23 @@ func billingPlanCreateBody(s BillingPlanSpec) *frontierv1beta1.PlanRequestBody {
 		Interval:       strings.ToLower(s.Interval),
 		OnStartCredits: s.OnStartCredits,
 		TrialDays:      s.TrialDays,
-		State:          strings.ToLower(s.State),
+		State:          normalizeBillingPlanState(s.State),
 		Products:       products,
 	}
 }
 
 // billingPlanUpdateBody builds the UpdatePlan body. It carries only the fields
-// UpdatePlan can change; interval, name, and products are create-only. Metadata is
-// out of scope, but UpdatePlan is a full write of the fields it carries, so the
-// current metadata is re-sent to keep it rather than clear it.
+// UpdatePlan can change; interval, name, and products are create-only. An omitted
+// state defaults to active, the same as on create. Metadata is out of scope, but
+// UpdatePlan is a full write of the fields it carries, so the current metadata is
+// re-sent to keep it rather than clear it.
 func billingPlanUpdateBody(s BillingPlanSpec, metadata *structpb.Struct) *frontierv1beta1.UpdatePlanRequestBody {
 	return &frontierv1beta1.UpdatePlanRequestBody{
 		Title:          s.Title,
 		Description:    s.Description,
 		OnStartCredits: s.OnStartCredits,
 		TrialDays:      s.TrialDays,
-		State:          strings.ToLower(s.State),
+		State:          normalizeBillingPlanState(s.State),
 		Metadata:       metadata,
 	}
 }
