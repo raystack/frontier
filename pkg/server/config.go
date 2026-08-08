@@ -70,14 +70,6 @@ type Config struct {
 	// Headers which will have user's email id
 	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:""`
 
-	// ResourcesPath is a directory path where resources is defined
-	// that this service should implement
-	ResourcesConfigPath string `yaml:"resources_config_path" mapstructure:"resources_config_path"`
-
-	// ResourcesPathSecretSecret could be an env name, file path or actual value required
-	// to access ResourcesPathSecretPath files
-	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
-
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
 
 	// Cors configuration setup origin value from where we want to allow cors
