@@ -26,8 +26,6 @@ import {
 import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import SidePanelDetails from "./sidepanel-details";
-import { useQueryClient } from "@tanstack/react-query";
-import { AUDIT_LOG_QUERY_KEY } from "./util";
 import { useTerminology } from "../../hooks/useTerminology";
 
 const NoAuditLogs = () => {
@@ -74,7 +72,6 @@ export type AuditLogsViewProps = {
 
 export default function AuditLogsView({ appName, onExportCsv, onNavigate }: AuditLogsViewProps = {}) {
   const t = useTerminology();
-  const queryClient = useQueryClient();
   const [tableQuery, setTableQuery] = useDebouncedState<{
     query: DataTableQuery;
     rqlRequest: RQLRequest;
@@ -133,13 +130,12 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
         updatedQuery,
         TRANSFORM_OPTIONS,
       );
-      queryClient.setQueryData(AUDIT_LOG_QUERY_KEY, updatedRQLRequest);
       setTableQuery({
         query: updatedQuery,
         rqlRequest: updatedRQLRequest,
       });
     },
-    [queryClient],
+    [setTableQuery],
   );
 
   const handleLoadMore = async () => {
@@ -206,7 +202,11 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
         onLoadMore={handleLoadMore}
         onRowClick={onRowClick}>
         <Flex direction="column" style={{ width: "100%" }}>
-          <Navbar searchQuery={tableQuery.query.search} onExportCsv={onExportCsv} />
+          <Navbar
+            searchQuery={tableQuery.query.search}
+            exportQuery={tableQuery.rqlRequest}
+            onExportCsv={onExportCsv}
+          />
           <DataTable.Toolbar />
           <Flex className={styles["table-content-container"]}>
             <DataTable.VirtualizedContent

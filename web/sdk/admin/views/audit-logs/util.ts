@@ -40,8 +40,6 @@ export const ACTOR_TYPES = {
   SYSTEM: "system",
 } as const;
 
-export const AUDIT_LOG_QUERY_KEY = ["audit-logs", "table-query"];
-
 export const auditLogToJson = (auditLog: AuditRecord) => {
   return toJsonString(AuditRecordSchema, auditLog, { prettySpaces: 2 });
 };

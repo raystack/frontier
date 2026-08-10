@@ -3,19 +3,18 @@ import { CpuChipIcon } from "../../assets/icons/CpuChipIcon";
 import styles from "../../components/navbar.module.css";
 import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import React, { useCallback, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { AUDIT_LOG_QUERY_KEY } from "./util";
 import { RQLRequest } from "@raystack/proton/frontier";
 
 interface NavbarProps {
   searchQuery?: string;
+  /** Current table query, exported alongside the rows. */
+  exportQuery: RQLRequest;
   onExportCsv?: (query: RQLRequest) => Promise<void>;
 }
 
-const Navbar = ({ searchQuery, onExportCsv }: NavbarProps) => {
+const Navbar = ({ searchQuery, exportQuery, onExportCsv }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const queryClient = useQueryClient();
 
   const toggleSearch = useCallback(() => {
     setShowSearch(prev => !prev);
@@ -32,16 +31,13 @@ const Navbar = ({ searchQuery, onExportCsv }: NavbarProps) => {
     if (!onExportCsv) return;
     try {
       setIsDownloading(true);
-      const query = queryClient.getQueryData(
-        AUDIT_LOG_QUERY_KEY,
-      ) as RQLRequest;
-      await onExportCsv(query);
+      await onExportCsv(exportQuery);
     } catch (error) {
       console.error(error);
     } finally {
       setIsDownloading(false);
     }
-  }, [queryClient, onExportCsv]);
+  }, [exportQuery, onExportCsv]);
 
   return (
     <nav className={styles.navbar}>
