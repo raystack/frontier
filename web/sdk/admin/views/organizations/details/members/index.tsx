@@ -193,11 +193,16 @@ export function OrganizationMembersView() {
   });
 
   async function invalidateMembersQuery() {
+    /*
+     * Keyed on the org only: an empty input matches partially, so it would
+     * invalidate every org's cached member list. Leaving `query` out still
+     * covers this org's filter and sort variants.
+     */
     await queryClient.invalidateQueries({
       queryKey: createConnectQueryKey({
         schema: AdminServiceQueries.searchOrganizationUsers,
         transport,
-        input: {},
+        input: { id: organizationId },
         cardinality: "infinite",
       }),
     });
