@@ -1,8 +1,13 @@
 import { OrganizationDetailsView, useAdminPaths } from '@raystack/frontier/admin';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams, Outlet, Navigate } from 'react-router-dom';
-import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { createConnectQueryKey, useQuery, useTransport } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  GetOrganizationResponseSchema,
+} from '@raystack/proton/frontier';
 import { AppContext } from '~/contexts/App';
 import { clients } from '~/connect/clients';
 import { exportCsvFromStream } from '~/utils/helper';
@@ -33,6 +38,8 @@ export default function OrganizationDetailsPage() {
   const paths = useAdminPaths();
   const { config } = useContext(AppContext);
   const [countries, setCountries] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const incomingOrgId = (location.state as { orgId?: string } | null)?.orgId;
 
@@ -76,6 +83,26 @@ export default function OrganizationDetailsPage() {
 
   const orgId = stateOrgId || (paramIsId ? urlParam : org?.id);
   const notFound = needsResolve && isSuccess && !org?.id;
+
+  /*
+   * Hand the resolved org to the view instead of letting it fetch again.
+   * Resolving from a slug keys the cache by that slug, while the view asks
+   * by id — two keys, same org, two requests. Seeded during render because
+   * the view mounts in this same commit and its effects run before ours.
+   */
+  const primedOrgId = useRef<string | undefined>(undefined);
+  if (org?.id && primedOrgId.current !== org.id) {
+    primedOrgId.current = org.id;
+    queryClient.setQueryData(
+      createConnectQueryKey({
+        schema: FrontierServiceQueries.getOrganization,
+        transport,
+        input: { id: org.id },
+        cardinality: 'finite',
+      }),
+      create(GetOrganizationResponseSchema, { organization: org }),
+    );
+  }
 
   /*
    * Old UUID bookmark → canonical slug URL:
