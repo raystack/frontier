@@ -15,7 +15,6 @@ import {
   GetBillingAccountRequestSchema,
   GetBillingBalanceRequestSchema,
   GetOrganizationKycResponseSchema,
-  type Organization,
 } from "@raystack/proton/frontier";
 
 export type OrganizationDetailsViewProps = {
@@ -73,15 +72,6 @@ export const OrganizationDetailsView = ({
       select: (data) => data?.organization,
     },
   );
-
-  const getOrganizationQueryKey = [
-    FrontierServiceQueries.getOrganization,
-    { id: organizationId },
-  ];
-
-  async function updateOrganization(org: Organization) {
-    queryClient.setQueryData(getOrganizationQueryKey, { organization: org });
-  }
 
   // Fetch KYC details
   const {
@@ -241,7 +231,6 @@ export const OrganizationDetailsView = ({
     <OrganizationContext.Provider
       value={{
         organization: organization,
-        updateOrganization,
         roles,
         billingAccount,
         billingAccountDetails,

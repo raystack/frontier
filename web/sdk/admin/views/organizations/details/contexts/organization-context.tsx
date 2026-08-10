@@ -19,7 +19,6 @@ export interface SearchConfig {
 interface OrganizationContextType {
   roles: Role[];
   organization?: Organization;
-  updateOrganization: (organization: Organization) => Promise<void>;
   search: SearchConfig;
   billingAccount?: BillingAccount;
   billingAccountDetails?: BillingAccountDetails;
@@ -40,7 +39,6 @@ interface OrganizationContextType {
 const defaultOrganiztionContextValue = {
   roles: [],
   organization: create(OrganizationSchema),
-  updateOrganization: async () => {},
   isBillingAccountLoading: false,
   fetchBillingAccountDetails: () => {},
   tokenBalance: "",
