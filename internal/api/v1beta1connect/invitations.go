@@ -17,15 +17,13 @@ import (
 )
 
 func (h *ConnectHandler) ListOrganizationInvitations(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationInvitationsRequest]) (*connect.Response[frontierv1beta1.ListOrganizationInvitationsResponse], error) {
-	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	orgResp, err := h.orgService.GetRaw(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationInvitations.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationInvitations.GetRaw: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
@@ -166,18 +164,6 @@ func (h *ConnectHandler) CreateOrganizationInvitation(ctx context.Context, reque
 }
 
 func (h *ConnectHandler) GetOrganizationInvitation(ctx context.Context, request *connect.Request[frontierv1beta1.GetOrganizationInvitationRequest]) (*connect.Response[frontierv1beta1.GetOrganizationInvitationResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationInvitation.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
-
 	inviteID, err := uuid.Parse(request.Msg.GetId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
@@ -231,18 +217,6 @@ func (h *ConnectHandler) AcceptOrganizationInvitation(ctx context.Context, reque
 }
 
 func (h *ConnectHandler) DeleteOrganizationInvitation(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteOrganizationInvitationRequest]) (*connect.Response[frontierv1beta1.DeleteOrganizationInvitationResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationInvitation.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
-
 	inviteID, err := uuid.Parse(request.Msg.GetId())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)

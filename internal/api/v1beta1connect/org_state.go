@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/resource"
@@ -155,4 +156,20 @@ func (h *ConnectHandler) resolveObjectOrg(ctx context.Context, object relation.O
 		return "", false, connect.NewError(connect.CodeInternal, fmt.Errorf("resolveObjectOrg: resource_id=%s project_id=%s: %w", object.ID, res.ProjectID, err))
 	}
 	return proj.Organization.ID, true, nil
+}
+
+// ensureOrgEnabled blocks with FailedPrecondition when the org is disabled.
+// It backs both the object gate and the PAT org check above.
+func (h *ConnectHandler) ensureOrgEnabled(ctx context.Context, orgID string) error {
+	if _, err := h.orgService.Get(ctx, orgID); err != nil {
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
+		case errors.Is(err, organization.ErrNotExist):
+			return connect.NewError(connect.CodeNotFound, ErrOrgNotFound)
+		default:
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("ensureOrgEnabled: org_id=%s: %w", orgID, err))
+		}
+	}
+	return nil
 }
