@@ -7,6 +7,7 @@ import (
 
 	customer "github.com/raystack/frontier/billing/customer"
 
+	subscription "github.com/raystack/frontier/billing/subscription"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -21,6 +22,64 @@ type SubscriptionService_Expecter struct {
 
 func (_m *SubscriptionService) EXPECT() *SubscriptionService_Expecter {
 	return &SubscriptionService_Expecter{mock: &_m.Mock}
+}
+
+// Cancel provides a mock function with given fields: ctx, id, immediate
+func (_m *SubscriptionService) Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error) {
+	ret := _m.Called(ctx, id, immediate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Cancel")
+	}
+
+	var r0 subscription.Subscription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) (subscription.Subscription, error)); ok {
+		return rf(ctx, id, immediate)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) subscription.Subscription); ok {
+		r0 = rf(ctx, id, immediate)
+	} else {
+		r0 = ret.Get(0).(subscription.Subscription)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, id, immediate)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscriptionService_Cancel_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Cancel'
+type SubscriptionService_Cancel_Call struct {
+	*mock.Call
+}
+
+// Cancel is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - immediate bool
+func (_e *SubscriptionService_Expecter) Cancel(ctx interface{}, id interface{}, immediate interface{}) *SubscriptionService_Cancel_Call {
+	return &SubscriptionService_Cancel_Call{Call: _e.mock.On("Cancel", ctx, id, immediate)}
+}
+
+func (_c *SubscriptionService_Cancel_Call) Run(run func(ctx context.Context, id string, immediate bool)) *SubscriptionService_Cancel_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(bool))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_Cancel_Call) Return(_a0 subscription.Subscription, _a1 error) *SubscriptionService_Cancel_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SubscriptionService_Cancel_Call) RunAndReturn(run func(context.Context, string, bool) (subscription.Subscription, error)) *SubscriptionService_Cancel_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteByCustomer provides a mock function with given fields: ctx, customr
@@ -66,6 +125,65 @@ func (_c *SubscriptionService_DeleteByCustomer_Call) Return(_a0 error) *Subscrip
 }
 
 func (_c *SubscriptionService_DeleteByCustomer_Call) RunAndReturn(run func(context.Context, customer.Customer) error) *SubscriptionService_DeleteByCustomer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// List provides a mock function with given fields: ctx, filter
+func (_m *SubscriptionService) List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error) {
+	ret := _m.Called(ctx, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for List")
+	}
+
+	var r0 []subscription.Subscription
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, subscription.Filter) ([]subscription.Subscription, error)); ok {
+		return rf(ctx, filter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, subscription.Filter) []subscription.Subscription); ok {
+		r0 = rf(ctx, filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]subscription.Subscription)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, subscription.Filter) error); ok {
+		r1 = rf(ctx, filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SubscriptionService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type SubscriptionService_List_Call struct {
+	*mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - filter subscription.Filter
+func (_e *SubscriptionService_Expecter) List(ctx interface{}, filter interface{}) *SubscriptionService_List_Call {
+	return &SubscriptionService_List_Call{Call: _e.mock.On("List", ctx, filter)}
+}
+
+func (_c *SubscriptionService_List_Call) Run(run func(ctx context.Context, filter subscription.Filter)) *SubscriptionService_List_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(subscription.Filter))
+	})
+	return _c
+}
+
+func (_c *SubscriptionService_List_Call) Return(_a0 []subscription.Subscription, _a1 error) *SubscriptionService_List_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *SubscriptionService_List_Call) RunAndReturn(run func(context.Context, subscription.Filter) ([]subscription.Subscription, error)) *SubscriptionService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
