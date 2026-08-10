@@ -16,7 +16,6 @@ import {
   GetBillingBalanceRequestSchema,
   GetOrganizationKycResponseSchema,
   type Organization,
-  type User,
 } from "@raystack/proton/frontier";
 
 export type OrganizationDetailsViewProps = {
@@ -142,30 +141,6 @@ export const OrganizationDetailsView = ({
 
   const roles = [...defaultRoles, ...organizationRoles];
 
-  // Fetch organization members
-  const {
-    data: orgMembersMap = {},
-    isLoading: isOrgMembersMapLoading,
-    error: orgMembersError,
-  } = useQuery(
-    FrontierServiceQueries.listOrganizationUsers,
-    { id: organizationId || "" },
-    {
-      enabled: !!organizationId,
-      select: (data) => {
-        const users = data?.users || [];
-        return users.reduce(
-          (acc, user) => {
-            const id = user.id || "";
-            acc[id] = user;
-            return acc;
-          },
-          {} as Record<string, User>,
-        );
-      },
-    },
-  );
-
   // Fetch billing accounts list
   const { data: firstBillingAccountId = "", error: billingAccountsError } =
     useQuery(
@@ -232,9 +207,6 @@ export const OrganizationDetailsView = ({
     if (orgRolesError) {
       console.error("Failed to fetch organization roles:", orgRolesError);
     }
-    if (orgMembersError) {
-      console.error("Failed to fetch organization members:", orgMembersError);
-    }
     if (billingAccountsError) {
       console.error("Failed to fetch billing accounts:", billingAccountsError);
     }
@@ -252,7 +224,6 @@ export const OrganizationDetailsView = ({
     kycError,
     defaultRolesError,
     orgRolesError,
-    orgMembersError,
     billingAccountsError,
     billingAccountError,
     tokenBalanceError,
@@ -281,8 +252,6 @@ export const OrganizationDetailsView = ({
         tokenBalance,
         isTokenBalanceLoading,
         fetchTokenBalance,
-        orgMembersMap,
-        isOrgMembersMapLoading,
         updateKYCDetails,
         kycDetails,
         isKYCLoading,

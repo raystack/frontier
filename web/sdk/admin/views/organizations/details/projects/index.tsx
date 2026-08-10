@@ -23,6 +23,7 @@ import {
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebouncedValue } from '~hooks';
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { useOrgMembersMap } from "~/admin/hooks/useOrgMembersMap";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -85,8 +86,11 @@ const ErrorState = () => {
 
 export function OrganizationProjectsView() {
   const t = useTerminology();
-  const { organization, search, orgMembersMap, isOrgMembersMapLoading } =
-    useContext(OrganizationContext);
+  const { organization, search } = useContext(OrganizationContext);
+  const {
+    data: orgMembersMap = {},
+    isLoading: isOrgMembersMapLoading,
+  } = useOrgMembersMap(organization?.id);
   const {
     onChange: onSearchChange,
     setVisibility: setSearchVisibility,
