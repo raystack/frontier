@@ -55,7 +55,9 @@ export const SidePanelInvitation = ({
 
   return (
     <List>
-      {showTitle && <List.Header>Invitations</List.Header>}
+      {showTitle && (
+        <List.Header className={styles["list-header"]}>Invitations</List.Header>
+      )}
       <List.Item>
         <List.Label className={styles.listLabel}>Name</List.Label>
         <List.Value>
@@ -77,7 +79,7 @@ export const SidePanelInvitation = ({
         </List.Value>
       </List.Item>
       <List.Item>
-        <List.Label className={styles.listLabel}>Invite</List.Label>
+        <List.Label className={styles.listLabel}>Status</List.Label>
         <List.Value>
           <Text variant={isExpired ? "danger" : undefined}>
             {isExpired ? "Expired" : "Pending"}
