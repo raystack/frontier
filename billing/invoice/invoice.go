@@ -2,6 +2,7 @@ package invoice
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/raystack/frontier/pkg/pagination"
@@ -43,7 +44,21 @@ const (
 	DraftState State = "draft"
 	OpenState  State = "open"
 	PaidState  State = "paid"
+	// UncollectibleState marks an invoice the provider has written off; it
+	// can still be paid.
+	UncollectibleState State = "uncollectible"
 )
+
+// PayableStates are the invoice states that can still ask the customer for
+// money: open and uncollectible invoices are payable now, a draft becomes
+// payable once the provider finalizes it. The delete blockers and the
+// provider-side payable listing must agree on this set.
+var PayableStates = []State{DraftState, OpenState, UncollectibleState}
+
+// IsPayable reports whether the invoice's state is one of PayableStates.
+func (i Invoice) IsPayable() bool {
+	return slices.Contains(PayableStates, i.State)
+}
 
 type Invoice struct {
 	ID         string
