@@ -36,6 +36,8 @@ const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
+  sort: [DEFAULT_SORT],
 };
 
 interface UsersListProps {

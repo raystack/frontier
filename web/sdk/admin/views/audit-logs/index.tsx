@@ -48,6 +48,8 @@ const DEFAULT_SORT: DataTableSort = { name: "occurredAt", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
+  sort: [DEFAULT_SORT],
 };
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
