@@ -258,11 +258,16 @@ export const OrganizationDetailsView = ({
     tokenBalanceError,
   ]);
 
+  /*
+   * Gate only on queries that are enabled from the first render, so it can
+   * flip true -> false exactly once.
+   * - billing is deliberately excluded: it waits on an id from
+   *   listBillingAccounts, so it re-enters loading *after* the gate opened,
+   *   which unmounted and remounted the whole tab mid-load
+   * - the side panel renders its own skeletons while billing resolves
+   */
   const isLoading =
-    isOrganizationLoading ||
-    isDefaultRolesLoading ||
-    isOrgRolesLoading ||
-    isBillingAccountLoading;
+    isOrganizationLoading || isDefaultRolesLoading || isOrgRolesLoading;
   return (
     <OrganizationContext.Provider
       value={{
