@@ -142,9 +142,15 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
     [queryClient],
   );
 
+  /*
+   * The scroll handler fires per frame while isFetchingNextPage is still
+   * catching up, and fetchNextPage cancels the in-flight page by default —
+   * so without this guard a fast scroll sends several aborted requests to
+   * load a single page.
+   */
   const handleLoadMore = async () => {
+    if (!hasNextPage || isFetchingNextPage) return;
     try {
-      if (!hasNextPage) return;
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more audit logs:", error);
