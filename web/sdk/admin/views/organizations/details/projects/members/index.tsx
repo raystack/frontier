@@ -217,7 +217,6 @@ export const ProjectMembersDialog = ({
               data={data}
               isLoading={isLoading}
               mode="server"
-              defaultSort={{ name: "", order: "desc" }}
               onTableQueryChange={onTableQueryChange}
               onLoadMore={handleLoadMore}
             >
