@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import type { DataTableSort } from "@raystack/apsara";
 import Navbar from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
@@ -10,12 +10,10 @@ import { AdminServiceQueries, type User } from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
-  DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useDebouncedState } from "@raystack/apsara/hooks";
 import { useTerminology } from "../../../hooks/useTerminology";
+import { useServerTableQuery } from "../../../hooks/useServerTableQuery";
 
 const NoUsers = () => {
   const t = useTerminology();
@@ -33,11 +31,11 @@ const NoUsers = () => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
-  sort: [DEFAULT_SORT],
+const TRANSFORM_OPTIONS = {
+  fieldNameMapping: {
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+  },
 };
 
 interface UsersListProps {
@@ -47,17 +45,13 @@ interface UsersListProps {
 
 export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) => {
   const t = useTerminology();
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
-    200,
-  );
-
-  // Transform the DataTableQuery to RQLRequest format
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-    },
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
   });
 
   const {
@@ -87,14 +81,6 @@ export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) =
   const groupCountMap = infiniteData
     ? getGroupCountMapFromFirstPage(infiniteData)
     : {};
-
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery({
-      ...newQuery,
-      offset: 0,
-      limit: newQuery.limit || DEFAULT_PAGE_SIZE,
-    });
-  };
 
   const handleLoadMore = async () => {
     if (!hasNextPage || isFetchingNextPage) return;

@@ -8,11 +8,9 @@ import {
   GetProjectRequestSchema,
   ListRolesRequestSchema,
   type SearchProjectUsersResponse_ProjectUser,
-  type RQLRequest,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useQuery, useInfiniteQuery } from "@connectrpc/connect-query";
-import { useDebouncedState } from "@raystack/apsara/hooks";
 import styles from "./members.module.css";
 import { UsersIcon } from "../../../../../assets/icons/UsersIcon";
 import { getColumns } from "./columns";
@@ -20,8 +18,8 @@ import { UpdateRole, type UpdateRolePayload } from "./update-role";
 import { PROJECT_NAMESPACE } from "../../types";
 import { RemoveMember } from "./remove-member";
 import { AddMembersDropdown } from "./add-members-dropdown";
-import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import { getConnectNextPageParam } from "~/utils/connect-pagination";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const NoMembers = () => {
   return (
@@ -37,10 +35,11 @@ const NoMembers = () => {
   );
 };
 
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-};
+/* This endpoint ignores sort, so keep it out of the request. */
+const stripSort = (query: DataTableQuery): DataTableQuery => ({
+  ...query,
+  sort: [],
+});
 
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
@@ -53,16 +52,9 @@ export const ProjectMembersDialog = ({
   onClose: () => void;
   canAddMember: boolean;
 }) => {
-  const [tableQuery, setTableQuery] = useDebouncedState<{
-    query: DataTableQuery;
-    rqlRequest: RQLRequest;
-  }>(
-    {
-      query: INITIAL_QUERY,
-      rqlRequest: transformDataTableQueryToRQLRequest(INITIAL_QUERY, {}),
-    },
-    200,
-  );
+  const { tableQuery, rqlQuery, onTableQueryChange } = useServerTableQuery({
+    mapQuery: stripSort,
+  });
 
   const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
@@ -103,13 +95,13 @@ export const ProjectMembersDialog = ({
     refetch,
   } = useInfiniteQuery(
     AdminServiceQueries.searchProjectUsers,
-    { id: projectId, query: tableQuery.rqlRequest },
+    { id: projectId, query: rqlQuery },
     {
       pageParamKey: "query",
       getNextPageParam: (lastPage) =>
         getConnectNextPageParam(
           lastPage,
-          { query: tableQuery.rqlRequest },
+          { query: rqlQuery },
           "projectUsers",
         ),
       staleTime: 0,
@@ -121,23 +113,6 @@ export const ProjectMembersDialog = ({
 
   const data =
     infiniteData?.pages?.flatMap((page) => page?.projectUsers || []) || [];
-
-  const onTableQueryChange = useCallback((query: DataTableQuery) => {
-    const updatedQuery = {
-      ...query,
-      offset: 0,
-      limit: query.limit || DEFAULT_PAGE_SIZE,
-      sort: undefined, // Remove sort as it's not supported by this endpoint
-    };
-    const updatedRQLRequest = transformDataTableQueryToRQLRequest(
-      updatedQuery,
-      {},
-    );
-    setTableQuery({
-      query: updatedQuery,
-      rqlRequest: updatedRQLRequest,
-    });
-  }, []);
 
   const handleLoadMore = useCallback(async () => {
     if (!hasNextPage || isFetchingNextPage) return;
@@ -212,7 +187,7 @@ export const ProjectMembersDialog = ({
           </Dialog.Header>
           <Dialog.Body className={styles["dialog-body"]}>
             <DataTable
-              query={tableQuery.query}
+              query={tableQuery}
               columns={columns}
               data={data}
               isLoading={isLoading}
