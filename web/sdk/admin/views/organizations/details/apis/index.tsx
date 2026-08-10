@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import type { DataTableSort } from "@raystack/apsara";
 import styles from "./apis.module.css";
 import {
   CodeIcon,
@@ -18,11 +18,9 @@ import {
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
-  DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
-import { useDebouncedValue } from "~hooks";
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const NoCredentials = () => {
   return (
@@ -66,12 +64,6 @@ const ErrorState = () => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
-  sort: [DEFAULT_SORT],
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     createdAt: "created_at",
@@ -88,17 +80,16 @@ export function OrganizationApisView() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
 
-  const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
-    return {
-      ...tempQuery,
-      search: searchQuery || "",
-    };
-  }, [tableQuery, searchQuery]);
-
-  const query = useDebouncedValue(computedQuery, 200);
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+    search: searchQuery || "",
+  });
 
 
   const [selectedServiceUser, setSelectedServiceUser] =
@@ -145,10 +136,6 @@ export function OrganizationApisView() {
 
   const data =
     infiniteData?.pages?.flatMap(page => page?.organizationServiceUsers || []) || [];
-
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery(newQuery);
-  };
 
   const handleLoadMore = async () => {
     if (!hasNextPage || isFetchingNextPage) return;
