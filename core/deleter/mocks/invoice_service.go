@@ -8,7 +8,6 @@ import (
 	customer "github.com/raystack/frontier/billing/customer"
 
 	invoice "github.com/raystack/frontier/billing/invoice"
-
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -127,6 +126,65 @@ func (_c *InvoiceService_List_Call) Return(_a0 []invoice.Invoice, _a1 error) *In
 }
 
 func (_c *InvoiceService_List_Call) RunAndReturn(run func(context.Context, invoice.Filter) ([]invoice.Invoice, error)) *InvoiceService_List_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPayableOnProvider provides a mock function with given fields: ctx, customr
+func (_m *InvoiceService) ListPayableOnProvider(ctx context.Context, customr customer.Customer) ([]invoice.Invoice, error) {
+	ret := _m.Called(ctx, customr)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPayableOnProvider")
+	}
+
+	var r0 []invoice.Invoice
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, customer.Customer) ([]invoice.Invoice, error)); ok {
+		return rf(ctx, customr)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, customer.Customer) []invoice.Invoice); ok {
+		r0 = rf(ctx, customr)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]invoice.Invoice)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, customer.Customer) error); ok {
+		r1 = rf(ctx, customr)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// InvoiceService_ListPayableOnProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPayableOnProvider'
+type InvoiceService_ListPayableOnProvider_Call struct {
+	*mock.Call
+}
+
+// ListPayableOnProvider is a helper method to define mock.On call
+//   - ctx context.Context
+//   - customr customer.Customer
+func (_e *InvoiceService_Expecter) ListPayableOnProvider(ctx interface{}, customr interface{}) *InvoiceService_ListPayableOnProvider_Call {
+	return &InvoiceService_ListPayableOnProvider_Call{Call: _e.mock.On("ListPayableOnProvider", ctx, customr)}
+}
+
+func (_c *InvoiceService_ListPayableOnProvider_Call) Run(run func(ctx context.Context, customr customer.Customer)) *InvoiceService_ListPayableOnProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(customer.Customer))
+	})
+	return _c
+}
+
+func (_c *InvoiceService_ListPayableOnProvider_Call) Return(_a0 []invoice.Invoice, _a1 error) *InvoiceService_ListPayableOnProvider_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *InvoiceService_ListPayableOnProvider_Call) RunAndReturn(run func(context.Context, customer.Customer) ([]invoice.Invoice, error)) *InvoiceService_ListPayableOnProvider_Call {
 	_c.Call.Return(run)
 	return _c
 }
