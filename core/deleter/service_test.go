@@ -9,10 +9,14 @@ import (
 	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/invoice"
+	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
+	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/deleter/mocks"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
@@ -41,11 +45,12 @@ type deleterMocks struct {
 	checkoutSvc *mocks.CheckoutService
 	creditSvc   *mocks.CreditService
 	kycSvc      *mocks.KycService
+	planSvc     *mocks.PlanService
 }
 
 func newMocks(t *testing.T) deleterMocks {
 	t.Helper()
-	return deleterMocks{
+	m := deleterMocks{
 		orgSvc:      mocks.NewOrganizationService(t),
 		projSvc:     mocks.NewProjectService(t),
 		resSvc:      mocks.NewResourceService(t),
@@ -63,13 +68,24 @@ func newMocks(t *testing.T) deleterMocks {
 		checkoutSvc: mocks.NewCheckoutService(t),
 		creditSvc:   mocks.NewCreditService(t),
 		kycSvc:      mocks.NewKycService(t),
+		planSvc:     mocks.NewPlanService(t),
 	}
+	// plans resolve lazily by the subscription's plan id; stub a paid and a
+	// free one for every test
+	m.planSvc.EXPECT().GetByID(mock.Anything, "plan-paid").
+		Return(plan.Plan{ID: "plan-paid", Products: []product.Product{
+			{Prices: []product.Price{{Amount: 500}}},
+		}}, nil).Maybe()
+	m.planSvc.EXPECT().GetByID(mock.Anything, "plan-free").
+		Return(plan.Plan{ID: "plan-free"}, nil).Maybe()
+	return m
 }
 
 func (m deleterMocks) build() *deleter.Service {
 	return deleter.NewCascadeDeleter(m.orgSvc, m.projSvc, m.resSvc, m.grpSvc, m.mbrSvc,
 		m.polSvc, m.roleSvc, m.invSvc, m.usrSvc, m.patSvc, m.suSvc,
-		m.custSvc, m.subSvc, m.invocSvc, m.checkoutSvc, m.creditSvc, m.kycSvc)
+		m.custSvc, m.subSvc, m.invocSvc, m.checkoutSvc, m.creditSvc, m.kycSvc,
+		m.planSvc)
 }
 
 func TestDeleteProject(t *testing.T) {
@@ -130,12 +146,18 @@ func TestDeleteOrganization(t *testing.T) {
 	t.Run("full cascade delete", func(t *testing.T) {
 		m := newMocks(t)
 
-		// canDelete and DeleteCustomers both list customers
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+
+		// the up-front check and DeleteCustomers both list customers
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
-		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1"}).
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
 			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "canceled"}}, nil)
 
 		// billing teardown
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
@@ -192,21 +214,365 @@ func TestDeleteOrganization(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("blocked when billed customer has invoices", func(t *testing.T) {
+	t.Run("already deleted org returns not found without touching anything", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
-			Return([]customer.Customer{{ID: "cust-1", ProviderID: "stripe-1"}}, nil)
-		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1"}).
-			Return([]invoice.Invoice{{ID: "inv-1"}}, nil)
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{}, organization.ErrNotExist)
+		// strict mocks: no other service may be called
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
-		assert.ErrorIs(t, err, deleter.ErrDeleteNotAllowed)
+		assert.ErrorIs(t, err, organization.ErrNotExist)
+	})
+
+	t.Run("collects all blockers in one error", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{
+				{ID: "sub-1", State: "active", PlanID: "plan-paid"},
+				{ID: "sub-2", State: "canceled", PlanID: "plan-paid"},
+			}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{{ID: "inv-1", State: invoice.OpenState}}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(-50, nil)
+		// strict mocks: nothing may be deleted and no subscription may be
+		// canceled on a blocked delete
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Equal(t, "org-1", blocked.OrgID)
+		types := make([]string, 0, len(blocked.Blockers))
+		for _, b := range blocked.Blockers {
+			types = append(types, b.Type)
+		}
+		assert.Equal(t, []string{
+			deleter.BlockerActiveSubscription,
+			deleter.BlockerUnpaidInvoice,
+			deleter.BlockerNegativeTokenBalance,
+		}, types)
+	})
+
+	t.Run("paid plan subscription blocks until the caller downgrades", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-paid"}}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		// strict mocks: the paid subscription must not be canceled
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Len(t, blocked.Blockers, 1)
+		assert.Equal(t, deleter.BlockerActiveSubscription, blocked.Blockers[0].Type)
+		assert.Contains(t, blocked.Blockers[0].Message, "downgrade to the standard plan")
+	})
+
+	t.Run("negative token balance blocks the delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(-50, nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Len(t, blocked.Blockers, 1)
+		assert.Equal(t, deleter.BlockerNegativeTokenBalance, blocked.Blockers[0].Type)
+		assert.Contains(t, blocked.Blockers[0].Message, "contact support")
+	})
+
+	t.Run("unused tokens do not block the delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{}, nil)
+
+		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{}, nil)
+		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
+		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+			Return([]policy.Policy{}, nil)
+		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+			Return([]role.Role{}, nil)
+		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+	})
+
+	t.Run("running subscription is canceled by the delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{
+				{ID: "sub-1", State: "active", PlanID: "plan-free"},
+				{ID: "sub-2", State: "canceled", PlanID: "plan-paid"},
+			}, nil)
+		// only the running standard-plan subscription is canceled, immediately
+		m.subSvc.EXPECT().Cancel(mock.Anything, "sub-1", true).
+			Return(subscription.Subscription{ID: "sub-1", State: "canceled"}, nil)
+
+		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{}, nil)
+		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
+		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+			Return([]policy.Policy{}, nil)
+		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+			Return([]role.Role{}, nil)
+		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+	})
+
+	t.Run("final invoice from the cancellation blocks the delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		// no unpaid invoice before the cancel, one after it
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil).Once()
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-free"}}, nil)
+		m.subSvc.EXPECT().Cancel(mock.Anything, "sub-1", true).
+			Return(subscription.Subscription{ID: "sub-1", State: "canceled"}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{{ID: "inv-final", State: invoice.OpenState}}, nil).Once()
+		// strict mocks: nothing may be deleted
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Len(t, blocked.Blockers, 1)
+		assert.Equal(t, deleter.BlockerUnpaidInvoice, blocked.Blockers[0].Type)
+		assert.Equal(t, "inv-final", blocked.Blockers[0].Subject)
+	})
+
+	t.Run("draft invoice blocks until the provider finalizes it", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{}, nil)
+		// a renewal invoice the provider has not finalized yet, no local row
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{{ProviderID: "in_draft1", State: invoice.DraftState, Amount: 500}}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		// strict mocks: nothing may be deleted
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Len(t, blocked.Blockers, 1)
+		assert.Equal(t, deleter.BlockerUnpaidInvoice, blocked.Blockers[0].Type)
+		assert.Equal(t, "in_draft1", blocked.Blockers[0].Subject)
+		assert.Contains(t, blocked.Blockers[0].Message, "being prepared")
+	})
+
+	t.Run("subscription gone on the provider does not brick the delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		// locally active free-plan sub whose Stripe copy no longer exists
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-free"}}, nil)
+		m.subSvc.EXPECT().Cancel(mock.Anything, "sub-1", true).
+			Return(subscription.Subscription{}, subscription.ErrSubscriptionOnProviderNotFound)
+
+		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{}, nil)
+		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
+		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+			Return([]policy.Policy{}, nil)
+		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+			Return([]role.Role{}, nil)
+		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+	})
+
+	t.Run("paid subscription appearing between the passes blocks instead of being canceled", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		// first pass sees nothing, a paid checkout completes in between
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{}, nil).Once()
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-new", State: "active", PlanID: "plan-paid"}}, nil).Once()
+		// strict mocks: the paid subscription must not be canceled and
+		// nothing may be deleted
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Len(t, blocked.Blockers, 1)
+		assert.Equal(t, deleter.BlockerActiveSubscription, blocked.Blockers[0].Type)
+		assert.Equal(t, "sub-new", blocked.Blockers[0].Subject)
+	})
+
+	t.Run("dangling plan reference blocks instead of bricking the delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-gone"}}, nil)
+		m.planSvc.EXPECT().GetByID(mock.Anything, "plan-gone").
+			Return(plan.Plan{}, plan.ErrNotFound)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		// strict mocks: nothing may be canceled or deleted
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Len(t, blocked.Blockers, 1)
+		assert.Equal(t, deleter.BlockerActiveSubscription, blocked.Blockers[0].Type)
+		assert.Contains(t, blocked.Blockers[0].Message, "cannot be resolved")
+	})
+
+	t.Run("offline account only gets token checks", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-offline", ProviderID: ""}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		// strict mocks: no subscription or invoice call may happen
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-offline").Return(-10, nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Len(t, blocked.Blockers, 1)
+		assert.Equal(t, deleter.BlockerNegativeTokenBalance, blocked.Blockers[0].Type)
 	})
 
 	t.Run("kyc delete failure keeps owner policies", func(t *testing.T) {
 		m := newMocks(t)
 
+		// a disabled org is still deletable
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{}, organization.ErrDisabled)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
@@ -229,10 +595,15 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
-		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1"}).
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
 			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{}, nil)
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).
 			Return(errors.New("provider is down"))
 		// strict mocks: no policy, project, group, or org deletion may happen
@@ -244,6 +615,8 @@ func TestDeleteOrganization(t *testing.T) {
 	t.Run("propagates error when service user list fails", func(t *testing.T) {
 		m := newMocks(t)
 
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
@@ -260,6 +633,8 @@ func TestDeleteOrganization(t *testing.T) {
 	t.Run("propagates error when service user delete fails", func(t *testing.T) {
 		m := newMocks(t)
 
+		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
@@ -291,11 +666,31 @@ func TestDeleteCustomers(t *testing.T) {
 				{ID: "chk-2", ProviderID: "cs_2", CustomerID: "cust-1", State: "expired"},
 			}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
 		err := m.build().DeleteCustomers(context.Background(), "org-1")
 		assert.NoError(t, err)
+	})
+
+	t.Run("balance check failure stops the customer delete", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{}, nil)
+		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").
+			Return(0, errors.New("balance check failed"))
+		// strict mocks: creditSvc.DeleteByAccountID and custSvc.Delete must not be called
+
+		err := m.build().DeleteCustomers(context.Background(), "org-1")
+		assert.ErrorContains(t, err, "balance check failed")
 	})
 
 	t.Run("offline account still removes local billing records", func(t *testing.T) {
@@ -309,6 +704,7 @@ func TestDeleteCustomers(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-no-provider"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-no-provider").Return(nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-no-provider").Return(0, nil)
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-no-provider").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-no-provider").Return(nil)
 

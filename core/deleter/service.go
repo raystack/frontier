@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 
 	"github.com/raystack/frontier/core/audit"
 
@@ -15,6 +16,10 @@ import (
 	"github.com/raystack/frontier/billing/invoice"
 
 	"github.com/raystack/frontier/billing/customer"
+
+	"github.com/raystack/frontier/billing/plan"
+
+	"github.com/raystack/frontier/billing/subscription"
 
 	"github.com/raystack/frontier/core/organization"
 
@@ -32,10 +37,6 @@ import (
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/serviceuser"
-)
-
-const (
-	DisableDeleteIfBilled = true
 )
 
 type ProjectService interface {
@@ -98,11 +99,14 @@ type CustomerService interface {
 }
 
 type SubscriptionService interface {
+	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
+	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
 	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
 }
 
 type InvoiceService interface {
 	List(ctx context.Context, flt invoice.Filter) ([]invoice.Invoice, error)
+	ListPayableOnProvider(ctx context.Context, customr customer.Customer) ([]invoice.Invoice, error)
 	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
 }
 
@@ -112,11 +116,16 @@ type CheckoutService interface {
 }
 
 type CreditService interface {
+	GetBalance(ctx context.Context, accountID string) (int64, error)
 	DeleteByAccountID(ctx context.Context, accountID string) error
 }
 
 type KycService interface {
 	DeleteKyc(ctx context.Context, orgID string) error
+}
+
+type PlanService interface {
+	GetByID(ctx context.Context, id string) (plan.Plan, error)
 }
 
 type Service struct {
@@ -137,6 +146,7 @@ type Service struct {
 	checkoutService    CheckoutService
 	creditService      CreditService
 	kycService         KycService
+	planService        PlanService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
@@ -148,7 +158,8 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	serviceUserService ServiceUserService,
 	customerService CustomerService, subService SubscriptionService,
 	invoiceService InvoiceService, checkoutService CheckoutService,
-	creditService CreditService, kycService KycService) *Service {
+	creditService CreditService, kycService KycService,
+	planService PlanService) *Service {
 	return &Service{
 		projService:        projService,
 		orgService:         orgService,
@@ -167,6 +178,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		checkoutService:    checkoutService,
 		creditService:      creditService,
 		kycService:         kycService,
+		planService:        planService,
 	}
 }
 
@@ -215,15 +227,32 @@ func (d Service) DeleteGroup(ctx context.Context, id string) error {
 // likely to fail. Identity (projects, policies, and so on) goes after, with
 // org policies (the org owners) near the end. This way a failure at any step
 // leaves the org owned and the delete can simply be run again. Every step
-// treats already-deleted data as success for the same reason.
+// treats already-deleted data as success for the same reason. That applies
+// to data inside a half-deleted org; an org whose row is already fully gone
+// answers not found instead, so a caller can tell a finished delete from a
+// repeatable one (and a mistyped org id from a success).
 func (d Service) DeleteOrganization(ctx context.Context, id string) error {
-	// check if delete is allowed
-	if err := d.canDelete(ctx, id); err != nil {
-		return fmt.Errorf("%s: %w", err.Error(), ErrDeleteNotAllowed)
+	// an org that is already gone has nothing left to check or tear down;
+	// disabled orgs stay deletable
+	if _, err := d.orgService.Get(ctx, id); err != nil && !errors.Is(err, organization.ErrDisabled) {
+		return err
+	}
+
+	customers, err := d.customerService.List(ctx, customer.Filter{
+		OrgID: id,
+	})
+	if err != nil {
+		return err
+	}
+
+	// clear what we can and collect what still blocks the delete, before
+	// touching any data
+	if err := d.ensureDeletable(ctx, id, customers); err != nil {
+		return err
 	}
 
 	// delete all billing accounts
-	if err := d.DeleteCustomers(ctx, id); err != nil {
+	if err := d.deleteCustomers(ctx, id, customers); err != nil {
 		return err
 	}
 
@@ -316,6 +345,8 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	return nil
 }
 
+// DeleteCustomers lists the org's billing accounts itself; DeleteOrganization
+// goes through deleteCustomers with the accounts it already listed.
 func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	customers, err := d.customerService.List(ctx, customer.Filter{
 		OrgID: id,
@@ -323,6 +354,10 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+	return d.deleteCustomers(ctx, id, customers)
+}
+
+func (d Service) deleteCustomers(ctx context.Context, id string, customers []customer.Customer) error {
 	for _, c := range customers {
 		// cancels active subscriptions on the billing provider and removes local records
 		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
@@ -362,6 +397,22 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 				Type: "billing_checkout",
 			}, attrs); err != nil {
 				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingCheckoutDeletedEvent, "checkout_id", ch.ID)
+			}
+		}
+		// tokens still on the account are forfeited by this delete, so
+		// record the amount before the transactions are removed
+		balance, err := d.creditService.GetBalance(ctx, c.ID)
+		if err != nil {
+			return fmt.Errorf("failed to delete org while checking balance of billing account[%s]: %w", c.ID, err)
+		}
+		if balance > 0 {
+			if err := auditLogger.LogWithAttrs(audit.BillingTokensForfeitedEvent, audit.Target{
+				ID:   c.ID,
+				Type: "billing_account",
+			}, map[string]string{
+				"amount": strconv.FormatInt(balance, 10),
+			}); err != nil {
+				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingTokensForfeitedEvent, "customer_id", c.ID)
 			}
 		}
 		if err := d.creditService.DeleteByAccountID(ctx, c.ID); err != nil {
@@ -412,23 +463,228 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 	return d.userService.Delete(ctx, userID)
 }
 
-func (d Service) canDelete(ctx context.Context, id string) error {
-	// check if any invoice is present for customer
-	customers, err := d.customerService.List(ctx, customer.Filter{
-		OrgID: id,
-	})
-	if err != nil {
-		return err
-	}
+// ensureDeletable collects everything that blocks deleting the organization and
+// returns it all as one BlockedError, so the caller gets a full checklist
+// instead of discovering blockers one retry at a time.
+//
+// A running subscription on a paid plan blocks the delete: the caller has
+// to downgrade it to the standard plan first. A running subscription on a
+// free plan is not a blocker — once no blockers are left, ensureDeletable
+// cancels it itself, before any deletion starts. The cancel is immediate
+// and bills unbilled usage on the spot, so the invoice check runs once more
+// after it: a final invoice created by the cancel still blocks the delete
+// until it is paid or its automatic charge settles.
+//
+// Unused tokens do not block either: the delete forfeits them. The client
+// gets the caller's confirmation before sending the delete, and the
+// forfeited amount is written to an audit record during teardown.
+//
+// Accounts without a billing provider are only checked for token balances:
+// their subscription and invoice rows have nothing behind them the caller
+// could cancel or pay.
+func (d Service) ensureDeletable(ctx context.Context, id string, customers []customer.Customer) error {
+	// each plan resolves at most once per call, and only when a running
+	// subscription actually references it
+	paidPlans := map[string]bool{}
 
+	var blockers []Blocker
 	for _, c := range customers {
-		if invoices, err := d.invoiceService.List(ctx, invoice.Filter{CustomerID: c.ID}); err != nil {
-			return fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
-		} else if len(invoices) > 0 {
-			if DisableDeleteIfBilled {
-				return fmt.Errorf("cannot delete organization with billing account[%s]", c.ID)
+		if !c.IsOffline() {
+			bs, err := d.subscriptionBlockers(ctx, c, paidPlans)
+			if err != nil {
+				return err
 			}
+			blockers = append(blockers, bs...)
+
+			bs, err = d.invoiceBlockers(ctx, c)
+			if err != nil {
+				return err
+			}
+			blockers = append(blockers, bs...)
+		}
+
+		balance, err := d.creditService.GetBalance(ctx, c.ID)
+		if err != nil {
+			return fmt.Errorf("failed to check token balance of billing account[%s]: %w", c.ID, err)
+		}
+		// the balance goes below zero when the account has an overdraft
+		// floor (credit_min under zero, the postpaid setup) and tokens were
+		// spent on credit. That debt is money owed, so it must be settled
+		// before the org can go
+		if balance < 0 {
+			blockers = append(blockers, Blocker{
+				Type:    BlockerNegativeTokenBalance,
+				Subject: c.ID,
+				Message: fmt.Sprintf("billing account[%s] owes %d tokens: contact support to settle the balance, then retry the delete", c.ID, -balance),
+			})
 		}
 	}
+	if len(blockers) > 0 {
+		return &BlockedError{OrgID: id, Blockers: blockers}
+	}
+
+	// no blockers were found, so the delete will happen. Only free-plan
+	// subscriptions can still be running: cancel them, then check the
+	// invoices again because the cancel may have created a final one. Every
+	// account is judged again before anything is canceled — a paid
+	// subscription created since the first pass, on any account, must block
+	// the delete without costing another account its subscription first
+	type cancelTarget struct {
+		customer customer.Customer
+		subID    string
+	}
+	var toCancel []cancelTarget
+	for _, c := range customers {
+		if c.IsOffline() {
+			continue
+		}
+		subs, err := d.subService.List(ctx, subscription.Filter{CustomerID: c.ID})
+		if err != nil {
+			return fmt.Errorf("failed to check subscriptions for billing account[%s]: %w", c.ID, err)
+		}
+		for _, sub := range subs {
+			if !sub.IsActive() {
+				continue
+			}
+			if sub.PlanID == "" {
+				blockers = append(blockers, unresolvablePlanBlocker(sub))
+				continue
+			}
+			paid, err := d.isPaidPlan(ctx, sub.PlanID, paidPlans)
+			if errors.Is(err, plan.ErrNotFound) {
+				blockers = append(blockers, unresolvablePlanBlocker(sub))
+				continue
+			}
+			if err != nil {
+				return err
+			}
+			if paid {
+				blockers = append(blockers, paidSubscriptionBlocker(sub))
+				continue
+			}
+			toCancel = append(toCancel, cancelTarget{customer: c, subID: sub.ID})
+		}
+	}
+	if len(blockers) > 0 {
+		return &BlockedError{OrgID: id, Blockers: blockers}
+	}
+
+	canceledFor := map[string]customer.Customer{}
+	for _, t := range toCancel {
+		// a subscription whose provider copy is already gone has nothing
+		// to cancel; the teardown removes its local rows
+		if _, err := d.subService.Cancel(ctx, t.subID, true); err != nil && !errors.Is(err, subscription.ErrSubscriptionOnProviderNotFound) {
+			return fmt.Errorf("failed to cancel subscription[%s] of billing account[%s]: %w", t.subID, t.customer.ID, err)
+		}
+		canceledFor[t.customer.ID] = t.customer
+	}
+	for _, c := range canceledFor {
+		bs, err := d.invoiceBlockers(ctx, c)
+		if err != nil {
+			return err
+		}
+		blockers = append(blockers, bs...)
+	}
+	if len(blockers) > 0 {
+		return &BlockedError{OrgID: id, Blockers: blockers}
+	}
 	return nil
+}
+
+// subscriptionBlockers returns a blocker for every running subscription on a
+// paid plan; the caller downgrades those to the standard plan. Running
+// free-plan subscriptions are not blockers, the delete cancels them itself.
+func (d Service) subscriptionBlockers(ctx context.Context, c customer.Customer, paidPlans map[string]bool) ([]Blocker, error) {
+	subs, err := d.subService.List(ctx, subscription.Filter{CustomerID: c.ID})
+	if err != nil {
+		return nil, fmt.Errorf("failed to check subscriptions for billing account[%s]: %w", c.ID, err)
+	}
+	var blockers []Blocker
+	for _, sub := range subs {
+		if !sub.IsActive() {
+			continue
+		}
+		// a missing or dangling plan reference must not make the org
+		// undeletable, and "downgrade" is no advice for it — the caller
+		// can still cancel the subscription themselves
+		if sub.PlanID == "" {
+			blockers = append(blockers, unresolvablePlanBlocker(sub))
+			continue
+		}
+		paid, err := d.isPaidPlan(ctx, sub.PlanID, paidPlans)
+		if errors.Is(err, plan.ErrNotFound) {
+			blockers = append(blockers, unresolvablePlanBlocker(sub))
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		if paid {
+			blockers = append(blockers, paidSubscriptionBlocker(sub))
+		}
+	}
+	return blockers, nil
+}
+
+func unresolvablePlanBlocker(sub subscription.Subscription) Blocker {
+	return Blocker{
+		Type:    BlockerActiveSubscription,
+		Subject: sub.ID,
+		Message: fmt.Sprintf("subscription[%s] is %s on a plan that cannot be resolved: cancel the subscription, then retry the delete", sub.ID, sub.State),
+	}
+}
+
+func paidSubscriptionBlocker(sub subscription.Subscription) Blocker {
+	return Blocker{
+		Type:    BlockerActiveSubscription,
+		Subject: sub.ID,
+		Message: fmt.Sprintf("subscription[%s] is %s on a paid plan: downgrade to the standard plan, then retry the delete", sub.ID, sub.State),
+	}
+}
+
+// isPaidPlan reports whether the plan charges money, caching each plan for
+// the length of one delete. Callers handle a subscription without a plan
+// before coming here.
+func (d Service) isPaidPlan(ctx context.Context, planID string, cache map[string]bool) (bool, error) {
+	if paid, ok := cache[planID]; ok {
+		return paid, nil
+	}
+	pln, err := d.planService.GetByID(ctx, planID)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve plan[%s]: %w", planID, err)
+	}
+	cache[planID] = !pln.IsFree()
+	return cache[planID], nil
+}
+
+// invoiceBlockers returns a blocker for every invoice of the account that
+// still asks for money. Open and uncollectible invoices the caller can pay.
+// A draft is money the provider is still preparing to charge — the provider
+// finalizes it shortly — and deleting before that would silently lose the
+// charge, so it blocks too. The answer comes straight from the billing
+// provider, so a just-paid invoice does not block and a just-created one
+// does.
+func (d Service) invoiceBlockers(ctx context.Context, c customer.Customer) ([]Blocker, error) {
+	invoices, err := d.invoiceService.ListPayableOnProvider(ctx, c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
+	}
+	var blockers []Blocker
+	for _, inv := range invoices {
+		// an invoice the sync has not stored yet carries no local id
+		subject := inv.ID
+		if subject == "" {
+			subject = inv.ProviderID
+		}
+		message := fmt.Sprintf("invoice[%s] is unpaid: pay it via its hosted payment page, then retry the delete", subject)
+		if inv.State == invoice.DraftState {
+			message = fmt.Sprintf("invoice[%s] is still being prepared by the billing provider: retry the delete once it finalizes, then pay it", subject)
+		}
+		blockers = append(blockers, Blocker{
+			Type:    BlockerUnpaidInvoice,
+			Subject: subject,
+			Message: message,
+		})
+	}
+	return blockers, nil
 }
