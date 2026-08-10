@@ -95,3 +95,7 @@ packages:
     config:
       dir: "core/serviceuser/mocks"
       all: true
+  github.com/raystack/frontier/core/resource:
+    config:
+      dir: "core/resource/mocks"
+      all: true

@@ -6,7 +6,6 @@ import (
 	context "context"
 
 	authenticate "github.com/raystack/frontier/core/authenticate"
-
 	mock "github.com/stretchr/testify/mock"
 )
 

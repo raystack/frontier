@@ -79,6 +79,63 @@ func (_c *OrgService_Get_Call) RunAndReturn(run func(context.Context, string) (o
 	return _c
 }
 
+// GetRaw provides a mock function with given fields: ctx, idOrName
+func (_m *OrgService) GetRaw(ctx context.Context, idOrName string) (organization.Organization, error) {
+	ret := _m.Called(ctx, idOrName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRaw")
+	}
+
+	var r0 organization.Organization
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (organization.Organization, error)); ok {
+		return rf(ctx, idOrName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) organization.Organization); ok {
+		r0 = rf(ctx, idOrName)
+	} else {
+		r0 = ret.Get(0).(organization.Organization)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, idOrName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OrgService_GetRaw_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRaw'
+type OrgService_GetRaw_Call struct {
+	*mock.Call
+}
+
+// GetRaw is a helper method to define mock.On call
+//   - ctx context.Context
+//   - idOrName string
+func (_e *OrgService_Expecter) GetRaw(ctx interface{}, idOrName interface{}) *OrgService_GetRaw_Call {
+	return &OrgService_GetRaw_Call{Call: _e.mock.On("GetRaw", ctx, idOrName)}
+}
+
+func (_c *OrgService_GetRaw_Call) Run(run func(ctx context.Context, idOrName string)) *OrgService_GetRaw_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *OrgService_GetRaw_Call) Return(_a0 organization.Organization, _a1 error) *OrgService_GetRaw_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrgService_GetRaw_Call) RunAndReturn(run func(context.Context, string) (organization.Organization, error)) *OrgService_GetRaw_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewOrgService creates a new instance of OrgService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewOrgService(t interface {
