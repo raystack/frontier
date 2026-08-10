@@ -177,51 +177,14 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		setup   func(ds *mocks.DomainService)
 		request *connect.Request[frontierv1beta1.DeleteOrganizationDomainRequest]
 		want    *connect.Response[frontierv1beta1.DeleteOrganizationDomainResponse]
 		wantErr error
 	}{
 		{
-			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
-			},
-			request: connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationDomain.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
-		},
-		{
-			name: "should return not found error if org is disabled",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
-			},
-			request: connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
-		},
-		{
-			name: "should return not found error if org does not exist",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
-			},
-			request: connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
-		},
-		{
 			name: "should return not found error if domain does not exist",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(domain.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
@@ -233,8 +196,7 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should return internal error if domain service fails",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(errors.New("domain service error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
@@ -246,8 +208,7 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should delete domain successfully",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
@@ -261,13 +222,11 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockOrgService := new(mocks.OrganizationService)
 			mockDomainService := new(mocks.DomainService)
 			if tt.setup != nil {
-				tt.setup(mockOrgService, mockDomainService)
+				tt.setup(mockDomainService)
 			}
 			mockDep := &ConnectHandler{
-				orgService:    mockOrgService,
 				domainService: mockDomainService,
 			}
 			resp, err := mockDep.DeleteOrganizationDomain(context.Background(), tt.request)
@@ -280,51 +239,14 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 func TestHandler_GetOrganizationDomain(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		setup   func(ds *mocks.DomainService)
 		request *connect.Request[frontierv1beta1.GetOrganizationDomainRequest]
 		want    *connect.Response[frontierv1beta1.GetOrganizationDomainResponse]
 		wantErr error
 	}{
 		{
-			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
-			},
-			request: connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationDomain.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
-		},
-		{
-			name: "should return not found error if org is disabled",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
-			},
-			request: connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
-		},
-		{
-			name: "should return not found error if org does not exist",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
-			},
-			request: connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
-		},
-		{
 			name: "should return not found error if domain does not exist",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(domain.Domain{}, domain.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
@@ -336,8 +258,7 @@ func TestHandler_GetOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should return internal error if domain service fails",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(domain.Domain{}, errors.New("domain service error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
@@ -349,8 +270,7 @@ func TestHandler_GetOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should get domain successfully",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(testDomainMap[testDomainID1], nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
@@ -364,13 +284,11 @@ func TestHandler_GetOrganizationDomain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockOrgService := new(mocks.OrganizationService)
 			mockDomainService := new(mocks.DomainService)
 			if tt.setup != nil {
-				tt.setup(mockOrgService, mockDomainService)
+				tt.setup(mockDomainService)
 			}
 			mockDep := &ConnectHandler{
-				orgService:    mockOrgService,
 				domainService: mockDomainService,
 			}
 			resp, err := mockDep.GetOrganizationDomain(context.Background(), tt.request)
@@ -481,29 +399,18 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
+				os.EXPECT().GetRaw(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationDomainsRequest{
 				OrgId: testOrgID,
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationDomains.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
-		},
-		{
-			name: "should return not found error if org is disabled",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
-			},
-			request: connect.NewRequest(&frontierv1beta1.ListOrganizationDomainsRequest{
-				OrgId: testOrgID,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationDomains.GetRaw: org_id=%s: %w", testOrgID, errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org does not exist",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+				os.EXPECT().GetRaw(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationDomainsRequest{
 				OrgId: testOrgID,
@@ -514,7 +421,7 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 		{
 			name: "should return internal error if domain service fails",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				os.EXPECT().GetRaw(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				ds.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), domain.Filter{OrgID: testOrgID, State: domain.Status("")}).Return([]domain.Domain{}, errors.New("domain service error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.ListOrganizationDomainsRequest{
@@ -526,7 +433,7 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 		{
 			name: "should list domains successfully",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				os.EXPECT().GetRaw(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				domains := []domain.Domain{testDomainMap[testDomainID1], testDomainMap[testDomainID2]}
 				ds.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), domain.Filter{OrgID: testOrgID, State: domain.Status("")}).Return(domains, nil)
 			},
@@ -561,51 +468,14 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		setup   func(ds *mocks.DomainService)
 		request *connect.Request[frontierv1beta1.VerifyOrganizationDomainRequest]
 		want    *connect.Response[frontierv1beta1.VerifyOrganizationDomainResponse]
 		wantErr error
 	}{
 		{
-			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
-			},
-			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("VerifyOrganizationDomain.Get: org_id=%s: %w", testOrgID, errors.New("test error"))),
-		},
-		{
-			name: "should return not found error if org is disabled",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
-			},
-			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
-		},
-		{
-			name: "should return not found error if org does not exist",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
-			},
-			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: testOrgID,
-				Id:    testDomainID1,
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeNotFound, ErrNotFound),
-		},
-		{
 			name: "should return not found error if domain is invalid",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().VerifyDomain(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(domain.Domain{}, domain.ErrInvalidDomain)
 			},
 			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
@@ -617,8 +487,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should return not found error if domain does not exist",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().VerifyDomain(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(domain.Domain{}, domain.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
@@ -630,8 +499,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should return not found error if TXT record not found",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().VerifyDomain(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(domain.Domain{}, domain.ErrTXTrecordNotFound)
 			},
 			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
@@ -643,8 +511,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should return internal error if domain service fails",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().VerifyDomain(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(domain.Domain{}, errors.New("domain service error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
@@ -656,8 +523,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 		},
 		{
 			name: "should verify domain successfully",
-			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+			setup: func(ds *mocks.DomainService) {
 				ds.EXPECT().VerifyDomain(mock.AnythingOfType("context.backgroundCtx"), testDomainID1).Return(testDomainMap[testDomainID1], nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.VerifyOrganizationDomainRequest{
@@ -673,13 +539,11 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockOrgService := new(mocks.OrganizationService)
 			mockDomainService := new(mocks.DomainService)
 			if tt.setup != nil {
-				tt.setup(mockOrgService, mockDomainService)
+				tt.setup(mockDomainService)
 			}
 			mockDep := &ConnectHandler{
-				orgService:    mockOrgService,
 				domainService: mockDomainService,
 			}
 			resp, err := mockDep.VerifyOrganizationDomain(context.Background(), tt.request)

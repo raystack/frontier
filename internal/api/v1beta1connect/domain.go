@@ -46,18 +46,6 @@ func (h *ConnectHandler) CreateOrganizationDomain(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) DeleteOrganizationDomain(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteOrganizationDomainRequest]) (*connect.Response[frontierv1beta1.DeleteOrganizationDomainResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationDomain.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
-
 	if err := h.domainService.Delete(ctx, request.Msg.GetId()); err != nil {
 		switch err {
 		case domain.ErrNotExist:
@@ -72,18 +60,6 @@ func (h *ConnectHandler) DeleteOrganizationDomain(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) GetOrganizationDomain(ctx context.Context, request *connect.Request[frontierv1beta1.GetOrganizationDomainRequest]) (*connect.Response[frontierv1beta1.GetOrganizationDomainResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("GetOrganizationDomain.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
-
 	domainResp, err := h.domainService.Get(ctx, request.Msg.GetId())
 	if err != nil {
 		switch err {
@@ -131,18 +107,6 @@ func (h *ConnectHandler) JoinOrganization(ctx context.Context, request *connect.
 }
 
 func (h *ConnectHandler) VerifyOrganizationDomain(ctx context.Context, request *connect.Request[frontierv1beta1.VerifyOrganizationDomainRequest]) (*connect.Response[frontierv1beta1.VerifyOrganizationDomainResponse], error) {
-	_, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
-	if err != nil {
-		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("VerifyOrganizationDomain.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
-		}
-	}
-
 	domainResp, err := h.domainService.VerifyDomain(ctx, request.Msg.GetId())
 	if err != nil {
 		switch err {
@@ -162,15 +126,14 @@ func (h *ConnectHandler) VerifyOrganizationDomain(ctx context.Context, request *
 }
 
 func (h *ConnectHandler) ListOrganizationDomains(ctx context.Context, request *connect.Request[frontierv1beta1.ListOrganizationDomainsRequest]) (*connect.Response[frontierv1beta1.ListOrganizationDomainsResponse], error) {
-	orgResp, err := h.orgService.Get(ctx, request.Msg.GetOrgId())
+	// org state is enforced on the authorization path; resolve state blind
+	orgResp, err := h.orgService.GetRaw(ctx, request.Msg.GetOrgId())
 	if err != nil {
 		switch {
-		case errors.Is(err, organization.ErrDisabled):
-			return nil, connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled)
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationDomains.Get: org_id=%s: %w", request.Msg.GetOrgId(), err))
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListOrganizationDomains.GetRaw: org_id=%s: %w", request.Msg.GetOrgId(), err))
 		}
 	}
 
