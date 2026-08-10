@@ -1,4 +1,4 @@
-import { Button, type DataTableColumnDef } from "@raystack/apsara";
+import { Button, Skeleton, Text, Tooltip, type DataTableColumnDef } from "@raystack/apsara";
 import type { ServiceUser, User } from "@raystack/proton/frontier";
 import { TerminologyEntity } from "../../hooks/useTerminology";
 import { useOrganizationLookup } from "../../hooks/useOrganizationLookup";
@@ -12,16 +12,38 @@ const OrgCell = ({
   orgId: string;
   onNavigateToOrg?: (slug: string, orgId: string) => void;
 }) => {
-  const { data: org } = useOrganizationLookup(orgId);
+  const { data: org, isLoading, error } = useOrganizationLookup(orgId);
+
+  if (isLoading) {
+    return <Skeleton height={16} width={140} />;
+  }
+
+  /*
+   * The lookup can fail on its own — an org the caller cannot read comes
+   * back as an error, not as an empty result. Say the name is unavailable
+   * and keep the id in reach, rather than printing the raw id as though it
+   * were the org's name.
+   */
+  if (error || !org) {
+    return (
+      <Tooltip>
+        <Tooltip.Trigger render={<Text variant="secondary" />}>
+          Unavailable
+        </Tooltip.Trigger>
+        <Tooltip.Content side="bottom">
+          {error?.message || "Could not load this organization"} ({orgId})
+        </Tooltip.Content>
+      </Tooltip>
+    );
+  }
 
   return (
     <Button
       variant="text"
-      disabled={!org}
-      onClick={() => org && onNavigateToOrg?.(org.name || orgId, orgId)}
+      onClick={() => onNavigateToOrg?.(org.name || orgId, orgId)}
       data-test-id="frontier-admin-navigate-to-org-btn"
     >
-      {org?.title || org?.name || orgId}
+      {org.title || org.name || orgId}
     </Button>
   );
 };
