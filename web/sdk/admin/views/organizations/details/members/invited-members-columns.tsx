@@ -2,7 +2,6 @@ import {
   AlertDialog,
   IconButton,
   Menu,
-  Text,
   type DataTableColumnDef,
 } from "@raystack/apsara";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
@@ -72,10 +71,7 @@ export const getInvitedMembersColumns = ({
     {
       accessorKey: "expiresAt",
       header: "Expiry",
-      cell: ({ row }) => {
-        const { text, isExpired } = formatInviteExpiry(row.original.expiresAt);
-        return <Text variant={isExpired ? "danger" : undefined}>{text}</Text>;
-      },
+      cell: ({ row }) => formatInviteExpiry(row.original.expiresAt).text,
       sortingFn: (a, b) =>
         seconds(a.original.expiresAt) - seconds(b.original.expiresAt),
       enableSorting: true,
@@ -104,7 +100,7 @@ export const getInvitedMembersColumns = ({
                 </IconButton>
               }
             />
-            <Menu.Content>
+            <Menu.Content align="end">
               <Menu.Item
                 leadingIcon={<DeleteIcon />}
                 className={styles["invites-remove-item"]}
