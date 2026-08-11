@@ -188,20 +188,29 @@ func (s Service) AppendSchema(ctx context.Context, customServiceDefinition schem
 		return fmt.Errorf("AppendSchema: listing existing permissions: %w", err)
 	}
 	for _, existingPermission := range existingPermissions {
-		description := ""
-		if existingPermission.Metadata != nil {
-			if v, ok := existingPermission.Metadata["description"]; !ok {
-				description = v.(string)
-			}
-		}
 		existingServiceDefinition.Permissions = append(existingServiceDefinition.Permissions, schema.ResourcePermission{
 			Name:        existingPermission.Name,
 			Namespace:   existingPermission.NamespaceID,
-			Description: description,
+			Description: permissionDescription(existingPermission),
 		})
 	}
 
 	return s.applySchema(ctx, schema.MergeServiceDefinitions(customServiceDefinition, existingServiceDefinition))
+}
+
+// permissionDescription reads the human description out of a permission's
+// metadata. It returns "" when the metadata is missing, has no description, or
+// stores a non-string value, and never panics on a missing key.
+func permissionDescription(p permission.Permission) string {
+	if p.Metadata == nil {
+		return ""
+	}
+	v, ok := p.Metadata["description"]
+	if !ok {
+		return ""
+	}
+	desc, _ := v.(string)
+	return desc
 }
 
 // applySchema builds and apply schema over az engine and db

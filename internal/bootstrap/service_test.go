@@ -9,6 +9,7 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -324,4 +325,26 @@ func Test_AppendSchema(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "db timeout")
 	})
+}
+
+func Test_permissionDescription(t *testing.T) {
+	cases := []struct {
+		name string
+		meta metadata.Metadata
+		want string
+	}{
+		{"nil metadata", nil, ""},
+		// a present key must be read, not ignored
+		{"string description", metadata.Metadata{"description": "read access"}, "read access"},
+		// a missing key must not panic; it used to assert nil to string
+		{"missing description key", metadata.Metadata{"other": "x"}, ""},
+		// a non-string value must not panic either
+		{"non-string description", metadata.Metadata{"description": 42}, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := permissionDescription(permission.Permission{Metadata: tc.meta})
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }
