@@ -151,8 +151,8 @@ export function OrganizationApisView() {
   };
 
   const handleLoadMore = async () => {
+    if (!hasNextPage || isFetchingNextPage) return;
     try {
-      if (!hasNextPage) return;
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more service users:", error);

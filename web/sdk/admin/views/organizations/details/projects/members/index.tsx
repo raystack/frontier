@@ -140,13 +140,13 @@ export const ProjectMembersDialog = ({
   }, []);
 
   const handleLoadMore = useCallback(async () => {
+    if (!hasNextPage || isFetchingNextPage) return;
     try {
-      if (!hasNextPage) return;
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more project members:", error);
     }
-  }, [hasNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   async function refetchMembers() {
     await refetch();

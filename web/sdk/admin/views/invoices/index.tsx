@@ -92,8 +92,8 @@ export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
   };
 
   const handleLoadMore = async () => {
+    if (!hasNextPage || isFetchingNextPage) return;
     try {
-      if (!hasNextPage) return;
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more invoices:", error);
