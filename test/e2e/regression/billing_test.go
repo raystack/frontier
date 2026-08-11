@@ -20,8 +20,11 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/core/authenticate"
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
+	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/server"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
@@ -80,7 +83,33 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 		},
 	}
 
-	s.testBench, err = testbench.Init(appConfig)
+	// support_credits is the credit_overdraft_product the billing service
+	// resolves during boot (invoice.Init). The boot loader used to seed it from
+	// cfg.Billing.PlansPath; that loader is gone, so seed it straight into the
+	// database before the server starts, so the boot sequence can find it.
+	seedOverdraftProduct := func(ctx context.Context, dbc *db.Client) error {
+		prod, err := postgres.NewBillingProductRepository(dbc).Create(ctx, product.Product{
+			ID:          uuid.New().String(),
+			Name:        "support_credits",
+			Title:       "Support Credits",
+			Description: "Support for enterprise help",
+			Behavior:    product.CreditBehavior,
+			Config:      product.BehaviorConfig{CreditAmount: 100},
+			State:       "active",
+		})
+		if err != nil {
+			return err
+		}
+		_, err = postgres.NewBillingPriceRepository(dbc).Create(ctx, product.Price{
+			Name:      "default",
+			ProductID: prod.ID,
+			Amount:    20000,
+			Currency:  "usd",
+		})
+		return err
+	}
+
+	s.testBench, err = testbench.Init(appConfig, seedOverdraftProduct)
 	s.Require().NoError(err)
 
 	ctx := context.Background()
@@ -94,24 +123,11 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
 
-	// Billing plans used to be seeded at boot from cfg.Billing.PlansPath. That
-	// loader is gone, so seed the fixtures these tests rely on through the admin
-	// API: the support_credits overdraft product and the enterprise_yearly plan.
+	// The enterprise_yearly plan used to be seeded at boot from
+	// cfg.Billing.PlansPath. That loader is gone, so create it through the admin
+	// API once the server is up (a checkout test uses it). The overdraft product
+	// was already seeded before boot above.
 	ctxAdmin := testbench.ContextWithAuth(ctx, adminCookie)
-	_, err = s.testBench.Client.CreateProduct(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateProductRequest{
-		Body: &frontierv1beta1.ProductRequestBody{
-			Name:           "support_credits",
-			Title:          "Support Credits",
-			Description:    "Support for enterprise help",
-			Behavior:       "credits",
-			BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{CreditAmount: 100},
-			Prices: []*frontierv1beta1.Price{
-				{Name: "default", Amount: 20000, Currency: "usd"},
-			},
-		},
-	}))
-	s.Require().NoError(err)
-
 	_, err = s.testBench.AdminClient.CreatePlan(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
 		Body: &frontierv1beta1.PlanRequestBody{
 			Name:        "enterprise_yearly",
