@@ -55,6 +55,11 @@ export const InviteUser = () => {
   const t = useTerminology();
   const [open, onOpenChange] = useState(false);
 
+  /*
+   * Both lists only feed the dialog's fields, but the trigger lives in the
+   * navbar, so without a gate they were fetched on every visit to the users
+   * page whether or not anyone opened the dialog.
+   */
   const {
     data: organizations,
     isLoading: isOrganizationsLoading,
@@ -63,6 +68,7 @@ export const InviteUser = () => {
     AdminServiceQueries.searchOrganizations,
     create(SearchOrganizationsRequestSchema, { query: {} }),
     {
+      enabled: open,
       select: (data) => data?.organizations || [],
     }
   );
@@ -75,6 +81,7 @@ export const InviteUser = () => {
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
     {
+      enabled: open,
       select: (data) => data?.roles || [],
     }
   );
