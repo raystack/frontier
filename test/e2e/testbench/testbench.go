@@ -123,18 +123,21 @@ func Init(appConfig *config.Frontier, preStartSeeders ...PreStartSeeder) (*TestB
 
 	// seed rows the server needs at boot before it starts. The database is
 	// migrated but the server is not up yet, so a seeder can write directly.
+	// On any error tear the containers down with te.close and stripeClose so a
+	// failed seeder does not leak them. Use te.close, not te.Close: the server
+	// is not started, so te.Close would send SIGINT to the test process itself.
 	if len(preStartSeeders) > 0 {
 		seedClient, err := db.New(appConfig.DB)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(err, te.close(), stripeClose())
 		}
 		for _, seed := range preStartSeeders {
 			if err := seed(context.Background(), seedClient); err != nil {
-				return nil, errors.Join(err, seedClient.Close())
+				return nil, errors.Join(err, seedClient.Close(), te.close(), stripeClose())
 			}
 		}
 		if err := seedClient.Close(); err != nil {
-			return nil, err
+			return nil, errors.Join(err, te.close(), stripeClose())
 		}
 	}
 
