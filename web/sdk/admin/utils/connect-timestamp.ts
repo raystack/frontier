@@ -1,5 +1,8 @@
 import { timestampDate, type Timestamp } from "@bufbuild/protobuf/wkt";
 import dayjs, { type Dayjs } from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 export function timestampToDate(timestamp?: Timestamp): Date | null {
   if (!timestamp) return null;
@@ -30,3 +33,17 @@ export function formatTimestamp(timestamp?: Timestamp, format: string = DATE_FOR
 }
 
 export type TimeStamp = Timestamp;
+
+/** Relative expiry text plus the lapsed flag. Lapsed invites show up at all because the API never filters expires_at. */
+export function formatInviteExpiry(expiresAt?: Timestamp): {
+  text: string;
+  isExpired: boolean;
+} {
+  const expires = timestampToDayjs(expiresAt);
+  if (!expires) return { text: "-", isExpired: false };
+
+  return {
+    text: expires.fromNow(),
+    isExpired: !expires.isAfter(dayjs()),
+  };
+}

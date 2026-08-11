@@ -10,7 +10,7 @@ export const SidePanelDetails = () => {
 
   return (
     <List>
-      <List.Header>User Details</List.Header>
+      <List.Header className={styles["list-header"]}>User Details</List.Header>
       <List.Item>
         <List.Label className={styles.listLabel}>ID</List.Label>
         <List.Value>

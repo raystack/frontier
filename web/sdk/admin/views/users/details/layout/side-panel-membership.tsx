@@ -41,7 +41,9 @@ export const SidePanelMembership = ({
 
   return (
     <List>
-      {showTitle && <List.Header>Membership</List.Header>}
+      {showTitle && (
+        <List.Header className={styles["list-header"]}>Membership</List.Header>
+      )}
       <List.Item>
         <List.Label className={styles.listLabel}>Name</List.Label>
         <List.Value>
