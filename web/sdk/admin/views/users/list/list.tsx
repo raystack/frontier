@@ -96,12 +96,6 @@ export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) =
     });
   };
 
-  /*
-   * The scroll handler fires per frame while isFetchingNextPage is still
-   * catching up, and fetchNextPage cancels the in-flight page by default —
-   * so without this guard a fast scroll sends several aborted requests to
-   * load a single page.
-   */
   const handleLoadMore = async () => {
     if (!hasNextPage || isFetchingNextPage) return;
     try {

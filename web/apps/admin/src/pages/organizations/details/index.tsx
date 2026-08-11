@@ -85,10 +85,10 @@ export default function OrganizationDetailsPage() {
   const notFound = needsResolve && isSuccess && !org?.id;
 
   /*
-   * Hand the resolved org to the view instead of letting it fetch again.
-   * Resolving from a slug keys the cache by that slug, while the view asks
-   * by id — two keys, same org, two requests. Seeded during render because
-   * the view mounts in this same commit and its effects run before ours.
+   * The view fetches by id; resolving from a slug keys the cache by the slug.
+   * Seed the id key so it doesn't refetch the org we already have. During
+   * render, not in an effect: the view mounts in this commit and its effects
+   * run first.
    */
   const primedOrgId = useRef<string | undefined>(undefined);
   if (org?.id && primedOrgId.current !== org.id) {

@@ -56,9 +56,8 @@ export const InviteUser = () => {
   const [open, onOpenChange] = useState(false);
 
   /*
-   * Both lists only feed the dialog's fields, but the trigger lives in the
-   * navbar, so without a gate they were fetched on every visit to the users
-   * page whether or not anyone opened the dialog.
+   * These only feed the dialog's fields, but its trigger lives in the navbar —
+   * ungated they were fetched on every visit to the users page.
    */
   const {
     data: organizations,

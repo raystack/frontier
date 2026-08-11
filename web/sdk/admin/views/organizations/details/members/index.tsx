@@ -194,9 +194,8 @@ export function OrganizationMembersView() {
 
   async function invalidateMembersQuery() {
     /*
-     * Keyed on the org only: an empty input matches partially, so it would
-     * invalidate every org's cached member list. Leaving `query` out still
-     * covers this org's filter and sort variants.
+     * Keyed on the org: keys match partially, so an empty input would
+     * invalidate every org. Omitting `query` still covers this org's variants.
      */
     await queryClient.invalidateQueries({
       queryKey: createConnectQueryKey({

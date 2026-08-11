@@ -230,12 +230,10 @@ export const OrganizationDetailsView = ({
   ]);
 
   /*
-   * Gate only on queries that are enabled from the first render, so it can
-   * flip true -> false exactly once.
-   * - billing is deliberately excluded: it waits on an id from
-   *   listBillingAccounts, so it re-enters loading *after* the gate opened,
-   *   which unmounted and remounted the whole tab mid-load
-   * - the side panel renders its own skeletons while billing resolves
+   * Only queries enabled from the first render, so the gate flips once:
+   * - billing waits on an id from listBillingAccounts, so it re-entered
+   *   loading after the gate opened and remounted the tab mid-load
+   * - the side panel renders its own skeletons meanwhile
    */
   const isLoading =
     isOrganizationLoading || isDefaultRolesLoading || isOrgRolesLoading;

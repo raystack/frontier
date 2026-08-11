@@ -13,13 +13,9 @@ const toMembersMap = (data?: ListOrganizationUsersResponse) =>
   );
 
 /**
- * The organization's members keyed by id.
- *
- * This is the full, unpaginated member list, so it is fetched by the views
- * that need it rather than for every organization page. react-query dedupes
- * the request between callers sharing an org id.
- *
- * Pass `undefined`/empty to disable the query.
+ * The organization's members keyed by id — the full, unpaginated list, so it
+ * is fetched by the views that need it rather than for every org page.
+ * react-query dedupes it between callers. Pass empty to disable.
  */
 export const useOrgMembersMap = (orgId?: string) =>
   useQuery(
