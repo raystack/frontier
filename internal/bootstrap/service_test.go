@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -53,6 +54,24 @@ func (m *mockRelationService) Create(ctx context.Context, rel relation.Relation)
 func (m *mockRelationService) Delete(ctx context.Context, rel relation.Relation) error {
 	args := m.Called(ctx, rel)
 	return args.Error(0)
+}
+
+// mockPermissionService implements bootstrap.PermissionService
+type mockPermissionService struct {
+	mock.Mock
+}
+
+func (m *mockPermissionService) List(ctx context.Context, flt permission.Filter) ([]permission.Permission, error) {
+	args := m.Called(ctx, flt)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]permission.Permission), args.Error(1)
+}
+
+func (m *mockPermissionService) Upsert(ctx context.Context, action permission.Permission) (permission.Permission, error) {
+	args := m.Called(ctx, action)
+	return args.Get(0).(permission.Permission), args.Error(1)
 }
 
 func Test_migratePATRelations(t *testing.T) {
@@ -288,5 +307,21 @@ func Test_migrateRole(t *testing.T) {
 		assert.Error(t, err)
 		roleSvc.AssertNotCalled(t, "Upsert")
 		roleSvc.AssertNotCalled(t, "Update")
+	})
+}
+
+func Test_AppendSchema(t *testing.T) {
+	t.Run("returns the error when listing existing permissions fails", func(t *testing.T) {
+		// A failed list must not be swallowed: boot would then apply an empty
+		// schema and drop every custom permission already in the database.
+		permSvc := new(mockPermissionService)
+		permSvc.On("List", mock.Anything, permission.Filter{}).
+			Return(nil, errors.New("db timeout"))
+
+		svc := Service{permissionService: permSvc}
+		err := svc.AppendSchema(context.Background(), schema.ServiceDefinition{})
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "db timeout")
 	})
 }

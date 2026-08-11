@@ -185,7 +185,7 @@ func (s Service) AppendSchema(ctx context.Context, customServiceDefinition schem
 
 	existingPermissions, err := s.permissionService.List(ctx, permission.Filter{})
 	if err != nil {
-		return nil
+		return fmt.Errorf("AppendSchema: listing existing permissions: %w", err)
 	}
 	for _, existingPermission := range existingPermissions {
 		description := ""
