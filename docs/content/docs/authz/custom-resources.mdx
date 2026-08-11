@@ -67,6 +67,9 @@ A few rules the reconcile flow enforces for permissions:
   updated.
 - Nothing is deleted by leaving it out. A permission that is in the server but missing from
   the file fails the plan. To remove one, mark its entry with `delete: true`.
+- A namespace must be in `service/resource` form: two non-empty parts, each lowercase
+  alphanumeric. So `compute/machine` works, but `compute/machine-v2` does not (the hyphen is
+  not alphanumeric). The action name must be alphanumeric too.
 - A namespace under `app` or `app/...` is rejected, because the base schema owns those types
   (see [Why a separate `user/project` namespace](#why-a-separate-userproject-namespace)).
 
@@ -245,7 +248,8 @@ there, and the generator mirrors it onto the real project as
 effect, `user/project` is the allowed way to hang project-level capabilities off `app/project`.
 
 The name `user/project` is not special, and there is no naming convention to follow. You can
-pick any `service/resource` namespace, as long as it is not under `app/...`. The generator mirrors
+pick any `service/resource` namespace whose two parts are lowercase alphanumeric, as long as it
+is not under `app/...`. The generator mirrors
 every custom permission onto `app/project` (and `app/organization`) no matter which namespace you
 chose, so the name does not change where the check runs. `user/project` is simply the name
 Frontier uses here, because the slug it produces, `user_project_createcomputemachine`, reads as
@@ -314,8 +318,8 @@ This does three things:
 - Project-level capabilities (`create`, project-wide `list`) go on `user/project`. Checked
   against `app/project:<project_id>`.
 - Treat `user/project` as a stand-in for `app/project` that you are allowed to write to. The
-  name is your choice: any non-`app/...` namespace works. `user/project` is just the example
-  used here.
+  name is your choice: any non-`app/...` namespace works, as long as its two parts are lowercase
+  alphanumeric. `user/project` is just the example used here.
 
 This keeps create and list anchored on the project and avoids the dead resource-level `create`
 rule the generator would otherwise leave unused.
@@ -432,7 +436,8 @@ custom role later, mark its entry with `delete: true`. A predefined role cannot 
 - Registering a permission merges generated rules into the base schema and writes them to
   Postgres and SpiceDB. Boot re-applies the base schema plus the permissions already in the
   database.
-- The **resource owner**, **platform admin**, and **Owner** (`app_organization_owner`) can always
-  perform every action on a resource. Project and direct grants depend on the roles in use.
+- The **resource owner**, **platform admin**, **Owner** (`app_organization_owner`, org-wide), and
+  **Project Owner** (`app_project_owner`, within its project) can always perform every action on a
+  resource. Other project and direct grants depend on the roles in use.
 - Per-item actions (`get`, `update`, `delete`) live on the resource namespace; project-level
   actions (`create`, `list`) live on `user/project` and are checked against the project.
