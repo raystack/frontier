@@ -34,11 +34,9 @@ export interface ServerTableQuery {
 /**
  * Query state for a `mode="server"` DataTable.
  *
- * The initial query carries `defaultSort` on purpose. DataTable seeds its own
- * state from that prop and emits it on mount unconditionally; if the initial
- * query here disagreed, that emit would change the request and every table
- * would fetch its first page twice. Keep the `defaultSort` passed to DataTable
- * and the one passed here identical.
+ * The initial query carries `defaultSort` on purpose: DataTable emits that
+ * prop on mount, and if the initial query disagreed the emit would change the
+ * request and fetch the first page twice. Pass the same sort to both.
  */
 export function useServerTableQuery({
   defaultSort,
@@ -54,9 +52,8 @@ export function useServerTableQuery({
   }));
 
   /*
-   * Field mappings are fixed per view, so read them through a ref. Callers
-   * passing an inline object would otherwise change the memo's identity every
-   * render, restarting the debounce timer and never letting it settle.
+   * Fixed per view, so read through refs: an inline object at the call site
+   * would change the memo's identity every render and restart the debounce.
    */
   const transformOptionsRef = useRef(transformOptions);
   transformOptionsRef.current = transformOptions;

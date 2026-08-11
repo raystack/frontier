@@ -19,10 +19,8 @@ const OrgCell = ({
   }
 
   /*
-   * The lookup can fail on its own — an org the caller cannot read comes
-   * back as an error, not as an empty result. Say the name is unavailable
-   * and keep the id in reach, rather than printing the raw id as though it
-   * were the org's name.
+   * An org the caller cannot read comes back as an error, not an empty
+   * result — so say so instead of printing the id as though it were a name.
    */
   if (error || !org) {
     return (

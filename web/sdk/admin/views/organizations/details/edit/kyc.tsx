@@ -65,10 +65,9 @@ export function EditKYCPanel({ open = false, onClose }: EditKYCPanelProps) {
   });
 
   /*
-   * The panel mounts with the layout, before the KYC query resolves, so
-   * defaultValues capture an empty record. Resync once it arrives: otherwise
-   * a verified organization shows as unverified, and saving that form writes
-   * the verification away.
+   * The panel mounts with the layout, before KYC resolves, so defaultValues
+   * capture an empty record — a verified org would show as unverified, and
+   * saving that would write the verification away.
    */
   useEffect(() => {
     reset({
