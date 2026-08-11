@@ -14,7 +14,7 @@ import {
 } from "@raystack/apsara";
 import styles from "./edit.module.css";
 import { z } from "zod";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -54,6 +54,7 @@ export function EditKYCPanel({ open = false, onClose }: EditKYCPanelProps) {
   const {
     handleSubmit,
     control,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<KYCUpdateSchema>({
     defaultValues: {
@@ -62,6 +63,19 @@ export function EditKYCPanel({ open = false, onClose }: EditKYCPanelProps) {
     },
     resolver: zodResolver(kycUpdateSchema),
   });
+
+  /*
+   * The panel mounts with the layout, before the KYC query resolves, so
+   * defaultValues capture an empty record. Resync once it arrives: otherwise
+   * a verified organization shows as unverified, and saving that form writes
+   * the verification away.
+   */
+  useEffect(() => {
+    reset({
+      status: kycDetails?.status || false,
+      link: kycDetails?.link || "",
+    });
+  }, [kycDetails, reset]);
 
   const {
     mutateAsync: setOrganizationKycMutation,
