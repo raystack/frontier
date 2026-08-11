@@ -26,10 +26,10 @@ namespace has two parts joined by a slash, `service/resource`. So `compute/machi
 You register the actions in one of two ways:
 
 - **The reconcile flow** (`frontier reconcile`). You write the actions you want in a
-  desired-state YAML file and apply it. This is the recommended path: the file is the full
-  desired state, so it reads back the same way it was written and fits GitOps.
-- **The admin API** (`CreatePermission`, `CreateRole`). The imperative version of the same
-  thing, useful for one-off changes or scripting.
+  desired-state YAML file and apply it. This is the recommended path: the file holds the full
+  desired state, so you can keep it in version control and re-apply it.
+- **The admin API** (`CreatePermission`, `CreateRole`). This makes the same change one call at
+  a time, useful for one-off changes or scripting.
 
 Here is the `compute/machine` example as a reconcile file. Each entry is a namespace and an
 action name:
@@ -86,8 +86,8 @@ Adding a permission (through reconcile or the admin API) runs Frontier's schema 
    schema to SpiceDB.
 
 The same step runs on every boot (`MigrateSchema`), re-applying the base schema merged with
-the permissions already in the database. It is idempotent: it recreates the same schema each
-time and never drops what is already there. Frontier no longer reads a resource config file at
+the permissions already in the database. Running it again is safe: it recreates the same schema
+each time and never drops what is already there. Frontier no longer reads a resource config file at
 startup. The boot-time `resources_config_path` loader has been removed, and the reconcile flow
 and admin API own custom permissions now.
 
@@ -209,7 +209,7 @@ Check(
 )
 ```
 
-### These actions are not special, it is a modeling choice
+### These actions are not special: it is a modeling choice
 
 Frontier and SpiceDB do not treat `create` or `list` differently from `get`, `update`, or
 `delete`. The generator builds the [same set of rules](#what-rules-get-generated) for every
@@ -268,7 +268,8 @@ Put the per-item actions (`get`, `update`, `delete`) on the resource namespace, 
 project-level capabilities (`create`, project-wide `list`) on `user/project`. Then grant the
 project-level ones to a project-scoped role such as the built-in Project Owner. A single
 reconcile file can hold more than one document, separated by `---`, so the permissions and the
-role go together:
+role go together. The order matters: a `Permission` document must come before a `Role` document
+that uses it, or reconcile stops with an error. That is why the permissions come first here:
 
 ```yaml
 apiVersion: v1
@@ -294,14 +295,21 @@ spec:
 apiVersion: v1
 kind: Role
 spec:
-  - name: app_project_owner          # extend the built-in Project Owner role
+  - name: app_project_owner          # the built-in Project Owner role
     title: Project Owner
     scopes:
       - app/project
     permissions:
+      - app/project:administer         # the role's shipped permission, kept
       - user/project:createcomputemachine
       - user/project:listcomputemachines
 ```
+
+Listing `permissions` **replaces** the role's whole set (see
+[the replacement rule](#choice-1-add-the-action-to-a-built-in-role) below), so
+`app/project:administer` is re-listed here. Project Owner ships with exactly that one
+permission, and the automatic custom-action access relies on it, so dropping it would take that
+access away.
 
 This does three things:
 
@@ -331,15 +339,20 @@ rule the generator would otherwise leave unused.
 When you register a custom resource, some roles can use its actions right away. Other roles get
 nothing until you grant them.
 
+Roles in the file are desired state, the same way permissions are. A custom platform role that
+is on the server but missing from the file stops the run: keep it in the file, or mark its entry
+`delete: true`. A predefined role you customized and then leave out is reset to its shipped
+default. Predefined roles are never deleted.
+
 ### Works by default
 
 You do not have to set up any roles for these. They work as soon as the resource is registered:
 
-- **Owner** (`app_organization_owner`), can do every action on every custom resource in the
+- **Owner** (`app_organization_owner`) can do every action on every custom resource in the
   org.
-- **Project Owner** (`app_project_owner`), can do every action on resources in their project.
-- **Platform admin**, can do everything.
-- The **user who created a resource**, can act on that one resource.
+- **Project Owner** (`app_project_owner`) can do every action on resources in their project.
+- **Platform admin** can do everything.
+- The **user who created a resource** can act on that one resource.
 
 This works because the [generated rules](#what-rules-get-generated) already point at
 `app_organization_administer` (held by the **Owner** role, `app_organization_owner`),
@@ -389,8 +402,11 @@ the one you write, it does not add to the old set. So you must include the permi
 already had, or it will lose them. For a built-in role, "already had" means the default
 permissions Frontier ships it with, its entry in the predefined role list (`PredefinedRoles` in
 `internal/bootstrap/schema/schema.go`), not the base schema. In the example, `app/project:get` is
-kept so the role can still open the project. If you omit `permissions` entirely, the role keeps
-its shipped defaults untouched.
+kept so the role can still open the project. If you omit `permissions`, reconcile sets the role
+back to its shipped default rather than leaving the current value in place. For a predefined role
+you never changed that is a no-op, but any earlier custom additions are dropped. For a custom
+role, omitting `permissions` resolves to empty and fails validation, since a custom role must
+list at least one permission.
 
 ### Choice 2: make your own role
 
@@ -422,8 +438,9 @@ custom role later, mark its entry with `delete: true`. A predefined role cannot 
   **platform admin** get every custom action for free. The org **Admin** role
   (`app_organization_manager`) does not.
 - Every other role gets an action only when you grant it.
-- Listing `permissions` on a role replaces the set, so list everything you want it to keep.
-  Omitting `permissions` keeps the role's current values.
+- Listing `permissions` on a role replaces the whole set, so list everything you want it to keep.
+  Omitting `permissions` resets the role to its shipped default, and a custom role must list at
+  least one, so omitting it there is an error.
 - A new role name creates a fresh role with exactly the permissions you list.
 
 ---
