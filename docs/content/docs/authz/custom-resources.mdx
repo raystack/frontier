@@ -5,6 +5,14 @@ order: 7
 
 # Custom Resources and Permissions
 
+> **Note:** The boot-time `resources_config_path` loader described below has been
+> removed. Frontier no longer reads a resource config file at startup. Create and
+> update custom permissions and roles through the admin API (`CreatePermission`,
+> `CreateRole`) or the `frontier reconcile` flow instead. See
+> [the declarative reconcile RFC](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md).
+> The mechanics below still explain the schema that bootstrap applies from the
+> base schema plus the permissions already in the database.
+
 Frontier lets services register their own resource types (for example `compute/machine`).
 Once registered, Frontier can answer permission checks on those resources the same way it
 does for built-in types like projects and organizations.

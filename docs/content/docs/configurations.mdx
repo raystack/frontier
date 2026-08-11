@@ -62,18 +62,6 @@ app:
   metrics_port: 9000
   # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
-  # full path prefixed with scheme where resources config yaml files are kept
-  # e.g.:
-  # local storage file "file:///tmp/resources_config"
-  # GCS Bucket "gs://frontier/resources_config"
-  resources_config_path: file:///tmp/resources_config\
-  # secret required to access resources config
-  # e.g.:
-  # system environment variable "env://TEST_RULESET_SECRET"
-  # local file "file:///opt/auth.json"
-  # secret string "val://user:password"
-  # optional
-  resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
 
   # cross-origin resource sharing configuration
   cors:
