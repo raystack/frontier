@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/raystack/frontier/billing/plan"
-
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 
 	"github.com/raystack/frontier/core/namespace"
@@ -45,14 +43,6 @@ type RelationService interface {
 
 type AuthzEngine interface {
 	WriteSchema(ctx context.Context, schema string) error
-}
-
-type BillingPlanRepository interface {
-	Get(ctx context.Context) (plan.File, error)
-}
-
-type PlanService interface {
-	UpsertPlans(ctx context.Context, planFile plan.File) error
 }
 
 // PolicyService is policy.Service narrowed to what backfill needs. Goes through
@@ -96,9 +86,6 @@ type Service struct {
 	suCreator   ServiceUserCreator
 	suCredStore ServiceUserCredentialStore
 	suPromoter  SuperUserPromoter
-
-	planService   PlanService
-	planLocalRepo BillingPlanRepository
 }
 
 func NewBootstrapService(
@@ -112,8 +99,6 @@ func NewBootstrapService(
 	policyService PolicyService,
 	serviceuserRepo ServiceUserBackfiller,
 	patDeniedPerms map[string]struct{},
-	planService PlanService,
-	planLocalRepo BillingPlanRepository,
 	suCreator ServiceUserCreator,
 	suCredStore ServiceUserCredentialStore,
 	suPromoter SuperUserPromoter,
@@ -125,8 +110,6 @@ func NewBootstrapService(
 		roleService:       roleService,
 		permissionService: actionService,
 		authzEngine:       authzEngine,
-		planService:       planService,
-		planLocalRepo:     planLocalRepo,
 		relationService:   relationService,
 		policyService:     policyService,
 		serviceuserRepo:   serviceuserRepo,
@@ -423,13 +406,4 @@ func (s Service) migrateAZDefinitionsToDB(ctx context.Context, azDefinitions []*
 		}
 	}
 	return nil
-}
-
-func (s Service) MigrateBillingPlans(ctx context.Context) error {
-	localPlans, err := s.planLocalRepo.Get(ctx)
-	if err != nil {
-		return err
-	}
-
-	return s.planService.UpsertPlans(ctx, localPlans)
 }

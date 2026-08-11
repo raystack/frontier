@@ -3,13 +3,11 @@ package billing
 import "time"
 
 type Config struct {
-	StripeKey            string   `yaml:"stripe_key" mapstructure:"stripe_key"`
-	StripeAutoTax        bool     `yaml:"stripe_auto_tax" mapstructure:"stripe_auto_tax"`
-	StripeWebhookSecrets []string `yaml:"stripe_webhook_secrets" mapstructure:"stripe_webhook_secrets"`
-	// PlansPath is a directory path where plans are defined
-	PlansPath           string                `yaml:"plans_path" mapstructure:"plans_path"`
-	DefaultCurrency     string                `yaml:"default_currency" mapstructure:"default_currency"`
-	PaymentMethodConfig []PaymentMethodConfig `yaml:"payment_method_config" mapstructure:"payment_method_config"`
+	StripeKey            string                `yaml:"stripe_key" mapstructure:"stripe_key"`
+	StripeAutoTax        bool                  `yaml:"stripe_auto_tax" mapstructure:"stripe_auto_tax"`
+	StripeWebhookSecrets []string              `yaml:"stripe_webhook_secrets" mapstructure:"stripe_webhook_secrets"`
+	DefaultCurrency      string                `yaml:"default_currency" mapstructure:"default_currency"`
+	PaymentMethodConfig  []PaymentMethodConfig `yaml:"payment_method_config" mapstructure:"payment_method_config"`
 
 	AccountConfig      AccountConfig      `yaml:"customer" mapstructure:"customer"`
 	PlanChangeConfig   PlanChangeConfig   `yaml:"plan_change" mapstructure:"plan_change"`
