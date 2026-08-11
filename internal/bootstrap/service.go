@@ -16,6 +16,7 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 var (
@@ -179,37 +180,37 @@ func (s Service) BuiltinPermissions(ctx context.Context) (map[string]struct{}, e
 }
 
 func (s Service) AppendSchema(ctx context.Context, customServiceDefinition schema.ServiceDefinition) error {
-	// get existing permissions and append to the new definition
-	// this is required to avoid overriding existing permissions in authzed engine
-	var existingServiceDefinition schema.ServiceDefinition
-
+	// re-apply the base schema merged with the permissions already in the
+	// database, so a re-apply never drops the existing ones.
 	existingPermissions, err := s.permissionService.List(ctx, permission.Filter{})
 	if err != nil {
 		return fmt.Errorf("AppendSchema: listing existing permissions: %w", err)
 	}
-	for _, existingPermission := range existingPermissions {
-		existingServiceDefinition.Permissions = append(existingServiceDefinition.Permissions, schema.ResourcePermission{
-			Name:        existingPermission.Name,
-			Namespace:   existingPermission.NamespaceID,
-			Description: permissionDescription(existingPermission),
-		})
-	}
+	existingServiceDefinition := existingPermissionsAsServiceDefinition(existingPermissions)
 
 	return s.applySchema(ctx, schema.MergeServiceDefinitions(customServiceDefinition, existingServiceDefinition))
 }
 
+// existingPermissionsAsServiceDefinition maps the permissions already in the
+// database into a service definition, so merging it into a re-applied schema
+// keeps them.
+func existingPermissionsAsServiceDefinition(perms []permission.Permission) schema.ServiceDefinition {
+	var def schema.ServiceDefinition
+	for _, p := range perms {
+		def.Permissions = append(def.Permissions, schema.ResourcePermission{
+			Name:        p.Name,
+			Namespace:   p.NamespaceID,
+			Description: permissionDescription(p.Metadata),
+		})
+	}
+	return def
+}
+
 // permissionDescription reads the human description out of a permission's
-// metadata. It returns "" when the metadata is missing, has no description, or
-// stores a non-string value, and never panics on a missing key.
-func permissionDescription(p permission.Permission) string {
-	if p.Metadata == nil {
-		return ""
-	}
-	v, ok := p.Metadata["description"]
-	if !ok {
-		return ""
-	}
-	desc, _ := v.(string)
+// metadata. Indexing a nil map and asserting a missing or non-string value are
+// both safe, so this returns "" in those cases and never panics.
+func permissionDescription(m metadata.Metadata) string {
+	desc, _ := m["description"].(string)
 	return desc
 }
 

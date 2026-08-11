@@ -313,8 +313,8 @@ func Test_migrateRole(t *testing.T) {
 
 func Test_AppendSchema(t *testing.T) {
 	t.Run("returns the error when listing existing permissions fails", func(t *testing.T) {
-		// A failed list must not be swallowed: boot would then apply an empty
-		// schema and drop every custom permission already in the database.
+		// The old code returned nil here, so a failed list skipped the schema
+		// re-apply but still reported boot success. Boot must surface the error.
 		permSvc := new(mockPermissionService)
 		permSvc.On("List", mock.Anything, permission.Filter{}).
 			Return(nil, errors.New("db timeout"))
@@ -325,6 +325,20 @@ func Test_AppendSchema(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "db timeout")
 	})
+}
+
+func Test_existingPermissionsAsServiceDefinition(t *testing.T) {
+	perms := []permission.Permission{
+		{Name: "get", NamespaceID: "compute/order", Metadata: metadata.Metadata{"description": "read an order"}},
+		{Name: "delete", NamespaceID: "compute/order"},
+	}
+
+	def := existingPermissionsAsServiceDefinition(perms)
+
+	assert.Equal(t, []schema.ResourcePermission{
+		{Name: "get", Namespace: "compute/order", Description: "read an order"},
+		{Name: "delete", Namespace: "compute/order", Description: ""},
+	}, def.Permissions)
 }
 
 func Test_permissionDescription(t *testing.T) {
@@ -343,7 +357,7 @@ func Test_permissionDescription(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := permissionDescription(permission.Permission{Metadata: tc.meta})
+			got := permissionDescription(tc.meta)
 			assert.Equal(t, tc.want, got)
 		})
 	}
