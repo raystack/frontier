@@ -69,7 +69,6 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 		},
 		Billing: billing.Config{
 			StripeKey:       "sk_test_mock",
-			PlansPath:       path.Join(testDataPath, "plans"),
 			DefaultCurrency: "usd",
 			AccountConfig: billing.AccountConfig{
 				AutoCreateWithOrg:                true,
@@ -94,6 +93,45 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
+
+	// Billing plans used to be seeded at boot from cfg.Billing.PlansPath. That
+	// loader is gone, so seed the fixtures these tests rely on through the admin
+	// API: the support_credits overdraft product and the enterprise_yearly plan.
+	ctxAdmin := testbench.ContextWithAuth(ctx, adminCookie)
+	_, err = s.testBench.Client.CreateProduct(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateProductRequest{
+		Body: &frontierv1beta1.ProductRequestBody{
+			Name:           "support_credits",
+			Title:          "Support Credits",
+			Description:    "Support for enterprise help",
+			Behavior:       "credits",
+			BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{CreditAmount: 100},
+			Prices: []*frontierv1beta1.Price{
+				{Name: "default", Amount: 20000, Currency: "usd"},
+			},
+		},
+	}))
+	s.Require().NoError(err)
+
+	_, err = s.testBench.AdminClient.CreatePlan(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
+		Body: &frontierv1beta1.PlanRequestBody{
+			Name:        "enterprise_yearly",
+			Title:       "Enterprise Plan",
+			Description: "Enterprise Plan",
+			Interval:    "year",
+			State:       "active",
+			Products: []*frontierv1beta1.Product{
+				{
+					Name:        "enterprise_access",
+					Title:       "Enterprise base access for year",
+					Description: "Base access to the platform",
+					Prices: []*frontierv1beta1.Price{
+						{Name: "default", Interval: "year", Amount: 8000, Currency: "usd"},
+					},
+				},
+			},
+		},
+	}))
+	s.Require().NoError(err)
 }
 
 func (s *BillingRegressionTestSuite) TearDownSuite() {

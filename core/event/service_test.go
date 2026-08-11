@@ -30,7 +30,6 @@ func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.
 		StripeKey:            "test_key",
 		StripeAutoTax:        false,
 		StripeWebhookSecrets: nil,
-		PlansPath:            "",
 		DefaultCurrency:      "USD",
 		AccountConfig:        billing.AccountConfig{AutoCreateWithOrg: true, DefaultPlan: "default_plan", DefaultOffline: false},
 		PlanChangeConfig:     billing.PlanChangeConfig{},
