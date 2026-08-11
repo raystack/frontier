@@ -101,7 +101,7 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 
 	// Seed the custom "compute" permissions and roles the tests below rely on,
 	// via the admin API. This replaces the removed boot-time resources_config
-	// loader — tests now seed custom resources the same way operators do.
+	// loader. Tests now seed custom resources the same way operators do.
 	s.Require().NoError(testbench.SeedComputeResources(ctx, s.testBench.AdminClient))
 
 	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)

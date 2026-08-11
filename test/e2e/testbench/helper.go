@@ -41,12 +41,20 @@ const (
 	BootstrapClientSecret = "e2e-bootstrap-secret"
 )
 
+// bootstrapAdminContext returns a context carrying the config-bootstrapped
+// superuser's HTTP Basic credentials, the same client_id:client_secret pair
+// that seeds the platform admin. Both PromoteBootstrapAdmin and
+// SeedComputeResources authenticate through it, so the header shape lives here.
+func bootstrapAdminContext(ctx context.Context) context.Context {
+	basic := base64.StdEncoding.EncodeToString([]byte(BootstrapClientID + ":" + BootstrapClientSecret))
+	return ContextWithHeaders(ctx, map[string]string{"Authorization": "Basic " + basic})
+}
+
 // PromoteBootstrapAdmin authenticates as the config-bootstrapped superuser service
 // account (HTTP Basic client credentials) and grants the given user the platform
-// admin (superuser) relation — the same path GitOps uses in production.
+// admin (superuser) relation, the same path GitOps uses in production.
 func PromoteBootstrapAdmin(ctx context.Context, ad frontierv1beta1connect.AdminServiceClient, email string) error {
-	basic := base64.StdEncoding.EncodeToString([]byte(BootstrapClientID + ":" + BootstrapClientSecret))
-	authCtx := ContextWithHeaders(ctx, map[string]string{"Authorization": "Basic " + basic})
+	authCtx := bootstrapAdminContext(ctx)
 
 	// Retry while the server is still coming up (CodeUnavailable). When multiple
 	// suites run in one process, a prior suite's Close() SIGINTs the process, so the
@@ -74,8 +82,7 @@ func PromoteBootstrapAdmin(ctx context.Context, ad frontierv1beta1connect.AdminS
 // boot-time resources_config loader: tests now seed custom resources the same
 // way operators do, via reconcile/the admin API.
 func SeedComputeResources(ctx context.Context, ad frontierv1beta1connect.AdminServiceClient) error {
-	basic := base64.StdEncoding.EncodeToString([]byte(BootstrapClientID + ":" + BootstrapClientSecret))
-	authCtx := ContextWithHeaders(ctx, map[string]string{"Authorization": "Basic " + basic})
+	authCtx := bootstrapAdminContext(ctx)
 
 	permKeys := []string{
 		"compute.order.delete", "compute.order.update", "compute.order.get",
