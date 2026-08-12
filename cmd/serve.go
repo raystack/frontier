@@ -104,7 +104,6 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api"
-	"github.com/raystack/frontier/internal/store/blob"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/frontier/pkg/db"
@@ -134,13 +133,6 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		}
 	}()
 
-	// load billing plans
-	billingBlobFS, err := blob.NewStore(ctx, cfg.Billing.PlansPath, "")
-	if err != nil {
-		return err
-	}
-	billingPlanRepository := blob.NewPlanRepository(billingBlobFS)
-
 	promRegistry := prometheus.NewRegistry()
 	promMetrics := prometheusmiddleware.NewClientMetrics(
 		prometheusmiddleware.WithClientHandlingTimeHistogram(),
@@ -166,7 +158,7 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient, billingPlanRepository)
+	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -183,14 +175,6 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 	logger.Info("migrated authz schema")
-
-	// apply billing plans
-	if cfg.Billing.PlansPath != "" {
-		if err = deps.BootstrapService.MigrateBillingPlans(ctx); err != nil {
-			return err
-		}
-		logger.Info("migrated billing plans")
-	}
 
 	// apply roles over nil org id
 	// nil org is the default org of platform
@@ -345,7 +329,6 @@ func buildAPIDependencies(
 	cfg *config.Frontier,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
-	planBlobRepository *blob.PlanRepository,
 ) (api.Deps, error) {
 	// Load additional traits from config file if specified
 	traits, err := preference.LoadTraitsFromFile(cfg.App.AdditionalTraitsPath)
@@ -590,8 +573,6 @@ func buildAPIDependencies(
 		policyService,
 		svUserRepo,
 		cfg.App.PAT.DeniedPermissionsSet(),
-		planService,
-		planBlobRepository,
 		svUserRepo,
 		scUserCredRepo,
 		serviceUserService,
