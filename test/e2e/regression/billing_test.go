@@ -3,8 +3,6 @@ package e2e_test
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -41,10 +39,6 @@ type BillingRegressionTestSuite struct {
 }
 
 func (s *BillingRegressionTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Require().Nil(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 
