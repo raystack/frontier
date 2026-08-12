@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path"
 	"testing"
 
 	"github.com/raystack/frontier/pkg/server"
@@ -16,10 +14,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-const (
-	fixturesDir = "testdata"
-)
-
 type PingSmokeTestSuite struct {
 	suite.Suite
 
@@ -28,10 +22,6 @@ type PingSmokeTestSuite struct {
 }
 
 func (s *PingSmokeTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Assert().NoError(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Assert().NoError(err)
 	s.connectPort = connectPort
@@ -41,9 +31,8 @@ func (s *PingSmokeTestSuite) SetupSuite() {
 			Level: "fatal",
 		},
 		App: server.Config{
-			Host:                "localhost",
-			Connect:             server.ConnectConfig{Port: connectPort},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
 		},
 	}
 

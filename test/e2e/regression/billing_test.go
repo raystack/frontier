@@ -51,9 +51,8 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 			AuditEvents: "db",
 		},
 		App: server.Config{
-			Host:                "localhost",
-			Connect:             server.ConnectConfig{Port: connectPort},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
