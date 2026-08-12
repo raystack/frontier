@@ -12,8 +12,6 @@ import (
 
 	"github.com/raystack/frontier/internal/metrics"
 
-	newrelic "github.com/newrelic/go-agent" //nolint:staticcheck
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -45,18 +43,6 @@ func New(cfg Config) (*Client, error) {
 }
 
 func (c Client) WithTimeout(ctx context.Context, collection, operation string, op func(ctx context.Context) error) (err error) {
-	nrCtx := newrelic.FromContext(ctx)
-	if nrCtx != nil {
-		nr := newrelic.DatastoreSegment{
-			Product:    newrelic.DatastorePostgres,
-			Collection: collection,
-			Operation:  operation,
-			StartTime:  nrCtx.StartSegmentNow(),
-		}
-		defer func() {
-			_ = nr.End()
-		}()
-	}
 	if metrics.DatabaseQueryLatency != nil {
 		promCollect := metrics.DatabaseQueryLatency(collection, operation)
 		defer promCollect()
