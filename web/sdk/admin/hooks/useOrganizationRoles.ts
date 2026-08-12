@@ -8,13 +8,21 @@ import {
 } from "@raystack/proton/frontier";
 import { SCOPES } from "~/admin/utils/constants";
 
+interface UseOrganizationRolesOptions {
+  /** Skip both fetches while false. Defaults to true. */
+  enabled?: boolean;
+}
+
 /*
   Roles assignable within an org: the platform's defaults plus the org's custom
   ones. Both halves are needed — a role id can come from either.
   - react-query caches per key, so repeat callers share one fetch
   - pass undefined/empty to skip the org-scoped half
 */
-export const useOrganizationRoles = (orgId?: string) => {
+export const useOrganizationRoles = (
+  orgId?: string,
+  { enabled = true }: UseOrganizationRolesOptions = {},
+) => {
   const {
     data: defaultRoles = [],
     isLoading: isDefaultRolesLoading,
@@ -23,6 +31,7 @@ export const useOrganizationRoles = (orgId?: string) => {
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
     {
+      enabled,
       select: (data) => data?.roles || [],
     },
   );
@@ -38,7 +47,7 @@ export const useOrganizationRoles = (orgId?: string) => {
       scopes: [SCOPES.ORG],
     }),
     {
-      enabled: !!orgId,
+      enabled: enabled && !!orgId,
       select: (data) => data?.roles || [],
     },
   );

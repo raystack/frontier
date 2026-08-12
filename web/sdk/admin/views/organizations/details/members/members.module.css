@@ -16,7 +16,7 @@
 }
 
 .zero-state-container {
-  padding: var(--rs-space-17) var(--rs-space-10) var(--rs-space-10);
+    padding: var(--rs-space-17) var(--rs-space-10) var(--rs-space-10);
 }
 
 .table {
@@ -39,13 +39,65 @@
     width: var(--rs-space-12);
 }
 
-.table-action-column > * {
+/* Mirrors Apsara's own toolbar row, which we rebuild. */
+.toolbar {
+    align-self: stretch;
+    background: var(--rs-color-background-base-primary);
+    border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+    padding: var(--rs-space-3) var(--rs-space-7) var(--rs-space-3) var(--rs-space-5);
+}
+
+/* Design's proportions of the 1440x1024 frame; long lists scroll the rows
+   while the header and search row stay put. */
+.invites-dialog-content {
+    width: 80vw;
+    height: 78vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.invites-dialog-body {
+    display: flex;
+    /* min-height:0 lets the scroll container shrink instead of overflowing. */
+    min-height: 0;
+    flex: 1;
+    padding: var(--rs-space-5);
+}
+
+.invites-table-wrapper {
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+}
+
+.invites-table-scroll {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+}
+
+.invites-action-column {
+    width: var(--rs-space-12);
+}
+
+/* Cell colours its own leading-icon wrapper, so the icon needs the override. */
+.invites-remove-item,
+.invites-remove-item svg {
+    color: var(--rs-color-foreground-danger-primary);
+}
+
+/* table-layout:fixed splits columns evenly; emails need more. */
+.invites-email-column {
+    width: calc(100% / 3);
+}
+
+.table-action-column>* {
     opacity: 0;
     transition: opacity 120ms ease-in-out;
 }
 
-.table-wrapper tr:hover .table-action-column > *,
-.table-action-column:focus-within > *,
-.table-action-column:has([data-popup-open]) > * {
+.table-wrapper tr:hover .table-action-column>*,
+.table-action-column:focus-within>*,
+.table-action-column:has([data-popup-open])>* {
     opacity: 1;
 }
