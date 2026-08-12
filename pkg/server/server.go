@@ -99,8 +99,10 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 	mux.Handle("/", http.StripPrefix("/", spaHandler))
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%d", uiConfig.Port),
-		Handler: mux,
+		Addr:              fmt.Sprintf(":%d", uiConfig.Port),
+		Handler:           mux,
+		ReadHeaderTimeout: apiServerConfig.ReadHeaderTimeout,
+		IdleTimeout:       apiServerConfig.IdleTimeout,
 	}
 
 	logger.Info("ui server starting", "http-port", uiConfig.Port)
@@ -230,10 +232,14 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 	protocols.SetUnencryptedHTTP2(true)
 	protocols.SetHTTP2(true)
 
+	// No WriteTimeout on purpose: the connect server streams long export
+	// responses (e.g. ExportAuditRecords) that a write deadline would cut off.
 	server := &http.Server{
-		Addr:      fmt.Sprintf(":%d", cfg.Connect.Port),
-		Handler:   handler,
-		Protocols: protocols,
+		Addr:              fmt.Sprintf(":%d", cfg.Connect.Port),
+		Handler:           handler,
+		Protocols:         protocols,
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+		IdleTimeout:       cfg.IdleTimeout,
 	}
 
 	// counts shutdown goroutines still draining their servers
@@ -249,8 +255,10 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 			metricsMux.Handle("/debug/pprof/", http.DefaultServeMux)
 		}
 		metricsServer := &http.Server{
-			Addr:    fmt.Sprintf(":%d", cfg.MetricsPort),
-			Handler: metricsMux,
+			Addr:              fmt.Sprintf(":%d", cfg.MetricsPort),
+			Handler:           metricsMux,
+			ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+			IdleTimeout:       cfg.IdleTimeout,
 		}
 		metricsFailed := make(chan struct{})
 		go func() {
