@@ -100,7 +100,7 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%d", uiConfig.Port),
-		Handler:           uiPanicRecovery(logger, mux),
+		Handler:           httpPanicRecovery(logger, mux),
 		ReadHeaderTimeout: apiServerConfig.ReadHeaderTimeout,
 		IdleTimeout:       apiServerConfig.IdleTimeout,
 	}
@@ -220,8 +220,11 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "SERVING"})
 	})
 
-	// Configure and create the server
-	handler := connectinterceptors.WithConnectCORS(mux, cfg.ConnectCors)
+	// Configure and create the server. Panic recovery wraps the whole mux so
+	// routes outside the two service handlers (webhook bridge, ping, health,
+	// reflection, CORS) are covered too; RPC panics are still converted to
+	// connect error codes by WithRecover before they can reach this net.
+	handler := httpPanicRecovery(logger, connectinterceptors.WithConnectCORS(mux, cfg.ConnectCors))
 
 	// Serve HTTP/1.1 and unencrypted HTTP/2. Unlike the x/net h2c wrapper
 	// this replaces, the server tracks these HTTP/2 connections itself, so

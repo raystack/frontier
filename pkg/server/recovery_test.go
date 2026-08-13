@@ -62,7 +62,7 @@ func TestConnectPanicRecoveryReturnsInternalError(t *testing.T) {
 	}
 }
 
-func TestUIPanicRecoveryReturnsInternalError(t *testing.T) {
+func TestHTTPPanicRecoveryReturnsInternalError(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
 
@@ -72,7 +72,7 @@ func TestUIPanicRecoveryReturnsInternalError(t *testing.T) {
 	})
 
 	rec := httptest.NewRecorder()
-	uiPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/panic", nil))
+	httpPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/panic", nil))
 
 	if rec.Code != http.StatusInternalServerError {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusInternalServerError)
@@ -87,7 +87,7 @@ func TestUIPanicRecoveryReturnsInternalError(t *testing.T) {
 	}
 }
 
-func TestUIPanicRecoveryPassesThroughNormalRequests(t *testing.T) {
+func TestHTTPPanicRecoveryPassesThroughNormalRequests(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	mux := http.NewServeMux()
@@ -96,14 +96,14 @@ func TestUIPanicRecoveryPassesThroughNormalRequests(t *testing.T) {
 	})
 
 	rec := httptest.NewRecorder()
-	uiPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/ok", nil))
+	httpPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/ok", nil))
 
 	if rec.Code != http.StatusTeapot {
 		t.Errorf("status = %d, want %d", rec.Code, http.StatusTeapot)
 	}
 }
 
-func TestUIPanicRecoveryAbortsCommittedResponses(t *testing.T) {
+func TestHTTPPanicRecoveryAbortsCommittedResponses(t *testing.T) {
 	var logBuf bytes.Buffer
 	logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
 
@@ -123,7 +123,7 @@ func TestUIPanicRecoveryAbortsCommittedResponses(t *testing.T) {
 				t.Errorf("recovered %v, want http.ErrAbortHandler", recovered)
 			}
 		}()
-		uiPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/partial", nil))
+		httpPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/partial", nil))
 	}()
 
 	if rec.Code != http.StatusOK {
@@ -137,7 +137,7 @@ func TestUIPanicRecoveryAbortsCommittedResponses(t *testing.T) {
 	}
 }
 
-func TestUIPanicRecoveryAbortsAfterFlush(t *testing.T) {
+func TestHTTPPanicRecoveryAbortsAfterFlush(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	mux := http.NewServeMux()
@@ -153,7 +153,7 @@ func TestUIPanicRecoveryAbortsAfterFlush(t *testing.T) {
 				t.Errorf("recovered %v, want http.ErrAbortHandler", recovered)
 			}
 		}()
-		uiPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/flush", nil))
+		httpPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/flush", nil))
 	}()
 
 	if strings.Contains(rec.Body.String(), "internal server error") {
@@ -161,7 +161,32 @@ func TestUIPanicRecoveryAbortsAfterFlush(t *testing.T) {
 	}
 }
 
-func TestUIPanicRecoveryRepanicsOnErrAbortHandler(t *testing.T) {
+func TestCommittedWriterUnwrapReturnsUnderlyingWriter(t *testing.T) {
+	rec := httptest.NewRecorder()
+	cw := &committedWriter{ResponseWriter: rec}
+
+	if cw.Unwrap() != http.ResponseWriter(rec) {
+		t.Errorf("Unwrap() = %v, want the underlying writer", cw.Unwrap())
+	}
+}
+
+func TestCommittedWriterReadFromCommitsAndCopies(t *testing.T) {
+	rec := httptest.NewRecorder()
+	cw := &committedWriter{ResponseWriter: rec}
+
+	n, err := io.Copy(cw, strings.NewReader("data"))
+	if err != nil || n != 4 {
+		t.Fatalf("copy = (%d, %v), want (4, nil)", n, err)
+	}
+	if !cw.committed {
+		t.Error("ReadFrom did not mark the response as committed")
+	}
+	if rec.Body.String() != "data" {
+		t.Errorf("body = %q, want %q", rec.Body.String(), "data")
+	}
+}
+
+func TestHTTPPanicRecoveryRepanicsOnErrAbortHandler(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
 	mux := http.NewServeMux()
@@ -174,5 +199,5 @@ func TestUIPanicRecoveryRepanicsOnErrAbortHandler(t *testing.T) {
 			t.Errorf("recovered %v, want http.ErrAbortHandler", recovered)
 		}
 	}()
-	uiPanicRecovery(logger, mux).ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/abort", nil))
+	httpPanicRecovery(logger, mux).ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/abort", nil))
 }
