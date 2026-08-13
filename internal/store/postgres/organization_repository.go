@@ -84,8 +84,6 @@ func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]o
 	}
 
 	var orgs []Organization
-	// TODO(kushsharma): clean up this unnecessary newrelic blot over each query
-	// abstract it over database using a facade
 	if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetByIDs", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &orgs, query, params...)
 	}); err != nil {
