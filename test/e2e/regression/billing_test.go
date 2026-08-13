@@ -1200,11 +1200,11 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		beforeBalance := getBalanceResp.Msg.GetBalance().GetAmount()
 
 		// set limit to -20
-		//nolint:staticcheck
-		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountLimitsRequest{
+		_, err = s.testBench.AdminClient.UpdateBillingAccountDetails(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountDetailsRequest{
 			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			Id:        createBillingResp.Msg.GetBillingAccount().GetId(),
 			CreditMin: -20,
+			DueInDays: 0,
 		}))
 		s.Assert().NoError(err)
 
@@ -1262,11 +1262,11 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		s.Assert().NoError(err)
 
 		// reset limit
-		//nolint:staticcheck
-		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountLimitsRequest{
+		_, err = s.testBench.AdminClient.UpdateBillingAccountDetails(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountDetailsRequest{
 			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			Id:        createBillingResp.Msg.GetBillingAccount().GetId(),
 			CreditMin: 0,
+			DueInDays: 0,
 		}))
 		s.Assert().NoError(err)
 	})
