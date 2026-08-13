@@ -381,6 +381,8 @@ spec:
 The schema is a JSON string. Export writes only the built-ins whose schema differs
 from the default, so a freshly exported file lists just what an operator changed.
 
+A metaschema change reaches every pod within the server's cache refresh interval, about a minute by default, so it can take that long to take effect everywhere.
+
 ## Running it
 
 Log in as a superuser. The bootstrap service user exists for exactly this; its client id
