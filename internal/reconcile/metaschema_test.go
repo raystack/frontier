@@ -58,6 +58,15 @@ func TestDiffMetaSchemas(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
 	})
+	t.Run("no op when the file and server differ only in key order and whitespace", func(t *testing.T) {
+		ops, err := diffMetaSchemas(
+			[]MetaSchemaSpec{{Name: "user", Schema: `{"a":1,"b":2}`}},
+			[]currentMetaSchema{{ID: "user-id", Name: "user", Schema: `{ "b": 2, "a": 1 }`}, {ID: "org-id", Name: "organization", Schema: `{"type":"object","properties":{}}`}},
+			testMetaDefaults,
+		)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
 	t.Run("resets a built-in the file leaves out", func(t *testing.T) {
 		ops, err := diffMetaSchemas(
 			nil,
@@ -80,6 +89,27 @@ func TestDiffMetaSchemas(t *testing.T) {
 	})
 }
 
+func TestCanonicalJSON(t *testing.T) {
+	t.Run("equal after whitespace normalization", func(t *testing.T) {
+		got, err := canonicalJSON(`{ "type" :  "object" }`)
+		assert.NoError(t, err)
+		want, err := canonicalJSON(`{"type":"object"}`)
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
+	t.Run("equal after key-order normalization", func(t *testing.T) {
+		got, err := canonicalJSON(`{"b":2,"a":1}`)
+		assert.NoError(t, err)
+		want, err := canonicalJSON(`{"a":1,"b":2}`)
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
+	t.Run("rejects invalid JSON", func(t *testing.T) {
+		_, err := canonicalJSON("{not json")
+		assert.Error(t, err)
+	})
+}
+
 func TestExportMetaSchemas(t *testing.T) {
 	current := []currentMetaSchema{
 		{ID: "user-id", Name: "user", Schema: `{"type":"object","required":["x"]}`},       // overridden
@@ -96,6 +126,24 @@ func TestExportMetaSchemas(t *testing.T) {
 		ops, err := diffMetaSchemas(specs, current, testMetaDefaults)
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
+	})
+	t.Run("omits a default missing from the current server state", func(t *testing.T) {
+		defaults := map[string]string{
+			"user":  `{"type":"object"}`,
+			"group": `{"type":"object"}`,
+		}
+		currentMissingGroup := []currentMetaSchema{
+			{ID: "user-id", Name: "user", Schema: `{"type":"object","required":["x"]}`},
+		}
+		specs, err := exportMetaSchemas(currentMissingGroup, defaults)
+		assert.NoError(t, err)
+		assert.Equal(t, []MetaSchemaSpec{{Name: "user", Schema: `{"type":"object","required":["x"]}`}}, specs)
+	})
+	t.Run("emits a stored schema verbatim when it is not valid JSON", func(t *testing.T) {
+		badCurrent := []currentMetaSchema{{ID: "user-id", Name: "user", Schema: "{not json"}}
+		specs, err := exportMetaSchemas(badCurrent, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Equal(t, []MetaSchemaSpec{{Name: "user", Schema: "{not json"}}, specs)
 	})
 }
 
