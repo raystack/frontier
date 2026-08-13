@@ -15,20 +15,13 @@ import (
 
 type Frontier struct {
 	// configuration version
-	Version  int             `yaml:"version" mapstructure:"version"`
-	Log      logger.Config   `yaml:"log" mapstructure:"log"`
-	NewRelic NewRelic        `yaml:"new_relic" mapstructure:"new_relic"`
-	App      server.Config   `yaml:"app" mapstructure:"app"`
-	DB       db.Config       `yaml:"db" mapstructure:"db"`
-	UI       server.UIConfig `yaml:"ui" mapstructure:"ui"`
-	SpiceDB  spicedb.Config  `yaml:"spicedb" mapstructure:"spicedb"`
-	Billing  billing.Config  `yaml:"billing" mapstructure:"billing"`
-}
-
-type NewRelic struct {
-	AppName string `yaml:"app_name" mapstructure:"app_name"`
-	License string `yaml:"license" mapstructure:"license"`
-	Enabled bool   `yaml:"enabled" mapstructure:"enabled"`
+	Version int             `yaml:"version" mapstructure:"version"`
+	Log     logger.Config   `yaml:"log" mapstructure:"log"`
+	App     server.Config   `yaml:"app" mapstructure:"app"`
+	DB      db.Config       `yaml:"db" mapstructure:"db"`
+	UI      server.UIConfig `yaml:"ui" mapstructure:"ui"`
+	SpiceDB spicedb.Config  `yaml:"spicedb" mapstructure:"spicedb"`
+	Billing billing.Config  `yaml:"billing" mapstructure:"billing"`
 }
 
 func Load(serverConfigFileFromFlag string) (*Frontier, error) {

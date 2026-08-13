@@ -10,14 +10,6 @@ log:
   # e.g. ["app.user.created", "app.permission.checked"]
   ignored_audit_events: []
 
-new_relic:
-  # enable new relic for tracing and metrics
-  enabled: false
-  # name of the application in new relic
-  app_name: "Frontier"
-  # license key for new relic
-  license: "NEWRELIC_LICENSE_KEY"
-
 # Admin UI configuration
 ui:
   # port to serve the UI
