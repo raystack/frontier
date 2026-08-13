@@ -20,6 +20,7 @@ import {
 } from '@raystack/apsara';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
+import { useTokens } from '../../../hooks/useTokens';
 import { handleConnectError } from '~/utils/error';
 
 const deleteOrgSchema = yup
@@ -44,6 +45,7 @@ export const DeleteOrganizationDialog = ({
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
   const [isAcknowledged, setIsAcknowledged] = useState(false);
+  const { tokenBalance } = useTokens();
 
   const { mutateAsync: deleteOrganization } = useMutation(
     FrontierServiceQueries.deleteOrganization
@@ -83,6 +85,7 @@ export const DeleteOrganizationDialog = ({
     } catch (error) {
       handleConnectError(error, {
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        FailedPrecondition: (err) => toastManager.add({ title: `Cannot delete this ${orgLabelLower} yet`, description: err.rawMessage, type: 'error' }),
         NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
         Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
@@ -102,6 +105,13 @@ export const DeleteOrganizationDialog = ({
                 This action can not be undone. This will permanently
                 delete all the projects and resources in {organization?.title}.
               </Text>
+              {tokenBalance > 0 ? (
+                <Text size="small" variant="danger">
+                  You have {tokenBalance.toString()} tokens remaining. Deleting
+                  the {orgLabelLower} forfeits them. Contact support to get the
+                  amount transferred to your bank account.
+                </Text>
+              ) : null}
               <Field
                 label={`Please type name of the ${orgLabel} to confirm.`}
                 error={
@@ -146,7 +156,7 @@ export const DeleteOrganizationDialog = ({
               variant="solid"
               color="danger"
               type="submit"
-              disabled={!deleteTitle || !isAcknowledged}
+              disabled={!deleteTitle || !isAcknowledged || isSubmitting}
               data-test-id="frontier-sdk-delete-organization-btn"
               loading={isSubmitting}
               loaderText="Deleting..."
