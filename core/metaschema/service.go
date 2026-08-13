@@ -2,6 +2,7 @@ package metaschema
 
 import (
 	"context"
+	"sync"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -11,7 +12,9 @@ import (
 )
 
 type Service struct {
-	repository      Repository
+	repository Repository
+
+	mu              sync.RWMutex
 	metaSchemaCache map[string]MetaSchema
 }
 
@@ -22,17 +25,22 @@ func NewService(repository Repository) *Service {
 	}
 }
 
-func (s Service) Create(ctx context.Context, toCreate MetaSchema) (MetaSchema, error) {
+func (s *Service) Create(ctx context.Context, toCreate MetaSchema) (MetaSchema, error) {
 	mschema, err := s.repository.Create(ctx, toCreate)
 	if err != nil {
 		return MetaSchema{}, err
 	}
+	s.mu.Lock()
 	s.metaSchemaCache[mschema.Name] = mschema
+	s.mu.Unlock()
 	return mschema, nil
 }
 
-func (s Service) Get(ctx context.Context, idOrName string) (MetaSchema, error) {
-	if schema, ok := s.metaSchemaCache[idOrName]; ok {
+func (s *Service) Get(ctx context.Context, idOrName string) (MetaSchema, error) {
+	s.mu.RLock()
+	schema, ok := s.metaSchemaCache[idOrName]
+	s.mu.RUnlock()
+	if ok {
 		return schema, nil
 	}
 
@@ -41,24 +49,14 @@ func (s Service) Get(ctx context.Context, idOrName string) (MetaSchema, error) {
 		if err != nil {
 			return MetaSchema{}, err
 		}
-
 		return schema, nil
 	}
 	return MetaSchema{}, ErrInvalidID
 }
 
-func (s Service) List(ctx context.Context) ([]MetaSchema, error) {
-	if len(s.metaSchemaCache) == 0 {
-		schemas, err := s.repository.List(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, schema := range schemas {
-			s.metaSchemaCache[schema.Name] = schema
-		}
-		return schemas, nil
-	}
-
+func (s *Service) List(ctx context.Context) ([]MetaSchema, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	schemas := make([]MetaSchema, 0, len(s.metaSchemaCache))
 	for _, schema := range s.metaSchemaCache {
 		schemas = append(schemas, schema)
@@ -66,40 +64,45 @@ func (s Service) List(ctx context.Context) ([]MetaSchema, error) {
 	return schemas, nil
 }
 
-func (s Service) Update(ctx context.Context, id string, toUpdate MetaSchema) (MetaSchema, error) {
+func (s *Service) Update(ctx context.Context, id string, toUpdate MetaSchema) (MetaSchema, error) {
 	if utils.IsValidUUID(id) {
 		schema, err := s.repository.Update(ctx, id, toUpdate)
 		if err != nil {
 			return MetaSchema{}, err
 		}
+		s.mu.Lock()
 		s.metaSchemaCache[schema.Name] = schema
+		s.mu.Unlock()
 		return schema, nil
 	}
 	return MetaSchema{}, ErrInvalidID
 }
 
-func (s Service) Delete(ctx context.Context, id string) error {
+func (s *Service) Delete(ctx context.Context, id string) error {
 	if utils.IsValidUUID(id) {
 		name, err := s.repository.Delete(ctx, id)
 		if err != nil {
 			return err
 		}
-
+		s.mu.Lock()
 		delete(s.metaSchemaCache, name)
+		s.mu.Unlock()
 		return nil
 	}
 	return ErrInvalidID
 }
 
-func (s Service) MigrateDefault(ctx context.Context) error {
+func (s *Service) MigrateDefault(ctx context.Context) error {
 	return s.repository.MigrateDefaults(ctx)
 }
 
-// Validate the metadata against the json-schema. In case metaschema doesn't exists in the cache, it will return nil (no validation)
-func (s Service) Validate(mdata metadata.Metadata, name string) error {
-	var mschema MetaSchema
-	var ok bool
-	if mschema, ok = s.metaSchemaCache[name]; !ok {
+// Validate checks the metadata against the json-schema. When the named
+// metaschema is not in the cache it returns nil (no validation).
+func (s *Service) Validate(mdata metadata.Metadata, name string) error {
+	s.mu.RLock()
+	mschema, ok := s.metaSchemaCache[name]
+	s.mu.RUnlock()
+	if !ok {
 		return nil
 	}
 
