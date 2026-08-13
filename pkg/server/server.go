@@ -100,7 +100,7 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%d", uiConfig.Port),
-		Handler:           mux,
+		Handler:           uiPanicRecovery(logger, mux),
 		ReadHeaderTimeout: apiServerConfig.ReadHeaderTimeout,
 		IdleTimeout:       apiServerConfig.IdleTimeout,
 	}
@@ -178,8 +178,10 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		auditInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 
-	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors, connect.WithCodec(connectCodec{}))
-	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors, connect.WithCodec(connectCodec{}))
+	// Panic recovery goes first so it sits outermost and catches panics from
+	// the other interceptors as well, not just the handlers.
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, connectPanicRecovery(logger), interceptors, connect.WithCodec(connectCodec{}))
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, connectPanicRecovery(logger), interceptors, connect.WithCodec(connectCodec{}))
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()
