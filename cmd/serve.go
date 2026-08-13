@@ -489,7 +489,7 @@ func buildAPIDependencies(
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
-	metaschemaService := metaschema.NewService(metaschemaRepository)
+	metaschemaService := metaschema.NewService(metaschemaRepository, logger, cfg.App.Metaschema.RefreshInterval)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, membershipService, projectService, auditRecordRepository)
 	membershipService.SetUserPATService(userPATService)

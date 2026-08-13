@@ -74,7 +74,7 @@ func (f *fakeRepo) MigrateDefaults(_ context.Context) error { return nil }
 func discardLogger() *slog.Logger { return slog.New(slog.NewTextHandler(io.Discard, nil)) }
 
 func TestService_ConcurrentAccess(t *testing.T) {
-	svc := NewService(newFakeRepo())
+	svc := NewService(newFakeRepo(), discardLogger(), 0)
 
 	const goroutines = 50
 	var wg sync.WaitGroup
@@ -90,4 +90,62 @@ func TestService_ConcurrentAccess(t *testing.T) {
 		}(i)
 	}
 	wg.Wait()
+}
+
+func TestService_reload_picksUpNewSchema(t *testing.T) {
+	repo := newFakeRepo()
+	svc := NewService(repo, discardLogger(), 0)
+	if err := svc.Init(context.Background()); err != nil {
+		t.Fatalf("Init: %v", err)
+	}
+
+	// Add a schema straight to the repo, as if another pod created it.
+	if _, err := repo.Create(context.Background(), MetaSchema{ID: "1", Name: "user", Schema: `{"type":"object"}`}); err != nil {
+		t.Fatalf("repo.Create: %v", err)
+	}
+
+	// Not visible yet: Init primed the cache before the row existed.
+	if _, err := svc.Get(context.Background(), "user"); err == nil {
+		t.Fatal("expected schema to be absent before reload")
+	}
+
+	svc.reload(context.Background())
+
+	got, err := svc.Get(context.Background(), "user")
+	if err != nil {
+		t.Fatalf("Get after reload: %v", err)
+	}
+	if got.Name != "user" {
+		t.Fatalf("got %q, want user", got.Name)
+	}
+}
+
+func TestService_reload_keepsCacheOnListError(t *testing.T) {
+	repo := newFakeRepo()
+	_, _ = repo.Create(context.Background(), MetaSchema{ID: "1", Name: "user", Schema: `{"type":"object"}`})
+	svc := NewService(repo, discardLogger(), 0)
+	if err := svc.Init(context.Background()); err != nil {
+		t.Fatalf("Init: %v", err)
+	}
+
+	repo.listErr = context.DeadlineExceeded
+	svc.reload(context.Background())
+
+	// The previous cache survives a failed reload.
+	if _, err := svc.Get(context.Background(), "user"); err != nil {
+		t.Fatalf("cache should survive a reload error: %v", err)
+	}
+}
+
+func TestService_Init_refreshDisabled(t *testing.T) {
+	svc := NewService(newFakeRepo(), discardLogger(), 0)
+	if err := svc.Init(context.Background()); err != nil {
+		t.Fatalf("Init: %v", err)
+	}
+	if svc.syncJob != nil {
+		t.Fatal("interval 0 must not start a cron job")
+	}
+	if err := svc.Close(); err != nil {
+		t.Fatalf("Close when no job started: %v", err)
+	}
 }
