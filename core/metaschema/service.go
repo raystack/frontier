@@ -131,28 +131,40 @@ func (s *Service) Validate(mdata metadata.Metadata, name string) error {
 }
 
 // reload replaces the cache with the current set of metaschemas from the
-// database. On error it keeps the existing cache, so a database blip does not
-// blank validation.
-func (s *Service) reload(ctx context.Context) {
+// database. It holds the write lock across the read and the swap, so a Create,
+// Update, or Delete that runs concurrently applies to the cache after the swap
+// and is never lost to a stale snapshot. On a database error it returns without
+// touching the cache, and it refuses to swap an empty set over a populated
+// cache, so neither a blip nor an unexpected empty read blanks validation. The
+// caller decides what to do with the error: fail startup for the initial prime,
+// log and keep the cache for a scheduled refresh.
+func (s *Service) reload(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	schemas, err := s.repository.List(ctx)
 	if err != nil {
-		s.logger.WarnContext(ctx, "metaschema cache refresh failed", "err", err)
-		return
+		return err
+	}
+	if len(schemas) == 0 && len(s.metaSchemaCache) > 0 {
+		return fmt.Errorf("metaschema list returned no schemas, keeping the current cache of %d", len(s.metaSchemaCache))
 	}
 	fresh := make(map[string]MetaSchema, len(schemas))
 	for _, schema := range schemas {
 		fresh[schema.Name] = schema
 	}
-	s.mu.Lock()
 	s.metaSchemaCache = fresh
-	s.mu.Unlock()
+	return nil
 }
 
 // Init primes the cache from the database and, when refreshInterval is greater
 // than zero, starts a background job that reloads it on that interval so a
 // change made on one pod reaches the others.
 func (s *Service) Init(ctx context.Context) error {
-	s.reload(ctx)
+	// The initial prime must succeed. If it fails, startup stops here rather
+	// than serving with an empty cache, which would skip validation silently.
+	if err := s.reload(ctx); err != nil {
+		return fmt.Errorf("prime metaschema cache: %w", err)
+	}
 	s.mu.RLock()
 	count := len(s.metaSchemaCache)
 	s.mu.RUnlock()
@@ -172,7 +184,11 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.Recover(cron.DefaultLogger),
 	))
 	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.refreshInterval.String()), func() {
-		s.reload(ctx)
+		// A scheduled refresh keeps the last good cache on error, so a database
+		// blip does not blank validation between successful reloads.
+		if err := s.reload(ctx); err != nil {
+			s.logger.WarnContext(ctx, "metaschema cache refresh failed", "err", err)
+		}
 	}); err != nil {
 		return err
 	}
