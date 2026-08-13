@@ -2,15 +2,13 @@ package server
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net/http"
 	"runtime/debug"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/pkg/errors"
 )
-
-var errInternalServer = errors.New("internal server error")
 
 // connectPanicRecovery converts a panic anywhere in the RPC handler chain
 // into a CodeInternal error response. The panic value and stack go to the
@@ -21,7 +19,7 @@ func connectPanicRecovery(logger *slog.Logger) connect.HandlerOption {
 			"procedure", spec.Procedure,
 			"panic", panicValue,
 			"stack", string(debug.Stack()))
-		return connect.NewError(connect.CodeInternal, errInternalServer)
+		return connect.NewError(connect.CodeInternal, errors.ErrInternalServerError)
 	})
 }
 
@@ -39,7 +37,7 @@ func uiPanicRecovery(logger *slog.Logger, next http.Handler) http.Handler {
 					"path", r.URL.Path,
 					"panic", panicValue,
 					"stack", string(debug.Stack()))
-				http.Error(w, errInternalServer.Error(), http.StatusInternalServerError)
+				http.Error(w, errors.ErrInternalServerError.Error(), http.StatusInternalServerError)
 			}
 		}()
 		next.ServeHTTP(w, r)
