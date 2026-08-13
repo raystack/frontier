@@ -60,6 +60,16 @@ type Config struct {
 	// requests to finish during shutdown before cutting them off
 	ShutdownGracePeriod time.Duration `yaml:"shutdown_grace_period" mapstructure:"shutdown_grace_period" default:"10s"`
 
+	// ReadHeaderTimeout is how long each server waits for a client to send
+	// its request headers before closing the connection
+	ReadHeaderTimeout time.Duration `yaml:"read_header_timeout" mapstructure:"read_header_timeout" default:"10s"`
+
+	// IdleTimeout is how long each server keeps an idle keep-alive
+	// connection open before closing it. It must be larger than the
+	// keep-alive timeout of any fronting proxy, so the proxy never sends
+	// a request on a connection the server is already closing
+	IdleTimeout time.Duration `yaml:"idle_timeout" mapstructure:"idle_timeout" default:"180s"`
+
 	// Profiler enables /debug/pprof under metrics port
 	Profiler bool `yaml:"profiler" mapstructure:"profiler" default:"false"`
 

@@ -58,6 +58,12 @@ app:
   metrics_port: 9000
   # how long each server waits for in-flight requests to finish during shutdown
   shutdown_grace_period: 10s
+  # how long each server waits for a client to send its request headers
+  read_header_timeout: 10s
+  # how long each server keeps an idle keep-alive connection open.
+  # keep it larger than the keep-alive timeout of any fronting proxy,
+  # so the proxy never sends a request on a connection the server is closing
+  idle_timeout: 180s
   # enable pprof endpoints for cpu/mem/mutex profiling
   profiler: false
   host: "127.0.0.1"
