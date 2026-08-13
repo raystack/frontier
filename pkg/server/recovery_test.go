@@ -103,6 +103,64 @@ func TestUIPanicRecoveryPassesThroughNormalRequests(t *testing.T) {
 	}
 }
 
+func TestUIPanicRecoveryAbortsCommittedResponses(t *testing.T) {
+	var logBuf bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&logBuf, nil))
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/partial", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte("partial")); err != nil {
+			t.Fatalf("write: %v", err)
+		}
+		panic("boom")
+	})
+
+	rec := httptest.NewRecorder()
+	func() {
+		defer func() {
+			if recovered := recover(); recovered != http.ErrAbortHandler {
+				t.Errorf("recovered %v, want http.ErrAbortHandler", recovered)
+			}
+		}()
+		uiPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/partial", nil))
+	}()
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want the already-committed %d", rec.Code, http.StatusOK)
+	}
+	if rec.Body.String() != "partial" {
+		t.Errorf("body = %q, want the partial body with nothing appended", rec.Body.String())
+	}
+	if !strings.Contains(logBuf.String(), "boom") {
+		t.Errorf("panic was not logged: %q", logBuf.String())
+	}
+}
+
+func TestUIPanicRecoveryAbortsAfterFlush(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/flush", func(w http.ResponseWriter, r *http.Request) {
+		w.(http.Flusher).Flush()
+		panic("boom")
+	})
+
+	rec := httptest.NewRecorder()
+	func() {
+		defer func() {
+			if recovered := recover(); recovered != http.ErrAbortHandler {
+				t.Errorf("recovered %v, want http.ErrAbortHandler", recovered)
+			}
+		}()
+		uiPanicRecovery(logger, mux).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/flush", nil))
+	}()
+
+	if strings.Contains(rec.Body.String(), "internal server error") {
+		t.Errorf("error body appended to a flushed response: %q", rec.Body.String())
+	}
+}
+
 func TestUIPanicRecoveryRepanicsOnErrAbortHandler(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 
