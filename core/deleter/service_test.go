@@ -1,12 +1,16 @@
 package deleter_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/billing/credit"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/billing/plan"
@@ -16,15 +20,19 @@ import (
 	"github.com/raystack/frontier/core/deleter/mocks"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	mailermocks "github.com/raystack/frontier/pkg/mailer/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gopkg.in/mail.v2"
 )
 
 type deleterMocks struct {
@@ -46,6 +54,7 @@ type deleterMocks struct {
 	creditSvc   *mocks.CreditService
 	kycSvc      *mocks.KycService
 	planSvc     *mocks.PlanService
+	dialer      *mailermocks.Dialer
 }
 
 func newMocks(t *testing.T) deleterMocks {
@@ -69,6 +78,7 @@ func newMocks(t *testing.T) deleterMocks {
 		creditSvc:   mocks.NewCreditService(t),
 		kycSvc:      mocks.NewKycService(t),
 		planSvc:     mocks.NewPlanService(t),
+		dialer:      mailermocks.NewDialer(t),
 	}
 	// plans resolve lazily by the subscription's plan id; stub a paid and a
 	// free one for every test
@@ -85,7 +95,7 @@ func (m deleterMocks) build() *deleter.Service {
 	return deleter.NewCascadeDeleter(m.orgSvc, m.projSvc, m.resSvc, m.grpSvc, m.mbrSvc,
 		m.polSvc, m.roleSvc, m.invSvc, m.usrSvc, m.patSvc, m.suSvc,
 		m.custSvc, m.subSvc, m.invocSvc, m.checkoutSvc, m.creditSvc, m.kycSvc,
-		m.planSvc)
+		m.planSvc, m.dialer, billing.TokenForfeitNoticeConfig{})
 }
 
 func TestDeleteProject(t *testing.T) {
@@ -146,7 +156,7 @@ func TestDeleteOrganization(t *testing.T) {
 	t.Run("full cascade delete", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 
 		// the up-front check and DeleteCustomers both list customers
@@ -217,7 +227,7 @@ func TestDeleteOrganization(t *testing.T) {
 	t.Run("already deleted org returns not found without touching anything", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{}, organization.ErrNotExist)
 		// strict mocks: no other service may be called
 
@@ -229,7 +239,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -264,7 +274,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -288,7 +298,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -307,19 +317,53 @@ func TestDeleteOrganization(t *testing.T) {
 		assert.Contains(t, blocked.Blockers[0].Message, "contact support")
 	})
 
-	t.Run("unused tokens do not block the delete", func(t *testing.T) {
+	t.Run("unused tokens do not block the delete and the owners get an email", func(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
-			Return(organization.Organization{ID: "org-1"}, nil)
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1", Title: "Org One"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
 		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
 			Return([]invoice.Invoice{}, nil)
 		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
+		// 60 of the remaining tokens were bought, 20 of those were refunded
+		// back to the buyer, the rest were granted
+		m.creditSvc.EXPECT().List(mock.Anything, credit.Filter{CustomerID: "cust-1"}).
+			Return([]credit.Transaction{
+				{Type: credit.CreditType, Source: credit.SourceSystemBuyEvent, Amount: 60},
+				{Type: credit.DebitType, Source: credit.SourceSystemBuyEvent, Amount: 20},
+				{Type: credit.CreditType, Source: credit.SourceSystemOnboardEvent, Amount: 90},
+				{Type: credit.DebitType, Source: "app.usage", Amount: 50},
+			}, nil)
 		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
 			Return([]subscription.Subscription{}, nil)
+
+		// the positive balance makes the delete collect the owners up front
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{ID: "owner-role-id"}, nil)
+		m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, membership.MemberFilter{
+			PrincipalType: schema.UserPrincipal,
+			RoleIDs:       []string{"owner-role-id"},
+		}).Return([]membership.Member{
+			{PrincipalID: "user-1", PrincipalType: schema.UserPrincipal},
+		}, nil)
+		m.usrSvc.EXPECT().GetByIDs(mock.Anything, []string{"user-1"}).
+			Return([]user.User{{ID: "user-1", Email: "owner@acme.test", Title: "Owner"}}, nil)
+		// ...and mail each owner once the org is gone; the body carries the
+		// purchased share with the refunded part taken out: 60 bought - 20
+		// refunded = 40 of the 100 remaining
+		m.dialer.EXPECT().FromHeader().Return("no-reply@frontier.test")
+		m.dialer.EXPECT().DialAndSend(mock.Anything).Run(func(msg *mail.Message) {
+			var raw bytes.Buffer
+			_, err := msg.WriteTo(&raw)
+			assert.NoError(t, err)
+			// undo the quoted-printable soft line breaks before matching
+			body := strings.ReplaceAll(raw.String(), "=\r\n", "")
+			assert.Contains(t, body, "of which <b>40</b> came from purchases")
+			assert.Contains(t, body, "Contact support")
+		}).Return(nil)
 
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
 		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
@@ -352,7 +396,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -399,7 +443,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -428,7 +472,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -454,7 +498,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -498,7 +542,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -526,7 +570,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -552,7 +596,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-offline", ProviderID: ""}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -571,8 +615,8 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		// a disabled org is still deletable
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
-			Return(organization.Organization{}, organization.ErrDisabled)
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1", State: organization.Disabled}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
@@ -595,7 +639,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m := newMocks(t)
 
 		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{c}, nil)
@@ -615,7 +659,7 @@ func TestDeleteOrganization(t *testing.T) {
 	t.Run("propagates error when service user list fails", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
@@ -633,7 +677,7 @@ func TestDeleteOrganization(t *testing.T) {
 	t.Run("propagates error when service user delete fails", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.orgSvc.EXPECT().Get(mock.Anything, "org-1").
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
@@ -667,6 +711,10 @@ func TestDeleteCustomers(t *testing.T) {
 			}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
 		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
+		m.creditSvc.EXPECT().List(mock.Anything, credit.Filter{CustomerID: "cust-1"}).
+			Return([]credit.Transaction{
+				{Type: credit.CreditType, Source: credit.SourceSystemBuyEvent, Amount: 40},
+			}, nil)
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
