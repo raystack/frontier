@@ -163,12 +163,16 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
-	// load metadata schema in memory from db
-	if schemas, err := deps.MetaSchemaService.List(context.Background()); err != nil {
+	// prime the metaschema cache and start its periodic refresh
+	if err := deps.MetaSchemaService.Init(ctx); err != nil {
 		logger.Warn("metaschemas initialization failed", "err", err)
-	} else {
-		logger.Info("metaschemas loaded", "count", len(schemas))
 	}
+	defer func() {
+		logger.Debug("cleaning up metaschemas")
+		if err := deps.MetaSchemaService.Close(); err != nil {
+			logger.Warn("metaschema service cleanup failed", "err", err)
+		}
+	}()
 
 	// apply schema
 	if err = deps.BootstrapService.MigrateSchema(ctx); err != nil {
