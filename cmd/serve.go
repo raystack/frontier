@@ -163,12 +163,18 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
-	// load metadata schema in memory from db
-	if schemas, err := deps.MetaSchemaService.List(context.Background()); err != nil {
-		logger.Warn("metaschemas initialization failed", "err", err)
-	} else {
-		logger.Info("metaschemas loaded", "count", len(schemas))
+	// prime the metaschema cache and start its periodic refresh. A failed prime
+	// means validation would be silently off, so stop startup like a failed
+	// migration rather than come up with an empty cache.
+	if err := deps.MetaSchemaService.Init(ctx); err != nil {
+		return fmt.Errorf("metaschemas initialization: %w", err)
 	}
+	defer func() {
+		logger.Debug("cleaning up metaschemas")
+		if err := deps.MetaSchemaService.Close(); err != nil {
+			logger.Warn("metaschema service cleanup failed", "err", err)
+		}
+	}()
 
 	// apply schema
 	if err = deps.BootstrapService.MigrateSchema(ctx); err != nil {
@@ -489,7 +495,7 @@ func buildAPIDependencies(
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
-	metaschemaService := metaschema.NewService(metaschemaRepository)
+	metaschemaService := metaschema.NewService(metaschemaRepository, logger, cfg.App.Metaschema.RefreshInterval)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, membershipService, projectService, auditRecordRepository)
 	membershipService.SetUserPATService(userPATService)

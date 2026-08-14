@@ -202,6 +202,14 @@ app:
     # this is used to validate the webhook payloads
     encryption_key: "hash-secret-should-be-32-chars--"
 
+  # metaschema cache configuration
+  metaschema:
+    # how often each server reloads the metaschema cache from the database, so a
+    # change made on one server reaches the others. 0 disables the background
+    # refresh; the cache is still primed once at startup.
+    # e.g. 30s, 1m, 5m
+    refresh_interval: 1m
+
 db:
   driver: postgres
   url: postgres://frontier:@localhost:5432/frontier?sslmode=disable

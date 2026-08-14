@@ -3,6 +3,7 @@ package server
 import (
 	"time"
 
+	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 
@@ -92,6 +93,8 @@ type Config struct {
 
 	Webhook webhook.Config `yaml:"webhook" mapstructure:"webhook"`
 	PAT     userpat.Config `yaml:"pat" mapstructure:"pat"`
+
+	Metaschema metaschema.Config `yaml:"metaschema" mapstructure:"metaschema"`
 
 	// AdditionalTraitsPath is a file path to a YAML file containing additional preference traits
 	// These traits are merged with DefaultTraits at startup

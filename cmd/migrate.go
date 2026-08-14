@@ -34,7 +34,7 @@ func RunMigrations(logger *slog.Logger, config db.Config) error {
 		return errors.Wrap(err, "failed to connect to db")
 	}
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
-	metaschemaService := metaschema.NewService(metaschemaRepository)
+	metaschemaService := metaschema.NewService(metaschemaRepository, logger, 0)
 	if err = metaschemaService.MigrateDefault(context.Background()); err != nil {
 		return errors.Wrap(err, "failed to add default schemas to db")
 	}
