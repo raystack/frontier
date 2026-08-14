@@ -91,7 +91,7 @@ func TestHandler_CreatePermission(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
 			name:  "should return bad request error if key is malformed",
@@ -104,7 +104,20 @@ func TestHandler_CreatePermission(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if key namespace is invalid",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{
+						Key: "app..get",
+					},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
 			name: "should return success if permission service return nil error",
@@ -275,7 +288,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
 			name:  "should return bad request error if key is malformed",
@@ -287,7 +300,19 @@ func TestHandler_UpdatePermission(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if key name has special characters",
+			setup: func(as *mocks.PermissionService) {},
+			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+				Body: &frontierv1beta1.PermissionRequestBody{
+					Key: "app.resource.we$rd",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters")),
 		},
 		{
 			name: "should return success if permission service return nil error",
