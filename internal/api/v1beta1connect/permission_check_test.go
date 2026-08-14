@@ -33,9 +33,17 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return bad request error if object id is empty or namespace is empty",
+			name: "should return bad request error if resource is malformed",
 			request: connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
 				Resource: "not-namespace-uuid-format",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			name: "should return bad request error if resource is missing",
+			request: connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+				Permission: schema.UpdatePermission,
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
@@ -91,9 +99,8 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 					Return(testPermission, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-				ObjectId:        testRelationV2.Object.ID,
-				ObjectNamespace: testRelationV2.Object.Namespace,
-				Permission:      schema.UpdatePermission,
+				Permission: schema.UpdatePermission,
+				Resource:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 			}),
 			want: connect.NewResponse(&frontierv1beta1.CheckResourcePermissionResponse{
 				Status: true,
@@ -113,9 +120,8 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 					Return(testPermission, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-				ObjectId:        testRelationV2.Object.ID,
-				ObjectNamespace: testRelationV2.Object.Namespace,
-				Permission:      schema.UpdatePermission,
+				Permission: schema.UpdatePermission,
+				Resource:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 			}),
 			want: connect.NewResponse(&frontierv1beta1.CheckResourcePermissionResponse{
 				Status: false,

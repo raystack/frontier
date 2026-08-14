@@ -221,9 +221,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().NoError(err)
 
 		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        existingOrg.Msg.GetOrganization().GetId(),
-			ObjectNamespace: "organization",
-			Permission:      schema.UpdatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.Msg.GetOrganization().GetId()),
+			Permission: schema.UpdatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().True(checkPermAfterResp.Msg.GetStatus())
@@ -526,9 +525,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NoError(err)
 
 		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        existingOrg.Msg.GetOrganization().GetId(),
-			ObjectNamespace: "organization",
-			Permission:      schema.ProjectCreatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.Msg.GetOrganization().GetId()),
+			Permission: schema.ProjectCreatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().True(checkPermAfterResp.Msg.GetStatus())

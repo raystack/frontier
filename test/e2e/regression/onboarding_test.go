@@ -156,9 +156,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 	})
 	s.Run("4. org admin should have access to the resource created", func() {
 		createResourceResp, err := s.testBench.Client.CheckResourcePermission(ctx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        resourceID,
-			ObjectNamespace: computeOrderNamespace,
-			Permission:      schema.UpdatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+			Permission: schema.UpdatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createResourceResp)
@@ -245,9 +244,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		userCtx := testbench.ContextWithAuth(context.Background(), newUserCookie)
 
 		checkUpdateProjectResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        projectID,
-			ObjectNamespace: schema.ProjectNamespace,
-			Permission:      schema.UpdatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID),
+			Permission: schema.UpdatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateProjectResp)
@@ -255,9 +253,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 
 		// resources under the project
 		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        resourceID,
-			ObjectNamespace: computeOrderNamespace,
-			Permission:      schema.UpdatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+			Permission: schema.UpdatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateResourceResp)
@@ -269,9 +266,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		userCtx := testbench.ContextWithAuth(context.Background(), newUserCookie)
 
 		checkUpdateOrgResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        orgID,
-			ObjectNamespace: schema.OrganizationNamespace,
-			Permission:      schema.UpdatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Permission: schema.UpdatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateOrgResp)
@@ -323,18 +319,16 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		userCtx := testbench.ContextWithAuth(context.Background(), newUserCookie)
 
 		checkGetResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        resourceID,
-			ObjectNamespace: computeOrderNamespace,
-			Permission:      schema.GetPermission,
+			Resource:   schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+			Permission: schema.GetPermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkGetResourceResp)
 		s.Assert().True(checkGetResourceResp.Msg.GetStatus())
 
 		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        resourceID,
-			ObjectNamespace: computeOrderNamespace,
-			Permission:      schema.UpdatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+			Permission: schema.UpdatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateResourceResp)
