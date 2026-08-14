@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	_ "embed"
 	"fmt"
 	"strings"
 
@@ -15,37 +14,6 @@ import (
 	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/pkg/db"
 )
-
-var (
-	userMetaSchemaName     = "user"
-	groupMetaSchemaName    = "group"
-	orgMetaSchemaName      = "organization"
-	rolesMetaSchemaName    = "role"
-	prospectMetaSchemaName = "prospect"
-)
-
-//go:embed metaschemas/user.json
-var defaultUser []byte
-
-//go:embed metaschemas/group.json
-var defaultGroup []byte
-
-//go:embed metaschemas/org.json
-var defaultOrg []byte
-
-//go:embed metaschemas/role.json
-var defaultRole []byte
-
-//go:embed metaschemas/prospect.json
-var defaultProspect []byte
-
-var defaultMetaSchemas = map[string]string{
-	userMetaSchemaName:     string(defaultUser),
-	groupMetaSchemaName:    string(defaultGroup),
-	orgMetaSchemaName:      string(defaultOrg),
-	rolesMetaSchemaName:    string(defaultRole),
-	prospectMetaSchemaName: string(defaultProspect),
-}
 
 type MetaSchemaRepository struct {
 	log *slog.Logger
@@ -206,7 +174,7 @@ func (m MetaSchemaRepository) Update(ctx context.Context, id string, mschema met
 
 // add default schemas to db once during database migration
 func (m MetaSchemaRepository) MigrateDefaults(ctx context.Context) error {
-	for name, schema := range defaultMetaSchemas {
+	for name, schema := range metaschema.Defaults {
 		if _, err := m.Create(ctx, metaschema.MetaSchema{
 			Name:   name,
 			Schema: schema,

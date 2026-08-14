@@ -358,6 +358,31 @@ spec:
   timestamps, and metadata are server-owned or out of scope and not written; out-of-scope
   plans are left out too.
 
+## The MetaSchema kind
+
+`MetaSchema` manages the JSON schemas that validate the `metadata` field on the
+built-in entities: user, group, organization, role, and prospect. Each is a
+value: the file sets its schema, and one left out resets to the shipped default.
+There is no delete flag, and a name outside the built-in set is rejected.
+
+```yaml
+apiVersion: v1
+kind: MetaSchema
+spec:
+  - name: organization
+    schema: |
+      {
+        "type": "object",
+        "properties": { "cost_center": { "type": "string" } },
+        "required": ["cost_center"]
+      }
+```
+
+The schema is a JSON string. Export writes only the built-ins whose schema differs
+from the default, so a freshly exported file lists just what an operator changed.
+
+A metaschema change reaches every pod within the server's cache refresh interval, about a minute by default, so it can take that long to take effect everywhere.
+
 ## Running it
 
 Log in as a superuser. The bootstrap service user exists for exactly this; its client id
@@ -401,7 +426,7 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 ## More kinds
 
 This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, `Webhook`,
-`BillingProduct`, and `BillingPlan`. The design and
+`BillingProduct`, `BillingPlan`, and `MetaSchema`. The design and
 the rules every kind follows live in
 [RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
 which also lists the kinds proposed next. The flag reference for both commands is in the
