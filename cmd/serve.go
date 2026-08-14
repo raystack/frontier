@@ -163,9 +163,11 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
-	// prime the metaschema cache and start its periodic refresh
+	// prime the metaschema cache and start its periodic refresh. A failed prime
+	// means validation would be silently off, so stop startup like a failed
+	// migration rather than come up with an empty cache.
 	if err := deps.MetaSchemaService.Init(ctx); err != nil {
-		logger.Warn("metaschemas initialization failed", "err", err)
+		return fmt.Errorf("metaschemas initialization: %w", err)
 	}
 	defer func() {
 		logger.Debug("cleaning up metaschemas")
