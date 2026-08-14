@@ -174,9 +174,9 @@ func TestCommittedWriterReadFromCommitsAndCopies(t *testing.T) {
 	rec := httptest.NewRecorder()
 	cw := &committedWriter{ResponseWriter: rec}
 
-	n, err := io.Copy(cw, strings.NewReader("data"))
+	n, err := cw.ReadFrom(strings.NewReader("data"))
 	if err != nil || n != 4 {
-		t.Fatalf("copy = (%d, %v), want (4, nil)", n, err)
+		t.Fatalf("ReadFrom = (%d, %v), want (4, nil)", n, err)
 	}
 	if !cw.committed {
 		t.Error("ReadFrom did not mark the response as committed")
