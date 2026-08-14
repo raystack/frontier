@@ -100,7 +100,7 @@ func ServeUI(ctx context.Context, logger *slog.Logger, uiConfig UIConfig, apiSer
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%d", uiConfig.Port),
-		Handler:           mux,
+		Handler:           httpPanicRecovery(logger, mux),
 		ReadHeaderTimeout: apiServerConfig.ReadHeaderTimeout,
 		IdleTimeout:       apiServerConfig.IdleTimeout,
 	}
@@ -178,8 +178,10 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		auditInterceptor,
 		sessionInterceptor.UnaryConnectResponseInterceptor())
 
-	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, interceptors, connect.WithCodec(connectCodec{}))
-	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, interceptors, connect.WithCodec(connectCodec{}))
+	// Panic recovery goes first so it sits outermost and catches panics from
+	// the other interceptors as well, not just the handlers.
+	frontierPath, frontierHandler := frontierv1beta1connect.NewFrontierServiceHandler(frontierService, connectPanicRecovery(logger), interceptors, connect.WithCodec(connectCodec{}))
+	adminPath, adminHandler := frontierv1beta1connect.NewAdminServiceHandler(frontierService, connectPanicRecovery(logger), interceptors, connect.WithCodec(connectCodec{}))
 
 	// Create mux and register handlers
 	mux := http.NewServeMux()
@@ -218,8 +220,11 @@ func ServeConnect(ctx context.Context, logger *slog.Logger, cfg Config, deps api
 		_ = json.NewEncoder(w).Encode(map[string]string{"status": "SERVING"})
 	})
 
-	// Configure and create the server
-	handler := connectinterceptors.WithConnectCORS(mux, cfg.ConnectCors)
+	// Configure and create the server. Panic recovery wraps the whole mux so
+	// routes outside the two service handlers (webhook bridge, ping, health,
+	// reflection, CORS) are covered too; RPC panics are still converted to
+	// connect error codes by WithRecover before they can reach this net.
+	handler := httpPanicRecovery(logger, connectinterceptors.WithConnectCORS(mux, cfg.ConnectCors))
 
 	// Serve HTTP/1.1 and unencrypted HTTP/2. Unlike the x/net h2c wrapper
 	// this replaces, the server tracks these HTTP/2 connections itself, so
