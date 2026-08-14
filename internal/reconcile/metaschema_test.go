@@ -178,6 +178,69 @@ func TestExportMetaSchemas(t *testing.T) {
 	})
 }
 
+// TestMetaSchema_RFCRules checks the metaschema kind against the five rules of
+// RFC 0001, at the pure diff/validate/export layer.
+func TestMetaSchema_RFCRules(t *testing.T) {
+	// R1 Scope and identity: a metaschema outside the managed set is invisible.
+	// The diff never touches it and export never emits it.
+	t.Run("R1 ignores a metaschema outside the managed set", func(t *testing.T) {
+		current := []currentMetaSchema{
+			{ID: "user-id", Name: "user", Schema: testMetaDefaults["user"]},                // at default
+			{ID: "org-id", Name: "organization", Schema: testMetaDefaults["organization"]}, // at default
+			{ID: "cust-id", Name: "custom_widget", Schema: `{"type":"object"}`},            // not a built-in
+		}
+		ops, err := diffMetaSchemas(nil, current, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+		specs, err := exportMetaSchemas(current, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Empty(t, specs)
+	})
+
+	// R4 Converge, not transact: re-reconciling a state that already matches the
+	// file plans nothing, so a re-run after a partial apply converges.
+	t.Run("R4 re-reconciling a converged state plans nothing", func(t *testing.T) {
+		desired := []MetaSchemaSpec{{Name: "organization", Schema: `{"type":"object","required":["cc"]}`}}
+		converged := []currentMetaSchema{
+			{ID: "user-id", Name: "user", Schema: testMetaDefaults["user"]},
+			{ID: "org-id", Name: "organization", Schema: `{"type":"object","required":["cc"]}`},
+		}
+		ops, err := diffMetaSchemas(desired, converged, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	// R5 Export inverts reconcile: an all-default server exports nothing, and
+	// reconciling that empty export plans nothing.
+	t.Run("R5 all-default server exports nothing and round-trips to zero", func(t *testing.T) {
+		current := []currentMetaSchema{
+			{ID: "user-id", Name: "user", Schema: testMetaDefaults["user"]},
+			{ID: "org-id", Name: "organization", Schema: testMetaDefaults["organization"]},
+		}
+		specs, err := exportMetaSchemas(current, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Empty(t, specs)
+		ops, err := diffMetaSchemas(specs, current, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+
+	// R5 Export inverts reconcile: an overridden built-in round-trips exactly,
+	// including a large integer that float64 would round.
+	t.Run("R5 an overridden built-in round-trips, keeping number precision", func(t *testing.T) {
+		current := []currentMetaSchema{
+			{ID: "user-id", Name: "user", Schema: testMetaDefaults["user"]},
+			{ID: "org-id", Name: "organization", Schema: `{"type":"object","properties":{"n":{"maximum":10000000000000001}}}`},
+		}
+		specs, err := exportMetaSchemas(current, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Len(t, specs, 1)
+		ops, err := diffMetaSchemas(specs, current, testMetaDefaults)
+		assert.NoError(t, err)
+		assert.Empty(t, ops)
+	})
+}
+
 // planStrings is a test helper: the String() of each op, in order.
 func planStrings(ops []metaSchemaOp) []string {
 	out := make([]string, 0, len(ops))

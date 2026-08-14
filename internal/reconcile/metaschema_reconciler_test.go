@@ -113,6 +113,20 @@ func TestMetaSchemaReconciler(t *testing.T) {
 		assert.ErrorContains(t, err, "unknown metaschema")
 	})
 
+	// R2 value model: there is no delete, so a delete flag is an unknown field.
+	t.Run("R2 rejects a delete flag since metaschemas are values", func(t *testing.T) {
+		err := NewMetaSchemaReconciler(&fakeMetaSchemaAPI{}, "").Validate([]byte("- {name: organization, schema: '{\"type\":\"object\"}', delete: true}\n"))
+		assert.Error(t, err)
+	})
+
+	// R3 check the whole file first: one bad entry fails validation for the doc,
+	// so nothing applies.
+	t.Run("R3 a bad entry fails validation for the whole document", func(t *testing.T) {
+		spec := []byte("- {name: organization, schema: '{\"type\":\"object\"}'}\n- {name: widget, schema: '{\"type\":\"object\"}'}\n")
+		err := NewMetaSchemaReconciler(&fakeMetaSchemaAPI{}, "").Validate(spec)
+		assert.ErrorContains(t, err, "unknown metaschema")
+	})
+
 	t.Run("exports only overridden built-ins", func(t *testing.T) {
 		seeded := seededDefaults()
 		for _, ms := range seeded {
