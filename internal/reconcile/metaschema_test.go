@@ -36,13 +36,10 @@ func TestValidateMetaSchemaSpecs(t *testing.T) {
 		err := validateMetaSchemaSpecs([]MetaSchemaSpec{{Name: "user", Schema: "{not json"}}, testMetaDefaults)
 		assert.ErrorContains(t, err, "not valid JSON")
 	})
-	t.Run("accepts a non-object schema so a reachable state round-trips (rule 5)", func(t *testing.T) {
-		// The write API accepts any non-empty schema, so a non-object is a state
-		// the server can reach. The reconciler must not be stricter than that, or
-		// the export of such a state would fail its own re-reconcile.
-		for _, ok := range []string{"123", `"x"`, "[]", "true"} {
-			err := validateMetaSchemaSpecs([]MetaSchemaSpec{{Name: "user", Schema: ok}}, testMetaDefaults)
-			assert.NoError(t, err, "schema %q is valid JSON and must be accepted", ok)
+	t.Run("rejects a non-object schema", func(t *testing.T) {
+		for _, bad := range []string{"123", `"x"`, "[]", "true"} {
+			err := validateMetaSchemaSpecs([]MetaSchemaSpec{{Name: "user", Schema: bad}}, testMetaDefaults)
+			assert.ErrorContains(t, err, "must be a JSON object", "schema %q should be rejected", bad)
 		}
 	})
 	t.Run("accepts a built-in name in any case", func(t *testing.T) {
@@ -223,24 +220,6 @@ func TestMetaSchema_RFCRules(t *testing.T) {
 		specs, err := exportMetaSchemas(current, testMetaDefaults)
 		assert.NoError(t, err)
 		assert.Empty(t, specs)
-		ops, err := diffMetaSchemas(specs, current, testMetaDefaults)
-		assert.NoError(t, err)
-		assert.Empty(t, ops)
-	})
-
-	// R5 Export inverts reconcile: a non-object schema is a state the server can
-	// reach, since the write API accepts any non-empty schema, so its export must
-	// round-trip. The reconciler no longer rejects it.
-	t.Run("R5 a non-object schema round-trips", func(t *testing.T) {
-		current := []currentMetaSchema{
-			{ID: "user-id", Name: "user", Schema: testMetaDefaults["user"]},
-			{ID: "org-id", Name: "organization", Schema: "123"}, // reachable via the raw API
-		}
-		specs, err := exportMetaSchemas(current, testMetaDefaults)
-		assert.NoError(t, err)
-		assert.Equal(t, []MetaSchemaSpec{{Name: "organization", Schema: "123"}}, specs)
-		err = validateMetaSchemaSpecs(specs, testMetaDefaults)
-		assert.NoError(t, err)
 		ops, err := diffMetaSchemas(specs, current, testMetaDefaults)
 		assert.NoError(t, err)
 		assert.Empty(t, ops)

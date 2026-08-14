@@ -79,19 +79,28 @@ func canonicalJSON(s string) (string, error) {
 	return string(b), nil
 }
 
+// validateSchemaDocument checks the string is a JSON object, not just any valid
+// JSON. A non-object root (a number, string, boolean, or array) parses as JSON
+// but is not a usable metadata schema: the server compiles it with gojsonschema
+// for every entity of that type, and a non-object root errors there, which would
+// start failing all metadata writes for that entity. Catching it here keeps the
+// whole file from partially applying.
+func validateSchemaDocument(schema string) error {
+	root, err := decodeJSON(schema)
+	if err != nil {
+		return fmt.Errorf("schema is not valid JSON: %w", err)
+	}
+	if _, ok := root.(map[string]any); !ok {
+		return fmt.Errorf("schema must be a JSON object")
+	}
+	return nil
+}
+
 // validateMetaSchemaSpecs checks every entry without touching the server: the
-// name is a known built-in, no name repeats, and the schema is non-empty valid
-// JSON. defaults is the managed set and the source of known names. Names are
+// name is a known built-in, no name repeats, and the schema is a non-empty JSON
+// object. defaults is the managed set and the source of known names. Names are
 // matched case-insensitively, matching the sibling kinds, so `Organization` and
 // `organization` both name the same built-in.
-//
-// It deliberately does NOT require the schema to be a JSON object. The write API
-// (CreateMetaSchema/UpdateMetaSchema) accepts any non-empty schema, so a
-// non-object schema is a state the server can reach. Rejecting it here would make
-// the reconciler stricter than the server, and the export of such a state would
-// then fail its own re-reconcile, which breaks the rule 5 round-trip. If a
-// non-object schema should be rejected, that check belongs on the write API,
-// where it also stops the state from being reached in the first place.
 func validateMetaSchemaSpecs(specs []MetaSchemaSpec, defaults map[string]string) error {
 	seen := map[string]struct{}{}
 	for _, s := range specs {
@@ -109,8 +118,8 @@ func validateMetaSchemaSpecs(specs []MetaSchemaSpec, defaults map[string]string)
 		if strings.TrimSpace(s.Schema) == "" {
 			return fmt.Errorf("metaschema %q: schema is required", name)
 		}
-		if _, err := canonicalJSON(s.Schema); err != nil {
-			return fmt.Errorf("metaschema %q: schema is not valid JSON: %w", name, err)
+		if err := validateSchemaDocument(s.Schema); err != nil {
+			return fmt.Errorf("metaschema %q: %w", name, err)
 		}
 	}
 	return nil
