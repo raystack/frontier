@@ -168,6 +168,20 @@ func TestConnectHandler_CreateMetaSchema(t *testing.T) {
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
 		},
+		{
+			name: "should return invalid argument when schema is not an object",
+			setup: func(m *mocks.MetaSchemaService) {
+				m.EXPECT().Create(mock.Anything, mock.Anything).Return(metaschema.MetaSchema{}, metaschema.ErrInvalidSchema)
+			},
+			req: connect.NewRequest(&frontierv1beta1.CreateMetaSchemaRequest{
+				Body: &frontierv1beta1.MetaSchemaRequestBody{
+					Name:   "user",
+					Schema: "123",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, metaschema.ErrInvalidSchema),
+		},
 	}
 
 	for _, tt := range tests {
@@ -346,6 +360,21 @@ func TestConnectHandler_UpdateMetaSchema(t *testing.T) {
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeNotFound, ErrMetaschemaNotFound),
+		},
+		{
+			name: "should return invalid argument when schema is not an object",
+			setup: func(m *mocks.MetaSchemaService) {
+				m.EXPECT().Update(mock.Anything, "test_id", mock.Anything).Return(metaschema.MetaSchema{}, metaschema.ErrInvalidSchema)
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateMetaSchemaRequest{
+				Id: "test_id",
+				Body: &frontierv1beta1.MetaSchemaRequestBody{
+					Name:   "user",
+					Schema: "123",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, metaschema.ErrInvalidSchema),
 		},
 	}
 

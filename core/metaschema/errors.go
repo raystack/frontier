@@ -8,4 +8,5 @@ var (
 	ErrConflict          = errors.New("metaschema already exist")
 	ErrInvalidDetail     = errors.New("invalid metadata detail")
 	ErrInvalidMetaSchema = errors.New("metadata schema validation failed")
+	ErrInvalidSchema     = errors.New("metaschema schema must be a JSON object")
 )

@@ -47,6 +47,8 @@ func (h *ConnectHandler) CreateMetaSchema(ctx context.Context, req *connect.Requ
 	})
 	if err != nil {
 		switch {
+		case errors.Is(err, metaschema.ErrInvalidSchema):
+			return nil, connect.NewError(connect.CodeInvalidArgument, metaschema.ErrInvalidSchema)
 		case errors.Is(err, metaschema.ErrNotExist),
 			errors.Is(err, metaschema.ErrInvalidID),
 			errors.Is(err, metaschema.ErrInvalidDetail):
@@ -101,6 +103,8 @@ func (h *ConnectHandler) UpdateMetaSchema(ctx context.Context, req *connect.Requ
 	})
 	if err != nil {
 		switch {
+		case errors.Is(err, metaschema.ErrInvalidSchema):
+			return nil, connect.NewError(connect.CodeInvalidArgument, metaschema.ErrInvalidSchema)
 		case errors.Is(err, metaschema.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, metaschema.ErrInvalidID),

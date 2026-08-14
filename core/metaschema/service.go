@@ -2,6 +2,7 @@ package metaschema
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -36,7 +37,26 @@ func NewService(repository Repository, logger *slog.Logger, refreshInterval time
 	}
 }
 
+// validateSchemaIsObject rejects a schema that is not a JSON object. Only an
+// object is a usable JSON schema for validating entity metadata; a number,
+// string, boolean, array, or malformed JSON would be stored and then error in
+// Validate for every entity of that type. Rejecting it on write keeps that state
+// from ever being reached, so a change made through the API always round-trips.
+func validateSchemaIsObject(schema string) error {
+	var root any
+	if err := json.Unmarshal([]byte(schema), &root); err != nil {
+		return ErrInvalidSchema
+	}
+	if _, ok := root.(map[string]any); !ok {
+		return ErrInvalidSchema
+	}
+	return nil
+}
+
 func (s *Service) Create(ctx context.Context, toCreate MetaSchema) (MetaSchema, error) {
+	if err := validateSchemaIsObject(toCreate.Schema); err != nil {
+		return MetaSchema{}, err
+	}
 	mschema, err := s.repository.Create(ctx, toCreate)
 	if err != nil {
 		return MetaSchema{}, err
@@ -77,6 +97,9 @@ func (s *Service) List(ctx context.Context) ([]MetaSchema, error) {
 
 func (s *Service) Update(ctx context.Context, id string, toUpdate MetaSchema) (MetaSchema, error) {
 	if utils.IsValidUUID(id) {
+		if err := validateSchemaIsObject(toUpdate.Schema); err != nil {
+			return MetaSchema{}, err
+		}
 		schema, err := s.repository.Update(ctx, id, toUpdate)
 		if err != nil {
 			return MetaSchema{}, err

@@ -2,6 +2,7 @@ package metaschema
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"sync"
@@ -324,5 +325,35 @@ func TestService_Init_runsScheduledRefresh(t *testing.T) {
 	time.Sleep(120 * time.Millisecond)
 	if got := repo.listCalls(); got != after {
 		t.Fatalf("cron kept running after Close: was %d, now %d", after, got)
+	}
+}
+
+// TestService_Create_rejectsNonObjectSchema checks the write path refuses a
+// schema that is not a JSON object, so a non-object metaschema is never a
+// reachable state.
+func TestService_Create_rejectsNonObjectSchema(t *testing.T) {
+	svc := NewService(newFakeRepo(), discardLogger(), 0)
+	for _, bad := range []string{"123", `"x"`, "[]", "true", "{not json", ""} {
+		if _, err := svc.Create(context.Background(), MetaSchema{Name: "user", Schema: bad}); !errors.Is(err, ErrInvalidSchema) {
+			t.Fatalf("Create(schema=%q) = %v, want ErrInvalidSchema", bad, err)
+		}
+	}
+}
+
+func TestService_Create_acceptsObjectSchema(t *testing.T) {
+	svc := NewService(newFakeRepo(), discardLogger(), 0)
+	if _, err := svc.Create(context.Background(), MetaSchema{Name: "user", Schema: `{"type":"object"}`}); err != nil {
+		t.Fatalf("Create with an object schema: %v", err)
+	}
+}
+
+// TestService_Update_rejectsNonObjectSchema checks the same guard on the update path.
+func TestService_Update_rejectsNonObjectSchema(t *testing.T) {
+	const id = "11111111-1111-1111-1111-111111111111"
+	repo := newFakeRepo()
+	_, _ = repo.Create(context.Background(), MetaSchema{ID: id, Name: "user", Schema: `{"type":"object"}`})
+	svc := NewService(repo, discardLogger(), 0)
+	if _, err := svc.Update(context.Background(), id, MetaSchema{Name: "user", Schema: "123"}); !errors.Is(err, ErrInvalidSchema) {
+		t.Fatalf("Update with a non-object schema = %v, want ErrInvalidSchema", err)
 	}
 }
