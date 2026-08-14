@@ -3,6 +3,7 @@ package reconcile
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"sort"
 	"strings"
 )
@@ -45,12 +46,30 @@ func (o metaSchemaOp) String() string {
 	}
 }
 
-// canonicalJSON returns a stable form of a JSON document, so two schemas that
-// differ only in whitespace or key order compare equal. It keeps the export
-// round-trip stable and stops formatting from making a false diff.
-func canonicalJSON(s string) (string, error) {
+// decodeJSON parses a single JSON value, preserving number literals so a large
+// or high-precision number is not rounded through float64. It rejects trailing
+// data after the value, matching a strict single-document parse.
+func decodeJSON(s string) (any, error) {
+	dec := json.NewDecoder(strings.NewReader(s))
+	dec.UseNumber()
 	var v any
-	if err := json.Unmarshal([]byte(s), &v); err != nil {
+	if err := dec.Decode(&v); err != nil {
+		return nil, err
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return nil, fmt.Errorf("unexpected trailing data after JSON value")
+	}
+	return v, nil
+}
+
+// canonicalJSON returns a stable form of a JSON document, so two schemas that
+// differ only in whitespace or key order compare equal, while a real difference
+// in a number is kept (numbers are compared by their literal, not by float64).
+// It keeps the export round-trip stable and stops formatting from making a false
+// diff.
+func canonicalJSON(s string) (string, error) {
+	v, err := decodeJSON(s)
+	if err != nil {
 		return "", err
 	}
 	b, err := json.Marshal(v)
@@ -60,18 +79,37 @@ func canonicalJSON(s string) (string, error) {
 	return string(b), nil
 }
 
+// validateSchemaDocument checks the string is a JSON object, not just any valid
+// JSON. A non-object root (a number, string, boolean, or array) parses as JSON
+// but is not a usable metadata schema: the server compiles it with gojsonschema
+// for every entity of that type, and a non-object root errors there, which would
+// start failing all metadata writes for that entity. Catching it here keeps the
+// whole file from partially applying.
+func validateSchemaDocument(schema string) error {
+	root, err := decodeJSON(schema)
+	if err != nil {
+		return fmt.Errorf("schema is not valid JSON: %w", err)
+	}
+	if _, ok := root.(map[string]any); !ok {
+		return fmt.Errorf("schema must be a JSON object")
+	}
+	return nil
+}
+
 // validateMetaSchemaSpecs checks every entry without touching the server: the
-// name is a known built-in, no name repeats, and the schema is non-empty valid
-// JSON. defaults is the managed set and the source of known names.
+// name is a known built-in, no name repeats, and the schema is a non-empty JSON
+// object. defaults is the managed set and the source of known names. Names are
+// matched case-insensitively, matching the sibling kinds, so `Organization` and
+// `organization` both name the same built-in.
 func validateMetaSchemaSpecs(specs []MetaSchemaSpec, defaults map[string]string) error {
 	seen := map[string]struct{}{}
 	for _, s := range specs {
-		name := strings.TrimSpace(s.Name)
+		name := strings.ToLower(strings.TrimSpace(s.Name))
 		if name == "" {
 			return fmt.Errorf("metaschema name is required")
 		}
 		if _, ok := defaults[name]; !ok {
-			return fmt.Errorf("unknown metaschema %q", name)
+			return fmt.Errorf("unknown metaschema %q", s.Name)
 		}
 		if _, dup := seen[name]; dup {
 			return fmt.Errorf("metaschema %q is listed more than once", name)
@@ -80,8 +118,8 @@ func validateMetaSchemaSpecs(specs []MetaSchemaSpec, defaults map[string]string)
 		if strings.TrimSpace(s.Schema) == "" {
 			return fmt.Errorf("metaschema %q: schema is required", name)
 		}
-		if _, err := canonicalJSON(s.Schema); err != nil {
-			return fmt.Errorf("metaschema %q: schema is not valid JSON: %w", name, err)
+		if err := validateSchemaDocument(s.Schema); err != nil {
+			return fmt.Errorf("metaschema %q: %w", name, err)
 		}
 	}
 	return nil
@@ -95,7 +133,7 @@ func validateMetaSchemaSpecs(specs []MetaSchemaSpec, defaults map[string]string)
 func diffMetaSchemas(desired []MetaSchemaSpec, current []currentMetaSchema, defaults map[string]string) ([]metaSchemaOp, error) {
 	desiredByName := make(map[string]string, len(desired))
 	for _, s := range desired {
-		desiredByName[strings.TrimSpace(s.Name)] = s.Schema
+		desiredByName[strings.ToLower(strings.TrimSpace(s.Name))] = s.Schema
 	}
 	currentByName := make(map[string]currentMetaSchema, len(current))
 	for _, c := range current {

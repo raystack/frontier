@@ -36,6 +36,16 @@ func TestValidateMetaSchemaSpecs(t *testing.T) {
 		err := validateMetaSchemaSpecs([]MetaSchemaSpec{{Name: "user", Schema: "{not json"}}, testMetaDefaults)
 		assert.ErrorContains(t, err, "not valid JSON")
 	})
+	t.Run("rejects a non-object schema", func(t *testing.T) {
+		for _, bad := range []string{"123", `"x"`, "[]", "true"} {
+			err := validateMetaSchemaSpecs([]MetaSchemaSpec{{Name: "user", Schema: bad}}, testMetaDefaults)
+			assert.ErrorContains(t, err, "must be a JSON object", "schema %q should be rejected", bad)
+		}
+	})
+	t.Run("accepts a built-in name in any case", func(t *testing.T) {
+		err := validateMetaSchemaSpecs([]MetaSchemaSpec{{Name: "Organization", Schema: `{"type":"object"}`}}, testMetaDefaults)
+		assert.NoError(t, err)
+	})
 }
 
 func TestDiffMetaSchemas(t *testing.T) {
@@ -87,6 +97,16 @@ func TestDiffMetaSchemas(t *testing.T) {
 		assert.Equal(t, []string{"create metaschema user"}, planStrings(ops))
 		assert.Equal(t, "", ops[0].id)
 	})
+	t.Run("matches a built-in name case-insensitively", func(t *testing.T) {
+		ops, err := diffMetaSchemas(
+			[]MetaSchemaSpec{{Name: "Organization", Schema: `{"type":"object","required":["x"]}`}},
+			[]currentMetaSchema{{ID: "user-id", Name: "user", Schema: `{"type":"object"}`}, {ID: "org-id", Name: "organization", Schema: `{"type":"object","properties":{}}`}},
+			testMetaDefaults,
+		)
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"set metaschema organization"}, planStrings(ops))
+		assert.Equal(t, "org-id", ops[0].id)
+	})
 }
 
 func TestCanonicalJSON(t *testing.T) {
@@ -106,6 +126,17 @@ func TestCanonicalJSON(t *testing.T) {
 	})
 	t.Run("rejects invalid JSON", func(t *testing.T) {
 		_, err := canonicalJSON("{not json")
+		assert.Error(t, err)
+	})
+	t.Run("keeps a real difference in a large integer", func(t *testing.T) {
+		a, err := canonicalJSON(`{"maximum":10000000000000001}`)
+		assert.NoError(t, err)
+		b, err := canonicalJSON(`{"maximum":10000000000000002}`)
+		assert.NoError(t, err)
+		assert.NotEqual(t, a, b)
+	})
+	t.Run("rejects trailing data", func(t *testing.T) {
+		_, err := canonicalJSON(`{"a":1} {"b":2}`)
 		assert.Error(t, err)
 	})
 }
