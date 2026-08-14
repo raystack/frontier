@@ -129,9 +129,13 @@ func TestCanonicalJSON(t *testing.T) {
 		assert.Error(t, err)
 	})
 	t.Run("keeps a real difference in a large integer", func(t *testing.T) {
-		a, err := canonicalJSON(`{"maximum":10000000000000001}`)
+		// 2^53+1 and 2^53 both round to 2^53 under a float64 decode, so this pair
+		// fails without the UseNumber decode and passes with it. A larger pair like
+		// 1e16+1 vs 1e16+2 would round to distinct floats and pass either way, so it
+		// would not guard the fix.
+		a, err := canonicalJSON(`{"maximum":9007199254740993}`)
 		assert.NoError(t, err)
-		b, err := canonicalJSON(`{"maximum":10000000000000002}`)
+		b, err := canonicalJSON(`{"maximum":9007199254740992}`)
 		assert.NoError(t, err)
 		assert.NotEqual(t, a, b)
 	})
