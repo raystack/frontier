@@ -55,6 +55,12 @@ func validatePermissionSpec(s PermissionSpec) error {
 	if !schema.IsValidPermissionNamespace(s.Namespace) {
 		return fmt.Errorf("invalid namespace %q (each of service/resource must be lowercase alphanumeric)", s.Namespace)
 	}
+	// Each part is capped on its own, but the flattened slug service_resource_verb
+	// becomes a SpiceDB relation, which is capped at sixty-four characters. Reject a
+	// slug over that here so a plan cannot pass and then fail when the schema compiles.
+	if !schema.PermissionSlugWithinLimit(s.Namespace, s.Name) {
+		return fmt.Errorf("permission %s is too long: service_resource_verb must be at most 64 characters", s)
+	}
 	return nil
 }
 

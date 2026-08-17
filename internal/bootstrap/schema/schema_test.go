@@ -1,6 +1,7 @@
 package schema_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -157,6 +158,29 @@ func TestIsValidPermissionName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := schema.IsValidPermissionName(tt.name); got != tt.want {
 				t.Errorf("IsValidPermissionName(%q) = %v, want %v", tt.name, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPermissionSlugWithinLimit(t *testing.T) {
+	// The slug service_resource_verb becomes a SpiceDB relation, which is capped at
+	// sixty-four characters. Each part is valid on its own, but together they can
+	// overflow, so a plan can pass and the schema still fail to compile.
+	tests := []struct {
+		ns, name string
+		want     bool
+	}{
+		{"compute/order", "get", true},
+		// 30 + 29 + 3 plus the two underscores is exactly sixty-four
+		{strings.Repeat("a", 30) + "/" + strings.Repeat("b", 29), "get", true},
+		// one more character tips it over the limit
+		{strings.Repeat("a", 30) + "/" + strings.Repeat("b", 30), "get", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.ns+"."+tt.name, func(t *testing.T) {
+			if got := schema.PermissionSlugWithinLimit(tt.ns, tt.name); got != tt.want {
+				t.Errorf("PermissionSlugWithinLimit(%q, %q) = %v, want %v", tt.ns, tt.name, got, tt.want)
 			}
 		})
 	}

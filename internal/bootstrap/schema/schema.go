@@ -329,6 +329,20 @@ func IsValidPermissionNamespace(namespace string) bool {
 	return permissionNamespaceRe.MatchString(namespace)
 }
 
+// maxPermissionSlugLen is SpiceDB's ceiling on a relation name. The reconcile and
+// API paths flatten a permission to the slug service_resource_verb and register
+// that slug as a SpiceDB relation, so a longer slug is rejected when the schema is
+// compiled.
+const maxPermissionSlugLen = 64
+
+// PermissionSlugWithinLimit reports whether the flattened slug
+// service_resource_verb fits SpiceDB's relation-name limit. Each part can be up to
+// sixty-four characters on its own, so a valid namespace and verb can still combine
+// into a slug that SpiceDB will not store.
+func PermissionSlugWithinLimit(namespace, name string) bool {
+	return len(FQPermissionNameFromNamespace(namespace, name)) <= maxPermissionSlugLen
+}
+
 func IsPlatformPermission(name string) bool {
 	name = strings.ToLower(name)
 	return name == PlatformSudoPermission || name == PlatformCheckPermission
