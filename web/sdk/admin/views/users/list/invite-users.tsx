@@ -55,10 +55,7 @@ export const InviteUser = () => {
   const t = useTerminology();
   const [open, onOpenChange] = useState(false);
 
-  /*
-   * These only feed the dialog's fields, but its trigger lives in the navbar —
-   * ungated they were fetched on every visit to the users page.
-   */
+  // This mounts with the page, so gate on open.
   const {
     data: organizations,
     isLoading: isOrganizationsLoading,

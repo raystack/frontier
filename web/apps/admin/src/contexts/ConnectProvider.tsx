@@ -4,11 +4,8 @@ import type { ReactNode } from "react";
 import { TransportProvider } from "@connectrpc/connect-query";
 import { jsonTransport as transport } from "~/connect/transport";
 
-/*
- * staleTime 0 + refetchOnMount refetches on every mount, so navigating
- * re-requested roles, plans and products each time. Mutations invalidate their
- * own keys, and the search tables opt out with an explicit staleTime: 0.
- */
+/* Otherwise every mount refetches. Mutations invalidate their own keys;
+ * the search tables opt out with staleTime: 0. */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
