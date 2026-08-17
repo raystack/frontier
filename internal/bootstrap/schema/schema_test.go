@@ -50,6 +50,53 @@ func TestFQPermissionNameFromNamespace(t *testing.T) {
 	}
 }
 
+func TestPermissionNamespaceAndNameFromKey(t *testing.T) {
+	tests := []struct {
+		key           string
+		wantNamespace string
+		wantName      string
+	}{
+		{"compute.instance.delete", "compute/instance", "delete"},
+		{"app.organization.get", "app/organization", "get"},
+		// dots after the namespace belong to the name
+		{"compute.instance.soft.delete", "compute/instance", "soft.delete"},
+		{"compute.instance", "", ""}, // too few parts
+		{"compute", "", ""},
+		{"", "", ""},
+		{".instance.delete", "", ""},  // empty service
+		{"compute..delete", "", ""},   // empty resource
+		{"compute.instance.", "", ""}, // empty name
+	}
+	for _, tt := range tests {
+		t.Run(tt.key, func(t *testing.T) {
+			ns, name := schema.PermissionNamespaceAndNameFromKey(tt.key)
+			if ns != tt.wantNamespace || name != tt.wantName {
+				t.Errorf("PermissionNamespaceAndNameFromKey(%q) = (%q, %q), want (%q, %q)", tt.key, ns, name, tt.wantNamespace, tt.wantName)
+			}
+		})
+	}
+}
+
+func TestPermissionKeyRoundTrip(t *testing.T) {
+	tests := []struct {
+		namespace string
+		name      string
+	}{
+		{"compute/instance", "delete"},
+		{"app/organization", "get"},
+		{"database/instance", "soft.delete"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.namespace+":"+tt.name, func(t *testing.T) {
+			key := schema.PermissionKeyFromNamespaceAndName(tt.namespace, tt.name)
+			ns, name := schema.PermissionNamespaceAndNameFromKey(key)
+			if ns != tt.namespace || name != tt.name {
+				t.Errorf("round trip through key %q = (%q, %q), want (%q, %q)", key, ns, name, tt.namespace, tt.name)
+			}
+		})
+	}
+}
+
 func TestIsValidPermissionNamespace(t *testing.T) {
 	tests := []struct {
 		ns   string

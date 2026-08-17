@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/file"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/cli/printer"
@@ -186,12 +187,13 @@ func viewPermissionCommand(cliConfig *Config) *cli.Command {
 
 			spinner.Stop()
 
+			permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(action.GetKey())
+
 			report = append(report, []string{"ID", "NAME", "NAMESPACE"})
-			//nolint:staticcheck
 			report = append(report, []string{
 				action.GetId(),
-				action.GetName(),
-				action.GetNamespace(),
+				permName,
+				permNamespace,
 			})
 			printer.Table(os.Stdout, report)
 
@@ -248,12 +250,12 @@ func listPermissionCommand(cliConfig *Config) *cli.Command {
 			fmt.Printf(" \nShowing %d permission(s)\n \n", len(permissions))
 
 			report = append(report, []string{"ID", "NAME", "NAMESPACE"})
-			//nolint:staticcheck
 			for _, a := range permissions {
+				permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(a.GetKey())
 				report = append(report, []string{
 					a.GetId(),
-					a.GetName(),
-					a.GetNamespace(),
+					permName,
+					permNamespace,
 				})
 			}
 			printer.Table(os.Stdout, report)

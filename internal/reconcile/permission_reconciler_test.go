@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,7 +31,7 @@ func (f *fakePermissionAPI) DeletePermission(_ context.Context, req *connect.Req
 }
 
 func permissionPB(id, namespace, name string) *frontierv1beta1.Permission {
-	return &frontierv1beta1.Permission{Id: id, Namespace: namespace, Name: name}
+	return &frontierv1beta1.Permission{Id: id, Key: schema.PermissionKeyFromNamespaceAndName(namespace, name)}
 }
 
 func TestPermissionReconciler(t *testing.T) {
@@ -52,6 +53,19 @@ func TestPermissionReconciler(t *testing.T) {
 			}
 		}
 		assert.Equal(t, []string{"p1"}, api.deleted)
+	})
+
+	t.Run("a permission whose key does not split fails instead of being misread", func(t *testing.T) {
+		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
+			{Id: "p1", Key: "notakey"},
+		}}
+		spec := []byte("- {namespace: compute/order, name: get}\n")
+
+		_, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
+
+		assert.ErrorContains(t, err, "notakey")
+		assert.Empty(t, api.created)
+		assert.Empty(t, api.deleted)
 	})
 
 	t.Run("dry-run plans without applying", func(t *testing.T) {

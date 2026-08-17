@@ -146,8 +146,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		var lastPermCount int
 		for _, perm := range []string{"get", "update", "delete"} {
 			for _, listPerm := range listPermResp.Msg.GetPermissions() {
-				//nolint:staticcheck
-				if listPerm.GetName() == perm && listPerm.GetNamespace() == "database/instance" {
+				if listPerm.GetKey() == "database.instance."+perm {
 					lastPermCount++
 				}
 			}
@@ -229,8 +228,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestPermissionDeleteCascade() {
 	s.Require().NoError(err)
 	var builtinID string
 	for _, p := range listResp.Msg.GetPermissions() {
-		//nolint:staticcheck
-		if p.GetNamespace() == "app/organization" && p.GetName() == "get" {
+		if p.GetKey() == "app.organization.get" {
 			builtinID = p.GetId()
 			break
 		}

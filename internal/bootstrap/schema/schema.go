@@ -275,9 +275,13 @@ func FQPermissionNameFromNamespace(namespace, verb string) string {
 	return fmt.Sprintf("%s_%s_%s", service, resource, verb)
 }
 
+// PermissionNamespaceAndNameFromKey splits a "service.resource.verb" key into
+// its namespace ("service/resource") and name ("verb"). Namespace parts can
+// never contain a dot, so the first two segments are always the namespace and
+// everything after them is the name — a name with dots survives the split.
 func PermissionNamespaceAndNameFromKey(key string) (string, string) {
-	parts := strings.Split(key, ".")
-	if len(parts) != 3 {
+	parts := strings.SplitN(key, ".", 3)
+	if len(parts) != 3 || parts[0] == "" || parts[1] == "" || parts[2] == "" {
 		return "", ""
 	}
 	return fmt.Sprintf("%s/%s", parts[0], parts[1]), parts[2]
