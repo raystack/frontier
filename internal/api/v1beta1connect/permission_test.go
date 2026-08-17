@@ -522,3 +522,24 @@ func TestHandler_GetPermission(t *testing.T) {
 		})
 	}
 }
+
+func TestTransformPermissionToPB_KeyRoundTrip(t *testing.T) {
+	t.Run("a name with dots survives the key round trip", func(t *testing.T) {
+		got, err := transformPermissionToPB(permission.Permission{
+			ID:          "p1",
+			Name:        "soft.delete",
+			NamespaceID: "database/instance",
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, "database.instance.soft.delete", got.GetKey())
+	})
+
+	t.Run("a namespace without a slash fails instead of emitting a wrong key", func(t *testing.T) {
+		_, err := transformPermissionToPB(permission.Permission{
+			ID:          "p2",
+			Name:        "get",
+			NamespaceID: "foo",
+		})
+		assert.ErrorContains(t, err, "round-trip")
+	})
+}
