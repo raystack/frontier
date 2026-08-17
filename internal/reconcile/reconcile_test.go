@@ -112,6 +112,17 @@ func TestRun_SpecHandling(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, rec.called)
 	})
+
+	t.Run("a document with an unknown top-level field is rejected", func(t *testing.T) {
+		rec := &fakeReconciler{}
+		reg := map[string]Reconciler{KindPlatformUser: rec}
+
+		// A stray top-level key (here a typo of "spec") must fail the file rather
+		// than being ignored, the same way entry decoding rejects unknown fields.
+		_, err := Run(context.Background(), reg, []byte("kind: PlatformUser\nspec: []\nspce: oops\n"), false)
+		assert.ErrorContains(t, err, "field spce not found")
+		assert.Zero(t, rec.called)
+	})
 }
 
 func TestExport_Errors(t *testing.T) {
