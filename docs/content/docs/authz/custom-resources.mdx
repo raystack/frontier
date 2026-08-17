@@ -59,15 +59,14 @@ permissions in this same format, so you can capture the live state into a file.
 
 A few rules the reconcile flow enforces for permissions:
 
-- A permission is **identity only** (namespace plus name). It is added or deleted, never
-  updated.
+- A permission is **identity only** (its key). It is added or deleted, never updated.
 - Nothing is deleted by leaving it out. A permission that is in the server but missing from
   the file fails the plan. To remove one, mark its entry with `delete: true`.
-- A namespace must be in `service/resource` form: two non-empty parts, each lowercase
-  alphanumeric. So `compute/machine` works, but `compute/machine-v2` does not (the hyphen is
-  not alphanumeric). The action name must be alphanumeric too.
-- A namespace under `app` or `app/...` is rejected, because the base schema owns those types
-  (see [Why a separate `user/project` namespace](#why-a-separate-userproject-namespace)).
+- A key has three parts joined by dots, `service.resource.verb`. Each part is lowercase,
+  starts with a letter, and is at least three characters. So `compute.machine.get` works, but
+  `compute.machine.get-all` does not (the hyphen is not alphanumeric).
+- A key whose service is `app` (an `app.*` key) is rejected, because the base schema owns
+  those types (see [Why a separate `user/project` namespace](#why-a-separate-userproject-namespace)).
 
 ### What happens when a permission is registered
 
