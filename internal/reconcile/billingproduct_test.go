@@ -149,12 +149,19 @@ func TestDiffBillingProducts(t *testing.T) {
 		}
 	})
 
-	t.Run("does not fail on a behavior a credit amount forces", func(t *testing.T) {
+	t.Run("defaults an omitted behavior to credits for a credit product", func(t *testing.T) {
 		s := newBillingProduct()
-		s.Behavior = "basic" // the file names basic, but credit_amount > 0 forces "credits"
+		s.Behavior = "" // omitted; credit_amount > 0 defaults it to the server's "credits"
 		ops, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
+	})
+
+	t.Run("fails when the file names a behavior the credit product was not created with", func(t *testing.T) {
+		s := newBillingProduct()
+		s.Behavior = "basic" // the file states basic, but the product was created as credits
+		_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
+		assert.ErrorContains(t, err, "behavior cannot change")
 	})
 
 	t.Run("fails the plan on a behavior change the server cannot apply", func(t *testing.T) {
@@ -253,4 +260,18 @@ func TestDiffBillingProducts(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, ops)
 	})
+}
+
+func TestBillingProductBody_NormalizesFeatureNames(t *testing.T) {
+	// The diff compares feature names case-insensitively and trimmed, so the apply
+	// body must send them the same way, or the server (which looks features up by
+	// name) forks a duplicate feature the plan reported as unchanged.
+	s := newBillingProduct()
+	s.Features = []BillingFeatureRef{{Name: "  Foo  "}, {Name: "BAR"}}
+	body := billingProductBody(s)
+	var got []string
+	for _, f := range body.GetFeatures() {
+		got = append(got, f.GetName())
+	}
+	assert.Equal(t, []string{"foo", "bar"}, got)
 }

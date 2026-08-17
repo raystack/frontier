@@ -288,7 +288,9 @@ func billingProductBody(s BillingProductSpec) *frontierv1beta1.ProductRequestBod
 	}
 	features := make([]*frontierv1beta1.Feature, 0, len(s.Features))
 	for _, f := range s.Features {
-		features = append(features, &frontierv1beta1.Feature{Name: f.Name})
+		// Send the name in the same normalized form the diff compares, so the
+		// server matches an existing feature instead of forking a duplicate.
+		features = append(features, &frontierv1beta1.Feature{Name: normalizeFeatureName(f.Name)})
 	}
 	return &frontierv1beta1.ProductRequestBody{
 		Name:        s.Name,
