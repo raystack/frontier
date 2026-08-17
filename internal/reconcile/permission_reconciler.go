@@ -109,10 +109,12 @@ func (r *PermissionReconciler) fetchCurrent(ctx context.Context) ([]currentPermi
 	var current []currentPermission
 	for _, p := range resp.Msg.GetPermissions() {
 		ns, name := schema.PermissionNamespaceAndNameFromKey(p.GetKey())
-		if ns == "" || name == "" {
-			return nil, fmt.Errorf("permission %s: cannot parse key %q into service.resource.verb", p.GetId(), p.GetKey())
-		}
-		if isBaseNamespace(ns) {
+		// A key that does not split into service.resource.verb is not a custom
+		// permission this reconciler manages: it is a base or system permission, or
+		// comes from an older server that does not set the key. Skip it instead of
+		// failing the whole list. Export only emits keys it kept here, so a skipped
+		// permission never shows up as missing from the file either.
+		if ns == "" || name == "" || isBaseNamespace(ns) {
 			continue
 		}
 		current = append(current, currentPermission{ID: p.GetId(), Key: p.GetKey()})

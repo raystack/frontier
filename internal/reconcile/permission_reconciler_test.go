@@ -104,6 +104,20 @@ func TestPermissionReconciler(t *testing.T) {
 		assert.Empty(t, api.created)
 	})
 
+	t.Run("a server permission with an unparseable key is skipped, not fatal", func(t *testing.T) {
+		// An older server, or a base permission, may return a key that does not split
+		// into service.resource.verb. It must be ignored, not fail the whole plan.
+		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
+			{Id: "weird", Key: "not-a-key"},
+			permissionPB("p1", "compute/order", "get"),
+		}}
+		spec := []byte("- {key: compute.order.get}\n")
+
+		rep, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
+		assert.NoError(t, err)
+		assert.Empty(t, rep.Planned) // the good permission converges; the weird one is ignored
+	})
+
 	t.Run("reconciling an exported document plans no changes", func(t *testing.T) {
 		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
 			permissionPB("b1", "app/project", "get"),
