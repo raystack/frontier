@@ -123,6 +123,18 @@ func TestRun_SpecHandling(t *testing.T) {
 		assert.ErrorContains(t, err, "field spce not found")
 		assert.Zero(t, rec.called)
 	})
+
+	t.Run("an unknown field in a later document is rejected", func(t *testing.T) {
+		rec := &fakeReconciler{}
+		reg := map[string]Reconciler{KindPlatformUser: rec}
+
+		// The stray key sits in the second document. The check must fire on every
+		// document, not only the first, which is the whole point of checking the file.
+		file := []byte("kind: PlatformUser\nspec: []\n---\nkind: PlatformUser\nspec: []\nspce: oops\n")
+		_, err := Run(context.Background(), reg, file, false)
+		assert.ErrorContains(t, err, "field spce not found")
+		assert.Zero(t, rec.called)
+	})
 }
 
 func TestExport_Errors(t *testing.T) {
