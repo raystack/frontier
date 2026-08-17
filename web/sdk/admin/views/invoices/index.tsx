@@ -5,7 +5,7 @@ import {
   EmptyState,
   Flex,
 } from "@raystack/apsara";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PageTitle } from "../../components/PageTitle";
 import { InvoicesNavabar } from "./navbar";
 import styles from "./invoices.module.css";
@@ -40,7 +40,7 @@ const DEFAULT_SORT: DataTableSort = { name: "createdAt", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
-  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
+  // Must match DataTable's mount emit, or it refetches.
   sort: [DEFAULT_SORT],
 };
 
@@ -91,12 +91,17 @@ export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
     });
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const handleLoadMore = async () => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
     try {
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more invoices:", error);
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 

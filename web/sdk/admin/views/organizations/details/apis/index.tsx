@@ -5,7 +5,7 @@ import {
   CodeIcon,
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
 import { getColumns } from "./columns";
@@ -69,7 +69,7 @@ const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
-  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
+  // Must match DataTable's mount emit, or it refetches.
   sort: [DEFAULT_SORT],
 };
 const TRANSFORM_OPTIONS = {
@@ -150,12 +150,17 @@ export function OrganizationApisView() {
     setTableQuery(newQuery);
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const handleLoadMore = async () => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
     try {
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more service users:", error);
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 

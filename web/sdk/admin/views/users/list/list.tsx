@@ -5,6 +5,7 @@ import styles from "./list.module.css";
 import { getColumns } from "./columns";
 import { PageTitle } from "../../../components/PageTitle";
 import UserIcon from "../../../assets/icons/UsersIcon";
+import { useRef } from "react";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries, type User } from "@raystack/proton/frontier";
 import {
@@ -36,7 +37,7 @@ const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
-  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
+  // Must match DataTable's mount emit, or it refetches.
   sort: [DEFAULT_SORT],
 };
 
@@ -96,12 +97,17 @@ export const UsersList = ({ onExportUsers, onNavigateToUser }: UsersListProps) =
     });
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const handleLoadMore = async () => {
-    if (!hasNextPage || isFetchingNextPage) return;
+    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
     try {
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more users:", error);
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 

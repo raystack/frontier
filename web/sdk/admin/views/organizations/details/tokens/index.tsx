@@ -3,7 +3,7 @@ import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./tokens.module.css";
 import { CoinIcon } from "@raystack/apsara/icons";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
@@ -18,7 +18,7 @@ const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
-  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
+  // Must match DataTable's mount emit, or it refetches.
   sort: [DEFAULT_SORT],
 };
 const TRANSFORM_OPTIONS = {
@@ -143,9 +143,15 @@ export function OrganizationTokensView() {
     setTableQuery(newQuery);
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const fetchMore = async () => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
+    if (!hasNextPage || isFetchingNextPage || isError || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+    try {
       await fetchNextPage();
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 

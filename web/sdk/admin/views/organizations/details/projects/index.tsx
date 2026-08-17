@@ -7,7 +7,7 @@ import {
 } from "@raystack/apsara";
 import { PageTitle } from "~/admin/components/PageTitle";
 import styles from "./projects.module.css";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { getColumns } from "./columns";
 import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
@@ -29,7 +29,7 @@ const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
-  // Seeded so DataTable's mount emit matches this, instead of forcing a refetch.
+  // Must match DataTable's mount emit, or it refetches.
   sort: [DEFAULT_SORT],
 };
 const TRANSFORM_OPTIONS = {
@@ -160,9 +160,15 @@ export function OrganizationProjectsView() {
     setTableQuery(newQuery);
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const fetchMore = async () => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
+    if (!hasNextPage || isFetchingNextPage || isError || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+    try {
       await fetchNextPage();
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 
