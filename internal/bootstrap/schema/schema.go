@@ -299,27 +299,29 @@ func IsSystemNamespace(namespace string) bool {
 		namespace == PATPrincipal || namespace == PlatformNamespace
 }
 
-// IsValidPermissionName checks if the provided name is a valid permission name
+// permissionNameRe matches a permission verb. The verb becomes a SpiceDB
+// relation name directly, so it must satisfy SpiceDB's relation grammar
+// (^[a-z][a-z0-9_]{1,62}[a-z0-9]$): start with a lowercase letter, then
+// lowercase alphanumerics, three to sixty-four characters. Underscore is left
+// out here because the slug joins service, resource, and verb with "_", so an
+// underscore in the verb is treated the same as in a namespace part.
+var permissionNameRe = regexp.MustCompile(`^[a-z][a-z0-9]{2,63}$`)
+
+// IsValidPermissionName reports whether name is a valid permission verb that
+// SpiceDB will accept as a relation name.
 func IsValidPermissionName(name string) bool {
-	if name == "" {
-		return false
-	}
-	// check if name contains anything other than alphanumeric characters
-	for _, r := range name {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
-			return false
-		}
-	}
-	return true
+	return permissionNameRe.MatchString(name)
 }
 
-// permissionNamespaceRe matches a custom permission namespace: service/resource
-// with each part one or more lowercase alphanumeric characters. It forbids the
-// underscore inside a part, because FQPermissionNameFromNamespace joins service,
-// resource, and the verb with "_", so an underscore in a part would let two
-// different namespaces flatten to the same slug. Uppercase is forbidden because
-// SpiceDB object type names are lowercase, so it could never be stored anyway.
-var permissionNamespaceRe = regexp.MustCompile(`^[a-z0-9]+/[a-z0-9]+$`)
+// permissionNamespaceRe matches a custom permission namespace: service/resource,
+// where each part is a valid SpiceDB object type segment (^[a-z][a-z0-9_]{1,62}
+// [a-z0-9]$): start with a lowercase letter, then lowercase alphanumerics, three
+// to sixty-four characters. It forbids the underscore inside a part, because
+// FQPermissionNameFromNamespace joins service, resource, and the verb with "_",
+// so an underscore in a part would let two different namespaces flatten to the
+// same slug. Uppercase and a leading digit are forbidden because SpiceDB rejects
+// them in an object type name, so such a namespace could never be stored anyway.
+var permissionNamespaceRe = regexp.MustCompile(`^[a-z][a-z0-9]{2,63}/[a-z][a-z0-9]{2,63}$`)
 
 // IsValidPermissionNamespace reports whether namespace is in service/resource
 // form with each part lowercase alphanumeric.

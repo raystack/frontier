@@ -24,7 +24,7 @@ var (
 	testPermissions   = []permission.Permission{
 		{
 			ID:          uuid.New().String(),
-			Name:        "Read",
+			Name:        "read",
 			NamespaceID: "app/resource",
 			Metadata:    map[string]any{},
 			CreatedAt:   time.Time{},
@@ -32,14 +32,14 @@ var (
 		},
 		{
 			ID:          uuid.New().String(),
-			Name:        "Write",
+			Name:        "write",
 			NamespaceID: "app/resource",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
 		},
 		{
 			ID:          uuid.New().String(),
-			Name:        "Manage",
+			Name:        "manage",
 			NamespaceID: "app/resource",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},

@@ -40,7 +40,7 @@ func validatePermissionSpec(s PermissionSpec) error {
 		return fmt.Errorf("namespace and name are required")
 	}
 	if !schema.IsValidPermissionName(s.Name) {
-		return fmt.Errorf("invalid name %q (alphanumeric only)", s.Name)
+		return fmt.Errorf("invalid name %q (must be lowercase, start with a letter, and be at least three characters)", s.Name)
 	}
 	if isBaseNamespace(s.Namespace) {
 		return fmt.Errorf("namespace %q is part of the base schema, which the server manages", s.Namespace)

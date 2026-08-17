@@ -106,7 +106,11 @@ func TestIsValidPermissionNamespace(t *testing.T) {
 		{"user/project", true},
 		{"org/user", true},
 		{"compute/disk", true},
-		{"a1/b2", true},
+		{"a1/b2", false},               // parts shorter than 3 are not valid SpiceDB object types
+		{"ab/order", false},            // service part shorter than 3
+		{"compute/ab", false},          // resource part shorter than 3
+		{"1compute/order", false},      // a part cannot start with a digit
+		{"compute/2order", false},      // a part cannot start with a digit
 		{"resource_order/item", false}, // underscore in a part collides on the slug
 		{"resource/order_item", false},
 		{"Compute/order", false}, // uppercase is not a SpiceDB object type
@@ -122,6 +126,37 @@ func TestIsValidPermissionNamespace(t *testing.T) {
 		t.Run(tt.ns, func(t *testing.T) {
 			if got := schema.IsValidPermissionNamespace(tt.ns); got != tt.want {
 				t.Errorf("IsValidPermissionNamespace(%q) = %v, want %v", tt.ns, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsValidPermissionName(t *testing.T) {
+	// A permission's verb becomes a SpiceDB relation name directly, so it must
+	// satisfy SpiceDB's relation grammar: start with a lowercase letter, then
+	// lowercase alphanumerics, at least three characters. Underscore is left out
+	// because the slug joins service, resource, and verb with "_".
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{"get", true},
+		{"create", true},
+		{"list", true},
+		{"abc", true}, // exactly three characters
+		{"id", false}, // shorter than three characters
+		{"ab", false},
+		{"Get", false},     // uppercase is not a SpiceDB relation
+		{"getAll", false},  // uppercase anywhere
+		{"1get", false},    // cannot start with a digit
+		{"get_all", false}, // underscore is not allowed in a verb
+		{"get-all", false}, // hyphen is not alphanumeric
+		{"", false},        // empty
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := schema.IsValidPermissionName(tt.name); got != tt.want {
+				t.Errorf("IsValidPermissionName(%q) = %v, want %v", tt.name, got, tt.want)
 			}
 		})
 	}
