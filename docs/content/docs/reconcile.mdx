@@ -85,6 +85,11 @@ Because the file is the full list, `spec: []` removes every platform user. The b
 service account is the exception: it is never removed. Keep `app.admin.bootstrap` configured,
 since that account is the recovery path if a file ever empties the list.
 
+Disabled principals are out of scope. A disabled user does not appear in the platform-user
+listing the reconciler reads, so it cannot see or manage their platform access: a disabled
+admin is not exported, and an empty file does not remove their grant. Do not list a disabled
+principal in the file. Re-enable the user first if you need to reconcile their access.
+
 ## The Permission kind
 
 A permission is an identity: a `service/resource` namespace plus a verb. There is nothing
