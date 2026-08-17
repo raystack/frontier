@@ -93,22 +93,21 @@ concerns users. Service users cannot be disabled today, so they are always liste
 
 ## The Permission kind
 
-A permission is an identity: a `service/resource` namespace plus a verb. There is nothing
+A permission is an identity: a key in `service.resource.verb` form. There is nothing
 else to manage on it, so it is either created or deleted.
 
 ```yaml
 apiVersion: v1
 kind: Permission
 spec:
-  - namespace: compute/order
-    name: get
-  - namespace: compute/order
-    name: legacy
+  - key: compute.order.get
+  - key: compute.order.legacy
     delete: true
 ```
 
-- The namespace has two parts, `service/resource`. The name is alphanumeric.
-- Frontier's own permissions (the `app` namespaces) belong to the base schema. The
+- The key has three parts joined by dots, `service.resource.verb`. Each part is lowercase
+  alphanumeric.
+- Frontier's own permissions (the `app` service) belong to the base schema. The
   reconciler ignores them and rejects a file entry that names one.
 - A custom permission on the server that the file does not list fails the plan. Nothing
   is deleted just because it is missing; deleting needs `delete: true` on the entry.
