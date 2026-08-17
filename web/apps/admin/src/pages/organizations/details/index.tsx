@@ -60,8 +60,9 @@ export default function OrganizationDetailsPage() {
 
   /*
    * Cold-load resolve (only when state carries no id):
-   * - getOrganization takes an id OR a slug and returns disabled orgs too,
-   *   so a single call covers every URL form (server GetRaw branches on UUID)
+   * - getOrganization takes an id OR a slug, so a single call covers every URL
+   *   form (server GetRaw branches on UUID)
+   * - disabled orgs resolve for superusers only; the console is superuser-only
    * - a UUID param is already the id, but we still resolve to read the slug +
    *   state for the canonical-URL rewrite below
    */
@@ -84,24 +85,24 @@ export default function OrganizationDetailsPage() {
   const orgId = stateOrgId || (paramIsId ? urlParam : org?.id);
   const notFound = needsResolve && isSuccess && !org?.id;
 
-  /*
-   * The view fetches by id; resolving from a slug keys the cache by the slug.
-   * Seed the id key so it doesn't refetch the org we already have. During
-   * render, not in an effect: the view mounts in this commit and its effects
-   * run first.
-   */
+  /* The slug resolve caches under the slug, so seed the id key the view uses.
+   * In render, not an effect: the view mounts this commit. Empty keys only —
+   * this copy can be stale, and edits invalidate the id key, not the slug. */
   const primedOrgId = useRef<string | undefined>(undefined);
-  if (org?.id && primedOrgId.current !== org.id) {
+  if (org?.id && org.id !== urlParam && primedOrgId.current !== org.id) {
     primedOrgId.current = org.id;
-    queryClient.setQueryData(
-      createConnectQueryKey({
-        schema: FrontierServiceQueries.getOrganization,
-        transport,
-        input: { id: org.id },
-        cardinality: 'finite',
-      }),
-      create(GetOrganizationResponseSchema, { organization: org }),
-    );
+    const orgKey = createConnectQueryKey({
+      schema: FrontierServiceQueries.getOrganization,
+      transport,
+      input: { id: org.id },
+      cardinality: 'finite',
+    });
+    if (queryClient.getQueryData(orgKey) === undefined) {
+      queryClient.setQueryData(
+        orgKey,
+        create(GetOrganizationResponseSchema, { organization: org }),
+      );
+    }
   }
 
   /*
