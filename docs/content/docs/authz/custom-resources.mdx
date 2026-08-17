@@ -31,21 +31,17 @@ You register the actions in one of two ways:
 - **The admin API** (`CreatePermission`, `CreateRole`). This makes the same change one call at
   a time, useful for one-off changes or scripting.
 
-Here is the `compute/machine` example as a reconcile file. Each entry is a namespace and an
-action name:
+Here is the `compute/machine` example as a reconcile file. Each entry is a key in
+`service.resource.verb` form:
 
 ```yaml
 apiVersion: v1
 kind: Permission
 spec:
-  - namespace: compute/machine
-    name: get
-  - namespace: compute/machine
-    name: create
-  - namespace: compute/machine
-    name: update
-  - namespace: compute/machine
-    name: delete
+  - key: compute.machine.get
+  - key: compute.machine.create
+  - key: compute.machine.update
+  - key: compute.machine.delete
 ```
 
 Apply it with a superuser credential (for example the bootstrap service account):
@@ -276,21 +272,16 @@ apiVersion: v1
 kind: Permission
 spec:
   # Per-item actions live on the resource itself, checked against compute/machine:<id>.
-  - namespace: compute/machine
-    name: get
-  - namespace: compute/machine
-    name: update
-  - namespace: compute/machine
-    name: delete
+  - key: compute.machine.get
+  - key: compute.machine.update
+  - key: compute.machine.delete
 
   # Project-level capabilities live on user/project, a proxy for app/project.
   # Checked against app/project:<project_id>, because there is no single
-  # machine to check against. Do NOT use namespace app/project here: the
-  # app namespaces are reserved for the base schema and are rejected.
-  - namespace: user/project
-    name: createcomputemachine
-  - namespace: user/project
-    name: listcomputemachines
+  # machine to check against. Do NOT use the app service here: the app
+  # namespaces are reserved for the base schema and are rejected.
+  - key: user.project.createcomputemachine
+  - key: user.project.listcomputemachines
 ---
 apiVersion: v1
 kind: Role
