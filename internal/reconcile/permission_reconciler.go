@@ -32,8 +32,8 @@ func NewPermissionReconciler(client PermissionAPI, header string) *PermissionRec
 
 func (r *PermissionReconciler) Kind() string { return KindPermission }
 
-// Validate checks every entry, and the in-file slug conflicts, without touching
-// the server, so a bad entry stops the whole file before anything applies.
+// Validate checks every entry without touching the server, so a bad entry stops
+// the whole file before anything applies.
 func (r *PermissionReconciler) Validate(spec []byte) error {
 	var specs []PermissionSpec
 	if err := decodeSpec(spec, &specs); err != nil {
@@ -44,16 +44,12 @@ func (r *PermissionReconciler) Validate(spec []byte) error {
 		if err := validatePermissionSpec(s); err != nil {
 			return fmt.Errorf("invalid permission spec %s: %w", s, err)
 		}
-		slug := s.slug()
-		if prev, dup := seen[slug]; dup {
-			if prev.Namespace != s.Namespace || prev.Name != s.Name {
-				return fmt.Errorf("permissions %s and %s collide on the same slug %q", prev, s, slug)
-			}
+		if prev, dup := seen[s.Key]; dup {
 			if prev.Delete != s.Delete {
 				return fmt.Errorf("permission %s is listed both with and without delete", s)
 			}
 		}
-		seen[slug] = s
+		seen[s.Key] = s
 	}
 	return nil
 }
@@ -99,15 +95,9 @@ func (r *PermissionReconciler) Export(ctx context.Context) (any, error) {
 	}
 	specs := make([]PermissionSpec, 0, len(current))
 	for _, c := range current {
-		specs = append(specs, PermissionSpec{Namespace: c.Namespace, Name: c.Name})
+		specs = append(specs, PermissionSpec{Key: c.Key})
 	}
-	sort.Slice(specs, func(i, j int) bool {
-		a, b := specs[i], specs[j]
-		if a.Namespace != b.Namespace {
-			return a.Namespace < b.Namespace
-		}
-		return a.Name < b.Name
-	})
+	sort.Slice(specs, func(i, j int) bool { return specs[i].Key < specs[j].Key })
 	return specs, nil
 }
 
@@ -120,16 +110,12 @@ func (r *PermissionReconciler) fetchCurrent(ctx context.Context) ([]currentPermi
 	for _, p := range resp.Msg.GetPermissions() {
 		ns, name := schema.PermissionNamespaceAndNameFromKey(p.GetKey())
 		if ns == "" || name == "" {
-			return nil, fmt.Errorf("permission %s: cannot split key %q into namespace and name", p.GetId(), p.GetKey())
+			return nil, fmt.Errorf("permission %s: cannot parse key %q into service.resource.verb", p.GetId(), p.GetKey())
 		}
 		if isBaseNamespace(ns) {
 			continue
 		}
-		current = append(current, currentPermission{
-			ID:        p.GetId(),
-			Namespace: ns,
-			Name:      name,
-		})
+		current = append(current, currentPermission{ID: p.GetId(), Key: p.GetKey()})
 	}
 	return current, nil
 }
@@ -139,7 +125,7 @@ func (r *PermissionReconciler) apply(ctx context.Context, op permissionOp) error
 	case opAdd:
 		_, err := r.client.CreatePermission(ctx, authReq(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{{
-				Key: schema.PermissionKeyFromNamespaceAndName(op.spec.Namespace, op.spec.Name),
+				Key: op.spec.Key,
 			}},
 		}, r.header))
 		return err

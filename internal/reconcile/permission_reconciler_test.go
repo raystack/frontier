@@ -30,6 +30,8 @@ func (f *fakePermissionAPI) DeletePermission(_ context.Context, req *connect.Req
 	return connect.NewResponse(&frontierv1beta1.DeletePermissionResponse{}), nil
 }
 
+// permissionPB builds a listed permission the way the server returns it: the
+// response carries the key, which is the reconciler's identity.
 func permissionPB(id, namespace, name string) *frontierv1beta1.Permission {
 	return &frontierv1beta1.Permission{Id: id, Key: schema.PermissionKeyFromNamespaceAndName(namespace, name)}
 }
@@ -40,7 +42,7 @@ func TestPermissionReconciler(t *testing.T) {
 			permissionPB("b1", "app/organization", "administer"), // base: must be ignored
 			permissionPB("p1", "compute/order", "legacy"),
 		}}
-		spec := []byte("- {namespace: compute/order, name: legacy, delete: true}\n- {namespace: compute/order, name: get}\n")
+		spec := []byte("- {key: compute.order.legacy, delete: true}\n- {key: compute.order.get}\n")
 
 		rep, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, false)
 
@@ -55,27 +57,14 @@ func TestPermissionReconciler(t *testing.T) {
 		assert.Equal(t, []string{"p1"}, api.deleted)
 	})
 
-	t.Run("a permission whose key does not split fails instead of being misread", func(t *testing.T) {
-		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
-			{Id: "p1", Key: "notakey"},
-		}}
-		spec := []byte("- {namespace: compute/order, name: get}\n")
-
-		_, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
-
-		assert.ErrorContains(t, err, "notakey")
-		assert.Empty(t, api.created)
-		assert.Empty(t, api.deleted)
-	})
-
 	t.Run("dry-run plans without applying", func(t *testing.T) {
 		api := &fakePermissionAPI{}
-		spec := []byte("- {namespace: compute/order, name: get}\n")
+		spec := []byte("- {key: compute.order.get}\n")
 
 		rep, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
 
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"add permission compute/order:get"}, rep.Planned)
+		assert.Equal(t, []string{"add permission compute.order.get"}, rep.Planned)
 		assert.Zero(t, rep.Applied)
 		assert.Empty(t, api.created)
 	})
@@ -83,7 +72,7 @@ func TestPermissionReconciler(t *testing.T) {
 	t.Run("an unknown field in the spec fails the plan", func(t *testing.T) {
 		api := &fakePermissionAPI{}
 		// `delet` instead of `delete`: must fail, not silently ignore the delete
-		spec := []byte("- {namespace: compute/order, name: get, delet: true}\n")
+		spec := []byte("- {key: compute.order.get, delet: true}\n")
 
 		_, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
 
@@ -91,15 +80,27 @@ func TestPermissionReconciler(t *testing.T) {
 		assert.Empty(t, api.created)
 	})
 
-	t.Run("an ambiguous namespace fails Validate before any server call", func(t *testing.T) {
-		// The charset check is server-free, so a namespace that would collide on the
-		// slug must fail the whole file up front (rule 3), not at apply.
+	t.Run("the old namespace/name format is rejected", func(t *testing.T) {
+		// The kind now takes a key. A file still using namespace/name must fail
+		// loudly (unknown fields) rather than silently reconcile nothing.
 		api := &fakePermissionAPI{}
-		spec := []byte("- {namespace: resource_order/item, name: get}\n")
+		spec := []byte("- {namespace: compute/order, name: get}\n")
+
+		_, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
+
+		assert.ErrorContains(t, err, "parse Permission spec")
+		assert.Empty(t, api.created)
+	})
+
+	t.Run("an ambiguous key fails Validate before any server call", func(t *testing.T) {
+		// The charset check is server-free, so a key whose namespace would collide on
+		// the slug must fail the whole file up front (rule 3), not at apply.
+		api := &fakePermissionAPI{}
+		spec := []byte("- {key: resource_order.item.get}\n")
 
 		err := NewPermissionReconciler(api, "").Validate(spec)
 
-		assert.ErrorContains(t, err, "resource_order/item")
+		assert.ErrorContains(t, err, "resource_order.item.get")
 		assert.Empty(t, api.created)
 	})
 
@@ -113,7 +114,7 @@ func TestPermissionReconciler(t *testing.T) {
 
 		out, err := Export(context.Background(), registry, KindPermission)
 		assert.NoError(t, err)
-		assert.NotContains(t, string(out), "app/project")
+		assert.NotContains(t, string(out), "app.project")
 
 		reports, err := Run(context.Background(), registry, out, true)
 		assert.NoError(t, err)
