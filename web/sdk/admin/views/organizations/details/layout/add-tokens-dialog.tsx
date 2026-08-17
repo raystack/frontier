@@ -37,8 +37,13 @@ const addTokensSchema = z.object({
 type AddTokenRequestType = z.infer<typeof addTokensSchema>;
 
 export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
-  const { organization, billingAccount, fetchTokenBalance, tokenProductId } =
-    useContext(OrganizationContext);
+  const {
+    organization,
+    billingAccount,
+    isBillingAccountLoading,
+    fetchTokenBalance,
+    tokenProductId,
+  } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
   const organisationId = organization?.id || "";
@@ -80,7 +85,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   );
 
   const onSubmit = async (product_body: AddTokenRequestType) => {
-    if (!organisationId) return;
+    if (!organisationId || !billingAccountId) return;
     await delegatedCheckout(
       create(DelegatedCheckoutRequestSchema, {
         orgId: organisationId,
@@ -153,6 +158,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                 data-test-id="add-tokens-invite-button"
                 type="submit"
                 loaderText="Adding..."
+                disabled={isBillingAccountLoading || isSubmitting}
                 loading={isSubmitting}
               >
                 Add

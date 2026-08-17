@@ -141,16 +141,18 @@ export const OrganizationDetailsView = ({
 
   const roles = [...defaultRoles, ...organizationRoles];
 
-  // Fetch billing accounts list
-  const { data: firstBillingAccountId = "", error: billingAccountsError } =
-    useQuery(
-      FrontierServiceQueries.listBillingAccounts,
-      { orgId: organizationId || "" },
-      {
-        enabled: !!organizationId,
-        select: (data) => data?.billingAccounts?.[0]?.id || "",
-      },
-    );
+  const {
+    data: firstBillingAccountId = "",
+    isLoading: isBillingAccountsLoading,
+    error: billingAccountsError,
+  } = useQuery(
+    FrontierServiceQueries.listBillingAccounts,
+    { orgId: organizationId || "" },
+    {
+      enabled: !!organizationId,
+      select: (data) => data?.billingAccounts?.[0]?.id || "",
+    },
+  );
 
   // Fetch billing account details
   const {
@@ -175,6 +177,9 @@ export const OrganizationDetailsView = ({
 
   const billingAccount = billingAccountData?.billingAccount;
   const billingAccountDetails = billingAccountData?.billingAccountDetails;
+
+  // getBillingAccount is disabled until the list yields an id.
+  const isBillingLoading = isBillingAccountsLoading || isBillingAccountLoading;
 
   // Fetch billing balance
   const {
@@ -229,12 +234,7 @@ export const OrganizationDetailsView = ({
     tokenBalanceError,
   ]);
 
-  /*
-   * Only queries enabled from the first render, so the gate flips once:
-   * - billing waits on an id from listBillingAccounts, so it re-entered
-   *   loading after the gate opened and remounted the tab mid-load
-   * - the side panel renders its own skeletons meanwhile
-   */
+  // Billing waits on an id, so including it here remounted the tab mid-load.
   const isLoading =
     isOrganizationLoading || isDefaultRolesLoading || isOrgRolesLoading;
   return (
@@ -245,10 +245,10 @@ export const OrganizationDetailsView = ({
         roles,
         billingAccount,
         billingAccountDetails,
-        isBillingAccountLoading,
+        isBillingAccountLoading: isBillingLoading,
         fetchBillingAccountDetails,
         tokenBalance,
-        isTokenBalanceLoading,
+        isTokenBalanceLoading: isBillingAccountsLoading || isTokenBalanceLoading,
         fetchTokenBalance,
         updateKYCDetails,
         kycDetails,
