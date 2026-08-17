@@ -197,6 +197,15 @@ func TestHandler_BatchCheckPermission(t *testing.T) {
 			}),
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrNamespaceSplitNotation),
 		},
+		{
+			name: "should return bad request error if a body resource namespace part is empty",
+			request: connect.NewRequest(&frontierv1beta1.BatchCheckPermissionRequest{
+				Bodies: []*frontierv1beta1.BatchCheckPermissionBody{
+					{Resource: ":" + testRelationV2.Object.ID, Permission: schema.UpdatePermission},
+				},
+			}),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrNamespaceSplitNotation),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
