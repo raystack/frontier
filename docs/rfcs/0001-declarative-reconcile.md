@@ -51,7 +51,7 @@ role is a value.
 | Kind | Object or value | Identity | A missing entry | How to remove |
 |---|---|---|---|---|
 | PlatformUser | value | principal + relation | access removed | leave the entry out |
-| Permission | object | namespace + name | plan fails | set `delete: true` |
+| Permission | object | key | plan fails | set `delete: true` |
 | Role, custom | object | name | plan fails | set `delete: true` |
 | Role, predefined | value | name | reset to the shipped definition | cannot be removed |
 | Preference | value | trait name | reset to the trait default | leave the entry out, it resets |
@@ -207,8 +207,8 @@ entry removes that access. A user with both relations has two entries. Adding a 
 email that does not exist creates the user. The bootstrap service account is server-managed:
 the flow skips it on the server side and rejects it in the file.
 
-**Permission.** An entry is `{namespace, name}`, for example `compute/order` + `get`. A
-permission is an identity only, so it is created or deleted, never updated. Creating one also
+**Permission.** An entry is `{key}` in `service.resource.verb` form, for example
+`compute.order.get`. A permission is an identity only, so it is created or deleted, never updated. Creating one also
 updates the authorization schema, so it is usable in roles right away, on every pod at once. The
 base `app` namespaces are server-managed.
 
