@@ -3,6 +3,7 @@ package server
 import (
 	"time"
 
+	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
 
@@ -60,6 +61,16 @@ type Config struct {
 	// requests to finish during shutdown before cutting them off
 	ShutdownGracePeriod time.Duration `yaml:"shutdown_grace_period" mapstructure:"shutdown_grace_period" default:"10s"`
 
+	// ReadHeaderTimeout is how long each server waits for a client to send
+	// its request headers before closing the connection
+	ReadHeaderTimeout time.Duration `yaml:"read_header_timeout" mapstructure:"read_header_timeout" default:"10s"`
+
+	// IdleTimeout is how long each server keeps an idle keep-alive
+	// connection open before closing it. It must be larger than the
+	// keep-alive timeout of any fronting proxy, so the proxy never sends
+	// a request on a connection the server is already closing
+	IdleTimeout time.Duration `yaml:"idle_timeout" mapstructure:"idle_timeout" default:"180s"`
+
 	// Profiler enables /debug/pprof under metrics port
 	Profiler bool `yaml:"profiler" mapstructure:"profiler" default:"false"`
 
@@ -69,14 +80,6 @@ type Config struct {
 	// TODO might not suitable here because it is also being used by proxy
 	// Headers which will have user's email id
 	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:""`
-
-	// ResourcesPath is a directory path where resources is defined
-	// that this service should implement
-	ResourcesConfigPath string `yaml:"resources_config_path" mapstructure:"resources_config_path"`
-
-	// ResourcesPathSecretSecret could be an env name, file path or actual value required
-	// to access ResourcesPathSecretPath files
-	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
 
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
 
@@ -90,6 +93,8 @@ type Config struct {
 
 	Webhook webhook.Config `yaml:"webhook" mapstructure:"webhook"`
 	PAT     userpat.Config `yaml:"pat" mapstructure:"pat"`
+
+	Metaschema metaschema.Config `yaml:"metaschema" mapstructure:"metaschema"`
 
 	// AdditionalTraitsPath is a file path to a YAML file containing additional preference traits
 	// These traits are merged with DefaultTraits at startup

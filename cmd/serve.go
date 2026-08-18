@@ -104,7 +104,6 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api"
-	"github.com/raystack/frontier/internal/store/blob"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/frontier/pkg/db"
@@ -134,29 +133,6 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		}
 	}()
 
-	// load resource config
-	if cfg.App.ResourcesConfigPath != "" {
-		logger.Warn("app.resources_config_path is deprecated and will be removed after a deprecation window; " +
-			"manage permissions and roles with 'frontier reconcile' instead")
-	}
-	resourceBlobFS, err := blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		logger.Debug("cleaning up resource blob")
-		if err := resourceBlobFS.Close(); err != nil {
-			logger.Warn("resource blob cleanup failed", "err", err)
-		}
-	}()
-
-	// load billing plans
-	billingBlobFS, err := blob.NewStore(ctx, cfg.Billing.PlansPath, "")
-	if err != nil {
-		return err
-	}
-	billingPlanRepository := blob.NewPlanRepository(billingBlobFS)
-
 	promRegistry := prometheus.NewRegistry()
 	promMetrics := prometheusmiddleware.NewClientMetrics(
 		prometheusmiddleware.WithClientHandlingTimeHistogram(),
@@ -182,31 +158,29 @@ func StartServer(logger *slog.Logger, cfg *config.Frontier) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient, resourceBlobFS, billingPlanRepository)
+	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
 
-	// load metadata schema in memory from db
-	if schemas, err := deps.MetaSchemaService.List(context.Background()); err != nil {
-		logger.Warn("metaschemas initialization failed", "err", err)
-	} else {
-		logger.Info("metaschemas loaded", "count", len(schemas))
+	// prime the metaschema cache and start its periodic refresh. A failed prime
+	// means validation would be silently off, so stop startup like a failed
+	// migration rather than come up with an empty cache.
+	if err := deps.MetaSchemaService.Init(ctx); err != nil {
+		return fmt.Errorf("metaschemas initialization: %w", err)
 	}
+	defer func() {
+		logger.Debug("cleaning up metaschemas")
+		if err := deps.MetaSchemaService.Close(); err != nil {
+			logger.Warn("metaschema service cleanup failed", "err", err)
+		}
+	}()
 
 	// apply schema
 	if err = deps.BootstrapService.MigrateSchema(ctx); err != nil {
 		return err
 	}
 	logger.Info("migrated authz schema")
-
-	// apply billing plans
-	if cfg.Billing.PlansPath != "" {
-		if err = deps.BootstrapService.MigrateBillingPlans(ctx); err != nil {
-			return err
-		}
-		logger.Info("migrated billing plans")
-	}
 
 	// apply roles over nil org id
 	// nil org is the default org of platform
@@ -361,8 +335,6 @@ func buildAPIDependencies(
 	cfg *config.Frontier,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
-	resourceBlobBucket blob.Bucket,
-	planBlobRepository *blob.PlanRepository,
 ) (api.Deps, error) {
 	// Load additional traits from config file if specified
 	traits, err := preference.LoadTraitsFromFile(cfg.App.AdditionalTraitsPath)
@@ -523,7 +495,7 @@ func buildAPIDependencies(
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
-	metaschemaService := metaschema.NewService(metaschemaRepository)
+	metaschemaService := metaschema.NewService(metaschemaRepository, logger, cfg.App.Metaschema.RefreshInterval)
 
 	userPATService := userpat.NewService(logger, userPATRepo, cfg.App.PAT, organizationService, roleService, membershipService, projectService, auditRecordRepository)
 	membershipService.SetUserPATService(userPATService)
@@ -596,11 +568,9 @@ func buildAPIDependencies(
 
 	usageService := usage.NewService(creditService)
 
-	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobBucket)
 	bootstrapService := bootstrap.NewBootstrapService(
 		logger,
 		cfg.App.Admin,
-		resourceSchemaRepository,
 		namespaceService,
 		roleService,
 		permissionService,
@@ -609,8 +579,6 @@ func buildAPIDependencies(
 		policyService,
 		svUserRepo,
 		cfg.App.PAT.DeniedPermissionsSet(),
-		planService,
-		planBlobRepository,
 		svUserRepo,
 		scUserCredRepo,
 		serviceUserService,

@@ -2,8 +2,6 @@ package e2e_test
 
 import (
 	"context"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -29,10 +27,6 @@ type ServiceRegistrationRegressionTestSuite struct {
 }
 
 func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Require().Nil(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 
@@ -41,9 +35,8 @@ func (s *ServiceRegistrationRegressionTestSuite) SetupSuite() {
 			Level: "error",
 		},
 		App: server.Config{
-			Host:                "localhost",
-			Connect:             server.ConnectConfig{Port: connectPort},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
@@ -153,8 +146,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		var lastPermCount int
 		for _, perm := range []string{"get", "update", "delete"} {
 			for _, listPerm := range listPermResp.Msg.GetPermissions() {
-				//nolint:staticcheck
-				if listPerm.GetName() == perm && listPerm.GetNamespace() == "database/instance" {
+				if listPerm.GetKey() == "database.instance."+perm {
 					lastPermCount++
 				}
 			}
@@ -236,8 +228,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestPermissionDeleteCascade() {
 	s.Require().NoError(err)
 	var builtinID string
 	for _, p := range listResp.Msg.GetPermissions() {
-		//nolint:staticcheck
-		if p.GetNamespace() == "app/organization" && p.GetName() == "get" {
+		if p.GetKey() == "app.organization.get" {
 			builtinID = p.GetId()
 			break
 		}

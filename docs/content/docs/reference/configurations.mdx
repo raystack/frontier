@@ -34,18 +34,6 @@ app:
   profiler: false
   # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
-  # full path prefixed with scheme where resources config yaml files are kept
-  # e.g.:
-  # local storage file "file:///tmp/resources_config"
-  # GCS Bucket "gs://frontier/resources_config"
-  resources_config_path: file:///tmp/resources_config\
-  # secret required to access resources config
-  # e.g.:
-  # system environment variable "env://TEST_RULESET_SECRET"
-  # local file "file:///opt/auth.json"
-  # secret string "val://user:password"
-  # optional
-  resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
 
   # cross-origin resource sharing configuration
   cors:
@@ -152,6 +140,13 @@ app:
     # encryption key used to encrypt the secrets stored in database not to encrypt
     # the webhook payload
     encryption_key: "encryption-key-should-be-32-chars--"
+  # metaschema cache configuration
+  metaschema:
+    # how often each server reloads the metaschema cache from the database, so a
+    # change made on one server reaches the others. 0 disables the background
+    # refresh; the cache is still primed once at startup.
+    # e.g. 30s, 1m, 5m
+    refresh_interval: 1m
 db:
   driver: postgres
   url: postgres://frontier:@localhost:5432/frontier?sslmode=disable
@@ -181,9 +176,6 @@ billing:
   # webhook secret to be used for validating stripe webhooks events
   # all the secrets are used to validate the events useful in case of key rotation
   stripe_webhook_secrets: []
-  # path to plans spec file that will be used to create plans in billing engine
-  # e.g. file:///tmp/plans
-  plans_path: ""
   # default currency to be used for billing if not provided by the user
   # e.g. usd, inr, eur
   default_currency: ""
@@ -255,11 +247,10 @@ This page contains reference for all the application configurations for Frontier
 | **app.metrics_port**                 | Port number for metrics reporting.                                                                                                                                                  | 9000        | Yes               |
 | **app.host**                         | Host address for the Frontier application.                                                                                                                                          | 127.0.0.1   | Yes               |
 | **app.identity_proxy_header**        | Header key used for identity proxy.                                                                                                                                                 |             |                   |
-| **app.resources_config_path**        | Full path prefixed with the scheme where resources config YAML files are stored.<br/>Either new resources can be added dynamically via the apis, or can be passed in this YAML file |             | No                |
-| **app.resources_config_path_secret** | Secret required to access resources config.                                                                                                                                         |             | No                |
 | **app.disable_orgs_listing**         | If set to true, disallows non-admin APIs to list all organizations.                                                                                                                 |             | No                |
 | **app.disable_users_listing**        | If set to true, disallows non-admin APIs to list all users.                                                                                                                         |             | No                |
 | **app.cors_origin**                  | Origin value from where CORS is allowed.                                                                                                                                            |             | Yes(for Admin UI) |
+| **app.metaschema.refresh_interval**  | How often each server reloads the metaschema cache from the database so a change made on one server reaches the others. 0 disables the background refresh.                        | 1m          | No (default: 1m)  |
 
 ### Authentication Configurations
 

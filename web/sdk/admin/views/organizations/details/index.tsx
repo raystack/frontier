@@ -8,8 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { create } from "@bufbuild/protobuf";
 
 import { OrganizationDetailsLayout } from "./layout";
-import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
+import { useOrganizationRoles } from "~/admin/hooks/useOrganizationRoles";
 import {
   FrontierServiceQueries,
   GetBillingAccountRequestSchema,
@@ -111,35 +111,11 @@ export const OrganizationDetailsView = ({
     );
   }
 
-  // Fetch default roles
-  const {
-    data: defaultRoles = [],
-    isLoading: isDefaultRolesLoading,
-    error: defaultRolesError,
-  } = useQuery(
-    FrontierServiceQueries.listRoles,
-    { scopes: [ORG_NAMESPACE] },
-    {
-      enabled: !!organizationId,
-      select: (data) => data?.roles || [],
-    },
+  // Fetch roles assignable in this org (platform defaults + org custom)
+  const { roles, isLoading: isRolesLoading } = useOrganizationRoles(
+    organizationId,
+    { enabled: !!organizationId },
   );
-
-  // Fetch organization-specific roles
-  const {
-    data: organizationRoles = [],
-    isLoading: isOrgRolesLoading,
-    error: orgRolesError,
-  } = useQuery(
-    FrontierServiceQueries.listOrganizationRoles,
-    { orgId: organizationId || "", scopes: [ORG_NAMESPACE] },
-    {
-      enabled: !!organizationId,
-      select: (data) => data?.roles || [],
-    },
-  );
-
-  const roles = [...defaultRoles, ...organizationRoles];
 
   const {
     data: firstBillingAccountId = "",
@@ -206,12 +182,6 @@ export const OrganizationDetailsView = ({
     if (kycError) {
       console.error("Failed to fetch KYC details:", kycError);
     }
-    if (defaultRolesError) {
-      console.error("Failed to fetch default roles:", defaultRolesError);
-    }
-    if (orgRolesError) {
-      console.error("Failed to fetch organization roles:", orgRolesError);
-    }
     if (billingAccountsError) {
       console.error("Failed to fetch billing accounts:", billingAccountsError);
     }
@@ -227,16 +197,13 @@ export const OrganizationDetailsView = ({
   }, [
     organizationError,
     kycError,
-    defaultRolesError,
-    orgRolesError,
     billingAccountsError,
     billingAccountError,
     tokenBalanceError,
   ]);
 
   // Billing waits on an id, so including it here remounted the tab mid-load.
-  const isLoading =
-    isOrganizationLoading || isDefaultRolesLoading || isOrgRolesLoading;
+  const isLoading = isOrganizationLoading || isRolesLoading;
   return (
     <OrganizationContext.Provider
       value={{

@@ -3,8 +3,6 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -31,10 +29,6 @@ type PATRegressionTestSuite struct {
 }
 
 func (s *PATRegressionTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Require().Nil(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 
@@ -43,9 +37,8 @@ func (s *PATRegressionTestSuite) SetupSuite() {
 			Level: "error",
 		},
 		App: server.Config{
-			Host:                "localhost",
-			Connect:             server.ConnectConfig{Port: connectPort},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",

@@ -3,8 +3,6 @@ package e2e_test
 import (
 	"context"
 	"encoding/json"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -20,8 +18,11 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/core/authenticate"
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
+	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/server"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
@@ -38,10 +39,6 @@ type BillingRegressionTestSuite struct {
 }
 
 func (s *BillingRegressionTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Require().Nil(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 
@@ -51,9 +48,8 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 			AuditEvents: "db",
 		},
 		App: server.Config{
-			Host:                "localhost",
-			Connect:             server.ConnectConfig{Port: connectPort},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			Host:    "localhost",
+			Connect: server.ConnectConfig{Port: connectPort},
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
@@ -70,7 +66,6 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 		},
 		Billing: billing.Config{
 			StripeKey:       "sk_test_mock",
-			PlansPath:       path.Join(testDataPath, "plans"),
 			DefaultCurrency: "usd",
 			AccountConfig: billing.AccountConfig{
 				AutoCreateWithOrg:                true,
@@ -82,7 +77,33 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 		},
 	}
 
-	s.testBench, err = testbench.Init(appConfig)
+	// support_credits is the credit_overdraft_product the billing service
+	// resolves during boot (invoice.Init). The boot loader used to seed it from
+	// cfg.Billing.PlansPath; that loader is gone, so seed it straight into the
+	// database before the server starts, so the boot sequence can find it.
+	seedOverdraftProduct := func(ctx context.Context, dbc *db.Client) error {
+		prod, err := postgres.NewBillingProductRepository(dbc).Create(ctx, product.Product{
+			ID:          uuid.New().String(),
+			Name:        "support_credits",
+			Title:       "Support Credits",
+			Description: "Support for enterprise help",
+			Behavior:    product.CreditBehavior,
+			Config:      product.BehaviorConfig{CreditAmount: 100},
+			State:       "active",
+		})
+		if err != nil {
+			return err
+		}
+		_, err = postgres.NewBillingPriceRepository(dbc).Create(ctx, product.Price{
+			Name:      "default",
+			ProductID: prod.ID,
+			Amount:    20000,
+			Currency:  "usd",
+		})
+		return err
+	}
+
+	s.testBench, err = testbench.Init(appConfig, seedOverdraftProduct)
 	s.Require().NoError(err)
 
 	ctx := context.Background()
@@ -95,6 +116,32 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
+
+	// The enterprise_yearly plan used to be seeded at boot from
+	// cfg.Billing.PlansPath. That loader is gone, so create it through the admin
+	// API once the server is up (a checkout test uses it). The overdraft product
+	// was already seeded before boot above.
+	ctxAdmin := testbench.ContextWithAuth(ctx, adminCookie)
+	_, err = s.testBench.AdminClient.CreatePlan(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreatePlanRequest{
+		Body: &frontierv1beta1.PlanRequestBody{
+			Name:        "enterprise_yearly",
+			Title:       "Enterprise Plan",
+			Description: "Enterprise Plan",
+			Interval:    "year",
+			State:       "active",
+			Products: []*frontierv1beta1.Product{
+				{
+					Name:        "enterprise_access",
+					Title:       "Enterprise base access for year",
+					Description: "Base access to the platform",
+					Prices: []*frontierv1beta1.Price{
+						{Name: "default", Interval: "year", Amount: 8000, Currency: "usd"},
+					},
+				},
+			},
+		},
+	}))
+	s.Require().NoError(err)
 }
 
 func (s *BillingRegressionTestSuite) TearDownSuite() {
@@ -1153,11 +1200,11 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		beforeBalance := getBalanceResp.Msg.GetBalance().GetAmount()
 
 		// set limit to -20
-		//nolint:staticcheck
-		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountLimitsRequest{
+		_, err = s.testBench.AdminClient.UpdateBillingAccountDetails(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountDetailsRequest{
 			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			Id:        createBillingResp.Msg.GetBillingAccount().GetId(),
 			CreditMin: -20,
+			DueInDays: 0,
 		}))
 		s.Assert().NoError(err)
 
@@ -1215,11 +1262,11 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		s.Assert().NoError(err)
 
 		// reset limit
-		//nolint:staticcheck
-		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountLimitsRequest{
+		_, err = s.testBench.AdminClient.UpdateBillingAccountDetails(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountDetailsRequest{
 			OrgId:     createOrgResp.Msg.GetOrganization().GetId(),
 			Id:        createBillingResp.Msg.GetBillingAccount().GetId(),
 			CreditMin: 0,
+			DueInDays: 0,
 		}))
 		s.Assert().NoError(err)
 	})

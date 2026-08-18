@@ -94,6 +94,15 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 		}
 	}
 
+	// key is the replacement for the deprecated namespace/name fields, so it
+	// must read back to the exact stored pair. A row that cannot round-trip
+	// (namespace without a slash, or with a dot in a part) fails loudly here
+	// instead of returning a key that reads back as a different permission.
+	key := schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name)
+	if ns, name := schema.PermissionNamespaceAndNameFromKey(key); ns != perm.NamespaceID || name != perm.Name {
+		return nil, fmt.Errorf("permission namespace %q and name %q do not round-trip through key %q", perm.NamespaceID, perm.Name, key)
+	}
+
 	return &frontierv1beta1.Permission{
 		Id:        perm.ID,
 		Name:      perm.Name,
@@ -101,7 +110,7 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 		UpdatedAt: timestamppb.New(perm.UpdatedAt),
 		Namespace: perm.NamespaceID,
 		Metadata:  metadata,
-		Key:       schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name),
+		Key:       key,
 	}, nil
 }
 
@@ -151,7 +160,7 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 }
 
 // DeletePermission deletes a permission and the tuples that reference it.
-// Built-in permissions (defined by the base schema or config) are rejected,
+// Built-in permissions (defined by the base schema) are rejected,
 // because bootstrap recreates them on the next boot. So only permissions added
 // through the API can be deleted.
 func (h *ConnectHandler) DeletePermission(ctx context.Context, request *connect.Request[frontierv1beta1.DeletePermissionRequest]) (*connect.Response[frontierv1beta1.DeletePermissionResponse], error) {
@@ -179,7 +188,7 @@ func (h *ConnectHandler) DeletePermission(ctx context.Context, request *connect.
 	}
 	if _, isBuiltin := builtin[slug]; isBuiltin {
 		return nil, connect.NewError(connect.CodeFailedPrecondition,
-			errors.New("cannot delete a built-in permission (defined by the base schema or service config); it is recreated on the next boot"))
+			errors.New("cannot delete a built-in permission (defined by the base schema); it is recreated on the next boot"))
 	}
 
 	// A namespace exists in SpiceDB only as long as it has a permission. If this

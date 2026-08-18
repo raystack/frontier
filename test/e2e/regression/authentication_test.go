@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
-	"path"
 	"strings"
 	"testing"
 	"time"
@@ -44,10 +42,6 @@ type AuthenticationRegressionTestSuite struct {
 }
 
 func (s *AuthenticationRegressionTestSuite) SetupSuite() {
-	wd, err := os.Getwd()
-	s.Require().Nil(err)
-	testDataPath := path.Join("file://", wd, fixturesDir)
-
 	connectPort, err := testbench.GetFreePort()
 	s.Require().NoError(err)
 	s.connectPort = connectPort
@@ -82,7 +76,6 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 			Connect: server.ConnectConfig{
 				Port: connectPort,
 			},
-			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 			Authentication: authenticate.Config{
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",

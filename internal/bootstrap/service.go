@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/raystack/frontier/billing/plan"
-
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 
 	"github.com/raystack/frontier/core/namespace"
@@ -16,6 +14,7 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 var (
@@ -42,20 +41,8 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
-type FileService interface {
-	GetDefinition(ctx context.Context) (*schema.ServiceDefinition, error)
-}
-
 type AuthzEngine interface {
 	WriteSchema(ctx context.Context, schema string) error
-}
-
-type BillingPlanRepository interface {
-	Get(ctx context.Context) (plan.File, error)
-}
-
-type PlanService interface {
-	UpsertPlans(ctx context.Context, planFile plan.File) error
 }
 
 // PolicyService is policy.Service narrowed to what backfill needs. Goes through
@@ -87,7 +74,6 @@ type AdminConfig struct {
 type Service struct {
 	logger            *slog.Logger
 	adminConfig       AdminConfig
-	schemaConfig      FileService
 	namespaceService  NamespaceService
 	roleService       RoleService
 	permissionService PermissionService
@@ -100,15 +86,11 @@ type Service struct {
 	suCreator   ServiceUserCreator
 	suCredStore ServiceUserCredentialStore
 	suPromoter  SuperUserPromoter
-
-	planService   PlanService
-	planLocalRepo BillingPlanRepository
 }
 
 func NewBootstrapService(
 	logger *slog.Logger,
 	config AdminConfig,
-	schemaConfig FileService,
 	namespaceService NamespaceService,
 	roleService RoleService,
 	actionService PermissionService,
@@ -117,8 +99,6 @@ func NewBootstrapService(
 	policyService PolicyService,
 	serviceuserRepo ServiceUserBackfiller,
 	patDeniedPerms map[string]struct{},
-	planService PlanService,
-	planLocalRepo BillingPlanRepository,
 	suCreator ServiceUserCreator,
 	suCredStore ServiceUserCredentialStore,
 	suPromoter SuperUserPromoter,
@@ -126,13 +106,10 @@ func NewBootstrapService(
 	return &Service{
 		logger:            logger,
 		adminConfig:       config,
-		schemaConfig:      schemaConfig,
 		namespaceService:  namespaceService,
 		roleService:       roleService,
 		permissionService: actionService,
 		authzEngine:       authzEngine,
-		planService:       planService,
-		planLocalRepo:     planLocalRepo,
 		relationService:   relationService,
 		policyService:     policyService,
 		serviceuserRepo:   serviceuserRepo,
@@ -144,25 +121,18 @@ func NewBootstrapService(
 }
 
 func (s Service) MigrateSchema(ctx context.Context) error {
-	customServiceDefinition, err := s.schemaConfig.GetDefinition(ctx)
-	if err != nil {
-		return err
-	}
-
-	return s.AppendSchema(ctx, *customServiceDefinition)
+	// Custom permissions are managed through the reconcile flow now. Boot only
+	// re-applies the base schema merged with the permissions already in the
+	// database (AppendSchema keeps existing ones), so no config file is read.
+	return s.AppendSchema(ctx, schema.ServiceDefinition{})
 }
 
-// BuiltinPermissions returns the permissions that come from the base schema and
-// the config files — the ones bootstrap recreates on every boot. It looks only
-// at the base schema and config, not at the permissions already in the database.
+// BuiltinPermissions returns the permissions that come from the base schema —
+// the ones bootstrap recreates on every boot and that cannot be deleted through
+// the API. It looks only at the base schema, not at the permissions already in
+// the database.
 func (s Service) BuiltinPermissions(ctx context.Context) (map[string]struct{}, error) {
-	custom, err := s.schemaConfig.GetDefinition(ctx)
-	if err != nil {
-		return nil, err
-	}
-	custom.Permissions = filterDefaultAppNamespacePermissions(custom.Permissions)
-
-	defs, err := ApplyServiceDefinitionOverAZSchema(custom, GetBaseAZSchema())
+	defs, err := ApplyServiceDefinitionOverAZSchema(&schema.ServiceDefinition{}, GetBaseAZSchema())
 	if err != nil {
 		return nil, err
 	}
@@ -179,29 +149,38 @@ func (s Service) BuiltinPermissions(ctx context.Context) (map[string]struct{}, e
 }
 
 func (s Service) AppendSchema(ctx context.Context, customServiceDefinition schema.ServiceDefinition) error {
-	// get existing permissions and append to the new definition
-	// this is required to avoid overriding existing permissions in authzed engine
-	var existingServiceDefinition schema.ServiceDefinition
-
+	// re-apply the base schema merged with the permissions already in the
+	// database, so a re-apply never drops the existing ones.
 	existingPermissions, err := s.permissionService.List(ctx, permission.Filter{})
 	if err != nil {
-		return nil
+		return fmt.Errorf("AppendSchema: listing existing permissions: %w", err)
 	}
-	for _, existingPermission := range existingPermissions {
-		description := ""
-		if existingPermission.Metadata != nil {
-			if v, ok := existingPermission.Metadata["description"]; !ok {
-				description = v.(string)
-			}
-		}
-		existingServiceDefinition.Permissions = append(existingServiceDefinition.Permissions, schema.ResourcePermission{
-			Name:        existingPermission.Name,
-			Namespace:   existingPermission.NamespaceID,
-			Description: description,
-		})
-	}
+	existingServiceDefinition := existingPermissionsAsServiceDefinition(existingPermissions)
 
 	return s.applySchema(ctx, schema.MergeServiceDefinitions(customServiceDefinition, existingServiceDefinition))
+}
+
+// existingPermissionsAsServiceDefinition maps the permissions already in the
+// database into a service definition, so merging it into a re-applied schema
+// keeps them.
+func existingPermissionsAsServiceDefinition(perms []permission.Permission) schema.ServiceDefinition {
+	var def schema.ServiceDefinition
+	for _, p := range perms {
+		def.Permissions = append(def.Permissions, schema.ResourcePermission{
+			Name:        p.Name,
+			Namespace:   p.NamespaceID,
+			Description: permissionDescription(p.Metadata),
+		})
+	}
+	return def
+}
+
+// permissionDescription reads the human description out of a permission's
+// metadata. Indexing a nil map and asserting a missing or non-string value are
+// both safe, so this returns "" in those cases and never panics.
+func permissionDescription(m metadata.Metadata) string {
+	desc, _ := m["description"].(string)
+	return desc
 }
 
 // applySchema builds and apply schema over az engine and db
@@ -269,16 +248,8 @@ func (s Service) MigrateRoles(ctx context.Context) error {
 		}
 	}
 
-	// migrate user defined roles to org
-	serviceDefinition, err := s.schemaConfig.GetDefinition(ctx)
-	if err != nil {
-		return err
-	}
-	for _, defRole := range serviceDefinition.Roles {
-		if err = s.migrateRole(ctx, defaultOrgID, defRole); err != nil {
-			return err
-		}
-	}
+	// Custom roles are managed through the reconcile flow now; boot no longer
+	// creates them from a config file.
 
 	// backfill PAT wildcard tuples for all existing roles
 	if err = s.migratePATRelations(ctx); err != nil {
@@ -435,13 +406,4 @@ func (s Service) migrateAZDefinitionsToDB(ctx context.Context, azDefinitions []*
 		}
 	}
 	return nil
-}
-
-func (s Service) MigrateBillingPlans(ctx context.Context) error {
-	localPlans, err := s.planLocalRepo.Get(ctx)
-	if err != nil {
-		return err
-	}
-
-	return s.planService.UpsertPlans(ctx, localPlans)
 }

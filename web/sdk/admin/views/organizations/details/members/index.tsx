@@ -1,13 +1,22 @@
-import { AlertDialog, DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { AlertDialog, Button, DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { PageTitle } from "~/admin/components/PageTitle";
 import styles from "./members.module.css";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { getColumns } from "./columns";
-import type { SearchOrganizationUsersResponse_OrganizationUser } from "@raystack/proton/frontier";
-import { AdminServiceQueries } from "@raystack/proton/frontier";
+import type {
+  Invitation,
+  SearchOrganizationUsersResponse_OrganizationUser,
+} from "@raystack/proton/frontier";
+import {
+  AdminServiceQueries,
+  FrontierServiceQueries,
+  ListOrganizationInvitationsRequestSchema,
+} from "@raystack/proton/frontier";
+import { create } from "@bufbuild/protobuf";
 import {
   useInfiniteQuery,
+  useQuery,
   createConnectQueryKey,
   useTransport
 } from '@connectrpc/connect-query';
@@ -24,8 +33,12 @@ import {
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebouncedValue } from '~hooks';
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { InvitedMembersDialog } from './invited-members-dialog';
 
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
+
+// Stable ref: a fresh [] each render would remount the invites table.
+const NO_INVITATIONS: Invitation[] = [];
 
 const DEFAULT_SORT: DataTableSort = { name: 'orgJoinedAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
@@ -105,6 +118,24 @@ export function OrganizationMembersView() {
     user: SearchOrganizationUsersResponse_OrganizationUser | null;
   }>({ isOpen: false, user: null });
 
+  const [isInvitesDialogOpen, setIsInvitesDialogOpen] = useState(false);
+
+  // Not in the dialog: the toolbar needs the count before it mounts.
+  const {
+    data: invitations = NO_INVITATIONS,
+    isLoading: isInvitationsLoading,
+    error: invitationsError,
+  } = useQuery(
+    FrontierServiceQueries.listOrganizationInvitations,
+    create(ListOrganizationInvitationsRequestSchema, {
+      orgId: organizationId,
+    }),
+    {
+      enabled: !!organizationId,
+      select: data => data?.invitations || NO_INVITATIONS,
+    },
+  );
+
   const title = `${t.member({ plural: true, case: "capital" })} | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
   const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
@@ -157,6 +188,16 @@ export function OrganizationMembersView() {
   const showZeroState =
     !isLoading && !isError && !hasActiveQuery && data.length === 0;
 
+  // DataTable.Toolbar's own rule: hidden in the zero state.
+  const showToolbar = data.length > 0 || Boolean(tableQuery.filters?.length);
+  /*
+   * - an org always has at least one member, so the toolbar-less branch below
+   *   is a safeguard, not a state to expect
+   * - the trigger is the count: a failed fetch leaves nothing to label, so it
+   *   stays hidden and only logs
+   */
+  const showInvitesBtn = invitations.length > 0;
+
   const onTableQueryChange = (newQuery: DataTableQuery) => {
     setTableQuery(newQuery);
   };
@@ -172,6 +213,15 @@ export function OrganizationMembersView() {
       isLoadingMoreRef.current = false;
     }
   };
+
+  useEffect(() => {
+    if (invitationsError) {
+      console.error(
+        "Failed to fetch organization invitations:",
+        invitationsError,
+      );
+    }
+  }, [invitationsError]);
 
   useEffect(() => {
     setSearchVisibility(true);
@@ -239,6 +289,15 @@ export function OrganizationMembersView() {
           onClose={closeRemoveMemberDialog}
         />
       ) : null}
+
+      {isInvitesDialogOpen ? (
+        <InvitedMembersDialog
+          organizationId={organizationId}
+          invitations={invitations}
+          isLoading={isInvitationsLoading}
+          onClose={() => setIsInvitesDialogOpen(false)}
+        />
+      ) : null}
       <Flex justify="center" className={styles["container"]}>
         <PageTitle title={title} />
         <DataTable
@@ -251,7 +310,32 @@ export function OrganizationMembersView() {
           onLoadMore={fetchMore}
           query={tableQuery}>
           <Flex direction="column" style={{ width: "100%" }}>
-            <DataTable.Toolbar />
+            {/* DataTable.Toolbar takes no children, so the row is rebuilt from
+                its parts to seat the invites trigger left of Display. */}
+            {(showToolbar || showInvitesBtn) && (
+              <Flex
+                justify={showToolbar ? "between" : "end"}
+                align="start"
+                gap={3}
+                className={styles["toolbar"]}>
+                {showToolbar && <DataTable.Filters />}
+                <Flex align="center" gap={3}>
+                  {showInvitesBtn && (
+                    <Button
+                      variant="text"
+                      color="neutral"
+                      size="small"
+                      onClick={() => setIsInvitesDialogOpen(true)}
+                      data-test-id="admin-org-members-invites">
+                      {/* Expired invites come back too, so "Pending" would
+                          overstate the count — Status labels each row. */}
+                      {`${invitations.length} Invite${invitations.length === 1 ? "" : "s"}`}
+                    </Button>
+                  )}
+                  {showToolbar && <DataTable.DisplayControls />}
+                </Flex>
+              </Flex>
+            )}
             <DataTable.Content
               emptyState={showZeroState ? <ZeroState /> : isError ? <ErrorState /> : <NoMembers />}
               classNames={{

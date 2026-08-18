@@ -41,12 +41,20 @@ const (
 	BootstrapClientSecret = "e2e-bootstrap-secret"
 )
 
+// bootstrapAdminContext returns a context carrying the config-bootstrapped
+// superuser's HTTP Basic credentials, the same client_id:client_secret pair
+// that seeds the platform admin. Both PromoteBootstrapAdmin and
+// SeedComputeResources authenticate through it, so the header shape lives here.
+func bootstrapAdminContext(ctx context.Context) context.Context {
+	basic := base64.StdEncoding.EncodeToString([]byte(BootstrapClientID + ":" + BootstrapClientSecret))
+	return ContextWithHeaders(ctx, map[string]string{"Authorization": "Basic " + basic})
+}
+
 // PromoteBootstrapAdmin authenticates as the config-bootstrapped superuser service
 // account (HTTP Basic client credentials) and grants the given user the platform
-// admin (superuser) relation — the same path GitOps uses in production.
+// admin (superuser) relation, the same path GitOps uses in production.
 func PromoteBootstrapAdmin(ctx context.Context, ad frontierv1beta1connect.AdminServiceClient, email string) error {
-	basic := base64.StdEncoding.EncodeToString([]byte(BootstrapClientID + ":" + BootstrapClientSecret))
-	authCtx := ContextWithHeaders(ctx, map[string]string{"Authorization": "Basic " + basic})
+	authCtx := bootstrapAdminContext(ctx)
 
 	// Retry while the server is still coming up (CodeUnavailable). When multiple
 	// suites run in one process, a prior suite's Close() SIGINTs the process, so the
@@ -67,6 +75,46 @@ func PromoteBootstrapAdmin(ctx context.Context, ad frontierv1beta1connect.AdminS
 		time.Sleep(250 * time.Millisecond)
 	}
 	return fmt.Errorf("promote bootstrap admin (server unavailable after retries): %w", lastErr)
+}
+
+// SeedComputeResources creates the custom "compute" permissions and roles the
+// regression suites rely on, through the admin API. This replaces the removed
+// boot-time resources_config loader: tests now seed custom resources the same
+// way operators do, via reconcile/the admin API.
+func SeedComputeResources(ctx context.Context, ad frontierv1beta1connect.AdminServiceClient) error {
+	authCtx := bootstrapAdminContext(ctx)
+
+	permKeys := []string{
+		"compute.order.delete", "compute.order.update", "compute.order.get",
+		"compute.order.create", "compute.order.configure",
+		"compute.disk.get", "compute.disk.create", "compute.disk.delete",
+	}
+	bodies := make([]*frontierv1beta1.PermissionRequestBody, 0, len(permKeys))
+	for _, key := range permKeys {
+		bodies = append(bodies, &frontierv1beta1.PermissionRequestBody{Key: key})
+	}
+	if _, err := ad.CreatePermission(authCtx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+		Bodies: bodies,
+	})); err != nil {
+		return fmt.Errorf("seed compute permissions: %w", err)
+	}
+
+	roles := []struct {
+		name  string
+		perms []string
+	}{
+		{"compute_order_manager", []string{"compute_order_delete", "compute_order_update", "compute_order_get", "compute_order_create"}},
+		{"compute_order_viewer", []string{"compute_order_get"}},
+		{"compute_order_owner", []string{"compute_order_delete", "compute_order_update", "compute_order_get", "compute_order_create"}},
+	}
+	for _, r := range roles {
+		if _, err := ad.CreateRole(authCtx, connect.NewRequest(&frontierv1beta1.CreateRoleRequest{
+			Body: &frontierv1beta1.RoleRequestBody{Name: r.name, Permissions: r.perms},
+		})); err != nil {
+			return fmt.Errorf("seed compute role %s: %w", r.name, err)
+		}
+	}
+	return nil
 }
 
 // headersKey is the context key for storing headers to be sent with ConnectRPC requests.

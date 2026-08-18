@@ -56,6 +56,7 @@ role is a value.
 | Role, predefined | value | name | reset to the shipped definition | cannot be removed |
 | Preference | value | trait name | reset to the trait default | leave the entry out, it resets |
 | Webhook | object | URL | plan fails | set `delete: true` |
+| MetaSchema | value | name | reset to the shipped schema | leave the entry out, it resets |
 
 Every kind, current and future, follows the same five rules:
 
@@ -229,6 +230,12 @@ identity. An empty event set means all events, which is the server default. The 
 is server-owned: the server makes it on create and never returns it, so it is never in the
 file, a plan, or an export.
 
+**MetaSchema.** An entry is `{name, schema}`. The name is one of the built-in
+schemas the server validates entity metadata against: user, group, organization,
+role, and prospect. Each is a value whose default is the shipped schema. The file
+sets a schema; a built-in left out resets to its default. There is no delete flag,
+and a name outside the built-in set is rejected. The schema is a JSON string.
+
 ## Server-side changes
 
 Two boot behaviors changed to make this flow work.
@@ -278,7 +285,6 @@ roles, committed as the desired-state files, then dropping the setting from the 
 - A read-only API that returns the server's own predefined-role definitions, so the reset target
   comes from the running server instead of the CLI's compiled copy. This removes the
   image-version coupling.
-- Metaschemas as a kind, once the server stops caching them per pod at boot.
 - Passing the auth token without putting it in the process arguments.
 - Billing plans as a kind, replacing the boot-time plans loader.
 - Removing relation-based ownership from the base schema, so narrowing a predefined role

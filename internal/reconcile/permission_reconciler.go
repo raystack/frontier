@@ -117,15 +117,18 @@ func (r *PermissionReconciler) fetchCurrent(ctx context.Context) ([]currentPermi
 		return nil, fmt.Errorf("list permissions: %w", err)
 	}
 	var current []currentPermission
-	//nolint:staticcheck
 	for _, p := range resp.Msg.GetPermissions() {
-		if isBaseNamespace(p.GetNamespace()) {
+		ns, name := schema.PermissionNamespaceAndNameFromKey(p.GetKey())
+		if ns == "" || name == "" {
+			return nil, fmt.Errorf("permission %s: cannot split key %q into namespace and name", p.GetId(), p.GetKey())
+		}
+		if isBaseNamespace(ns) {
 			continue
 		}
 		current = append(current, currentPermission{
 			ID:        p.GetId(),
-			Namespace: p.GetNamespace(),
-			Name:      p.GetName(),
+			Namespace: ns,
+			Name:      name,
 		})
 	}
 	return current, nil

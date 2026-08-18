@@ -1,7 +1,0 @@
-permissions:
-  - name: delete
-    namespace: potato/cart
-  - name: update
-    namespace: potato/cart
-  - name: get
-    namespace: potato/cart

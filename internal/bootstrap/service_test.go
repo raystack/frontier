@@ -5,9 +5,11 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -53,6 +55,24 @@ func (m *mockRelationService) Create(ctx context.Context, rel relation.Relation)
 func (m *mockRelationService) Delete(ctx context.Context, rel relation.Relation) error {
 	args := m.Called(ctx, rel)
 	return args.Error(0)
+}
+
+// mockPermissionService implements bootstrap.PermissionService
+type mockPermissionService struct {
+	mock.Mock
+}
+
+func (m *mockPermissionService) List(ctx context.Context, flt permission.Filter) ([]permission.Permission, error) {
+	args := m.Called(ctx, flt)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]permission.Permission), args.Error(1)
+}
+
+func (m *mockPermissionService) Upsert(ctx context.Context, action permission.Permission) (permission.Permission, error) {
+	args := m.Called(ctx, action)
+	return args.Get(0).(permission.Permission), args.Error(1)
 }
 
 func Test_migratePATRelations(t *testing.T) {
@@ -289,4 +309,56 @@ func Test_migrateRole(t *testing.T) {
 		roleSvc.AssertNotCalled(t, "Upsert")
 		roleSvc.AssertNotCalled(t, "Update")
 	})
+}
+
+func Test_AppendSchema(t *testing.T) {
+	t.Run("returns the error when listing existing permissions fails", func(t *testing.T) {
+		// The old code returned nil here, so a failed list skipped the schema
+		// re-apply but still reported boot success. Boot must surface the error.
+		permSvc := new(mockPermissionService)
+		permSvc.On("List", mock.Anything, permission.Filter{}).
+			Return(nil, errors.New("db timeout"))
+
+		svc := Service{permissionService: permSvc}
+		err := svc.AppendSchema(context.Background(), schema.ServiceDefinition{})
+
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "db timeout")
+	})
+}
+
+func Test_existingPermissionsAsServiceDefinition(t *testing.T) {
+	perms := []permission.Permission{
+		{Name: "get", NamespaceID: "compute/order", Metadata: metadata.Metadata{"description": "read an order"}},
+		{Name: "delete", NamespaceID: "compute/order"},
+	}
+
+	def := existingPermissionsAsServiceDefinition(perms)
+
+	assert.Equal(t, []schema.ResourcePermission{
+		{Name: "get", Namespace: "compute/order", Description: "read an order"},
+		{Name: "delete", Namespace: "compute/order", Description: ""},
+	}, def.Permissions)
+}
+
+func Test_permissionDescription(t *testing.T) {
+	cases := []struct {
+		name string
+		meta metadata.Metadata
+		want string
+	}{
+		{"nil metadata", nil, ""},
+		// a present key must be read, not ignored
+		{"string description", metadata.Metadata{"description": "read access"}, "read access"},
+		// a missing key must not panic; it used to assert nil to string
+		{"missing description key", metadata.Metadata{"other": "x"}, ""},
+		// a non-string value must not panic either
+		{"non-string description", metadata.Metadata{"description": 42}, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := permissionDescription(tc.meta)
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }

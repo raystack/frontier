@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"sync/atomic"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	newrelic "github.com/newrelic/go-agent" //nolint:staticcheck
 	"github.com/raystack/frontier/core/relation"
 )
 
@@ -48,8 +46,6 @@ const (
 	ConsistencyLevelMinimizeLatency ConsistencyLevel = "minimize_latency"
 )
 
-const nrProductName = "spicedb"
-
 func NewRelationRepository(spiceDB *SpiceDB, consistency ConsistencyLevel, tracing bool) *RelationRepository {
 	return &RelationRepository{
 		spiceDB:     spiceDB,
@@ -82,21 +78,6 @@ func (r *RelationRepository) Add(ctx context.Context, rel relation.Relation) err
 		},
 	}
 
-	nrCtx := newrelic.FromContext(ctx)
-	if nrCtx != nil {
-		nr := newrelic.DatastoreSegment{
-			Product: nrProductName,
-			QueryParameters: map[string]any{
-				"relation":          rel.Subject.SubRelationName,
-				"subject_namespace": rel.Subject.Namespace,
-				"object_namespace":  rel.Object.Namespace,
-			},
-			Operation: "Upsert_Relation",
-			StartTime: nrCtx.StartSegmentNow(),
-		}
-		defer nr.End() // nolint
-	}
-
 	resp, err := r.spiceDB.client.WriteRelationships(ctx, request)
 	if err != nil {
 		return err
@@ -122,17 +103,6 @@ func (r *RelationRepository) Check(ctx context.Context, rel relation.Relation) (
 		},
 		Permission:  rel.RelationName,
 		WithTracing: r.tracing,
-	}
-
-	nrCtx := newrelic.FromContext(ctx)
-	if nrCtx != nil {
-		nr := newrelic.DatastoreSegment{
-			Product:    nrProductName,
-			Collection: fmt.Sprintf("object:%s::subject:%s", request.GetResource().GetObjectType(), request.GetSubject().GetObject().GetObjectType()),
-			Operation:  "Check",
-			StartTime:  nrCtx.StartSegmentNow(),
-		}
-		defer nr.End() // nolint
 	}
 
 	response, err := r.spiceDB.client.CheckPermission(ctx, request)
@@ -167,20 +137,6 @@ func (r *RelationRepository) Delete(ctx context.Context, rel relation.Relation) 
 		},
 	}
 
-	nrCtx := newrelic.FromContext(ctx)
-	if nrCtx != nil {
-		nr := newrelic.DatastoreSegment{
-			Product: nrProductName,
-			QueryParameters: map[string]any{
-				"relation":          rel.Subject.SubRelationName,
-				"subject_namespace": rel.Subject.Namespace,
-				"object_namespace":  rel.Object.Namespace,
-			},
-			Operation: "Delete_Relation",
-			StartTime: nrCtx.StartSegmentNow(),
-		}
-		defer nr.End() // nolint
-	}
 	resp, err := r.spiceDB.client.DeleteRelationships(ctx, request)
 	if err != nil {
 		return err

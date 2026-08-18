@@ -9,51 +9,90 @@ Frontier lets services register their own resource types (for example `compute/m
 Once registered, Frontier can answer permission checks on those resources the same way it
 does for built-in types like projects and organizations.
 
-This page explains two things:
+This page explains three things:
 
-1. How a custom resource type is loaded into Frontier.
-2. What permission rules Frontier generates for it, and which role each action ends up with.
+1. How you register a custom resource type and its actions.
+2. What permission rules Frontier generates for it.
+3. Which role each action ends up with.
 
 ---
 
-## How custom resources are loaded
+## How custom resources are registered
 
-A custom resource type is described in a small config file. Each file lists a namespace and
-the actions (permissions) that namespace supports. Here is the built-in `compute/machine`
-example from `resources_config/compute_machine.yml`:
-
-```yaml
-permissions:
-  - name: get
-    namespace: compute/machine
-  - name: create
-    namespace: compute/machine
-  - name: update
-    namespace: compute/machine
-  - name: delete
-    namespace: compute/machine
-```
-
-A namespace has two parts joined by a slash: `service/resource`. So `compute/machine` is the
+A custom resource type is a **namespace** plus the **actions** (permissions) it supports. A
+namespace has two parts joined by a slash, `service/resource`. So `compute/machine` is the
 `machine` resource in the `compute` service.
 
-At startup Frontier runs a bootstrap step (`MigrateSchema`) that does the following:
+You register the actions in one of two ways:
 
-1. Reads every resource config file into a `ServiceDefinition` (the list of namespaces and
-   their actions).
-2. Loads the permissions already in Postgres — including any added later through the
-   `CreatePermission` API — and merges them in, so a restart does not drop them.
-3. Loads the base SpiceDB schema (`base_schema.zed`), which defines users, organizations,
+- **The reconcile flow** (`frontier reconcile`). You write the actions you want in a
+  desired-state YAML file and apply it. This is the recommended path: the file holds the full
+  desired state, so you can keep it in version control and re-apply it.
+- **The admin API** (`CreatePermission`, `CreateRole`). This makes the same change one call at
+  a time, useful for one-off changes or scripting.
+
+Here is the `compute/machine` example as a reconcile file. Each entry is a namespace and an
+action name:
+
+```yaml
+apiVersion: v1
+kind: Permission
+spec:
+  - namespace: compute/machine
+    name: get
+  - namespace: compute/machine
+    name: create
+  - namespace: compute/machine
+    name: update
+  - namespace: compute/machine
+    name: delete
+```
+
+Apply it with a superuser credential (for example the bootstrap service account):
+
+```bash
+# preview the change first
+frontier reconcile -f compute-machine.yaml --dry-run -H "Authorization:Basic <base64>"
+
+# apply it
+frontier reconcile -f compute-machine.yaml -H "Authorization:Basic <base64>"
+```
+
+`frontier export permission -H "Authorization:Basic <base64>"` prints the current custom
+permissions in this same format, so you can capture the live state into a file.
+
+A few rules the reconcile flow enforces for permissions:
+
+- A permission is **identity only** (namespace plus name). It is added or deleted, never
+  updated.
+- Nothing is deleted by leaving it out. A permission that is in the server but missing from
+  the file fails the plan. To remove one, mark its entry with `delete: true`.
+- A namespace must be in `service/resource` form: two non-empty parts, each lowercase
+  alphanumeric. So `compute/machine` works, but `compute/machine-v2` does not (the hyphen is
+  not alphanumeric). The action name must be alphanumeric too.
+- A namespace under `app` or `app/...` is rejected, because the base schema owns those types
+  (see [Why a separate `user/project` namespace](#why-a-separate-userproject-namespace)).
+
+### What happens when a permission is registered
+
+Adding a permission (through reconcile or the admin API) runs Frontier's schema step,
+`AppendSchema`, which does the following:
+
+1. Loads every permission already in Postgres, so the re-apply keeps them.
+2. Loads the base SpiceDB schema (`base_schema.zed`), which defines users, organizations,
    projects, roles, and role bindings.
-4. Generates extra rules for each custom action and merges them into the base schema.
-5. Validates the merged schema, writes the permission list to Postgres, and writes the full
+3. Generates extra rules for each custom action and merges them into the base schema.
+4. Validates the merged schema, writes the permission list to Postgres, and writes the full
    schema to SpiceDB.
 
-This step is idempotent. It runs on every boot and recreates the same schema, so adding a new
-resource config and restarting is all it takes to register a new type.
+The same step runs on every boot (`MigrateSchema`), re-applying the base schema merged with
+the permissions already in the database. Running it again is safe: it recreates the same schema
+each time and never drops what is already there. Frontier no longer reads a resource config file at
+startup. The boot-time `resources_config_path` loader has been removed, and the reconcile flow
+and admin API own custom permissions now.
 
 ```text
-  resource config files ─┐
+  reconcile / admin API ─┐
                          ├─→ merge + generate rules ─→ validate ─┬─→ Postgres (permissions)
   base_schema.zed ───────┘                                       └─→ SpiceDB (schema)
 ```
@@ -70,7 +109,7 @@ becomes `compute_machine_get`.
 Below are the rules generated for the `get` action on `compute/machine`. The `+` sign means
 "or", so a principal passes the check if **any** line matches.
 
-**On the resource itself** — who can `get` one machine. The resource definition is named
+**On the resource itself**, who can `get` one machine. The resource definition is named
 after its namespace, so the check runs against `compute/machine:<id>`:
 
 ```
@@ -80,7 +119,7 @@ compute/machine#get = owner
                    + granted->compute_machine_get
 ```
 
-**On the organization** — the org-wide version of the action:
+**On the organization**, the org-wide version of the action:
 
 ```
 app/organization#compute_machine_get = owner
@@ -91,7 +130,7 @@ app/organization#compute_machine_get = owner
                                      + pat_granted->compute_machine_get
 ```
 
-**On the project** — the project-wide version, which pulls from the org:
+**On the project**, the project-wide version, which pulls from the org:
 
 ```
 app/project#compute_machine_get = org->compute_machine_get
@@ -99,7 +138,7 @@ app/project#compute_machine_get = org->compute_machine_get
                                + granted->compute_machine_get
 ```
 
-**On the role and role binding** — so a role can carry the action:
+**On the role and role binding**, so a role can carry the action:
 
 ```
 app/rolebinding#compute_machine_get = bearer & role->compute_machine_get
@@ -127,7 +166,7 @@ custom resource and how each one reaches it.
 | --- | --- | --- |
 | Resource owner (creator) | `owner` arrow on the resource | Yes, on create |
 | Platform admin | `platform->superuser` | Yes |
-| Owner role (`app_organization_owner`) | org rule's `granted->app_organization_administer` | **Yes** — every custom action, for free |
+| Owner role (`app_organization_owner`) | org rule's `granted->app_organization_administer` | **Yes**, every custom action, for free |
 | Org `owner` relation | org rule's `owner` arrow | Yes |
 | A project role that lists the action | `project->compute_machine_get` -> `granted->compute_machine_get` | Only if the role lists it |
 | A project admin role (`app_project_administer`) | `project->compute_machine_get` -> `granted->app_project_administer` | Only if the role grants project admin |
@@ -157,7 +196,7 @@ on the resource.
 
 Some actions do not belong on a single resource. The clearest example is `create`: you check it
 *before* the resource exists, so there is no `compute/machine:<id>` to check against. "List all
-machines in a project" is the same — it is a question about the project, not about one machine.
+machines in a project" is the same. It is a question about the project, not about one machine.
 
 These are **project-level capabilities**. They belong on the project (the container), and you
 check them against the project id with the caller as the subject:
@@ -166,11 +205,11 @@ check them against the project id with the caller as the subject:
 Check(
   subject    = app/user:<userid>,                  # the authenticated caller
   permission = user_project_createcomputemachine,
-  resource   = app/project:<project_id>,           # the container — it already exists
+  resource   = app/project:<project_id>,           # the container, it already exists
 )
 ```
 
-### These actions are not special — it is a modeling choice
+### These actions are not special: it is a modeling choice
 
 Frontier and SpiceDB do not treat `create` or `list` differently from `get`, `update`, or
 `delete`. The generator builds the [same set of rules](#what-rules-get-generated) for every
@@ -184,7 +223,7 @@ an object to check against:
 - For `get`, `update`, and `delete`, the object is the item itself (`compute/machine:<id>`). It
   already exists, so checking against it is natural.
 - For `create`, the item does not exist yet, so there is no object to name. The closest real
-  object is the container the item will live in — the project.
+  object is the container the item will live in, the project.
 - For `list`, you are asking about the whole collection, not one item. Again the natural object
   is the container.
 
@@ -196,66 +235,81 @@ because at check time you have no machine id to check against.
 ### Why a separate `user/project` namespace
 
 The natural home would be the project itself, as `app/project:createcomputemachine`. You cannot
-do that from config. At boot, bootstrap drops any permission whose namespace starts with `app`
-(the `filterDefaultAppNamespacePermissions` step). The `app/*` types belong to the base schema
-and are rebuilt on every start, so config is not allowed to add permissions to them. An
-`app/project:createcomputemachine` entry in a config file is silently ignored.
+do that. The `app` and `app/...` namespaces belong to the base schema, which the server rebuilds
+on every boot, so you are not allowed to add permissions to them. The reconcile flow rejects an
+entry under `app/...` with an error, and the admin API rejects the `app` namespace the same way.
+The schema step also drops any permission whose namespace starts with `app`
+(the `filterDefaultAppNamespacePermissions` step), so such an entry would never take effect.
 
 So Frontier uses a small trick: a separate namespace, `user/project`, that acts as a **proxy for
 the project**. Read it as "something a user can do inside a project". You define the capability
 there, and the generator mirrors it onto the real project as
 `app/project#user_project_createcomputemachine`. That mirrored permission is what you check. In
-effect, `user/project` is the config-legal way to hang project-level capabilities off
-`app/project`.
+effect, `user/project` is the allowed way to hang project-level capabilities off `app/project`.
 
 The name `user/project` is not special, and there is no naming convention to follow. You can
-pick any `service/resource` namespace, as long as it is not under `app/*`. The generator mirrors
+pick any `service/resource` namespace whose two parts are lowercase alphanumeric, as long as it
+is not under `app/...`. The generator mirrors
 every custom permission onto `app/project` (and `app/organization`) no matter which namespace you
 chose, so the name does not change where the check runs. `user/project` is simply the name
-Frontier uses here, because the slug it produces — `user_project_createcomputemachine` — reads as
+Frontier uses here, because the slug it produces, `user_project_createcomputemachine`, reads as
 "a thing a user does in a project".
 
-> A role can still *reference* an `app/project` permission — for example a Project Viewer role
+> A role can still *reference* an `app/project` permission, for example a Project Viewer role
 > that lists `app/project:get`. That works because `get` already exists on `app/project` in the
-> base schema. The filter only blocks *adding* a new permission under `app/*` from config. So you
-> can point a role at `app/project:get`, but you cannot define `app/project:createcomputemachine`.
-> The slug follows its namespace too, so it comes out as `user_project_createcomputemachine`, not
+> base schema. The rule only blocks *adding* a new permission under `app/...`. So you can point a
+> role at `app/project:get`, but you cannot define `app/project:createcomputemachine`. The slug
+> follows its namespace too, so it comes out as `user_project_createcomputemachine`, not
 > `app_project_createcomputemachine`.
 
-### Config
+### Declaring it
 
 Put the per-item actions (`get`, `update`, `delete`) on the resource namespace, and the
 project-level capabilities (`create`, project-wide `list`) on `user/project`. Then grant the
-project-level ones to a project-scoped role such as the built-in Project Owner:
+project-level ones to a project-scoped role such as the built-in Project Owner. A single
+reconcile file can hold more than one document, separated by `---`, so the permissions and the
+role go together. The order matters: a `Permission` document must come before a `Role` document
+that uses it, or reconcile stops with an error. That is why the permissions come first here:
 
 ```yaml
-permissions:
+apiVersion: v1
+kind: Permission
+spec:
   # Per-item actions live on the resource itself, checked against compute/machine:<id>.
-  - name: get
-    namespace: compute/machine
-  - name: update
-    namespace: compute/machine
-  - name: delete
-    namespace: compute/machine
+  - namespace: compute/machine
+    name: get
+  - namespace: compute/machine
+    name: update
+  - namespace: compute/machine
+    name: delete
 
-  # Project-level capabilities live on user/project — a proxy for app/project.
+  # Project-level capabilities live on user/project, a proxy for app/project.
   # Checked against app/project:<project_id>, because there is no single
   # machine to check against. Do NOT use namespace app/project here: the
-  # app/* namespaces are reserved for the base schema and get filtered out.
-  - name: createcomputemachine
-    namespace: user/project
-  - name: listcomputemachines
-    namespace: user/project
-
-roles:
-  - name: app_project_owner          # extend the built-in Project Owner role
+  # app namespaces are reserved for the base schema and are rejected.
+  - namespace: user/project
+    name: createcomputemachine
+  - namespace: user/project
+    name: listcomputemachines
+---
+apiVersion: v1
+kind: Role
+spec:
+  - name: app_project_owner          # the built-in Project Owner role
     title: Project Owner
     scopes:
       - app/project
     permissions:
+      - app/project:administer         # the role's shipped permission, kept
       - user/project:createcomputemachine
       - user/project:listcomputemachines
 ```
+
+Listing `permissions` **replaces** the role's whole set (see
+[the replacement rule](#choice-1-add-the-action-to-a-built-in-role) below), so
+`app/project:administer` is re-listed here. Project Owner ships with exactly that one
+permission, and the automatic custom-action access relies on it, so dropping it would take that
+access away.
 
 This does three things:
 
@@ -267,13 +321,13 @@ This does three things:
 
 ### Rule of thumb
 
-- Per-item actions (`get`, `update`, `delete`) → resource namespace, e.g. `compute/machine`.
-  Checked against `compute/machine:<id>`.
-- Project-level capabilities (`create`, project-wide `list`) → `user/project`. Checked against
-  `app/project:<project_id>`.
-- Treat `user/project` as a stand-in for `app/project` that you are allowed to write to from
-  config. The name is your choice — any non-`app/*` namespace works; `user/project` is just the
-  example used here.
+- Per-item actions (`get`, `update`, `delete`) go on the resource namespace, e.g.
+  `compute/machine`. Checked against `compute/machine:<id>`.
+- Project-level capabilities (`create`, project-wide `list`) go on `user/project`. Checked
+  against `app/project:<project_id>`.
+- Treat `user/project` as a stand-in for `app/project` that you are allowed to write to. The
+  name is your choice: any non-`app/...` namespace works, as long as its two parts are lowercase
+  alphanumeric. `user/project` is just the example used here.
 
 This keeps create and list anchored on the project and avoids the dead resource-level `create`
 rule the generator would otherwise leave unused.
@@ -285,26 +339,31 @@ rule the generator would otherwise leave unused.
 When you register a custom resource, some roles can use its actions right away. Other roles get
 nothing until you grant them.
 
+Roles in the file are desired state, the same way permissions are. A custom platform role that
+is on the server but missing from the file stops the run: keep it in the file, or mark its entry
+`delete: true`. A predefined role you customized and then leave out is reset to its shipped
+default. Predefined roles are never deleted.
+
 ### Works by default
 
 You do not have to set up any roles for these. They work as soon as the resource is registered:
 
-- **Owner** (`app_organization_owner`) — can do every action on every custom resource in the
+- **Owner** (`app_organization_owner`) can do every action on every custom resource in the
   org.
-- **Project Owner** (`app_project_owner`) — can do every action on resources in their project.
-- **Platform admin** — can do everything.
-- The **user who created a resource** — can act on that one resource.
+- **Project Owner** (`app_project_owner`) can do every action on resources in their project.
+- **Platform admin** can do everything.
+- The **user who created a resource** can act on that one resource.
 
 This works because the [generated rules](#what-rules-get-generated) already point at
 `app_organization_administer` (held by the **Owner** role, `app_organization_owner`),
 `app_project_administer` (held by the **Project Owner** role, `app_project_owner`), and
 `platform->superuser` (the **platform admin**). So these principals are covered without the action
-being listed in any role. This is *not* the org **Admin** role (`app_organization_manager`) — that
+being listed in any role. This is *not* the org **Admin** role (`app_organization_manager`). That
 one gets nothing by default (see [below](#does-not-work-by-default)).
 
 You never need to list a custom action on these roles. `app_project_administer` (**Project Owner**)
 and `app_organization_administer` (**Owner**) already grant every custom action through the
-schema, so listing them again would just be repeating what the schema already does.
+schema, so listing them again would just repeat what the schema already does.
 
 ### Does not work by default
 
@@ -314,7 +373,7 @@ These roles get nothing on a custom resource until you grant it:
   (`app_organization_accessmanager`)
 - Project Manager (`app_project_manager`), Project Viewer (`app_project_viewer`)
 
-If you want one of these roles to use a custom action, you grant it in the config file. You have
+If you want one of these roles to use a custom action, you grant it in a `Role` document. You have
 two choices: add the action to a built-in role, or make your own role.
 
 ### Choice 1: add the action to a built-in role
@@ -323,7 +382,9 @@ List the built-in role by its name and give it the permissions you want. This ex
 Project Viewer read and list machines:
 
 ```yaml
-roles:
+apiVersion: v1
+kind: Role
+spec:
   - name: app_project_viewer        # the built-in Project Viewer role
     title: Project Viewer
     scopes:
@@ -335,12 +396,17 @@ roles:
       - user/project:listcomputemachines
 ```
 
-One thing to watch: when you list a role that already exists, Frontier **replaces** its whole
-permission set with the one you write. It does not add to the old set. So you must include the
-permissions the role already had, or it will lose them. For a built-in role, "already had" means
-the default permissions Frontier ships it with — its entry in the predefined role list
-(`PredefinedRoles` in `internal/bootstrap/schema/schema.go`), not the base schema. In the example,
-`app/project:get` is kept so the role can still open the project.
+One thing to watch: each field you list is the whole desired value for that field. When you list
+`permissions` on a role that already exists, Frontier **replaces** its whole permission set with
+the one you write, it does not add to the old set. So you must include the permissions the role
+already had, or it will lose them. For a built-in role, "already had" means the default
+permissions Frontier ships it with, its entry in the predefined role list (`PredefinedRoles` in
+`internal/bootstrap/schema/schema.go`), not the base schema. In the example, `app/project:get` is
+kept so the role can still open the project. If you omit `permissions`, reconcile sets the role
+back to its shipped default rather than leaving the current value in place. For a predefined role
+you never changed that is a no-op, but any earlier custom additions are dropped. For a custom
+role, omitting `permissions` resolves to empty and fails validation, since a custom role must
+list at least one permission.
 
 ### Choice 2: make your own role
 
@@ -348,7 +414,9 @@ You can also add a brand new role. Give it a name that is not already in use, a 
 permissions you want:
 
 ```yaml
-roles:
+apiVersion: v1
+kind: Role
+spec:
   - name: compute_machine_operator     # your own new role
     title: Machine Operator
     scopes:
@@ -360,8 +428,9 @@ roles:
       - user/project:listcomputemachines
 ```
 
-A new role starts empty, so you only list what you want it to have. After boot, you assign this
-role to a user or group on a project, the same way you assign any other role.
+A new role starts empty, so you only list what you want it to have. Once it exists, you assign
+this role to a user or group on a project, the same way you assign any other role. To remove a
+custom role later, mark its entry with `delete: true`. A predefined role cannot be deleted.
 
 ### In short
 
@@ -369,17 +438,23 @@ role to a user or group on a project, the same way you assign any other role.
   **platform admin** get every custom action for free. The org **Admin** role
   (`app_organization_manager`) does not.
 - Every other role gets an action only when you grant it.
-- Re-using a built-in role name replaces its permissions, so list everything you want it to keep.
+- Listing `permissions` on a role replaces the whole set, so list everything you want it to keep.
+  Omitting `permissions` resets the role to its shipped default, and a custom role must list at
+  least one, so omitting it there is an error.
 - A new role name creates a fresh role with exactly the permissions you list.
 
 ---
 
 ## Quick reference
 
-- A custom resource is registered from a config file listing a `service/resource` namespace and
-  its actions.
-- Bootstrap merges generated rules into the base schema on every boot and writes them to SpiceDB.
-- The **resource owner**, **platform admin**, and **Owner** (`app_organization_owner`) can always perform every action
-  on a resource. Project and direct grants depend on the roles in use.
+- A custom resource is registered by declaring its `service/resource` namespace and actions
+  through `frontier reconcile` (a desired-state file) or the admin API. There is no boot-time
+  config file.
+- Registering a permission merges generated rules into the base schema and writes them to
+  Postgres and SpiceDB. Boot re-applies the base schema plus the permissions already in the
+  database.
+- The **resource owner**, **platform admin**, **Owner** (`app_organization_owner`, org-wide), and
+  **Project Owner** (`app_project_owner`, within its project) can always perform every action on a
+  resource. Other project and direct grants depend on the roles in use.
 - Per-item actions (`get`, `update`, `delete`) live on the resource namespace; project-level
   actions (`create`, `list`) live on `user/project` and are checked against the project.

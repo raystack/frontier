@@ -10,14 +10,6 @@ log:
   # e.g. ["app.user.created", "app.permission.checked"]
   ignored_audit_events: []
 
-new_relic:
-  # enable new relic for tracing and metrics
-  enabled: false
-  # name of the application in new relic
-  app_name: "Frontier"
-  # license key for new relic
-  license: "NEWRELIC_LICENSE_KEY"
-
 # Admin UI configuration
 ui:
   # port to serve the UI
@@ -58,25 +50,17 @@ app:
   metrics_port: 9000
   # how long each server waits for in-flight requests to finish during shutdown
   shutdown_grace_period: 10s
+  # how long each server waits for a client to send its request headers
+  read_header_timeout: 10s
+  # how long each server keeps an idle keep-alive connection open.
+  # keep it larger than the keep-alive timeout of any fronting proxy,
+  # so the proxy never sends a request on a connection the server is closing
+  idle_timeout: 180s
   # enable pprof endpoints for cpu/mem/mutex profiling
   profiler: false
   host: "127.0.0.1"
   # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
-  # DEPRECATED: will be removed after a deprecation window. Manage permissions
-  # and roles with 'frontier reconcile' instead (see docs/rfcs/0001-declarative-reconcile.md).
-  # full path prefixed with scheme where resources config yaml files are kept
-  # e.g.:
-  # local storage file "file:///tmp/resources_config"
-  # GCS Bucket "gs://frontier/resources_config"
-  resources_config_path: file:///tmp/resources_config\
-  # secret required to access resources config
-  # e.g.:
-  # system environment variable "env://TEST_RULESET_SECRET"
-  # local file "file:///opt/auth.json"
-  # secret string "val://user:password"
-  # optional
-  resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
 
   # cross-origin resource sharing configuration
   cors:
@@ -218,6 +202,14 @@ app:
     # this is used to validate the webhook payloads
     encryption_key: "hash-secret-should-be-32-chars--"
 
+  # metaschema cache configuration
+  metaschema:
+    # how often each server reloads the metaschema cache from the database, so a
+    # change made on one server reaches the others. 0 disables the background
+    # refresh; the cache is still primed once at startup.
+    # e.g. 30s, 1m, 5m
+    refresh_interval: 1m
+
 db:
   driver: postgres
   url: postgres://frontier:@localhost:5432/frontier?sslmode=disable
@@ -250,9 +242,6 @@ billing:
   # webhook secret to be used for validating stripe webhooks events
   # all the secrets are used to validate the events useful in case of key rotation
   stripe_webhook_secrets: []
-  # path to plans spec file that will be used to create plans in billing engine
-  # e.g. file:///tmp/plans
-  plans_path: ""
   # default currency to be used for billing if not provided by the user
   # e.g. usd, inr, eur
   default_currency: ""
