@@ -84,8 +84,14 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
     },
   );
 
+  /*
+   * Checkout needs an org and a billing account to target. Orgs without one
+   * would otherwise submit into the guard below and get no feedback at all.
+   */
+  const canCheckout = !!organisationId && !!billingAccountId;
+
   const onSubmit = async (product_body: AddTokenRequestType) => {
-    if (!organisationId || !billingAccountId) return;
+    if (!canCheckout) return;
     await delegatedCheckout(
       create(DelegatedCheckoutRequestSchema, {
         orgId: organisationId,
@@ -158,7 +164,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                 data-test-id="add-tokens-invite-button"
                 type="submit"
                 loaderText="Adding..."
-                disabled={isBillingAccountLoading || isSubmitting}
+                disabled={isBillingAccountLoading || !canCheckout || isSubmitting}
                 loading={isSubmitting}
               >
                 Add
