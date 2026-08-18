@@ -11,12 +11,22 @@ const (
 	BlockerNegativeTokenBalance = "NEGATIVE_TOKEN_BALANCE"
 )
 
+// Kinds of entity a Blocker's Subject id refers to.
+const (
+	SubjectSubscription   = "billing_subscription"
+	SubjectInvoice        = "billing_invoice"
+	SubjectBillingAccount = "billing_account"
+)
+
 // Blocker is one reason an organization cannot be deleted right now.
 type Blocker struct {
 	// Type is one of the Blocker* constants.
 	Type string
 	// Subject is the id of the entity behind the reason.
 	Subject string
+	// SubjectType is one of the Subject* constants and says what kind of
+	// entity the Subject id refers to.
+	SubjectType string
 	// Message says what blocks the delete and how to clear it.
 	Message string
 }

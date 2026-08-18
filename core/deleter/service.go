@@ -526,38 +526,15 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 // their subscription and invoice rows have nothing behind them the caller
 // could cancel or pay.
 func (d Service) ensureDeletable(ctx context.Context, id string, customers []customer.Customer, balances map[string]int64) error {
-	// each plan resolves at most once per call, and only when a running
-	// subscription actually references it
+	// each plan resolves at most once per delete — the cache is shared with
+	// the cancel pass below — and only when a running subscription
+	// references it
 	paidPlans := map[string]bool{}
 
-	var blockers []Blocker
-	for _, c := range customers {
-		if !c.IsOffline() {
-			bs, err := d.subscriptionBlockers(ctx, c, paidPlans)
-			if err != nil {
-				return err
-			}
-			blockers = append(blockers, bs...)
-
-			bs, err = d.invoiceBlockers(ctx, c)
-			if err != nil {
-				return err
-			}
-			blockers = append(blockers, bs...)
-		}
-
-		balance := balances[c.ID]
-		// the balance goes below zero when the account has an overdraft
-		// floor (credit_min under zero, the postpaid setup) and tokens were
-		// spent on credit. That debt is money owed, so it must be settled
-		// before the org can go
-		if balance < 0 {
-			blockers = append(blockers, Blocker{
-				Type:    BlockerNegativeTokenBalance,
-				Subject: c.ID,
-				Message: fmt.Sprintf("billing account[%s] owes %d tokens: contact support to settle the balance, then retry the delete", c.ID, -balance),
-			})
-		}
+	// the delete is about to happen, so judge invoices on fresh provider data
+	blockers, err := d.collectBlockers(ctx, customers, true, balances, paidPlans)
+	if err != nil {
+		return err
 	}
 	if len(blockers) > 0 {
 		return &BlockedError{OrgID: id, Blockers: blockers}
@@ -619,7 +596,7 @@ func (d Service) ensureDeletable(ctx context.Context, id string, customers []cus
 		canceledFor[t.customer.ID] = t.customer
 	}
 	for _, c := range canceledFor {
-		bs, err := d.invoiceBlockers(ctx, c)
+		bs, err := d.invoiceBlockers(ctx, c, true)
 		if err != nil {
 			return err
 		}
@@ -629,6 +606,73 @@ func (d Service) ensureDeletable(ctx context.Context, id string, customers []cus
 		return &BlockedError{OrgID: id, Blockers: blockers}
 	}
 	return nil
+}
+
+// CheckOrganizationDelete reports everything that currently blocks deleting
+// the organization, without changing anything: no subscription gets canceled
+// and the invoice rows are read as they are (they sync from the provider on
+// a timer). The answer is advisory — DeleteOrganization re-checks against
+// fresh provider data before actually deleting.
+func (d Service) CheckOrganizationDelete(ctx context.Context, id string) ([]Blocker, error) {
+	if _, err := d.orgService.GetRaw(ctx, id); err != nil {
+		return nil, err
+	}
+	customers, err := d.customerService.List(ctx, customer.Filter{
+		OrgID: id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return d.collectBlockers(ctx, customers, false, nil, map[string]bool{})
+}
+
+// collectBlockers gathers the blockers across the org's billing accounts:
+// running subscriptions on a paid plan, invoices that still ask for money,
+// and token debt. fromProvider judges the invoices on data read straight
+// from the billing provider instead of the local rows. balances carries
+// account balances the caller already read, nil means read them here; the
+// plan lookups land in the caller's paidPlans cache.
+func (d Service) collectBlockers(ctx context.Context, customers []customer.Customer, fromProvider bool, balances map[string]int64, paidPlans map[string]bool) ([]Blocker, error) {
+	var blockers []Blocker
+	for _, c := range customers {
+		if !c.IsOffline() {
+			bs, err := d.subscriptionBlockers(ctx, c, paidPlans)
+			if err != nil {
+				return nil, err
+			}
+			blockers = append(blockers, bs...)
+
+			bs, err = d.invoiceBlockers(ctx, c, fromProvider)
+			if err != nil {
+				return nil, err
+			}
+			blockers = append(blockers, bs...)
+		}
+
+		var balance int64
+		if balances != nil {
+			balance = balances[c.ID]
+		} else {
+			var err error
+			balance, err = d.creditService.GetBalance(ctx, c.ID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to check token balance of billing account[%s]: %w", c.ID, err)
+			}
+		}
+		// the balance goes below zero when the account has an overdraft
+		// floor (credit_min under zero, the postpaid setup) and tokens were
+		// spent on credit. That debt is money owed, so it must be settled
+		// before the org can go
+		if balance < 0 {
+			blockers = append(blockers, Blocker{
+				Type:        BlockerNegativeTokenBalance,
+				Subject:     c.ID,
+				SubjectType: SubjectBillingAccount,
+				Message:     fmt.Sprintf("billing account[%s] owes %d tokens: contact support to settle the balance, then retry the delete", c.ID, -balance),
+			})
+		}
+	}
+	return blockers, nil
 }
 
 // subscriptionBlockers returns a blocker for every running subscription on a
@@ -666,19 +710,21 @@ func (d Service) subscriptionBlockers(ctx context.Context, c customer.Customer, 
 	return blockers, nil
 }
 
-func unresolvablePlanBlocker(sub subscription.Subscription) Blocker {
+func paidSubscriptionBlocker(sub subscription.Subscription) Blocker {
 	return Blocker{
-		Type:    BlockerActiveSubscription,
-		Subject: sub.ID,
-		Message: fmt.Sprintf("subscription[%s] is %s on a plan that cannot be resolved: cancel the subscription, then retry the delete", sub.ID, sub.State),
+		Type:        BlockerActiveSubscription,
+		Subject:     sub.ID,
+		SubjectType: SubjectSubscription,
+		Message:     fmt.Sprintf("subscription[%s] is %s on a paid plan: downgrade to the standard plan, then retry the delete", sub.ID, sub.State),
 	}
 }
 
-func paidSubscriptionBlocker(sub subscription.Subscription) Blocker {
+func unresolvablePlanBlocker(sub subscription.Subscription) Blocker {
 	return Blocker{
-		Type:    BlockerActiveSubscription,
-		Subject: sub.ID,
-		Message: fmt.Sprintf("subscription[%s] is %s on a paid plan: downgrade to the standard plan, then retry the delete", sub.ID, sub.State),
+		Type:        BlockerActiveSubscription,
+		Subject:     sub.ID,
+		SubjectType: SubjectSubscription,
+		Message:     fmt.Sprintf("subscription[%s] is %s on a plan that cannot be resolved: cancel the subscription, then retry the delete", sub.ID, sub.State),
 	}
 }
 
@@ -701,14 +747,31 @@ func (d Service) isPaidPlan(ctx context.Context, planID string, cache map[string
 // still asks for money. Open and uncollectible invoices the caller can pay.
 // A draft is money the provider is still preparing to charge — the provider
 // finalizes it shortly — and deleting before that would silently lose the
-// charge, so it blocks too. The answer comes straight from the billing
-// provider, so a just-paid invoice does not block and a just-created one
-// does.
-func (d Service) invoiceBlockers(ctx context.Context, c customer.Customer) ([]Blocker, error) {
-	invoices, err := d.invoiceService.ListPayableOnProvider(ctx, c)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
+// charge, so it blocks too.
+//
+// fromProvider reads the invoices straight from the billing provider, so a
+// just-paid invoice does not block a delete and a just-created one does.
+// Without it the local rows answer, cheap enough for every check call.
+func (d Service) invoiceBlockers(ctx context.Context, c customer.Customer, fromProvider bool) ([]Blocker, error) {
+	var invoices []invoice.Invoice
+	if fromProvider {
+		var err error
+		invoices, err = d.invoiceService.ListPayableOnProvider(ctx, c)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
+		}
+	} else {
+		all, err := d.invoiceService.List(ctx, invoice.Filter{CustomerID: c.ID, NonZeroOnly: true})
+		if err != nil {
+			return nil, fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
+		}
+		for _, inv := range all {
+			if inv.IsPayable() {
+				invoices = append(invoices, inv)
+			}
+		}
 	}
+
 	var blockers []Blocker
 	for _, inv := range invoices {
 		// an invoice the sync has not stored yet carries no local id
@@ -721,9 +784,10 @@ func (d Service) invoiceBlockers(ctx context.Context, c customer.Customer) ([]Bl
 			message = fmt.Sprintf("invoice[%s] is still being prepared by the billing provider: retry the delete once it finalizes, then pay it", subject)
 		}
 		blockers = append(blockers, Blocker{
-			Type:    BlockerUnpaidInvoice,
-			Subject: subject,
-			Message: message,
+			Type:        BlockerUnpaidInvoice,
+			Subject:     subject,
+			SubjectType: SubjectInvoice,
+			Message:     message,
 		})
 	}
 	return blockers, nil

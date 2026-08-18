@@ -695,6 +695,76 @@ func TestDeleteOrganization(t *testing.T) {
 	})
 }
 
+func TestCheckOrganizationDelete(t *testing.T) {
+	t.Run("reports every blocker without changing anything", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-paid"}}, nil)
+		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1", NonZeroOnly: true}).
+			Return([]invoice.Invoice{{ID: "inv-1", State: invoice.OpenState}}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(-50, nil)
+		// strict mocks: the check must not sync invoices, cancel
+		// subscriptions, or delete anything
+
+		blockers, err := m.build().CheckOrganizationDelete(context.Background(), "org-1")
+		assert.NoError(t, err)
+
+		types := make([]string, 0, len(blockers))
+		subjectTypes := make([]string, 0, len(blockers))
+		for _, b := range blockers {
+			types = append(types, b.Type)
+			subjectTypes = append(subjectTypes, b.SubjectType)
+		}
+		assert.Equal(t, []string{
+			deleter.BlockerActiveSubscription,
+			deleter.BlockerUnpaidInvoice,
+			deleter.BlockerNegativeTokenBalance,
+		}, types)
+		assert.Equal(t, []string{
+			deleter.SubjectSubscription,
+			deleter.SubjectInvoice,
+			deleter.SubjectBillingAccount,
+		}, subjectTypes)
+	})
+
+	t.Run("returns empty when there are no blockers", func(t *testing.T) {
+		m := newMocks(t)
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-free"}}, nil)
+		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1", NonZeroOnly: true}).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
+		// a standard-plan subscription and unused tokens don't block, and the
+		// check must not cancel the subscription
+
+		blockers, err := m.build().CheckOrganizationDelete(context.Background(), "org-1")
+		assert.NoError(t, err)
+		assert.Empty(t, blockers)
+	})
+
+	t.Run("missing org surfaces not found", func(t *testing.T) {
+		m := newMocks(t)
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{}, organization.ErrNotExist)
+
+		_, err := m.build().CheckOrganizationDelete(context.Background(), "org-1")
+		assert.ErrorIs(t, err, organization.ErrNotExist)
+	})
+}
+
 func TestDeleteCustomers(t *testing.T) {
 	t.Run("deletes subscriptions invoices checkouts transactions and customer", func(t *testing.T) {
 		m := newMocks(t)
