@@ -90,6 +90,7 @@ export function OrganizationProjectsView() {
   const {
     data: orgMembersMap = {},
     isLoading: isOrgMembersMapLoading,
+    error: orgMembersError,
   } = useOrgMembersMap(organization?.id);
   const {
     onChange: onSearchChange,
@@ -178,6 +179,12 @@ export function OrganizationProjectsView() {
     // Refetch the query instead of manually updating
     refetchOrgProjects();
   }
+
+  useEffect(() => {
+    if (orgMembersError) {
+      console.error("Failed to fetch organization members:", orgMembersError);
+    }
+  }, [orgMembersError]);
 
   useEffect(() => {
     setSearchVisibility(true);
