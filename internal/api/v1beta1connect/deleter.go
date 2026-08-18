@@ -34,6 +34,31 @@ func (h *ConnectHandler) DeleteOrganization(ctx context.Context, request *connec
 	return connect.NewResponse(&frontierv1beta1.DeleteOrganizationResponse{}), nil
 }
 
+// CheckOrganizationDelete reports what currently blocks deleting the org
+// without changing anything, so a client can disable its delete control and
+// say why before the user ever tries.
+func (h *ConnectHandler) CheckOrganizationDelete(ctx context.Context, request *connect.Request[frontierv1beta1.CheckOrganizationDeleteRequest]) (*connect.Response[frontierv1beta1.CheckOrganizationDeleteResponse], error) {
+	blockers, err := h.deleterService.CheckOrganizationDelete(ctx, request.Msg.GetId())
+	if err != nil {
+		if errors.Is(err, organization.ErrNotExist) || errors.Is(err, organization.ErrInvalidUUID) || errors.Is(err, organization.ErrInvalidID) {
+			return nil, connect.NewError(connect.CodeNotFound, organization.ErrNotExist)
+		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckOrganizationDelete: organization_id=%s: %w", request.Msg.GetId(), err))
+	}
+	resp := &frontierv1beta1.CheckOrganizationDeleteResponse{
+		CanDelete: len(blockers) == 0,
+	}
+	for _, b := range blockers {
+		resp.Blockers = append(resp.Blockers, &frontierv1beta1.CheckOrganizationDeleteResponse_Blocker{
+			Type:        b.Type,
+			Subject:     b.Subject,
+			SubjectType: b.SubjectType,
+			Message:     b.Message,
+		})
+	}
+	return connect.NewResponse(resp), nil
+}
+
 // deleteBlockedError turns the delete's blockers into a failed_precondition
 // error carrying one PreconditionFailure violation per blocker, so a caller
 // sees everything to fix in a single response.
