@@ -64,6 +64,11 @@ var kindDependencies = map[string][]string{
 // Write `spec: []` to mean that on purpose.
 func parseDocuments(registry map[string]Reconciler, data []byte) ([]parsedDocument, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(data))
+	// Reject unknown top-level keys (a stray "metadata:", a typo'd "apiVarsion")
+	// instead of ignoring them, the same way entry decoding does. The document's
+	// own spec content is decoded separately, so this only guards the outer
+	// apiVersion/kind/spec envelope.
+	dec.KnownFields(true)
 	var docs []parsedDocument
 	for {
 		var doc document
