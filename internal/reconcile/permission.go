@@ -11,22 +11,21 @@ import (
 // KindPermission is the desired-state document kind for custom permissions.
 const KindPermission = "Permission"
 
-// PermissionSpec is one desired permission. A permission is identity only
-// (namespace + name): it is added or deleted, never updated. Deleting needs
-// the explicit flag; a permission that just disappears from the file fails
-// the plan instead.
+// PermissionSpec is one desired permission, identified by its key in
+// service.resource.verb form (for example compute.order.get). A permission is
+// identity only: it is added or deleted, never updated. Deleting needs the
+// explicit flag; a permission that just disappears from the file fails the plan
+// instead.
 type PermissionSpec struct {
-	Namespace string `yaml:"namespace"`
-	Name      string `yaml:"name"`
-	Delete    bool   `yaml:"delete,omitempty"`
+	Key    string `yaml:"key"`
+	Delete bool   `yaml:"delete,omitempty"`
 }
 
-func (s PermissionSpec) String() string {
-	return s.Namespace + ":" + s.Name
-}
+func (s PermissionSpec) String() string { return s.Key }
 
-func (s PermissionSpec) slug() string {
-	return schema.FQPermissionNameFromNamespace(s.Namespace, s.Name)
+// namespaceAndName splits the key into its service/resource namespace and verb.
+func (s PermissionSpec) namespaceAndName() (string, string) {
+	return schema.PermissionNamespaceAndNameFromKey(s.Key)
 }
 
 // isBaseNamespace reports whether a namespace belongs to the base schema,
@@ -36,24 +35,31 @@ func isBaseNamespace(ns string) bool {
 }
 
 func validatePermissionSpec(s PermissionSpec) error {
-	if strings.TrimSpace(s.Namespace) == "" || strings.TrimSpace(s.Name) == "" {
-		return fmt.Errorf("namespace and name are required")
+	if strings.TrimSpace(s.Key) == "" {
+		return fmt.Errorf("key is required")
 	}
-	if isBaseNamespace(s.Namespace) {
-		return fmt.Errorf("namespace %q is part of the base schema, which the server manages", s.Namespace)
+	ns, name := s.namespaceAndName()
+	if ns == "" || name == "" {
+		return fmt.Errorf("invalid key %q (must be in service.resource.verb form)", s.Key)
+	}
+	if isBaseNamespace(ns) {
+		return fmt.Errorf("key %q is part of the base schema, which the server manages", s.Key)
 	}
 	// One shared check so the reconcile plan and the CreatePermission API agree on
 	// what a valid custom permission is: SpiceDB grammar, no reserved verb, and a
 	// slug that fits SpiceDB's relation-name limit. This stops a plan that passes and
 	// then fails when the schema compiles.
-	return schema.ValidateCustomPermission(s.Namespace, s.Name)
+	if err := schema.ValidateCustomPermission(ns, name); err != nil {
+		return fmt.Errorf("invalid key %q: %w", s.Key, err)
+	}
+	return nil
 }
 
-// currentPermission is one custom permission as returned by ListPermissions.
+// currentPermission is one custom permission as returned by ListPermissions,
+// identified by its key.
 type currentPermission struct {
-	ID        string
-	Namespace string
-	Name      string
+	ID  string
+	Key string
 }
 
 type permissionOp struct {
@@ -69,39 +75,32 @@ func (o permissionOp) String() string {
 	return fmt.Sprintf("add permission %s", o.spec)
 }
 
-// diffPermissions returns the ops that make the current custom permissions
-// match the desired spec. Every custom permission on the server must appear in
-// the spec — kept, or marked delete — so nothing is ever removed by omission.
+// diffPermissions returns the ops that make the current custom permissions match
+// the desired spec. Every custom permission on the server must appear in the
+// spec, kept or marked delete, so nothing is ever removed by omission. The key
+// is the identity: it is one-to-one with the slug the server enforces, because a
+// valid key's namespace parts hold no underscores.
 func diffPermissions(desired []PermissionSpec, current []currentPermission) ([]permissionOp, error) {
-	bySlug := make(map[string]currentPermission, len(current))
+	byKey := make(map[string]currentPermission, len(current))
 	for _, c := range current {
-		bySlug[schema.FQPermissionNameFromNamespace(c.Namespace, c.Name)] = c
+		byKey[c.Key] = c
 	}
 
-	// The slug is the identity the server enforces (unique in the database), so
-	// the diff is keyed by it. Distinct namespace+name pairs can flatten to the
-	// same slug when a namespace part contains underscores; that is a conflict.
 	seen := map[string]PermissionSpec{}
-	accounted := map[string]struct{}{}
 	var adds, removes []permissionOp
 	for _, s := range desired {
 		if err := validatePermissionSpec(s); err != nil {
 			return nil, fmt.Errorf("invalid permission spec %s: %w", s, err)
 		}
-		slug := s.slug()
-		if prev, dup := seen[slug]; dup {
-			if prev.Namespace != s.Namespace || prev.Name != s.Name {
-				return nil, fmt.Errorf("permissions %s and %s collide on the same slug %q", prev, s, slug)
-			}
+		if prev, dup := seen[s.Key]; dup {
 			if prev.Delete != s.Delete {
 				return nil, fmt.Errorf("permission %s is listed both with and without delete", s)
 			}
 			continue
 		}
-		seen[slug] = s
-		accounted[slug] = struct{}{}
+		seen[s.Key] = s
 
-		cur, exists := bySlug[slug]
+		cur, exists := byKey[s.Key]
 		switch {
 		case s.Delete && exists:
 			removes = append(removes, permissionOp{action: opRemove, spec: s, id: cur.ID})
@@ -111,9 +110,9 @@ func diffPermissions(desired []PermissionSpec, current []currentPermission) ([]p
 	}
 
 	var unaccounted []string
-	for slug, c := range bySlug {
-		if _, ok := accounted[slug]; !ok {
-			unaccounted = append(unaccounted, c.Namespace+":"+c.Name)
+	for key := range byKey {
+		if _, ok := seen[key]; !ok {
+			unaccounted = append(unaccounted, key)
 		}
 	}
 	if len(unaccounted) > 0 {
