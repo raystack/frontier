@@ -1,8 +1,9 @@
 'use client';
 
-import { ReactNode, useCallback, useEffect, useMemo } from 'react';
+import { ReactNode, useCallback, useMemo } from 'react';
 import {
   DotsHorizontalIcon,
+  LockClosedIcon,
   Pencil1Icon,
   UpdateIcon
 } from '@radix-ui/react-icons';
@@ -11,13 +12,13 @@ import {
   Breadcrumb,
   Button,
   Dialog,
+  EmptyState,
   Flex,
   IconButton,
   Image,
   Menu,
   Skeleton,
   Text,
-  toastManager,
   Tooltip
 } from '@raystack/apsara';
 import deleteIcon from '../../assets/delete.svg';
@@ -108,19 +109,12 @@ export function PATDetailsView({
     create(GetCurrentUserPATRequestSchema, { id: patId }),
     {
       enabled: Boolean(patId),
+      // A bad or unknown id is a definite answer, not a transient failure, so
+      // don't retry: surface the "not found" state immediately.
+      retry: false,
       select: d => d?.pat
     }
   );
-
-  useEffect(() => {
-    if (patError) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description: patError.message,
-        type: 'error'
-      });
-    }
-  }, [patError]);
 
   const { data: orgRolesData, isLoading: isOrgRolesLoading } = useQuery(
     FrontierServiceQueries.listRolesForPAT,
@@ -237,6 +231,49 @@ export function PATDetailsView({
   };
 
   const patTitle = pat?.title || '';
+
+  // getCurrentUserPAT only scopes by the logged-in user, not the org, so a token
+  // from another org the user belongs to can still load here. Treat that, a
+  // missing token, and an invalid id the same way: one generic "not found" that
+  // reveals nothing and blocks opening, editing, regenerating or revoking.
+  const isForeignPat = Boolean(orgId) && pat != null && pat.orgId !== orgId;
+  const showTokenNotFound = Boolean(patError) || isForeignPat;
+
+  if (showTokenNotFound) {
+    return (
+      <ViewContainer>
+        <ViewHeader
+          title=""
+          breadcrumb={
+            <Breadcrumb size="small">
+              <Breadcrumb.Item
+                onClick={() => onNavigateToPats?.()}
+                data-test-id="frontier-sdk-pat-not-found-breadcrumb"
+              >
+                Personal access token
+              </Breadcrumb.Item>
+            </Breadcrumb>
+          }
+        />
+        <EmptyState
+          icon={<LockClosedIcon />}
+          heading="Token not found"
+          subHeading="This personal access token doesn't exist."
+          primaryAction={
+            <Button
+              variant="outline"
+              color="neutral"
+              size="small"
+              onClick={() => onNavigateToPats?.()}
+              data-test-id="frontier-sdk-pat-not-found-back-btn"
+            >
+              Back to personal access tokens
+            </Button>
+          }
+        />
+      </ViewContainer>
+    );
+  }
 
   return (
     <ViewContainer>
