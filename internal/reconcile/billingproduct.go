@@ -132,6 +132,16 @@ func validateBillingProductSpec(s BillingProductSpec) error {
 		return fmt.Errorf("product %q cannot be deleted: there is no product delete or deactivate API; remove the entry and archive the product by hand", s.Name)
 	}
 
+	// Credits are only granted for the credits behavior. A positive credit amount
+	// with any other stated behavior stores credits the server never awards, so
+	// reject it at plan time rather than apply a product whose credits are dead. An
+	// omitted behavior is fine: the server coerces it to credits when there is a
+	// credit amount.
+	behavior := strings.ToLower(strings.TrimSpace(s.Behavior))
+	if s.Config.CreditAmount > 0 && behavior != "" && behavior != string(product.CreditBehavior) {
+		return fmt.Errorf("product %q sets credit_amount %d with behavior %q: credits are only granted for the %q behavior", s.Name, s.Config.CreditAmount, behavior, product.CreditBehavior)
+	}
+
 	seenPrice := map[string]struct{}{}
 	for _, p := range s.Prices {
 		priceName := strings.ToLower(strings.TrimSpace(p.Name))
@@ -298,10 +308,12 @@ func billingConfigChanged(desired, cur BillingProductConfig) bool {
 		desired.MaxQuantity != cur.MaxQuantity
 }
 
-// normalizeFeatureName is the canonical form of a feature name, used by both the
-// diff and the apply so a name is compared and written the same way. The server
-// looks features up by name, so a case or whitespace difference between the two
-// would fork a duplicate feature the diff had reported as unchanged.
+// normalizeFeatureName is the canonical form of a feature name, used only to
+// compare the desired and current feature sets so a case or whitespace difference
+// does not plan a spurious update. The apply does not use it: the server matches
+// and stores feature names verbatim, so sending a normalized name would miss a
+// differently cased stored feature and fork a duplicate. Making the two fully
+// agree needs the server to canonicalize feature names, which is a separate change.
 func normalizeFeatureName(name string) string {
 	return strings.ToLower(strings.TrimSpace(name))
 }

@@ -72,6 +72,13 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 	if statedBehavior == "" && product.Config.CreditAmount > 0 {
 		product.Behavior = CreditBehavior
 	}
+	// Credits are only granted for the credits behavior, so a positive credit
+	// amount on any other behavior would store credits that no path ever awards.
+	// Reject the contradiction instead of silently keeping a product whose credits
+	// are dead.
+	if product.Config.CreditAmount > 0 && product.Behavior != CreditBehavior {
+		return Product{}, fmt.Errorf("%w: credit_amount %d needs behavior %q, got %q", ErrInvalidDetail, product.Config.CreditAmount, CreditBehavior, product.Behavior)
+	}
 	product.Name = strings.ToLower(product.Name)
 
 	_, err := s.stripeClient.Products.New(&stripe.ProductParams{

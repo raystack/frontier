@@ -86,13 +86,13 @@ func TestService_Create(t *testing.T) {
 			},
 		},
 		{
-			name: "honors an explicit behavior on a credit product instead of forcing credits",
+			name: "honors an explicit credits behavior on a credit product",
 			args: args{
 				product: product.Product{
 					ID:          "creditprod",
 					Name:        "creditprod",
 					Description: "credit product",
-					Behavior:    product.PerSeatBehavior,
+					Behavior:    product.CreditBehavior,
 					Config:      product.BehaviorConfig{CreditAmount: 5},
 				},
 			},
@@ -100,7 +100,7 @@ func TestService_Create(t *testing.T) {
 				ID:          "creditprod",
 				Name:        "creditprod",
 				Description: "credit product",
-				Behavior:    product.PerSeatBehavior,
+				Behavior:    product.CreditBehavior,
 				Config:      product.BehaviorConfig{CreditAmount: 5},
 			},
 			wantErr: false,
@@ -110,13 +110,13 @@ func TestService_Create(t *testing.T) {
 					ID:          "creditprod",
 					Name:        "creditprod",
 					Description: "credit product",
-					Behavior:    product.PerSeatBehavior,
+					Behavior:    product.CreditBehavior,
 					Config:      product.BehaviorConfig{CreditAmount: 5},
 				}).Return(product.Product{
 					ID:          "creditprod",
 					Name:        "creditprod",
 					Description: "credit product",
-					Behavior:    product.PerSeatBehavior,
+					Behavior:    product.CreditBehavior,
 					Config:      product.BehaviorConfig{CreditAmount: 5},
 				}, nil)
 				mockStripeBackend.EXPECT().Call("POST", "/v1/products", "key_123", &stripe.ProductParams{
@@ -127,13 +127,33 @@ func TestService_Create(t *testing.T) {
 					Name:        new(""),
 					Description: new("credit product"),
 					Metadata: map[string]string{
-						"behavior":      "per_seat",
+						"behavior":      "credits",
 						"credit_amount": "5",
 						"managed_by":    "frontier",
 						"name":          "creditprod",
 						"product_id":    "creditprod",
 					},
 				}, &stripe.Product{}).Return(nil)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+		{
+			name: "rejects a credit amount paired with a non-credit behavior",
+			args: args{
+				product: product.Product{
+					ID:          "creditprod",
+					Name:        "creditprod",
+					Description: "credit product",
+					Behavior:    product.PerSeatBehavior,
+					Config:      product.BehaviorConfig{CreditAmount: 5},
+				},
+			},
+			want:    product.Product{},
+			wantErr: true,
+			setup: func() *product.Service {
+				// The contradiction is rejected before any provider or repo call, so
+				// no expectations are set.
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
 				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},

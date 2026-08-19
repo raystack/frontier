@@ -53,6 +53,12 @@ func TestValidateBillingProductSpec(t *testing.T) {
 		{"duplicate feature", func(s *BillingProductSpec) {
 			s.Features = []BillingFeatureRef{{Name: "f"}, {Name: "f"}}
 		}, "more than once"},
+		{"credit amount with a non-credit behavior rejected", func(s *BillingProductSpec) {
+			s.Behavior = "per_seat" // newBillingProduct already sets CreditAmount 1
+		}, "credits are only granted"},
+		{"credit amount with an omitted behavior is allowed", func(s *BillingProductSpec) {
+			s.Behavior = "" // the server coerces an omitted behavior to credits
+		}, ""},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -159,7 +165,8 @@ func TestDiffBillingProducts(t *testing.T) {
 
 	t.Run("fails when the file names a behavior the credit product was not created with", func(t *testing.T) {
 		s := newBillingProduct()
-		s.Behavior = "basic" // the file states basic, but the product was created as credits
+		s.Behavior = "basic"      // the file states basic, but the product was created as credits
+		s.Config.CreditAmount = 0 // basic carries no credit amount, so the spec is valid on its own
 		_, err := diffBillingProducts([]BillingProductSpec{s}, []currentBillingProduct{curToken()})
 		assert.ErrorContains(t, err, "behavior cannot change")
 	})
@@ -262,10 +269,11 @@ func TestDiffBillingProducts(t *testing.T) {
 	})
 }
 
-func TestBillingProductBody_NormalizesFeatureNames(t *testing.T) {
-	// The diff compares feature names case-insensitively and trimmed, so the apply
-	// body must send them the same way, or the server (which looks features up by
-	// name) forks a duplicate feature the plan reported as unchanged.
+func TestBillingProductBody_SendsFeatureNamesVerbatim(t *testing.T) {
+	// The server matches and stores feature names case-sensitively, so the apply
+	// body must send them exactly as written. Normalizing here would miss a
+	// differently cased stored feature and fork a duplicate. The diff still
+	// compares normalized names, so a case-only difference does not plan a change.
 	s := newBillingProduct()
 	s.Features = []BillingFeatureRef{{Name: "  Foo  "}, {Name: "BAR"}}
 	body := billingProductBody(s)
@@ -273,5 +281,5 @@ func TestBillingProductBody_NormalizesFeatureNames(t *testing.T) {
 	for _, f := range body.GetFeatures() {
 		got = append(got, f.GetName())
 	}
-	assert.Equal(t, []string{"foo", "bar"}, got)
+	assert.Equal(t, []string{"  Foo  ", "BAR"}, got)
 }
