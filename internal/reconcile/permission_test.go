@@ -1,6 +1,7 @@
 package reconcile
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -90,6 +91,29 @@ func TestDiffPermissions(t *testing.T) {
 			ops, err := diffPermissions([]PermissionSpec{{Namespace: ns, Name: "get"}}, nil)
 			assert.NoError(t, err, ns)
 			assert.Len(t, ops, 1) // a valid new permission plans an add
+		}
+	})
+
+	t.Run("rejects a permission whose flattened slug is too long", func(t *testing.T) {
+		// Each part is valid on its own, but the slug service_resource_verb overflows
+		// SpiceDB's sixty-four character relation limit, so it must fail the plan
+		// rather than pass and then fail when the schema compiles.
+		ns := strings.Repeat("a", 30) + "/" + strings.Repeat("b", 30)
+		_, err := diffPermissions([]PermissionSpec{{Namespace: ns, Name: "get"}}, nil)
+		if assert.Error(t, err) {
+			assert.ErrorContains(t, err, "too long")
+		}
+	})
+
+	t.Run("rejects a verb that collides with a generated relation", func(t *testing.T) {
+		// The generator adds owner, project, and granted to every custom resource, so
+		// a verb equal to one of them would declare the same relation twice and the
+		// schema would fail to compile. The plan must reject it up front.
+		for _, name := range []string{"owner", "project", "granted"} {
+			_, err := diffPermissions([]PermissionSpec{{Namespace: "compute/order", Name: name}}, nil)
+			if assert.Error(t, err, name) {
+				assert.ErrorContains(t, err, "reserved")
+			}
 		}
 	})
 

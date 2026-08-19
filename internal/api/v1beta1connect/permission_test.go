@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -24,7 +25,7 @@ var (
 	testPermissions   = []permission.Permission{
 		{
 			ID:          uuid.New().String(),
-			Name:        "Read",
+			Name:        "read",
 			NamespaceID: "app/resource",
 			Metadata:    map[string]any{},
 			CreatedAt:   time.Time{},
@@ -32,14 +33,14 @@ var (
 		},
 		{
 			ID:          uuid.New().String(),
-			Name:        "Write",
+			Name:        "write",
 			NamespaceID: "app/resource",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
 		},
 		{
 			ID:          uuid.New().String(),
-			Name:        "Manage",
+			Name:        "manage",
 			NamespaceID: "app/resource",
 			CreatedAt:   time.Time{},
 			UpdatedAt:   time.Time{},
@@ -198,6 +199,105 @@ func TestHandler_CreatePermission(t *testing.T) {
 			}),
 			wantErr: nil,
 		},
+		{
+			name: "should return success if permission service return nil error with permission key",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
+				bs.EXPECT().AppendSchema(mock.AnythingOfType("context.backgroundCtx"), schema.ServiceDefinition{
+					Permissions: []schema.ResourcePermission{
+						{
+							Name:      testPermissions[testPermissionIdx].Name + "0",
+							Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						},
+					},
+				}).Return(nil)
+				as.EXPECT().List(mock.Anything, permission.Filter{
+					Slugs: []string{
+						schema.FQPermissionNameFromNamespace(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+					},
+				}).Return([]permission.Permission{
+					{
+						ID:          testPermissions[testPermissionIdx].ID,
+						Name:        testPermissions[testPermissionIdx].Name + "0",
+						NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
+					},
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{
+						Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+					},
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.CreatePermissionResponse{
+				Permissions: []*frontierv1beta1.Permission{
+					{
+						Id:        testPermissions[testPermissionIdx].ID,
+						Name:      testPermissions[testPermissionIdx].Name + "0",
+						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
+						CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
+						UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
+					},
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name:  "should reject an uppercase verb with the grammar error",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{Key: "compute.order.Read"},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission("compute/order", "Read")),
+		},
+		{
+			name:  "should reject a too-short verb with the grammar error",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{Key: "compute.order.id"},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission("compute/order", "id")),
+		},
+		{
+			name:  "should reject a verb that collides with a generated relation",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{Key: "compute.order.owner"},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission("compute/order", "owner")),
+		},
+		{
+			name:  "should reject a namespace with an underscore in a part",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{Key: "res_order.item.get"},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission("res_order/item", "get")),
+		},
+		{
+			name:  "should reject a permission whose flattened slug is too long",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{Key: strings.Repeat("a", 30) + "." + strings.Repeat("b", 30) + ".get"},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission(strings.Repeat("a", 30)+"/"+strings.Repeat("b", 30), "get")),
+		},
 	}
 
 	for _, tt := range tests {
@@ -317,7 +417,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
-			name:  "should return bad request error if key name has special characters",
+			name:  "should return bad request error if the key verb breaks the grammar",
 			setup: func(as *mocks.PermissionService) {},
 			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
@@ -326,7 +426,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters")),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission("app/resource", "we$rd")),
 		},
 		{
 			name:  "should return bad request error if a key part is empty",
@@ -350,7 +450,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission("Ab/resource", "get")),
 		},
 		{
 			name:  "should return bad request error if deprecated fields are sent without key",
