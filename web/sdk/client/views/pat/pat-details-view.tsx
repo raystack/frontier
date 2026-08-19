@@ -3,6 +3,7 @@
 import { ReactNode, useCallback, useMemo } from 'react';
 import {
   DotsHorizontalIcon,
+  ExclamationTriangleIcon,
   LockClosedIcon,
   Pencil1Icon,
   UpdateIcon
@@ -23,6 +24,7 @@ import {
 } from '@raystack/apsara';
 import deleteIcon from '../../assets/delete.svg';
 import { useQuery } from '@connectrpc/connect-query';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
@@ -109,9 +111,16 @@ export function PATDetailsView({
     create(GetCurrentUserPATRequestSchema, { id: patId }),
     {
       enabled: Boolean(patId),
-      // A bad or unknown id is a definite answer, not a transient failure, so
-      // don't retry: surface the "not found" state immediately.
-      retry: false,
+      // A missing token or an invalid id is a definite answer, so don't retry
+      // those and surface the result immediately. Other failures may be
+      // transient, so allow a couple of retries before showing an error.
+      retry: (failureCount, error) => {
+        const code = error instanceof ConnectError ? error.code : undefined;
+        if (code === Code.NotFound || code === Code.InvalidArgument) {
+          return false;
+        }
+        return failureCount < 2;
+      },
       select: d => d?.pat
     }
   );
@@ -233,13 +242,18 @@ export function PATDetailsView({
   const patTitle = pat?.title || '';
 
   // getCurrentUserPAT only scopes by the logged-in user, not the org, so a token
-  // from another org the user belongs to can still load here. Treat that, a
-  // missing token, and an invalid id the same way: one generic "not found" that
-  // reveals nothing and blocks opening, editing, regenerating or revoking.
+  // from another org the user belongs to can still load here. A missing token,
+  // an invalid id, and a foreign token are all shown as a generic "not found"
+  // that reveals nothing. Any other failure is a real error, not a not-found.
+  const patErrorCode =
+    patError instanceof ConnectError ? patError.code : undefined;
+  const isNotFoundError =
+    patErrorCode === Code.NotFound || patErrorCode === Code.InvalidArgument;
   const isForeignPat = Boolean(orgId) && pat != null && pat.orgId !== orgId;
-  const showTokenNotFound = Boolean(patError) || isForeignPat;
+  const showTokenNotFound = isForeignPat || isNotFoundError;
+  const hasUnexpectedError = patError != null && !isNotFoundError;
 
-  if (showTokenNotFound) {
+  if (showTokenNotFound || hasUnexpectedError) {
     return (
       <ViewContainer>
         <ViewHeader
@@ -255,22 +269,41 @@ export function PATDetailsView({
             </Breadcrumb>
           }
         />
-        <EmptyState
-          icon={<LockClosedIcon />}
-          heading="Token not found"
-          subHeading="This personal access token doesn't exist."
-          primaryAction={
-            <Button
-              variant="outline"
-              color="neutral"
-              size="small"
-              onClick={() => onNavigateToPats?.()}
-              data-test-id="frontier-sdk-pat-not-found-back-btn"
-            >
-              Back to personal access tokens
-            </Button>
-          }
-        />
+        {showTokenNotFound ? (
+          <EmptyState
+            icon={<LockClosedIcon />}
+            heading="Token not found"
+            subHeading="This personal access token doesn't exist."
+            primaryAction={
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                onClick={() => onNavigateToPats?.()}
+                data-test-id="frontier-sdk-pat-not-found-back-btn"
+              >
+                Back to personal access tokens
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={<ExclamationTriangleIcon />}
+            heading="Something went wrong"
+            subHeading="We couldn't load this personal access token. Please try again."
+            primaryAction={
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                onClick={() => refetchPat()}
+                data-test-id="frontier-sdk-pat-error-retry-btn"
+              >
+                Try again
+              </Button>
+            }
+          />
+        )}
       </ViewContainer>
     );
   }
