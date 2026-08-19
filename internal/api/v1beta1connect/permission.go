@@ -23,18 +23,14 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 	var permissionSlugs []string
 	for _, permBody := range request.Msg.GetBodies() {
 		permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(permBody.GetKey())
-		if permNamespace == "" || permName == "" {
-			permNamespace, permName = permBody.GetNamespace(), permBody.GetName() //nolint:staticcheck
-		}
 		if permName == "" || permNamespace == "" {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
 		}
 		if !schema.IsValidPermissionName(permName) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters"))
 		}
-
-		if permNamespace == schema.DefaultNamespace {
-			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("permission namespace cannot be "+schema.DefaultNamespace))
+		if !schema.IsValidPermissionNamespace(permNamespace) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
 		}
 		permissionSlugs = append(permissionSlugs, schema.FQPermissionNameFromNamespace(permNamespace, permName))
 
@@ -125,7 +121,13 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 
 	permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(request.Msg.GetBody().GetKey())
 	if permNamespace == "" || permName == "" {
-		permNamespace, permName = request.Msg.GetBody().GetNamespace(), request.Msg.GetBody().GetName() //nolint:staticcheck
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
+	}
+	if !schema.IsValidPermissionName(permName) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters"))
+	}
+	if !schema.IsValidPermissionNamespace(permNamespace) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
 	}
 	updatedPermission, err := h.permissionService.Update(ctx, permission.Permission{
 		ID:          request.Msg.GetId(),
