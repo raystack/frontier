@@ -343,6 +343,45 @@ func PermissionSlugWithinLimit(namespace, name string) bool {
 	return len(FQPermissionNameFromNamespace(namespace, name)) <= maxPermissionSlugLen
 }
 
+// reservedPermissionVerbs are the relation names the schema generator adds to
+// every custom resource definition (see internal/bootstrap/generator.go's owner,
+// project, and granted relations). A permission whose verb equals one of these
+// makes the generator declare the same relation twice, which SpiceDB rejects when
+// it compiles the schema.
+var reservedPermissionVerbs = map[string]bool{
+	OwnerRelationName:     true, // owner
+	ProjectRelationName:   true, // project
+	RoleGrantRelationName: true, // granted
+}
+
+// IsReservedPermissionVerb reports whether name collides with a relation the
+// generator always adds to a custom resource.
+func IsReservedPermissionVerb(name string) bool {
+	return reservedPermissionVerbs[strings.ToLower(name)]
+}
+
+// ValidateCustomPermission checks that a custom permission's namespace and verb
+// can be created and then reconciled without a plan that passes and an apply that
+// fails: the verb and each namespace part must satisfy SpiceDB's grammar, the verb
+// must not collide with a generated relation, and the flattened slug must fit
+// SpiceDB's relation-name limit. Both the reconcile validator and the
+// CreatePermission handler call this, so the two paths agree.
+func ValidateCustomPermission(namespace, name string) error {
+	if !IsValidPermissionName(name) {
+		return fmt.Errorf("invalid permission verb %q: must be lowercase, start with a letter, and be at least three characters", name)
+	}
+	if IsReservedPermissionVerb(name) {
+		return fmt.Errorf("permission verb %q is reserved: the schema already defines a relation with that name on every resource", name)
+	}
+	if !IsValidPermissionNamespace(namespace) {
+		return fmt.Errorf("invalid permission namespace %q: service and resource must each be lowercase alphanumeric and three to sixty-four characters", namespace)
+	}
+	if !PermissionSlugWithinLimit(namespace, name) {
+		return fmt.Errorf("permission %s:%s is too long: the flattened service_resource_verb must be at most 64 characters", namespace, name)
+	}
+	return nil
+}
+
 func IsPlatformPermission(name string) bool {
 	name = strings.ToLower(name)
 	return name == PlatformSudoPermission || name == PlatformCheckPermission

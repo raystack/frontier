@@ -105,6 +105,18 @@ func TestDiffPermissions(t *testing.T) {
 		}
 	})
 
+	t.Run("rejects a verb that collides with a generated relation", func(t *testing.T) {
+		// The generator adds owner, project, and granted to every custom resource, so
+		// a verb equal to one of them would declare the same relation twice and the
+		// schema would fail to compile. The plan must reject it up front.
+		for _, name := range []string{"owner", "project", "granted"} {
+			_, err := diffPermissions([]PermissionSpec{{Namespace: "compute/order", Name: name}}, nil)
+			if assert.Error(t, err, name) {
+				assert.ErrorContains(t, err, "reserved")
+			}
+		}
+	})
+
 	t.Run("rejects base-schema namespaces and bad shapes", func(t *testing.T) {
 		for _, s := range []PermissionSpec{
 			{Namespace: "app/organization", Name: "hack"},

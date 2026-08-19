@@ -186,6 +186,61 @@ func TestPermissionSlugWithinLimit(t *testing.T) {
 	}
 }
 
+func TestIsReservedPermissionVerb(t *testing.T) {
+	// These are the relations the generator adds to every custom resource, so a
+	// verb equal to one of them would declare the same relation twice.
+	tests := []struct {
+		name string
+		want bool
+	}{
+		{"owner", true},
+		{"project", true},
+		{"granted", true},
+		{"Owner", true}, // reserved check is case-insensitive
+		{"get", false},
+		{"delete", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := schema.IsReservedPermissionVerb(tt.name); got != tt.want {
+				t.Errorf("IsReservedPermissionVerb(%q) = %v, want %v", tt.name, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidateCustomPermission(t *testing.T) {
+	tests := []struct {
+		title   string
+		ns      string
+		name    string
+		wantErr string // substring the error must contain; empty means no error
+	}{
+		{"valid", "compute/order", "get", ""},
+		{"uppercase verb", "compute/order", "Read", "invalid permission verb"},
+		{"short verb", "compute/order", "id", "invalid permission verb"},
+		{"reserved verb owner", "compute/order", "owner", "reserved"},
+		{"reserved verb granted", "compute/order", "granted", "reserved"},
+		{"underscore namespace", "res_order/item", "get", "invalid permission namespace"},
+		{"missing resource", "compute", "get", "invalid permission namespace"},
+		{"slug too long", strings.Repeat("a", 30) + "/" + strings.Repeat("b", 30), "get", "too long"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			err := schema.ValidateCustomPermission(tt.ns, tt.name)
+			if tt.wantErr == "" {
+				if err != nil {
+					t.Errorf("ValidateCustomPermission(%q, %q) = %v, want nil", tt.ns, tt.name, err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("ValidateCustomPermission(%q, %q) = %v, want error containing %q", tt.ns, tt.name, err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestIsBootstrapServiceUser(t *testing.T) {
 	tests := []struct {
 		name string

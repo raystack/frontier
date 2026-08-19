@@ -39,29 +39,14 @@ func validatePermissionSpec(s PermissionSpec) error {
 	if strings.TrimSpace(s.Namespace) == "" || strings.TrimSpace(s.Name) == "" {
 		return fmt.Errorf("namespace and name are required")
 	}
-	if !schema.IsValidPermissionName(s.Name) {
-		return fmt.Errorf("invalid name %q (must be lowercase, start with a letter, and be at least three characters)", s.Name)
-	}
 	if isBaseNamespace(s.Namespace) {
 		return fmt.Errorf("namespace %q is part of the base schema, which the server manages", s.Namespace)
 	}
-	if parts := strings.Split(s.Namespace, "/"); len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return fmt.Errorf("namespace %q must be in service/resource form", s.Namespace)
-	}
-	// The slug joins service, resource, and verb with "_", so an underscore inside
-	// a namespace part would make two different namespaces flatten to the same slug
-	// and be silently treated as one. Require each part to be lowercase alphanumeric
-	// so the slug is one-to-one and a plan cannot mistake one namespace for another.
-	if !schema.IsValidPermissionNamespace(s.Namespace) {
-		return fmt.Errorf("invalid namespace %q (each of service/resource must be lowercase alphanumeric)", s.Namespace)
-	}
-	// Each part is capped on its own, but the flattened slug service_resource_verb
-	// becomes a SpiceDB relation, which is capped at sixty-four characters. Reject a
-	// slug over that here so a plan cannot pass and then fail when the schema compiles.
-	if !schema.PermissionSlugWithinLimit(s.Namespace, s.Name) {
-		return fmt.Errorf("permission %s is too long: service_resource_verb must be at most 64 characters", s)
-	}
-	return nil
+	// One shared check so the reconcile plan and the CreatePermission API agree on
+	// what a valid custom permission is: SpiceDB grammar, no reserved verb, and a
+	// slug that fits SpiceDB's relation-name limit. This stops a plan that passes and
+	// then fails when the schema compiles.
+	return schema.ValidateCustomPermission(s.Namespace, s.Name)
 }
 
 // currentPermission is one custom permission as returned by ListPermissions.
