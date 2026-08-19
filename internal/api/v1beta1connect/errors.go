@@ -56,6 +56,7 @@ var (
 	ErrAlreadyApplied              = errors.New("credits already applied")
 	ErrInvalidRoleID               = errors.New("role id is invalid")
 	ErrNamespaceSplitNotation      = errors.New("subject/object should be provided as 'namespace:uuid'")
+	ErrPermissionKeyNotation       = errors.New("permission key should be provided as 'service.resource.verb'")
 	ErrPolicyNotFound              = errors.New("policy doesn't exist")
 	ErrProjectNotFound             = errors.New("project doesn't exist")
 	ErrGroupNotFound               = errors.New("group doesn't exist")

@@ -71,8 +71,7 @@ func TestHandler_CreatePermission(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
-						Name:      testPermissions[testPermissionIdx].Name,
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 					},
 				},
 			}),
@@ -82,30 +81,57 @@ func TestHandler_CreatePermission(t *testing.T) {
 				errors.New("test error"))),
 		},
 		{
-			name:  "should return bad request error if namespace id is empty",
+			name:  "should return bad request error if key is missing",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
 			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
-						Name: testPermissions[testPermissionIdx].Name,
+						Title: "no key sent",
 					},
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
-			name:  "should return bad request error if name is empty",
+			name:  "should return bad request error if key is malformed",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
 			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
+						Key: "app.resource",
+					},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if a key part is empty",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{
+						Key: "app..get",
+					},
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if deprecated fields are sent without key",
+			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
+			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+				Bodies: []*frontierv1beta1.PermissionRequestBody{
+					{
+						Name:      testPermissions[testPermissionIdx].Name,
 						Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					},
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
 			name: "should return success if permission service return nil error",
@@ -143,12 +169,10 @@ func TestHandler_CreatePermission(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 				Bodies: []*frontierv1beta1.PermissionRequestBody{
 					{
-						Name:      testPermissions[testPermissionIdx].Name + "0",
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
 					},
 					{
-						Name:      testPermissions[testPermissionIdx].Name + "1",
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
+						Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"1"),
 					},
 				},
 			}),
@@ -167,50 +191,6 @@ func TestHandler_CreatePermission(t *testing.T) {
 						Name:      testPermissions[testPermissionIdx].Name + "1",
 						Namespace: testPermissions[testPermissionIdx].NamespaceID,
 						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"1"),
-						CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
-						UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
-					},
-				},
-			}),
-			wantErr: nil,
-		},
-		{
-			name: "should return success if permission service return nil error with permission key",
-			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
-				bs.EXPECT().AppendSchema(mock.AnythingOfType("context.backgroundCtx"), schema.ServiceDefinition{
-					Permissions: []schema.ResourcePermission{
-						{
-							Name:      testPermissions[testPermissionIdx].Name + "0",
-							Namespace: testPermissions[testPermissionIdx].NamespaceID,
-						},
-					},
-				}).Return(nil)
-				as.EXPECT().List(mock.Anything, permission.Filter{
-					Slugs: []string{
-						schema.FQPermissionNameFromNamespace(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
-					},
-				}).Return([]permission.Permission{
-					{
-						ID:          testPermissions[testPermissionIdx].ID,
-						Name:        testPermissions[testPermissionIdx].Name + "0",
-						NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
-					},
-				}, nil)
-			},
-			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
-				Bodies: []*frontierv1beta1.PermissionRequestBody{
-					{
-						Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
-					},
-				},
-			}),
-			want: connect.NewResponse(&frontierv1beta1.CreatePermissionResponse{
-				Permissions: []*frontierv1beta1.Permission{
-					{
-						Id:        testPermissions[testPermissionIdx].ID,
-						Name:      testPermissions[testPermissionIdx].Name + "0",
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
-						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
 						CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
 						UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
 					},
@@ -255,8 +235,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &frontierv1beta1.PermissionRequestBody{
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 				},
 			}),
 			want: nil,
@@ -275,8 +254,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &frontierv1beta1.PermissionRequestBody{
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 				},
 			}),
 			want:    nil,
@@ -291,8 +269,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Body: &frontierv1beta1.PermissionRequestBody{
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 				},
 			}),
 			want:    nil,
@@ -309,28 +286,84 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &frontierv1beta1.PermissionRequestBody{
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 				},
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
 		},
 		{
-			name: "should return bad request error if name is empty",
-			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
-					ID:          testPermissions[testPermissionIdx].ID,
-					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, permission.ErrInvalidDetail)
-			},
+			name:  "should return bad request error if key is missing",
+			setup: func(as *mocks.PermissionService) {},
 			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &frontierv1beta1.PermissionRequestBody{
+					Title: "no key sent",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if key is malformed",
+			setup: func(as *mocks.PermissionService) {},
+			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+				Body: &frontierv1beta1.PermissionRequestBody{
+					Key: "app.resource",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if key name has special characters",
+			setup: func(as *mocks.PermissionService) {},
+			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+				Body: &frontierv1beta1.PermissionRequestBody{
+					Key: "app.resource.we$rd",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters")),
+		},
+		{
+			name:  "should return bad request error if a key part is empty",
+			setup: func(as *mocks.PermissionService) {},
+			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+				Body: &frontierv1beta1.PermissionRequestBody{
+					Key: "app..get",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if key namespace is invalid",
+			setup: func(as *mocks.PermissionService) {},
+			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+				Body: &frontierv1beta1.PermissionRequestBody{
+					Key: "Ab.resource.get",
+				},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
+		},
+		{
+			name:  "should return bad request error if deprecated fields are sent without key",
+			setup: func(as *mocks.PermissionService) {},
+			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
+				Id: testPermissions[testPermissionIdx].ID,
+				Body: &frontierv1beta1.PermissionRequestBody{
+					Name:      testPermissions[testPermissionIdx].Name,
 					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
 			name: "should return success if permission service return nil error",
@@ -344,8 +377,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 				Body: &frontierv1beta1.PermissionRequestBody{
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
+					Key: schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 				},
 			}),
 			want: connect.NewResponse(&frontierv1beta1.UpdatePermissionResponse{

@@ -1,50 +1,42 @@
 [
   {
-    "name": "create",
+    "key": "compute.order.create",
     "title": "Create Order",
-    "namespace": "compute/order",
     "metadata": {}
   },
   {
-    "name": "get",
+    "key": "compute.order.get",
     "title": "Read Order",
-    "namespace": "compute/order",
     "metadata": {}
   },
   {
-    "name": "update",
+    "key": "compute.order.update",
     "title": "Update Order",
-    "namespace": "compute/order",
     "metadata": {}
   },
   {
-    "name": "delete",
+    "key": "compute.order.delete",
     "title": "Delete Order",
-    "namespace": "compute/order",
     "metadata": {}
   },
   {
-    "name": "list",
+    "key": "compute.order.list",
     "title": "List Orders",
-    "namespace": "compute/order",
     "metadata": {}
   },
   {
-    "name": "get",
+    "key": "database.order.get",
     "title": "List Database Order",
-    "namespace": "database/order",
-    "metadata":{}
+    "metadata": {}
   },
   {
-    "name": "update",
+    "key": "database.order.update",
     "title": "Update Database Order",
-    "namespace": "database/order",
-    "metadata":{}
+    "metadata": {}
   },
   {
-    "name": "delete",
+    "key": "database.order.delete",
     "title": "Delete Database Order",
-    "namespace": "database/order",
-    "metadata":{}
+    "metadata": {}
   }
 ]
