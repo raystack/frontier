@@ -118,6 +118,23 @@ func TestPermissionReconciler(t *testing.T) {
 		assert.Empty(t, rep.Planned) // the good permission converges; the weird one is ignored
 	})
 
+	t.Run("a legacy server permission that breaks the grammar is skipped, not fatal", func(t *testing.T) {
+		// A row created before CreatePermission validated namespaces can carry an
+		// underscore in a part. Its key parses, but validatePermissionSpec would reject
+		// that key, so no file entry can name it. It must be out of scope, or every plan
+		// would wedge: it could be neither kept (unaccounted) nor deleted (the delete
+		// spec fails validation first).
+		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
+			{Id: "legacy", Key: "resource.order_item.get"}, // underscore in the resource part
+			permissionPB("p1", "compute/order", "get"),
+		}}
+		spec := []byte("- {key: compute.order.get}\n")
+
+		rep, err := NewPermissionReconciler(api, "").Reconcile(context.Background(), spec, true)
+		assert.NoError(t, err)
+		assert.Empty(t, rep.Planned) // the good permission converges; the legacy one is ignored
+	})
+
 	t.Run("reconciling an exported document plans no changes", func(t *testing.T) {
 		api := &fakePermissionAPI{perms: []*frontierv1beta1.Permission{
 			permissionPB("b1", "app/project", "get"),

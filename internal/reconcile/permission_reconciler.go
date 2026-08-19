@@ -117,6 +117,17 @@ func (r *PermissionReconciler) fetchCurrent(ctx context.Context) ([]currentPermi
 		if ns == "" || name == "" || isBaseNamespace(ns) {
 			continue
 		}
+		// Also skip a legacy row whose parsed parts break the grammar the reconciler
+		// enforces: an underscore or uppercase in a part, a reserved verb, or an
+		// over-long slug. No file entry could name such a row, because
+		// validatePermissionSpec rejects the same key, so keeping it would wedge every
+		// plan: it can be neither kept (it counts as unaccounted) nor deleted (a delete
+		// spec fails validation first). Treat it as out of scope, like a base
+		// permission. New rows cannot reach this state now that CreatePermission runs
+		// the same check, but rows created before that tightening can.
+		if schema.ValidateCustomPermission(ns, name) != nil {
+			continue
+		}
 		current = append(current, currentPermission{ID: p.GetId(), Key: p.GetKey()})
 	}
 	return current, nil
