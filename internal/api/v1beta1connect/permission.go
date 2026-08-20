@@ -91,10 +91,10 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 		}
 	}
 
-	// key is the replacement for the deprecated namespace/name fields, so it
-	// must read back to the exact stored pair. A row that cannot round-trip
-	// (namespace without a slash, or with a dot in a part) fails loudly here
-	// instead of returning a key that reads back as a different permission.
+	// key is the only identity carried on the wire, so it must read back to
+	// the exact stored pair. A row that cannot round-trip (namespace without
+	// a slash, or with a dot in a part) fails loudly here instead of
+	// returning a key that reads back as a different permission.
 	key := schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name)
 	if ns, name := schema.PermissionNamespaceAndNameFromKey(key); ns != perm.NamespaceID || name != perm.Name {
 		return nil, fmt.Errorf("permission namespace %q and name %q do not round-trip through key %q", perm.NamespaceID, perm.Name, key)
@@ -102,10 +102,8 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 
 	return &frontierv1beta1.Permission{
 		Id:        perm.ID,
-		Name:      perm.Name,
 		CreatedAt: timestamppb.New(perm.CreatedAt),
 		UpdatedAt: timestamppb.New(perm.UpdatedAt),
-		Namespace: perm.NamespaceID,
 		Metadata:  metadata,
 		Key:       key,
 	}, nil
