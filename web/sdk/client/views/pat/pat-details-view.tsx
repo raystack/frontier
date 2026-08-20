@@ -1,8 +1,10 @@
 'use client';
 
-import { ReactNode, useCallback, useEffect, useMemo } from 'react';
+import { ReactNode, useCallback, useMemo } from 'react';
 import {
   DotsHorizontalIcon,
+  ExclamationTriangleIcon,
+  LockClosedIcon,
   Pencil1Icon,
   UpdateIcon
 } from '@radix-ui/react-icons';
@@ -11,17 +13,18 @@ import {
   Breadcrumb,
   Button,
   Dialog,
+  EmptyState,
   Flex,
   IconButton,
   Image,
   Menu,
   Skeleton,
   Text,
-  toastManager,
   Tooltip
 } from '@raystack/apsara';
 import deleteIcon from '../../assets/delete.svg';
 import { useQuery } from '@connectrpc/connect-query';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { create } from '@bufbuild/protobuf';
 import {
   FrontierServiceQueries,
@@ -108,19 +111,19 @@ export function PATDetailsView({
     create(GetCurrentUserPATRequestSchema, { id: patId }),
     {
       enabled: Boolean(patId),
+      // A missing token or an invalid id is a definite answer, so don't retry
+      // those and surface the result immediately. Other failures may be
+      // transient, so allow a couple of retries before showing an error.
+      retry: (failureCount, error) => {
+        const code = error instanceof ConnectError ? error.code : undefined;
+        if (code === Code.NotFound || code === Code.InvalidArgument) {
+          return false;
+        }
+        return failureCount < 2;
+      },
       select: d => d?.pat
     }
   );
-
-  useEffect(() => {
-    if (patError) {
-      toastManager.add({
-        title: 'Something went wrong',
-        description: patError.message,
-        type: 'error'
-      });
-    }
-  }, [patError]);
 
   const { data: orgRolesData, isLoading: isOrgRolesLoading } = useQuery(
     FrontierServiceQueries.listRolesForPAT,
@@ -237,6 +240,69 @@ export function PATDetailsView({
   };
 
   const patTitle = pat?.title || '';
+
+  const patErrorCode =
+    patError instanceof ConnectError ? patError.code : undefined;
+  const isNotFoundError =
+    patErrorCode === Code.NotFound || patErrorCode === Code.InvalidArgument;
+  const isForeignPat = Boolean(orgId) && pat != null && pat.orgId !== orgId;
+  const showTokenNotFound = isForeignPat || isNotFoundError;
+  const hasUnexpectedError = patError != null && !isNotFoundError;
+
+  if (showTokenNotFound || hasUnexpectedError) {
+    return (
+      <ViewContainer>
+        <ViewHeader
+          title=""
+          breadcrumb={
+            <Breadcrumb size="small">
+              <Breadcrumb.Item
+                onClick={() => onNavigateToPats?.()}
+                data-test-id="frontier-sdk-pat-not-found-breadcrumb"
+              >
+                Personal access token
+              </Breadcrumb.Item>
+            </Breadcrumb>
+          }
+        />
+        {showTokenNotFound ? (
+          <EmptyState
+            icon={<LockClosedIcon />}
+            heading="Token not found"
+            subHeading="This personal access token doesn't exist."
+            primaryAction={
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                onClick={() => onNavigateToPats?.()}
+                data-test-id="frontier-sdk-pat-not-found-back-btn"
+              >
+                Back to personal access tokens
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={<ExclamationTriangleIcon />}
+            heading="Something went wrong"
+            subHeading="We couldn't load this personal access token. Please try again."
+            primaryAction={
+              <Button
+                variant="outline"
+                color="neutral"
+                size="small"
+                onClick={() => refetchPat()}
+                data-test-id="frontier-sdk-pat-error-retry-btn"
+              >
+                Try again
+              </Button>
+            }
+          />
+        )}
+      </ViewContainer>
+    );
+  }
 
   return (
     <ViewContainer>
