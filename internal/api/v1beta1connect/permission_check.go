@@ -72,12 +72,12 @@ func (h *ConnectHandler) CheckFederatedResourcePermission(ctx context.Context, r
 
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.Msg.GetResource())
 	if err != nil || objectNamespace == "" || objectID == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrNamespaceSplitNotation)
 	}
 
 	principalNamespace, principalID, err := schema.SplitNamespaceAndResourceID(req.Msg.GetSubject())
 	if err != nil || principalNamespace == "" || principalID == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrNamespaceSplitNotation)
 	}
 
 	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission())
@@ -162,13 +162,8 @@ func (h *ConnectHandler) CheckResourcePermission(ctx context.Context, req *conne
 	errorLogger := NewErrorLogger()
 
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.Msg.GetResource())
-	//nolint:staticcheck
-	if len(req.Msg.GetResource()) == 0 || err != nil {
-		objectNamespace = schema.ParseNamespaceAliasIfRequired(req.Msg.GetObjectNamespace())
-		objectID = req.Msg.GetObjectId()
-	}
-	if objectNamespace == "" || objectID == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+	if err != nil || objectNamespace == "" || objectID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrNamespaceSplitNotation)
 	}
 
 	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.Msg.GetPermission())
@@ -201,8 +196,8 @@ func (h *ConnectHandler) BatchCheckPermission(ctx context.Context, req *connect.
 	checks := make([]resource.Check, 0, len(req.Msg.GetBodies()))
 	for _, body := range req.Msg.GetBodies() {
 		objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(body.GetResource())
-		if len(body.GetResource()) == 0 || err != nil {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		if err != nil || objectNamespace == "" || objectID == "" {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrNamespaceSplitNotation)
 		}
 
 		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.GetPermission())

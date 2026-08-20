@@ -1676,9 +1676,8 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		s.Assert().Equal(true, checkViewPermResp.Msg.GetStatus())
 
 		checkEditPermResp, err := s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
-			ObjectId:        existingOrg.Msg.GetOrganization().GetId(),
-			ObjectNamespace: schema.OrganizationNamespace,
-			Permission:      schema.UpdatePermission,
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+			Permission: schema.UpdatePermission,
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(true, checkEditPermResp.Msg.GetStatus())
