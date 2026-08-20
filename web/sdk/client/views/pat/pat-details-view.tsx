@@ -241,10 +241,6 @@ export function PATDetailsView({
 
   const patTitle = pat?.title || '';
 
-  // getCurrentUserPAT only scopes by the logged-in user, not the org, so a token
-  // from another org the user belongs to can still load here. A missing token,
-  // an invalid id, and a foreign token are all shown as a generic "not found"
-  // that reveals nothing. Any other failure is a real error, not a not-found.
   const patErrorCode =
     patError instanceof ConnectError ? patError.code : undefined;
   const isNotFoundError =
