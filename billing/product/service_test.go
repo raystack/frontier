@@ -41,6 +41,51 @@ func TestService_Create(t *testing.T) {
 		setup   func() *product.Service
 	}{
 		{
+			name: "should create product with empty description",
+			args: args{
+				product: product.Product{
+					ID:          "1",
+					Name:        "product1",
+					Description: "",
+				},
+			},
+			want: product.Product{
+				ID:          "1",
+				Name:        "product1",
+				Description: "",
+			},
+			wantErr: false,
+			setup: func() *product.Service {
+				stripeClient, mockStripeBackend, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				mockProductRepo.EXPECT().Create(ctx, product.Product{
+					ID:          "1",
+					Name:        "product1",
+					Description: "",
+					Behavior:    product.BasicBehavior,
+				}).Return(product.Product{
+					ID:          "1",
+					Name:        "product1",
+					Description: "",
+				}, nil)
+				mockStripeBackend.EXPECT().Call("POST", "/v1/products", "key_123", &stripe.ProductParams{
+					Params: stripe.Params{
+						Context: ctx,
+					},
+					ID:          new(""),
+					Name:        new(""),
+					Description: nil,
+					Metadata: map[string]string{
+						"behavior":      "basic",
+						"credit_amount": "0",
+						"managed_by":    "frontier",
+						"name":          "product1",
+						"product_id":    "1",
+					},
+				}, &stripe.Product{}).Return(nil)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+		{
 			name: "should create product in repo and billing provider with no price and features",
 			args: args{
 				product: product.Product{
