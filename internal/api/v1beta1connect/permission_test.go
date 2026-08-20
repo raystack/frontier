@@ -121,20 +121,6 @@ func TestHandler_CreatePermission(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
 		},
 		{
-			name:  "should return bad request error if deprecated fields are sent without key",
-			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {},
-			request: connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
-				Bodies: []*frontierv1beta1.PermissionRequestBody{
-					{
-						Name:      testPermissions[testPermissionIdx].Name,
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
-					},
-				},
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
-		},
-		{
 			name: "should return success if permission service return nil error",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
 				bs.EXPECT().AppendSchema(mock.AnythingOfType("context.backgroundCtx"), schema.ServiceDefinition{
@@ -181,16 +167,12 @@ func TestHandler_CreatePermission(t *testing.T) {
 				Permissions: []*frontierv1beta1.Permission{
 					{
 						Id:        testPermissions[testPermissionIdx].ID,
-						Name:      testPermissions[testPermissionIdx].Name + "0",
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
 						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
 						CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
 						UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
 					},
 					{
 						Id:        testPermissions[testPermissionIdx].ID,
-						Name:      testPermissions[testPermissionIdx].Name + "1",
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
 						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"1"),
 						CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
 						UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
@@ -233,8 +215,6 @@ func TestHandler_CreatePermission(t *testing.T) {
 				Permissions: []*frontierv1beta1.Permission{
 					{
 						Id:        testPermissions[testPermissionIdx].ID,
-						Name:      testPermissions[testPermissionIdx].Name + "0",
-						Namespace: testPermissions[testPermissionIdx].NamespaceID,
 						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name+"0"),
 						CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
 						UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
@@ -453,19 +433,6 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, schema.ValidateCustomPermission("Ab/resource", "get")),
 		},
 		{
-			name:  "should return bad request error if deprecated fields are sent without key",
-			setup: func(as *mocks.PermissionService) {},
-			request: connect.NewRequest(&frontierv1beta1.UpdatePermissionRequest{
-				Id: testPermissions[testPermissionIdx].ID,
-				Body: &frontierv1beta1.PermissionRequestBody{
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
-				},
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation),
-		},
-		{
 			name: "should return success if permission service return nil error",
 			setup: func(as *mocks.PermissionService) {
 				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
@@ -483,8 +450,6 @@ func TestHandler_UpdatePermission(t *testing.T) {
 			want: connect.NewResponse(&frontierv1beta1.UpdatePermissionResponse{
 				Permission: &frontierv1beta1.Permission{
 					Id:        testPermissions[testPermissionIdx].ID,
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
 					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
@@ -537,24 +502,18 @@ func TestHandler_ListPermissions(t *testing.T) {
 				Permissions: []*frontierv1beta1.Permission{
 					{
 						Id:        testPermissions[0].ID,
-						Name:      testPermissions[0].Name,
-						Namespace: testPermissions[0].NamespaceID,
 						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[0].NamespaceID, testPermissions[0].Name),
 						CreatedAt: timestamppb.New(testPermissions[0].CreatedAt),
 						UpdatedAt: timestamppb.New(testPermissions[0].UpdatedAt),
 					},
 					{
 						Id:        testPermissions[1].ID,
-						Name:      testPermissions[1].Name,
-						Namespace: testPermissions[1].NamespaceID,
 						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[1].NamespaceID, testPermissions[1].Name),
 						CreatedAt: timestamppb.New(testPermissions[1].CreatedAt),
 						UpdatedAt: timestamppb.New(testPermissions[1].UpdatedAt),
 					},
 					{
 						Id:        testPermissions[2].ID,
-						Name:      testPermissions[2].Name,
-						Namespace: testPermissions[2].NamespaceID,
 						Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[2].NamespaceID, testPermissions[2].Name),
 						CreatedAt: timestamppb.New(testPermissions[2].CreatedAt),
 						UpdatedAt: timestamppb.New(testPermissions[2].UpdatedAt),
@@ -630,8 +589,6 @@ func TestHandler_GetPermission(t *testing.T) {
 			want: connect.NewResponse(&frontierv1beta1.GetPermissionResponse{
 				Permission: &frontierv1beta1.Permission{
 					Id:        testPermissions[testPermissionIdx].ID,
-					Name:      testPermissions[testPermissionIdx].Name,
-					Namespace: testPermissions[testPermissionIdx].NamespaceID,
 					Key:       schema.PermissionKeyFromNamespaceAndName(testPermissions[testPermissionIdx].NamespaceID, testPermissions[testPermissionIdx].Name),
 					CreatedAt: timestamppb.New(testPermissions[testPermissionIdx].CreatedAt),
 					UpdatedAt: timestamppb.New(testPermissions[testPermissionIdx].UpdatedAt),
