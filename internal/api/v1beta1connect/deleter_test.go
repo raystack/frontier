@@ -151,3 +151,51 @@ func TestHandler_DeleteOrganization(t *testing.T) {
 		assert.Equal(t, "cust-1", failure.GetViolations()[1].GetSubject())
 	})
 }
+
+func TestHandler_CheckOrganizationDelete(t *testing.T) {
+	t.Run("should report the blockers with can_delete false", func(t *testing.T) {
+		mockDel := new(mocks.CascadeDeleter)
+		mockDel.EXPECT().CheckOrganizationDelete(mock.Anything, "some-id").Return([]deleter.Blocker{
+			{Type: deleter.BlockerActiveSubscription, Subject: "sub-1", SubjectType: deleter.SubjectSubscription, Message: "subscription[sub-1] is active on a paid plan: downgrade to the standard plan, then retry the delete"},
+			{Type: deleter.BlockerUnpaidInvoice, Subject: "inv-1", SubjectType: deleter.SubjectInvoice, Message: "invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete"},
+		}, nil)
+		mockDep := &ConnectHandler{deleterService: mockDel}
+
+		resp, err := mockDep.CheckOrganizationDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckOrganizationDeleteRequest{
+			Id: "some-id",
+		}))
+		assert.NoError(t, err)
+		assert.False(t, resp.Msg.GetCanDelete())
+		assert.Len(t, resp.Msg.GetBlockers(), 2)
+		assert.Equal(t, deleter.BlockerActiveSubscription, resp.Msg.GetBlockers()[0].GetType())
+		assert.Equal(t, "sub-1", resp.Msg.GetBlockers()[0].GetSubject())
+		assert.Equal(t, deleter.SubjectSubscription, resp.Msg.GetBlockers()[0].GetSubjectType())
+		assert.Equal(t, deleter.BlockerUnpaidInvoice, resp.Msg.GetBlockers()[1].GetType())
+		assert.Equal(t, deleter.SubjectInvoice, resp.Msg.GetBlockers()[1].GetSubjectType())
+	})
+
+	t.Run("should report can_delete true when nothing blocks", func(t *testing.T) {
+		mockDel := new(mocks.CascadeDeleter)
+		mockDel.EXPECT().CheckOrganizationDelete(mock.Anything, "some-id").Return(nil, nil)
+		mockDep := &ConnectHandler{deleterService: mockDel}
+
+		resp, err := mockDep.CheckOrganizationDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckOrganizationDeleteRequest{
+			Id: "some-id",
+		}))
+		assert.NoError(t, err)
+		assert.True(t, resp.Msg.GetCanDelete())
+		assert.Empty(t, resp.Msg.GetBlockers())
+	})
+
+	t.Run("should return not found for a missing org", func(t *testing.T) {
+		mockDel := new(mocks.CascadeDeleter)
+		mockDel.EXPECT().CheckOrganizationDelete(mock.Anything, "some-id").Return(nil, organization.ErrNotExist)
+		mockDep := &ConnectHandler{deleterService: mockDel}
+
+		resp, err := mockDep.CheckOrganizationDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckOrganizationDeleteRequest{
+			Id: "some-id",
+		}))
+		assert.Nil(t, resp)
+		assert.Equal(t, connect.NewError(connect.CodeNotFound, organization.ErrNotExist), err)
+	})
+}

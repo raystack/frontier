@@ -29,6 +29,7 @@ import (
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/core/event"
 	"github.com/raystack/frontier/core/group"
@@ -388,6 +389,7 @@ type NamespaceService interface {
 type CascadeDeleter interface {
 	DeleteProject(ctx context.Context, id string) error
 	DeleteOrganization(ctx context.Context, id string) error
+	CheckOrganizationDelete(ctx context.Context, id string) ([]deleter.Blocker, error)
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, userID string) error
 }
