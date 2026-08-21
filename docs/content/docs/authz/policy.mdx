@@ -78,12 +78,7 @@ between the principal and the object.
 
 We maintain spiceDB schema in [base_schema.zed](https://github.com/raystack/frontier/blob/4434204940f3a599b7e0ef399679f381db46c09a/internal/bootstrap/schema/base_schema.zed)
 file in Frontier. The schema is then used to build the base set of permissions on predefined namespaces. Some permissions are
-hardcoded in the schema, but Frontier allows custom permission set on Project resources. Custom permissions are dynamically 
-generated at frontier boot-up by merging them in the SpiceDB schema. To create custom permissions on a project resource
-a [rule set](https://github.com/raystack/frontier/blob/ccf00da8a636f363546b1dbe6c7933323c369dca/internal/bootstrap/testdata/compute_service.yml) 
-can be configured in the [config.yaml](https://github.com/raystack/frontier/blob/7fca56ef567791bf4ea1280aa3f9b4ae997b1bf5/config/sample.config.yaml#L29)
-file. Same is also exposed in the [Frontier API](../apis/admin-service-create-permission.api.mdx) to create 
-custom permissions on a project resource. 
+hardcoded in the schema, but Frontier allows custom permission set on Project resources. Custom permissions are managed through the [reconcile flow](../reconcile.md) (a `kind: Permission` desired-state file) or the [CreatePermission admin API](../apis/admin-service-create-permission). Creating one merges it into the SpiceDB schema, so the permission is ready to use in roles right away. The older way of declaring them in the server config file has been removed.
 
 Frontier models roles as collection of permissions which can be created/updated/deleted dynamically at run time.
 

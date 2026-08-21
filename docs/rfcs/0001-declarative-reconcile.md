@@ -16,7 +16,7 @@ file with the live server, prints a plan, and applies the difference through the
 be seeded from a running server.
 
 This document sets the rules every kind follows. The kinds are PlatformUser, Permission, Role,
-Preference, and Webhook. New kinds plug in under the same rules without changing the commands
+Preference, Webhook, MetaSchema, BillingProduct, and BillingPlan. New kinds plug in under the same rules without changing the commands
 or the file format.
 
 ## At a glance
@@ -42,7 +42,7 @@ means and whether you can delete it:
 flowchart TD
     r["A resource the kind manages"] --> q{"Can reconcile<br/>create and delete it?"}
     q -->|"yes"| o["Object<br/>Permission, Webhook, custom Role<br/>on the server but not in the file: the plan fails<br/>to delete one, set delete: true"]
-    q -->|"no"| v["Value<br/>PlatformUser, Preference, predefined Role<br/>always exists, so no delete flag<br/>not in the file: back to its default"]
+    q -->|"no"| v["Value<br/>PlatformUser, Preference, predefined Role, MetaSchema<br/>always exists, so no delete flag<br/>not in the file: back to its default"]
 ```
 
 The kinds split cleanly, except Role, which is both: a custom role is an object, a predefined
@@ -286,7 +286,6 @@ roles, committed as the desired-state files, then dropping the setting from the 
   comes from the running server instead of the CLI's compiled copy. This removes the
   image-version coupling.
 - Passing the auth token without putting it in the process arguments.
-- Billing plans as a kind, replacing the boot-time plans loader.
 - Removing relation-based ownership from the base schema, so narrowing a predefined role
   restricts everyone who holds it.
 
