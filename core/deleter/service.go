@@ -11,7 +11,11 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 
+	"github.com/raystack/frontier/billing"
+
 	"github.com/raystack/frontier/billing/checkout"
+
+	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/raystack/frontier/billing/invoice"
 
@@ -37,6 +41,8 @@ import (
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/pkg/mailer"
 )
 
 type ProjectService interface {
@@ -45,11 +51,12 @@ type ProjectService interface {
 }
 
 type OrganizationService interface {
-	Get(ctx context.Context, id string) (organization.Organization, error)
+	GetRaw(ctx context.Context, id string) (organization.Organization, error)
 	DeleteModel(ctx context.Context, id string) error
 }
 
 type RoleService interface {
+	Get(ctx context.Context, id string) (role.Role, error)
 	List(ctx context.Context, flt role.Filter) ([]role.Role, error)
 	Delete(ctx context.Context, id string) error
 }
@@ -72,6 +79,7 @@ type GroupService interface {
 type MembershipService interface {
 	OnGroupDeleted(ctx context.Context, groupID string) error
 	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
+	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
 	ForceRemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
 }
 
@@ -81,6 +89,7 @@ type InvitationService interface {
 }
 
 type UserService interface {
+	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -117,6 +126,7 @@ type CheckoutService interface {
 
 type CreditService interface {
 	GetBalance(ctx context.Context, accountID string) (int64, error)
+	List(ctx context.Context, flt credit.Filter) ([]credit.Transaction, error)
 	DeleteByAccountID(ctx context.Context, accountID string) error
 }
 
@@ -147,6 +157,10 @@ type Service struct {
 	creditService      CreditService
 	kycService         KycService
 	planService        PlanService
+	// mailDialer and forfeitNoticeConfig drive the email that tells the org
+	// owners about tokens forfeited by the delete
+	mailDialer          mailer.Dialer
+	forfeitNoticeConfig billing.TokenForfeitNoticeConfig
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
@@ -159,26 +173,29 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	customerService CustomerService, subService SubscriptionService,
 	invoiceService InvoiceService, checkoutService CheckoutService,
 	creditService CreditService, kycService KycService,
-	planService PlanService) *Service {
+	planService PlanService,
+	mailDialer mailer.Dialer, forfeitNoticeConfig billing.TokenForfeitNoticeConfig) *Service {
 	return &Service{
-		projService:        projService,
-		orgService:         orgService,
-		resService:         resService,
-		groupService:       groupService,
-		membershipService:  membershipService,
-		policyService:      policyService,
-		roleService:        roleService,
-		invitationService:  invitationService,
-		userService:        userService,
-		userPATService:     userPATService,
-		serviceUserService: serviceUserService,
-		customerService:    customerService,
-		subService:         subService,
-		invoiceService:     invoiceService,
-		checkoutService:    checkoutService,
-		creditService:      creditService,
-		kycService:         kycService,
-		planService:        planService,
+		projService:         projService,
+		orgService:          orgService,
+		resService:          resService,
+		groupService:        groupService,
+		membershipService:   membershipService,
+		policyService:       policyService,
+		roleService:         roleService,
+		invitationService:   invitationService,
+		userService:         userService,
+		userPATService:      userPATService,
+		serviceUserService:  serviceUserService,
+		customerService:     customerService,
+		subService:          subService,
+		invoiceService:      invoiceService,
+		checkoutService:     checkoutService,
+		creditService:       creditService,
+		kycService:          kycService,
+		planService:         planService,
+		mailDialer:          mailDialer,
+		forfeitNoticeConfig: forfeitNoticeConfig,
 	}
 }
 
@@ -233,8 +250,9 @@ func (d Service) DeleteGroup(ctx context.Context, id string) error {
 // repeatable one (and a mistyped org id from a success).
 func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	// an org that is already gone has nothing left to check or tear down;
-	// disabled orgs stay deletable
-	if _, err := d.orgService.Get(ctx, id); err != nil && !errors.Is(err, organization.ErrDisabled) {
+	// GetRaw keeps disabled orgs deletable
+	org, err := d.orgService.GetRaw(ctx, id)
+	if err != nil {
 		return err
 	}
 
@@ -245,14 +263,26 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return err
 	}
 
+	// the token forfeit notice reads owners and balances, so it has to be
+	// collected while they still exist; its balance reads are reused by the
+	// blocker check and the teardown audit below
+	notice, err := d.collectForfeitNotice(ctx, org, customers)
+	if err != nil {
+		return err
+	}
+	// a retry whose earlier attempt already tore down some accounts finds
+	// their balances gone; their forfeits are recovered per account from the
+	// audit records that attempt wrote
+	d.recoverForfeitFromAudit(ctx, id, &notice)
+
 	// clear what we can and collect what still blocks the delete, before
 	// touching any data
-	if err := d.ensureDeletable(ctx, id, customers); err != nil {
+	if err := d.ensureDeletable(ctx, id, customers, notice.Balances); err != nil {
 		return err
 	}
 
 	// delete all billing accounts
-	if err := d.deleteCustomers(ctx, id, customers); err != nil {
+	if err := d.deleteCustomers(ctx, id, customers, notice.Accounts); err != nil {
 		return err
 	}
 
@@ -342,11 +372,17 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	if err := audit.NewLogger(ctx, id).Log(audit.OrgDeletedEvent, audit.OrgTarget(id)); err != nil {
 		slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgDeletedEvent)
 	}
+
+	// the org is gone; tell the owners about any tokens the delete forfeited
+	if notice.Amount > 0 {
+		d.sendForfeitNotices(ctx, org, notice)
+	}
 	return nil
 }
 
-// DeleteCustomers lists the org's billing accounts itself; DeleteOrganization
-// goes through deleteCustomers with the accounts it already listed.
+// DeleteCustomers lists the accounts and reads the balances itself;
+// DeleteOrganization goes through deleteCustomers with what it already
+// collected.
 func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	customers, err := d.customerService.List(ctx, customer.Filter{
 		OrgID: id,
@@ -354,10 +390,13 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	return d.deleteCustomers(ctx, id, customers)
+	return d.deleteCustomers(ctx, id, customers, nil)
 }
 
-func (d Service) deleteCustomers(ctx context.Context, id string, customers []customer.Customer) error {
+// deleteCustomers tears down the org's billing accounts. amounts carries the
+// per-account token numbers the caller already read; nil means read them
+// here.
+func (d Service) deleteCustomers(ctx context.Context, id string, customers []customer.Customer, amounts map[string]accountTokens) error {
 	for _, c := range customers {
 		// cancels active subscriptions on the billing provider and removes local records
 		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
@@ -400,17 +439,21 @@ func (d Service) deleteCustomers(ctx context.Context, id string, customers []cus
 			}
 		}
 		// tokens still on the account are forfeited by this delete, so
-		// record the amount before the transactions are removed
-		balance, err := d.creditService.GetBalance(ctx, c.ID)
+		// record the amount before the transactions are removed. The
+		// purchased share goes on the record too: the transaction rows are
+		// deleted right after, and support settles a transfer from this
+		// number later
+		account, err := d.resolveAccountTokens(ctx, c.ID, amounts)
 		if err != nil {
 			return fmt.Errorf("failed to delete org while checking balance of billing account[%s]: %w", c.ID, err)
 		}
-		if balance > 0 {
+		if account.Balance > 0 {
 			if err := auditLogger.LogWithAttrs(audit.BillingTokensForfeitedEvent, audit.Target{
 				ID:   c.ID,
 				Type: "billing_account",
 			}, map[string]string{
-				"amount": strconv.FormatInt(balance, 10),
+				"amount":    strconv.FormatInt(account.Balance, 10),
+				"purchased": strconv.FormatInt(account.Purchased, 10),
 			}); err != nil {
 				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingTokensForfeitedEvent, "customer_id", c.ID)
 			}
@@ -482,7 +525,7 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 // Accounts without a billing provider are only checked for token balances:
 // their subscription and invoice rows have nothing behind them the caller
 // could cancel or pay.
-func (d Service) ensureDeletable(ctx context.Context, id string, customers []customer.Customer) error {
+func (d Service) ensureDeletable(ctx context.Context, id string, customers []customer.Customer, balances map[string]int64) error {
 	// each plan resolves at most once per call, and only when a running
 	// subscription actually references it
 	paidPlans := map[string]bool{}
@@ -503,10 +546,7 @@ func (d Service) ensureDeletable(ctx context.Context, id string, customers []cus
 			blockers = append(blockers, bs...)
 		}
 
-		balance, err := d.creditService.GetBalance(ctx, c.ID)
-		if err != nil {
-			return fmt.Errorf("failed to check token balance of billing account[%s]: %w", c.ID, err)
-		}
+		balance := balances[c.ID]
 		// the balance goes below zero when the account has an overdraft
 		// floor (credit_min under zero, the postpaid setup) and tokens were
 		// spent on credit. That debt is money owed, so it must be settled
