@@ -252,19 +252,6 @@ export function PATDetailsView({
   if (showTokenNotFound || hasUnexpectedError) {
     return (
       <ViewContainer>
-        <ViewHeader
-          title=""
-          breadcrumb={
-            <Breadcrumb size="small">
-              <Breadcrumb.Item
-                onClick={() => onNavigateToPats?.()}
-                data-test-id="frontier-sdk-pat-not-found-breadcrumb"
-              >
-                Personal access token
-              </Breadcrumb.Item>
-            </Breadcrumb>
-          }
-        />
         {showTokenNotFound ? (
           <EmptyState
             icon={<LockClosedIcon />}
