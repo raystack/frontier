@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	credit "github.com/raystack/frontier/billing/credit"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -64,6 +66,122 @@ func (_c *CreditService_DeleteByAccountID_Call) Return(_a0 error) *CreditService
 }
 
 func (_c *CreditService_DeleteByAccountID_Call) RunAndReturn(run func(context.Context, string) error) *CreditService_DeleteByAccountID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetBalance provides a mock function with given fields: ctx, accountID
+func (_m *CreditService) GetBalance(ctx context.Context, accountID string) (int64, error) {
+	ret := _m.Called(ctx, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBalance")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (int64, error)); ok {
+		return rf(ctx, accountID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) int64); ok {
+		r0 = rf(ctx, accountID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreditService_GetBalance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBalance'
+type CreditService_GetBalance_Call struct {
+	*mock.Call
+}
+
+// GetBalance is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountID string
+func (_e *CreditService_Expecter) GetBalance(ctx interface{}, accountID interface{}) *CreditService_GetBalance_Call {
+	return &CreditService_GetBalance_Call{Call: _e.mock.On("GetBalance", ctx, accountID)}
+}
+
+func (_c *CreditService_GetBalance_Call) Run(run func(ctx context.Context, accountID string)) *CreditService_GetBalance_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CreditService_GetBalance_Call) Return(_a0 int64, _a1 error) *CreditService_GetBalance_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CreditService_GetBalance_Call) RunAndReturn(run func(context.Context, string) (int64, error)) *CreditService_GetBalance_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// List provides a mock function with given fields: ctx, flt
+func (_m *CreditService) List(ctx context.Context, flt credit.Filter) ([]credit.Transaction, error) {
+	ret := _m.Called(ctx, flt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for List")
+	}
+
+	var r0 []credit.Transaction
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, credit.Filter) ([]credit.Transaction, error)); ok {
+		return rf(ctx, flt)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, credit.Filter) []credit.Transaction); ok {
+		r0 = rf(ctx, flt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]credit.Transaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, credit.Filter) error); ok {
+		r1 = rf(ctx, flt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreditService_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
+type CreditService_List_Call struct {
+	*mock.Call
+}
+
+// List is a helper method to define mock.On call
+//   - ctx context.Context
+//   - flt credit.Filter
+func (_e *CreditService_Expecter) List(ctx interface{}, flt interface{}) *CreditService_List_Call {
+	return &CreditService_List_Call{Call: _e.mock.On("List", ctx, flt)}
+}
+
+func (_c *CreditService_List_Call) Run(run func(ctx context.Context, flt credit.Filter)) *CreditService_List_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(credit.Filter))
+	})
+	return _c
+}
+
+func (_c *CreditService_List_Call) Return(_a0 []credit.Transaction, _a1 error) *CreditService_List_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CreditService_List_Call) RunAndReturn(run func(context.Context, credit.Filter) ([]credit.Transaction, error)) *CreditService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
