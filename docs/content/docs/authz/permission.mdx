@@ -81,26 +81,35 @@ Permissions in Frontier follow a hierarchical structure, where higher-level perm
 
 Frontier allow the its platform administrators (Superusers) to create permissions to meet specific authorization requirements beyond the predefined set of permissions. Custom permissions allow for more granular control over access to resources and actions within an application or system. They enable organizations to define and enforce fine-grained access policies tailored to their unique needs.
 
-When creating custom permissions, administrators typically define the name and scope (namespace) of the permission. The name should be descriptive and indicative of the action or resource it governs. The scope determines where the permission applies, such as the platform(making it available across all the organizations in Frontier), organization, project or group.
+When creating a custom permission, an administrator gives it a `key` in the form `service.resource.verb`. The key names the service, the resource the permission acts on, and the action it grants. For example, `potato.cart.delete` grants the delete action on the cart resource of the potato service.
 
 :::note
-The permissions can either be created dynamically when the Frontier is running, or can either be provided in the server configurations.
+Custom permissions are created through the [reconcile flow](../reconcile.md) (a `kind: Permission` desired-state file) or through the [CreatePermission admin API](../apis/admin-service-create-permission). The older way of listing them in the server config file has been removed.
 :::
 
-For example, let's say you have an e-commerce application where users can manage their shopping carts. To control access to cart-related actions, you can create custom permissions in the **potato/cart** namespace.
+For example, let's say you have an e-commerce application where users can manage their shopping carts. To control access to cart-related actions, you can create custom permissions for the cart resource.
 
 Sample custom permission requirements:
 
-| **Permission Name** | **Permission Title** | **Namespace** | **Description**                                            |
-| ------------------- | -------------------- | ------------- | ---------------------------------------------------------- |
-| **delete**          | Cart Delete          | potato/cart   | Grants the ability to delete items from the shopping cart. |
-| **update**          | Cart Update          | potato/cart   | Allows updating the contents of the shopping cart.         |
-| **get**             | Cart Get             | potato/cart   | Enables retrieving the details of the shopping cart.       |
+| **Key**              | **Permission Title** | **Description**                                            |
+| -------------------- | -------------------- | ---------------------------------------------------------- |
+| `potato.cart.delete` | Cart Delete          | Grants the ability to delete items from the shopping cart. |
+| `potato.cart.update` | Cart Update          | Allows updating the contents of the shopping cart.         |
+| `potato.cart.get`    | Cart Get             | Enables retrieving the details of the shopping cart.       |
 
-This is how the [resource config file](https://github.com/raystack/frontier/blob/7cae6bf86e99fe96650c6dcd4e8207cb916b8184/test/e2e/smoke/testdata/resource/potato.yaml#L4) will look like
+This is how the desired-state file for these permissions looks:
+
+```yaml
+apiVersion: v1
+kind: Permission
+spec:
+  - key: potato.cart.delete
+  - key: potato.cart.update
+  - key: potato.cart.get
+```
 
 :::info
-While creating permissions, it is important to note that the namespace is appended to the permission name to generate a permission slug. For instance, the **delete** permission name will be appended with namespace **potato/cart**, to generate the final permission slug as **potato_cart_delete** in Frontier. This naming convention is used to ensure uniqueness and organization of permissions within Frontier. While creating a role, we pass the list of these permission slugs being binded to that role.
+Frontier turns a permission key into a slug by replacing the dots with underscores. So `potato.cart.delete` becomes the slug `potato_cart_delete`. When you create a role, you bind it to these permission slugs.
 :::
 
 ## Managing Permission
