@@ -16,7 +16,6 @@ import {
   GetBillingBalanceRequestSchema,
   GetOrganizationKycResponseSchema,
   type Organization,
-  type User,
 } from "@raystack/proton/frontier";
 
 export type OrganizationDetailsViewProps = {
@@ -118,40 +117,18 @@ export const OrganizationDetailsView = ({
     { enabled: !!organizationId },
   );
 
-  // Fetch organization members
   const {
-    data: orgMembersMap = {},
-    isLoading: isOrgMembersMapLoading,
-    error: orgMembersError,
+    data: firstBillingAccountId = "",
+    isLoading: isBillingAccountsLoading,
+    error: billingAccountsError,
   } = useQuery(
-    FrontierServiceQueries.listOrganizationUsers,
-    { id: organizationId || "" },
+    FrontierServiceQueries.listBillingAccounts,
+    { orgId: organizationId || "" },
     {
       enabled: !!organizationId,
-      select: (data) => {
-        const users = data?.users || [];
-        return users.reduce(
-          (acc, user) => {
-            const id = user.id || "";
-            acc[id] = user;
-            return acc;
-          },
-          {} as Record<string, User>,
-        );
-      },
+      select: (data) => data?.billingAccounts?.[0]?.id || "",
     },
   );
-
-  // Fetch billing accounts list
-  const { data: firstBillingAccountId = "", error: billingAccountsError } =
-    useQuery(
-      FrontierServiceQueries.listBillingAccounts,
-      { orgId: organizationId || "" },
-      {
-        enabled: !!organizationId,
-        select: (data) => data?.billingAccounts?.[0]?.id || "",
-      },
-    );
 
   // Fetch billing account details
   const {
@@ -176,6 +153,9 @@ export const OrganizationDetailsView = ({
 
   const billingAccount = billingAccountData?.billingAccount;
   const billingAccountDetails = billingAccountData?.billingAccountDetails;
+
+  // getBillingAccount is disabled until the list yields an id.
+  const isBillingLoading = isBillingAccountsLoading || isBillingAccountLoading;
 
   // Fetch billing balance
   const {
@@ -202,9 +182,6 @@ export const OrganizationDetailsView = ({
     if (kycError) {
       console.error("Failed to fetch KYC details:", kycError);
     }
-    if (orgMembersError) {
-      console.error("Failed to fetch organization members:", orgMembersError);
-    }
     if (billingAccountsError) {
       console.error("Failed to fetch billing accounts:", billingAccountsError);
     }
@@ -220,14 +197,13 @@ export const OrganizationDetailsView = ({
   }, [
     organizationError,
     kycError,
-    orgMembersError,
     billingAccountsError,
     billingAccountError,
     tokenBalanceError,
   ]);
 
-  const isLoading =
-    isOrganizationLoading || isRolesLoading || isBillingAccountLoading;
+  // Billing waits on an id, so including it here remounted the tab mid-load.
+  const isLoading = isOrganizationLoading || isRolesLoading;
   return (
     <OrganizationContext.Provider
       value={{
@@ -236,13 +212,11 @@ export const OrganizationDetailsView = ({
         roles,
         billingAccount,
         billingAccountDetails,
-        isBillingAccountLoading,
+        isBillingAccountLoading: isBillingLoading,
         fetchBillingAccountDetails,
         tokenBalance,
-        isTokenBalanceLoading,
+        isTokenBalanceLoading: isBillingAccountsLoading || isTokenBalanceLoading,
         fetchTokenBalance,
-        orgMembersMap,
-        isOrgMembersMapLoading,
         updateKYCDetails,
         kycDetails,
         isKYCLoading,

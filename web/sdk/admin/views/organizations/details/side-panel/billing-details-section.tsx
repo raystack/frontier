@@ -14,12 +14,17 @@ import {
 } from "~/admin/utils/connect-timestamp";
 
 export const BillingDetailsSection = () => {
-  const { billingAccount, organization } = useContext(OrganizationContext);
+  const { billingAccount, organization, isBillingAccountLoading } =
+    useContext(OrganizationContext);
 
   const organizationId = organization?.id || "";
   const billingAccountId = billingAccount?.id || "";
 
-  const { data: upcomingInvoice, isLoading, error } = useQuery(
+  const {
+    data: upcomingInvoice,
+    isLoading: isUpcomingInvoiceLoading,
+    error,
+  } = useQuery(
     FrontierServiceQueries.getUpcomingInvoice,
     create(GetUpcomingInvoiceRequestSchema, {
       orgId: organizationId,
@@ -36,6 +41,9 @@ export const BillingDetailsSection = () => {
       console.error("Error fetching upcoming invoice:", error);
     }
   }, [error]);
+
+  const isLoading = isBillingAccountLoading || isUpcomingInvoiceLoading;
+
   const due_date = upcomingInvoice?.dueDate || upcomingInvoice?.periodEndAt;
 
   const stripeLink = billingAccount?.providerId

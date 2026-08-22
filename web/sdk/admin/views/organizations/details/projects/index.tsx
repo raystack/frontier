@@ -7,7 +7,7 @@ import {
 } from "@raystack/apsara";
 import { PageTitle } from "~/admin/components/PageTitle";
 import styles from "./projects.module.css";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { getColumns } from "./columns";
 import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
@@ -23,11 +23,14 @@ import {
 import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
 import { useDebouncedValue } from '~hooks';
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { useOrgMembersMap } from "~/admin/hooks/useOrgMembersMap";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+  // Must match DataTable's mount emit, or it refetches.
+  sort: [DEFAULT_SORT],
 };
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
@@ -83,8 +86,12 @@ const ErrorState = () => {
 
 export function OrganizationProjectsView() {
   const t = useTerminology();
-  const { organization, search, orgMembersMap, isOrgMembersMapLoading } =
-    useContext(OrganizationContext);
+  const { organization, search } = useContext(OrganizationContext);
+  const {
+    data: orgMembersMap = {},
+    isLoading: isOrgMembersMapLoading,
+    error: orgMembersError,
+  } = useOrgMembersMap(organization?.id);
   const {
     onChange: onSearchChange,
     setVisibility: setSearchVisibility,
@@ -154,9 +161,15 @@ export function OrganizationProjectsView() {
     setTableQuery(newQuery);
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const fetchMore = async () => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
+    if (!hasNextPage || isFetchingNextPage || isError || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+    try {
       await fetchNextPage();
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 
@@ -166,6 +179,12 @@ export function OrganizationProjectsView() {
     // Refetch the query instead of manually updating
     refetchOrgProjects();
   }
+
+  useEffect(() => {
+    if (orgMembersError) {
+      console.error("Failed to fetch organization members:", orgMembersError);
+    }
+  }, [orgMembersError]);
 
   useEffect(() => {
     setSearchVisibility(true);

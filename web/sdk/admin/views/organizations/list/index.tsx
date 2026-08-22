@@ -1,6 +1,6 @@
 import { Button, DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
@@ -68,6 +68,8 @@ const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+  // Must match DataTable's mount emit, or it refetches.
+  sort: [DEFAULT_SORT],
 };
 
 export type OrganizationListViewProps = {
@@ -118,6 +120,7 @@ export const OrganizationListView = ({
     isLoading,
     isFetchingNextPage,
     fetchNextPage,
+    hasNextPage,
     error,
     isError,
   } = useInfiniteQuery(
@@ -164,11 +167,17 @@ export const OrganizationListView = ({
     });
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const handleLoadMore = async () => {
+    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
     try {
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more organizations:", error);
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 

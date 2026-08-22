@@ -6,7 +6,7 @@ import {
   Flex,
 } from "@raystack/apsara";
 import { useDebouncedState } from "@raystack/apsara/hooks";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Navbar from "./navbar";
 import styles from "./audit-logs.module.css";
 import { getColumns } from "./columns";
@@ -48,6 +48,8 @@ const DEFAULT_SORT: DataTableSort = { name: "occurredAt", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+  // Must match DataTable's mount emit, or it refetches.
+  sort: [DEFAULT_SORT],
 };
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
@@ -140,12 +142,17 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
     [queryClient],
   );
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const handleLoadMore = async () => {
+    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
     try {
-      if (!hasNextPage) return;
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more audit logs:", error);
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 

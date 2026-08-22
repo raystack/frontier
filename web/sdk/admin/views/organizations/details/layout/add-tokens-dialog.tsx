@@ -37,8 +37,13 @@ const addTokensSchema = z.object({
 type AddTokenRequestType = z.infer<typeof addTokensSchema>;
 
 export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
-  const { organization, billingAccount, fetchTokenBalance, tokenProductId } =
-    useContext(OrganizationContext);
+  const {
+    organization,
+    billingAccount,
+    isBillingAccountLoading,
+    fetchTokenBalance,
+    tokenProductId,
+  } = useContext(OrganizationContext);
   const queryClient = useQueryClient();
   const transport = useTransport();
   const organisationId = organization?.id || "";
@@ -79,8 +84,14 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
     },
   );
 
+  /*
+   * Checkout needs an org and a billing account to target. Orgs without one
+   * would otherwise submit into the guard below and get no feedback at all.
+   */
+  const canCheckout = !!organisationId && !!billingAccountId;
+
   const onSubmit = async (product_body: AddTokenRequestType) => {
-    if (!organisationId) return;
+    if (!canCheckout) return;
     await delegatedCheckout(
       create(DelegatedCheckoutRequestSchema, {
         orgId: organisationId,
@@ -153,6 +164,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                 data-test-id="add-tokens-invite-button"
                 type="submit"
                 loaderText="Adding..."
+                disabled={isBillingAccountLoading || !canCheckout || isSubmitting}
                 loading={isSubmitting}
               >
                 Add

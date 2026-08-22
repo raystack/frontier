@@ -4,12 +4,14 @@ import type { ReactNode } from "react";
 import { TransportProvider } from "@connectrpc/connect-query";
 import { jsonTransport as transport } from "~/connect/transport";
 
-// Create a QueryClient instance
+/* Otherwise every mount refetches. Mutations invalidate their own keys;
+ * the search tables opt out with staleTime: 0. */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      staleTime: 30 * 1000,
     },
   },
 });

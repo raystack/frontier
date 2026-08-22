@@ -126,6 +126,7 @@ export function EditBillingPanel({ open = false, onClose }: EditBillingPanelProp
   );
 
   const onSubmit = async (data: BillingDetailsForm) => {
+    if (!organizationId || !billingId) return;
     try {
       // For prepaid, set values to 0; for postpaid, use form values
       const creditMinValue = data.tokenPaymentType === "prepaid" ? 0n : BigInt(data.creditMin);

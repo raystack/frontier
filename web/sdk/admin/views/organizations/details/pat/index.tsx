@@ -1,7 +1,7 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import { LockClosedIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";
 import {
   AdminServiceQueries,
@@ -26,6 +26,8 @@ const DEFAULT_SORT: DataTableSort = { name: "createdAt", order: "desc" };
 const INITIAL_QUERY: DataTableQuery = {
   offset: 0,
   limit: DEFAULT_PAGE_SIZE,
+  // Must match DataTable's mount emit, or it refetches.
+  sort: [DEFAULT_SORT],
 };
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
@@ -171,9 +173,15 @@ export function OrganizationPatView() {
     setTableQuery(newQuery);
   };
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const fetchMore = async () => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
+    if (!hasNextPage || isFetchingNextPage || isError || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
+    try {
       await fetchNextPage();
+    } finally {
+      isLoadingMoreRef.current = false;
     }
   };
 

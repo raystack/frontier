@@ -3,7 +3,6 @@ import {
   OrganizationSchema,
   type Role,
   type BillingAccount,
-  type User,
   type OrganizationKyc,
   type BillingAccountDetails,
 } from "@raystack/proton/frontier";
@@ -29,8 +28,6 @@ interface OrganizationContextType {
   tokenBalance: string;
   isTokenBalanceLoading: boolean;
   fetchTokenBalance: () => void;
-  orgMembersMap: Record<string, User>;
-  isOrgMembersMapLoading: boolean;
   updateKYCDetails: (kycDetails: OrganizationKyc | undefined) => void;
   kycDetails?: OrganizationKyc;
   isKYCLoading: boolean;
@@ -55,8 +52,6 @@ const defaultOrganiztionContextValue = {
     query: "",
     onChange: () => {},
   },
-  orgMembersMap: {},
-  isOrgMembersMapLoading: false,
   updateKYCDetails: () => {},
   kycDetails: undefined,
   isKYCLoading: false,

@@ -7,6 +7,7 @@ import { FrontierServiceQueries, ListProjectUsersRequestSchema, ListRolesRequest
 import { create } from "@bufbuild/protobuf";
 import { handleConnectError } from "~/utils/error";
 import { useTerminology } from "../../../../hooks/useTerminology";
+import { useOrgMembersMap } from "../../../../hooks/useOrgMembersMap";
 
 interface useAddProjectMembersProps {
   projectId: string;
@@ -15,7 +16,8 @@ interface useAddProjectMembersProps {
 export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
   const t = useTerminology();
   const memberLabel = t.member({ case: "capital" });
-  const { orgMembersMap } = useContext(OrganizationContext);
+  const { organization } = useContext(OrganizationContext);
+  const { data: orgMembersMap = {} } = useOrgMembersMap(organization?.id);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { data: projectMembers, isLoading, refetch } = useQuery(

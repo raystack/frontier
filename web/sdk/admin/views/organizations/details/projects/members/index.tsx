@@ -1,6 +1,6 @@
 import { AlertDialog, DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery } from "@raystack/apsara";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import {
   AdminServiceQueries,
@@ -139,14 +139,19 @@ export const ProjectMembersDialog = ({
     });
   }, []);
 
+  // isFetchingNextPage lags a render; the ref doesn't.
+  const isLoadingMoreRef = useRef(false);
   const handleLoadMore = useCallback(async () => {
+    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
+    isLoadingMoreRef.current = true;
     try {
-      if (!hasNextPage) return;
       await fetchNextPage();
     } catch (error) {
       console.error("Error loading more project members:", error);
+    } finally {
+      isLoadingMoreRef.current = false;
     }
-  }, [hasNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   async function refetchMembers() {
     await refetch();
@@ -217,7 +222,6 @@ export const ProjectMembersDialog = ({
               data={data}
               isLoading={isLoading}
               mode="server"
-              defaultSort={{ name: "", order: "desc" }}
               onTableQueryChange={onTableQueryChange}
               onLoadMore={handleLoadMore}
             >
