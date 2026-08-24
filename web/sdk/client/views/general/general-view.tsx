@@ -53,13 +53,13 @@ type FormData = yup.InferType<typeof generalSchema>;
 // An unknown kind falls back to the server's own message.
 const BLOCKER_INSTRUCTIONS: Record<string, (count: number) => string> = {
   ACTIVE_SUBSCRIPTION: () =>
-    'Downgrade the subscription to the standard plan',
+    'Please downgrade the subscription to the standard plan',
   UNPAID_INVOICE: count =>
     count > 1
-      ? `Pay the ${count} open invoices from the billing page`
-      : 'Pay the open invoice from the billing page',
+      ? `Please pay the ${count} open invoices from the billing page`
+      : 'Please pay the open invoice from the billing page',
   NEGATIVE_TOKEN_BALANCE: () =>
-    'Contact support to settle the token balance'
+    'Please contact support to settle the token balance'
 };
 
 export interface GeneralViewProps {
