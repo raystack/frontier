@@ -64,9 +64,20 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 		product.ID = uuid.New().String()
 		product.ProviderID = product.ID
 	}
+	// Capture whether the caller stated a behavior before SetDefaults fills the
+	// "basic" default, so an explicit behavior is honored and only an omitted one
+	// on a credit product falls back to "credits".
+	statedBehavior := product.Behavior
 	defaults.SetDefaults(&product)
-	if product.Config.CreditAmount > 0 {
+	if statedBehavior == "" && product.Config.CreditAmount > 0 {
 		product.Behavior = CreditBehavior
+	}
+	// Credits are only granted for the credits behavior, so a positive credit
+	// amount on any other behavior would store credits that no path ever awards.
+	// Reject the contradiction instead of silently keeping a product whose credits
+	// are dead.
+	if product.Config.CreditAmount > 0 && product.Behavior != CreditBehavior {
+		return Product{}, fmt.Errorf("%w: credit_amount %d needs behavior %q, got %q", ErrInvalidDetail, product.Config.CreditAmount, CreditBehavior, product.Behavior)
 	}
 	product.Name = strings.ToLower(product.Name)
 

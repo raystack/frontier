@@ -120,6 +120,12 @@ func (r *PlatformUserReconciler) Export(ctx context.Context) (any, error) {
 	return specs, nil
 }
 
+// fetchCurrent lists the platform principals the reconciler manages. Disabled
+// users are out of scope: ListPlatformUsers resolves users through a store
+// query that filters out disabled accounts, so a disabled admin never appears
+// here. It is therefore neither exported nor removed by an empty file, and a file
+// that lists a disabled user cannot converge. Re-enable the user to manage their
+// platform access. Service users cannot be disabled today, so they are always listed.
 func (r *PlatformUserReconciler) fetchCurrent(ctx context.Context) ([]platformPrincipal, error) {
 	resp, err := r.client.ListPlatformUsers(ctx, authReq(&frontierv1beta1.ListPlatformUsersRequest{}, r.header))
 	if err != nil {

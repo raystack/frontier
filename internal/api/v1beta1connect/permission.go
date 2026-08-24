@@ -26,11 +26,12 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 		if permName == "" || permNamespace == "" {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
 		}
-		if !schema.IsValidPermissionName(permName) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters"))
-		}
-		if !schema.IsValidPermissionNamespace(permNamespace) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
+		// One shared check for the verb grammar, the namespace grammar, the reserved
+		// verbs, and the slug length, so the create API and the reconcile plan agree
+		// and a permission that would fail when SpiceDB compiles the schema is
+		// rejected up front with a message that says which rule it broke.
+		if err := schema.ValidateCustomPermission(permNamespace, permName); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		permissionSlugs = append(permissionSlugs, schema.FQPermissionNameFromNamespace(permNamespace, permName))
 
@@ -123,11 +124,10 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 	if permNamespace == "" || permName == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
 	}
-	if !schema.IsValidPermissionName(permName) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters"))
-	}
-	if !schema.IsValidPermissionNamespace(permNamespace) {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
+	// Same shared check as create, so an update cannot rename a permission to a key
+	// SpiceDB will reject and then break the next schema compile at boot.
+	if err := schema.ValidateCustomPermission(permNamespace, permName); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 	updatedPermission, err := h.permissionService.Update(ctx, permission.Permission{
 		ID:          request.Msg.GetId(),

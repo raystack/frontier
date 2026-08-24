@@ -112,6 +112,29 @@ func TestRun_SpecHandling(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, rec.called)
 	})
+
+	t.Run("a document with an unknown top-level field is rejected", func(t *testing.T) {
+		rec := &fakeReconciler{}
+		reg := map[string]Reconciler{KindPlatformUser: rec}
+
+		// A stray top-level key (here a typo of "spec") must fail the file rather
+		// than being ignored, the same way entry decoding rejects unknown fields.
+		_, err := Run(context.Background(), reg, []byte("kind: PlatformUser\nspec: []\nspce: oops\n"), false)
+		assert.ErrorContains(t, err, "field spce not found")
+		assert.Zero(t, rec.called)
+	})
+
+	t.Run("an unknown field in a later document is rejected", func(t *testing.T) {
+		rec := &fakeReconciler{}
+		reg := map[string]Reconciler{KindPlatformUser: rec}
+
+		// The stray key sits in the second document. The check must fire on every
+		// document, not only the first, which is the whole point of checking the file.
+		file := []byte("kind: PlatformUser\nspec: []\n---\nkind: PlatformUser\nspec: []\nspce: oops\n")
+		_, err := Run(context.Background(), reg, file, false)
+		assert.ErrorContains(t, err, "field spce not found")
+		assert.Zero(t, rec.called)
+	})
 }
 
 func TestExport_Errors(t *testing.T) {

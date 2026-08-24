@@ -132,6 +132,16 @@ func validateBillingProductSpec(s BillingProductSpec) error {
 		return fmt.Errorf("product %q cannot be deleted: there is no product delete or deactivate API; remove the entry and archive the product by hand", s.Name)
 	}
 
+	// Credits are only granted for the credits behavior. A positive credit amount
+	// with any other stated behavior stores credits the server never awards, so
+	// reject it at plan time rather than apply a product whose credits are dead. An
+	// omitted behavior is fine: the server coerces it to credits when there is a
+	// credit amount.
+	behavior := strings.ToLower(strings.TrimSpace(s.Behavior))
+	if s.Config.CreditAmount > 0 && behavior != "" && behavior != string(product.CreditBehavior) {
+		return fmt.Errorf("product %q sets credit_amount %d with behavior %q: credits are only granted for the %q behavior", s.Name, s.Config.CreditAmount, behavior, product.CreditBehavior)
+	}
+
 	seenPrice := map[string]struct{}{}
 	for _, p := range s.Prices {
 		priceName := strings.ToLower(strings.TrimSpace(p.Name))
@@ -259,14 +269,14 @@ func billingProductChanges(s BillingProductSpec, cur currentBillingProduct) ([]s
 	if s.Description != cur.Description {
 		changes = append(changes, "description")
 	}
-	// behavior is create-only: the server sets it at create (rewriting it to
-	// "credits" when credit_amount > 0) and never changes it on update. A file
-	// that asks to change it to something the product is not cannot apply, so fail
-	// the plan rather than skip it in silence. A credit product's behavior is
-	// always "credits", so fold that in to avoid a false failure when the file
-	// still names a behavior alongside a credit amount.
+	// behavior is create-only: the server sets it at create and never changes it
+	// on update. The file's behavior is honored as written, so a file that names a
+	// behavior the product was not created with fails the plan rather than being
+	// silently overridden. Only an omitted behavior on a credit product falls back
+	// to "credits", matching the server's create-time default, so an omitted
+	// behavior does not read as a change against a credit product.
 	expectedBehavior := s.Behavior
-	if s.Config.CreditAmount > 0 {
+	if expectedBehavior == "" && s.Config.CreditAmount > 0 {
 		expectedBehavior = "credits"
 	}
 	if expectedBehavior != "" && expectedBehavior != cur.Behavior {
@@ -298,14 +308,24 @@ func billingConfigChanged(desired, cur BillingProductConfig) bool {
 		desired.MaxQuantity != cur.MaxQuantity
 }
 
+// normalizeFeatureName is the canonical form of a feature name, used only to
+// compare the desired and current feature sets so a case or whitespace difference
+// does not plan a spurious update. The apply does not use it: the server matches
+// and stores feature names verbatim, so sending a normalized name would miss a
+// differently cased stored feature and fork a duplicate. Making the two fully
+// agree needs the server to canonicalize feature names, which is a separate change.
+func normalizeFeatureName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
 func billingFeatureSetsEqual(desired []BillingFeatureRef, current []string) bool {
 	d := make([]string, 0, len(desired))
 	for _, f := range desired {
-		d = append(d, strings.ToLower(strings.TrimSpace(f.Name)))
+		d = append(d, normalizeFeatureName(f.Name))
 	}
 	c := make([]string, 0, len(current))
 	for _, name := range current {
-		c = append(c, strings.ToLower(strings.TrimSpace(name)))
+		c = append(c, normalizeFeatureName(name))
 	}
 	return stringSetsEqual(uniqueSorted(d), uniqueSorted(c))
 }
