@@ -40,7 +40,6 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const {
     organization,
     billingAccount,
-    isBillingAccountLoading,
     fetchTokenBalance,
     tokenProductId,
   } = useContext(OrganizationContext);
@@ -164,7 +163,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
                 data-test-id="add-tokens-invite-button"
                 type="submit"
                 loaderText="Adding..."
-                disabled={isBillingAccountLoading || !canCheckout || isSubmitting}
+                disabled={!canCheckout || isSubmitting}
                 loading={isSubmitting}
               >
                 Add
