@@ -1,5 +1,5 @@
 import { OrganizationDetailsView, useAdminPaths } from '@raystack/frontier/admin';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, Outlet, Navigate } from 'react-router-dom';
 import { createConnectQueryKey, useQuery, useTransport } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
@@ -85,12 +85,11 @@ export default function OrganizationDetailsPage() {
   const orgId = stateOrgId || (paramIsId ? urlParam : org?.id);
   const notFound = needsResolve && isSuccess && !org?.id;
 
-  /* The slug resolve caches under the slug, so seed the id key the view uses.
-   * In render, not an effect: the view mounts this commit. Empty keys only —
-   * this copy can be stale, and edits invalidate the id key, not the slug. */
-  const primedOrgId = useRef<string | undefined>(undefined);
-  if (org?.id && org.id !== urlParam && primedOrgId.current !== org.id) {
-    primedOrgId.current = org.id;
+  /* Resolve caches under the slug, so seed the id key the view reads. Layout,
+   * not passive: the view subscribes to that key in a passive effect this same
+   * commit. Empty keys only — this copy can go stale, edits invalidate the id. */
+  useLayoutEffect(() => {
+    if (!org?.id || org.id === urlParam) return;
     const orgKey = createConnectQueryKey({
       schema: FrontierServiceQueries.getOrganization,
       transport,
@@ -103,7 +102,7 @@ export default function OrganizationDetailsPage() {
         create(GetOrganizationResponseSchema, { organization: org }),
       );
     }
-  }
+  }, [org, urlParam, queryClient, transport]);
 
   /*
    * Old UUID bookmark → canonical slug URL:
