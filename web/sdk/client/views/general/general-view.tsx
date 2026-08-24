@@ -14,9 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   FrontierServiceQueries,
   UpdateOrganizationRequestSchema,
-  RQLRequestSchema,
-  RQLFilterSchema,
-  RQLSortSchema
+  RQLRequestSchema
 } from '@raystack/proton/frontier';
 import {
   Button,
@@ -32,8 +30,7 @@ import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
 import { useOrganizationInvoices } from '../../hooks/useOrganizationInvoices';
-import { INVOICE_STATES } from '../../utils/constants';
-import { DEFAULT_PAGE_SIZE } from '../../utils/connect-pagination';
+import { openInvoiceFilters } from '../../utils/invoice-queries';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -53,24 +50,13 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
-// Open invoices with a non-zero amount. The server refuses the delete while
-// any exist, so the delete button greys out and explains why.
-const OPEN_INVOICES_QUERY = create(RQLRequestSchema, {
-  filters: [
-    create(RQLFilterSchema, {
-      name: 'state',
-      operator: 'eq',
-      value: { case: 'stringValue', value: INVOICE_STATES.OPEN }
-    }),
-    create(RQLFilterSchema, {
-      name: 'amount',
-      operator: 'gt',
-      value: { case: 'numberValue', value: 0 }
-    })
-  ],
-  sort: [create(RQLSortSchema, { name: 'created_at', order: 'desc' })],
+// The server refuses the delete while an unpaid invoice exists, so the
+// delete button greys out and explains why. Only existence matters here,
+// hence one row and no sort.
+const HAS_UNPAID_INVOICES_QUERY = create(RQLRequestSchema, {
+  filters: openInvoiceFilters(),
   offset: 0,
-  limit: DEFAULT_PAGE_SIZE
+  limit: 1
 });
 
 export interface GeneralViewProps {
@@ -123,13 +109,14 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
 
   const isLoading = !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
 
-  const { invoices } = useOrganizationInvoices({
-    query: OPEN_INVOICES_QUERY,
+  const { invoices, isLoading: isInvoicesLoading } = useOrganizationInvoices({
+    query: HAS_UNPAID_INVOICES_QUERY,
     enabled: canDeleteWorkspace && !!organization?.id
   });
-  const hasUnpaidInvoices = invoices.some(
-    inv => inv.state === INVOICE_STATES.OPEN
-  );
+  // the query already filters to unpaid invoices; while the answer is still
+  // loading the button stays disabled rather than briefly allowing a delete
+  // the server would refuse
+  const hasUnpaidInvoices = invoices.length > 0;
 
   // Update organization form
   const { mutateAsync: updateOrganization } = useMutation(
@@ -321,7 +308,11 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                       variant="solid"
                       color="danger"
                       onClick={() => setShowDeleteDialog(true)}
-                      disabled={!canDeleteWorkspace || hasUnpaidInvoices}
+                      disabled={
+                        !canDeleteWorkspace ||
+                        hasUnpaidInvoices ||
+                        isInvoicesLoading
+                      }
                       data-test-id="frontier-sdk-delete-organization-btn"
                     >
                       Delete {orgLabelLower}

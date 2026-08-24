@@ -45,7 +45,9 @@ export const DeleteOrganizationDialog = ({
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
   const [isAcknowledged, setIsAcknowledged] = useState(false);
-  const { tokenBalance } = useTokens();
+  // fetched only while the dialog is open; the confirm button waits for the
+  // answer so the forfeit warning cannot be skipped by a slow response
+  const { tokenBalance, isTokensLoading } = useTokens({ enabled: open });
 
   const { mutateAsync: deleteOrganization } = useMutation(
     FrontierServiceQueries.deleteOrganization
@@ -85,7 +87,7 @@ export const DeleteOrganizationDialog = ({
     } catch (error) {
       handleConnectError(error, {
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        FailedPrecondition: (err) => toastManager.add({ title: `Cannot delete this ${orgLabelLower} yet`, description: err.rawMessage, type: 'error' }),
+        FailedPrecondition: (err) => toastManager.add({ title: `Cannot delete this ${orgLabelLower} yet`, description: err.message, type: 'error' }),
         NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
         Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
@@ -108,8 +110,9 @@ export const DeleteOrganizationDialog = ({
               {tokenBalance > 0 ? (
                 <Text size="small" variant="danger">
                   You have {tokenBalance.toString()} tokens remaining. Deleting
-                  the {orgLabelLower} forfeits them. Contact support to get the
-                  amount transferred to your bank account.
+                  the {orgLabelLower} forfeits them. Contact support about
+                  these tokens: any amount that was purchased can be
+                  transferred to your bank account.
                 </Text>
               ) : null}
               <Field
@@ -156,7 +159,12 @@ export const DeleteOrganizationDialog = ({
               variant="solid"
               color="danger"
               type="submit"
-              disabled={!deleteTitle || !isAcknowledged || isSubmitting}
+              disabled={
+                !deleteTitle ||
+                !isAcknowledged ||
+                isSubmitting ||
+                isTokensLoading
+              }
               data-test-id="frontier-sdk-delete-organization-btn"
               loading={isSubmitting}
               loaderText="Deleting..."

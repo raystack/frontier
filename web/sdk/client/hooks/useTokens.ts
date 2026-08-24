@@ -11,7 +11,13 @@ interface UseTokensReturn {
   fetchTokenBalance: () => Promise<any>;
 }
 
-export const useTokens = (): UseTokensReturn => {
+export interface UseTokensOptions {
+  // when false the balance is not fetched; callers that only need the
+  // balance in a rarely-opened surface (like a dialog) gate it on that
+  enabled?: boolean;
+}
+
+export const useTokens = (options: UseTokensOptions = {}): UseTokensReturn => {
   const { billingAccount } = useFrontier();
 
   const {
@@ -25,7 +31,7 @@ export const useTokens = (): UseTokensReturn => {
       id: billingAccount?.id ?? ''
     }),
     {
-      enabled: !!billingAccount?.id,
+      enabled: !!billingAccount?.id && (options.enabled ?? true),
       retry: false
     }
   );
