@@ -8,13 +8,14 @@ import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
+  useQuery,
   useTransport
 } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   FrontierServiceQueries,
   UpdateOrganizationRequestSchema,
-  RQLRequestSchema
+  CheckOrganizationDeleteRequestSchema
 } from '@raystack/proton/frontier';
 import {
   Button,
@@ -29,8 +30,6 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
-import { useOrganizationInvoices } from '../../hooks/useOrganizationInvoices';
-import { openInvoiceFilters } from '../../utils/invoice-queries';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -50,14 +49,18 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
-// The server refuses the delete while an unpaid invoice exists, so the
-// delete button greys out and explains why. Only existence matters here,
-// hence one row and no sort.
-const HAS_UNPAID_INVOICES_QUERY = create(RQLRequestSchema, {
-  filters: openInvoiceFilters(),
-  offset: 0,
-  limit: 1
-});
+// One short instruction per kind of delete blocker the server can report.
+// An unknown kind falls back to the server's own message.
+const BLOCKER_INSTRUCTIONS: Record<string, (count: number) => string> = {
+  ACTIVE_SUBSCRIPTION: () =>
+    'Downgrade the subscription to the standard plan',
+  UNPAID_INVOICE: count =>
+    count > 1
+      ? `Pay the ${count} open invoices from the billing page`
+      : 'Pay the open invoice from the billing page',
+  NEGATIVE_TOKEN_BALANCE: () =>
+    'Contact support to settle the token balance'
+};
 
 export interface GeneralViewProps {
   onDeleteSuccess?: () => void;
@@ -109,14 +112,34 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
 
   const isLoading = !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
 
-  const { invoices, isLoading: isInvoicesLoading } = useOrganizationInvoices({
-    query: HAS_UNPAID_INVOICES_QUERY,
-    enabled: canDeleteWorkspace && !!organization?.id
-  });
-  // the query already filters to unpaid invoices; while the answer is still
-  // loading the button stays disabled rather than briefly allowing a delete
-  // the server would refuse
-  const hasUnpaidInvoices = invoices.length > 0;
+  // the server's own answer to "would a delete go through right now" — the
+  // same blockers a real delete would refuse with. While it loads the button
+  // stays disabled rather than briefly allowing a delete the server would
+  // refuse; a failed check fails open since the server refuses independently
+  const { data: deleteCheck, isLoading: isDeleteCheckLoading } = useQuery(
+    FrontierServiceQueries.checkOrganizationDelete,
+    create(CheckOrganizationDeleteRequestSchema, {
+      id: organization?.id ?? ''
+    }),
+    {
+      enabled: canDeleteWorkspace && !!organization?.id,
+      retry: false
+    }
+  );
+  const isDeleteBlocked = !!deleteCheck && !deleteCheck.canDelete;
+  const blockerLines = useMemo(() => {
+    const blockers = deleteCheck?.blockers ?? [];
+    const counts = new Map<string, number>();
+    for (const blocker of blockers) {
+      counts.set(blocker.type, (counts.get(blocker.type) ?? 0) + 1);
+    }
+    return [...counts.entries()].map(
+      ([type, count]) =>
+        BLOCKER_INSTRUCTIONS[type]?.(count) ??
+        blockers.find(blocker => blocker.type === type)?.message ??
+        type
+    );
+  }, [deleteCheck]);
 
   // Update organization form
   const { mutateAsync: updateOrganization } = useMutation(
@@ -301,7 +324,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                 </Text>
                 <Tooltip>
                   <Tooltip.Trigger
-                    disabled={canDeleteWorkspace && !hasUnpaidInvoices}
+                    disabled={canDeleteWorkspace && !isDeleteBlocked}
                     render={<span className={styles.fitContent} />}
                   >
                     <Button
@@ -310,8 +333,8 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                       onClick={() => setShowDeleteDialog(true)}
                       disabled={
                         !canDeleteWorkspace ||
-                        hasUnpaidInvoices ||
-                        isInvoicesLoading
+                        isDeleteBlocked ||
+                        isDeleteCheckLoading
                       }
                       data-test-id="frontier-sdk-delete-organization-btn"
                     >
@@ -320,10 +343,13 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                   </Tooltip.Trigger>
                   {!canDeleteWorkspace ? (
                     <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
-                  ) : hasUnpaidInvoices ? (
+                  ) : isDeleteBlocked ? (
                     <Tooltip.Content>
-                      There are unpaid invoices. Pay them from the billing page
-                      before deleting the {orgLabelLower}.
+                      <Flex direction="column" gap={2}>
+                        {blockerLines.map(line => (
+                          <span key={line}>{line}</span>
+                        ))}
+                      </Flex>
                     </Tooltip.Content>
                   ) : null}
                 </Tooltip>
