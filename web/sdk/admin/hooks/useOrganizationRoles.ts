@@ -6,7 +6,7 @@ import {
   ListRolesRequestSchema,
   ListOrganizationRolesRequestSchema,
 } from "@raystack/proton/frontier";
-import { SCOPES } from "~/admin/utils/constants";
+import { SCOPES, SHARED_QUERY_STALE_TIME } from "~/admin/utils/constants";
 
 interface UseOrganizationRolesOptions {
   /** Skip both fetches while false. Defaults to true. */
@@ -16,7 +16,7 @@ interface UseOrganizationRolesOptions {
 /*
   Roles assignable within an org: the platform's defaults plus the org's custom
   ones. Both halves are needed — a role id can come from either.
-  - react-query caches per key, so repeat callers share one fetch
+  - nothing writes roles, so repeat callers share one cached fetch
   - pass undefined/empty to skip the org-scoped half
 */
 export const useOrganizationRoles = (
@@ -32,6 +32,7 @@ export const useOrganizationRoles = (
     create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
     {
       enabled,
+      staleTime: SHARED_QUERY_STALE_TIME,
       select: (data) => data?.roles || [],
     },
   );
@@ -48,6 +49,7 @@ export const useOrganizationRoles = (
     }),
     {
       enabled: enabled && !!orgId,
+      staleTime: SHARED_QUERY_STALE_TIME,
       select: (data) => data?.roles || [],
     },
   );

@@ -249,15 +249,27 @@ export function OrganizationMembersView() {
   });
 
   async function invalidateMembersQuery() {
-    // Keys match partially: {} would hit every org; omitting query is deliberate.
-    await queryClient.invalidateQueries({
-      queryKey: createConnectQueryKey({
-        schema: AdminServiceQueries.searchOrganizationUsers,
-        transport,
-        input: { id: organizationId },
-        cardinality: "infinite",
+    /* Two reads per org: this table, and the map the projects surfaces cache.
+     * Keys match partially — omitting query is deliberate, an empty id is not. */
+    if (!organizationId) return;
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: AdminServiceQueries.searchOrganizationUsers,
+          transport,
+          input: { id: organizationId },
+          cardinality: "infinite",
+        }),
       }),
-    });
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listOrganizationUsers,
+          transport,
+          input: { id: organizationId },
+          cardinality: "finite",
+        }),
+      }),
+    ]);
   }
 
   async function updateMember() {

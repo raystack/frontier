@@ -10,6 +10,7 @@ import { create } from "@bufbuild/protobuf";
 import { OrganizationDetailsLayout } from "./layout";
 import { OrganizationContext } from "./contexts/organization-context";
 import { useOrganizationRoles } from "~/admin/hooks/useOrganizationRoles";
+import { SHARED_QUERY_STALE_TIME } from "~/admin/utils/constants";
 import {
   FrontierServiceQueries,
   GetBillingAccountRequestSchema,
@@ -70,6 +71,8 @@ export const OrganizationDetailsView = ({
     { id: organizationId },
     {
       enabled: !!organizationId,
+      // Holds the page's seed; edit and block/unblock invalidate this key.
+      staleTime: SHARED_QUERY_STALE_TIME,
       select: (data) => data?.organization,
     },
   );
