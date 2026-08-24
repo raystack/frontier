@@ -251,6 +251,9 @@ const (
 	// FrontierServiceDeleteOrganizationProcedure is the fully-qualified name of the FrontierService's
 	// DeleteOrganization RPC.
 	FrontierServiceDeleteOrganizationProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganization"
+	// FrontierServiceCheckOrganizationDeleteProcedure is the fully-qualified name of the
+	// FrontierService's CheckOrganizationDelete RPC.
+	FrontierServiceCheckOrganizationDeleteProcedure = "/raystack.frontier.v1beta1.FrontierService/CheckOrganizationDelete"
 	// FrontierServiceCreateProjectProcedure is the fully-qualified name of the FrontierService's
 	// CreateProject RPC.
 	FrontierServiceCreateProjectProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateProject"
@@ -647,6 +650,10 @@ type FrontierServiceClient interface {
 	EnableOrganization(context.Context, *connect.Request[v1beta1.EnableOrganizationRequest]) (*connect.Response[v1beta1.EnableOrganizationResponse], error)
 	DisableOrganization(context.Context, *connect.Request[v1beta1.DisableOrganizationRequest]) (*connect.Response[v1beta1.DisableOrganizationResponse], error)
 	DeleteOrganization(context.Context, *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error)
+	// CheckOrganizationDelete reports everything that currently blocks deleting
+	// the organization, without changing anything. An empty blocker list means
+	// DeleteOrganization would proceed right now.
+	CheckOrganizationDelete(context.Context, *connect.Request[v1beta1.CheckOrganizationDeleteRequest]) (*connect.Response[v1beta1.CheckOrganizationDeleteResponse], error)
 	// Projects
 	CreateProject(context.Context, *connect.Request[v1beta1.CreateProjectRequest]) (*connect.Response[v1beta1.CreateProjectResponse], error)
 	GetProject(context.Context, *connect.Request[v1beta1.GetProjectRequest]) (*connect.Response[v1beta1.GetProjectResponse], error)
@@ -1226,6 +1233,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceDeleteOrganizationProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganization")),
+			connect.WithClientOptions(opts...),
+		),
+		checkOrganizationDelete: connect.NewClient[v1beta1.CheckOrganizationDeleteRequest, v1beta1.CheckOrganizationDeleteResponse](
+			httpClient,
+			baseURL+FrontierServiceCheckOrganizationDeleteProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CheckOrganizationDelete")),
 			connect.WithClientOptions(opts...),
 		),
 		createProject: connect.NewClient[v1beta1.CreateProjectRequest, v1beta1.CreateProjectResponse](
@@ -1936,6 +1949,7 @@ type frontierServiceClient struct {
 	enableOrganization             *connect.Client[v1beta1.EnableOrganizationRequest, v1beta1.EnableOrganizationResponse]
 	disableOrganization            *connect.Client[v1beta1.DisableOrganizationRequest, v1beta1.DisableOrganizationResponse]
 	deleteOrganization             *connect.Client[v1beta1.DeleteOrganizationRequest, v1beta1.DeleteOrganizationResponse]
+	checkOrganizationDelete        *connect.Client[v1beta1.CheckOrganizationDeleteRequest, v1beta1.CheckOrganizationDeleteResponse]
 	createProject                  *connect.Client[v1beta1.CreateProjectRequest, v1beta1.CreateProjectResponse]
 	getProject                     *connect.Client[v1beta1.GetProjectRequest, v1beta1.GetProjectResponse]
 	updateProject                  *connect.Client[v1beta1.UpdateProjectRequest, v1beta1.UpdateProjectResponse]
@@ -2424,6 +2438,11 @@ func (c *frontierServiceClient) DisableOrganization(ctx context.Context, req *co
 // DeleteOrganization calls raystack.frontier.v1beta1.FrontierService.DeleteOrganization.
 func (c *frontierServiceClient) DeleteOrganization(ctx context.Context, req *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error) {
 	return c.deleteOrganization.CallUnary(ctx, req)
+}
+
+// CheckOrganizationDelete calls raystack.frontier.v1beta1.FrontierService.CheckOrganizationDelete.
+func (c *frontierServiceClient) CheckOrganizationDelete(ctx context.Context, req *connect.Request[v1beta1.CheckOrganizationDeleteRequest]) (*connect.Response[v1beta1.CheckOrganizationDeleteResponse], error) {
+	return c.checkOrganizationDelete.CallUnary(ctx, req)
 }
 
 // CreateProject calls raystack.frontier.v1beta1.FrontierService.CreateProject.
@@ -3043,6 +3062,10 @@ type FrontierServiceHandler interface {
 	EnableOrganization(context.Context, *connect.Request[v1beta1.EnableOrganizationRequest]) (*connect.Response[v1beta1.EnableOrganizationResponse], error)
 	DisableOrganization(context.Context, *connect.Request[v1beta1.DisableOrganizationRequest]) (*connect.Response[v1beta1.DisableOrganizationResponse], error)
 	DeleteOrganization(context.Context, *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error)
+	// CheckOrganizationDelete reports everything that currently blocks deleting
+	// the organization, without changing anything. An empty blocker list means
+	// DeleteOrganization would proceed right now.
+	CheckOrganizationDelete(context.Context, *connect.Request[v1beta1.CheckOrganizationDeleteRequest]) (*connect.Response[v1beta1.CheckOrganizationDeleteResponse], error)
 	// Projects
 	CreateProject(context.Context, *connect.Request[v1beta1.CreateProjectRequest]) (*connect.Response[v1beta1.CreateProjectResponse], error)
 	GetProject(context.Context, *connect.Request[v1beta1.GetProjectRequest]) (*connect.Response[v1beta1.GetProjectResponse], error)
@@ -3618,6 +3641,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceDeleteOrganizationProcedure,
 		svc.DeleteOrganization,
 		connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganization")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceCheckOrganizationDeleteHandler := connect.NewUnaryHandler(
+		FrontierServiceCheckOrganizationDeleteProcedure,
+		svc.CheckOrganizationDelete,
+		connect.WithSchema(frontierServiceMethods.ByName("CheckOrganizationDelete")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceCreateProjectHandler := connect.NewUnaryHandler(
@@ -4398,6 +4427,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceDisableOrganizationHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteOrganizationProcedure:
 			frontierServiceDeleteOrganizationHandler.ServeHTTP(w, r)
+		case FrontierServiceCheckOrganizationDeleteProcedure:
+			frontierServiceCheckOrganizationDeleteHandler.ServeHTTP(w, r)
 		case FrontierServiceCreateProjectProcedure:
 			frontierServiceCreateProjectHandler.ServeHTTP(w, r)
 		case FrontierServiceGetProjectProcedure:
@@ -4907,6 +4938,10 @@ func (UnimplementedFrontierServiceHandler) DisableOrganization(context.Context, 
 
 func (UnimplementedFrontierServiceHandler) DeleteOrganization(context.Context, *connect.Request[v1beta1.DeleteOrganizationRequest]) (*connect.Response[v1beta1.DeleteOrganizationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganization is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) CheckOrganizationDelete(context.Context, *connect.Request[v1beta1.CheckOrganizationDeleteRequest]) (*connect.Response[v1beta1.CheckOrganizationDeleteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckOrganizationDelete is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) CreateProject(context.Context, *connect.Request[v1beta1.CreateProjectRequest]) (*connect.Response[v1beta1.CreateProjectResponse], error) {
