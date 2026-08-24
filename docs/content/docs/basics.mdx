@@ -50,11 +50,13 @@ app:
 
   # platform level administration
   admin:
-    # email list of users which needs to be converted as superusers
-    # if the user is already present in the system, it is promoted to su
-    # if not, a new account is created with provided email id and promoted to su
-    users:
-      - test@example.com
+    # bootstrap seeds a superuser service account from config. Automation such as
+    # the GitOps reconcile flow logs in as it, so there is always a superuser
+    # without needing an existing one. Log in with:
+    # Authorization: Basic base64(client_id:client_secret).
+    bootstrap:
+      client_id: ""
+      client_secret: ""
   # smtp configuration for sending emails
   mailer:
     smtp_host: sandbox.smtp.mailtrap.io
@@ -85,7 +87,7 @@ to host frontier at somewhere like auth.example.com and main app at anywhere in 
 - app.authentication.session.hash_secret_key: random 32 char key
 - app.authentication.session.block_secret_key: random 32 char key
 - app.cors_origin: url of the frontend to allow cross-origin request
-- admin.users: list of emails we want to be promoted as instance admins
+- admin.bootstrap: client_id and client_secret for the bootstrap superuser service account that automation logs in as
 - app.mailer.*: all these details are used to send the email to user. Get test configurations from `mailtrap.io` for testing.
 - db.url: local database instance credentials in following form
   - `postgres://<username>:<password>@<hostname>:<hostport>/<database_name>?sslmode=disable`
