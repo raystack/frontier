@@ -1,12 +1,10 @@
 import {
   DataTable,
-  type DataTableQuery,
   type DataTableSort,
   EmptyState,
   Flex,
 } from "@raystack/apsara";
-import { useDebouncedState } from "@raystack/apsara/hooks";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useEffect, useCallback, useMemo, useState } from "react";
 import Navbar from "./navbar";
 import styles from "./audit-logs.module.css";
 import { getColumns } from "./columns";
@@ -21,14 +19,14 @@ import {
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
-  DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import SidePanelDetails from "./sidepanel-details";
 import { useQueryClient } from "@tanstack/react-query";
 import { AUDIT_LOG_QUERY_KEY } from "./util";
 import { useTerminology } from "../../hooks/useTerminology";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const NoAuditLogs = () => {
   return (
@@ -45,12 +43,6 @@ const NoAuditLogs = () => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: "occurredAt", order: "desc" };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-  // Must match DataTable's mount emit, or it refetches.
-  sort: [DEFAULT_SORT],
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     occurredAt: "occurred_at",
@@ -75,19 +67,19 @@ export type AuditLogsViewProps = {
 export default function AuditLogsView({ appName, onExportCsv, onNavigate }: AuditLogsViewProps = {}) {
   const t = useTerminology();
   const queryClient = useQueryClient();
-  const [tableQuery, setTableQuery] = useDebouncedState<{
-    query: DataTableQuery;
-    rqlRequest: RQLRequest;
-  }>(
-    {
-      query: INITIAL_QUERY,
-      rqlRequest: transformDataTableQueryToRQLRequest(
-        INITIAL_QUERY,
-        TRANSFORM_OPTIONS,
-      ),
-    },
-    200,
-  );
+  const {
+    tableQuery,
+    rqlQuery,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+  });
+
+  /* The navbar's CSV export reads the live request off this key. */
+  useEffect(() => {
+    queryClient.setQueryData(AUDIT_LOG_QUERY_KEY, rqlQuery);
+  }, [queryClient, rqlQuery]);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [selectedAuditLog, setSelectedAuditLog] = useState<AuditRecord | null>(
     null,
@@ -103,13 +95,13 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
     hasNextPage,
   } = useInfiniteQuery(
     AdminServiceQueries.listAuditRecords,
-    { query: tableQuery.rqlRequest },
+    { query: rqlQuery },
     {
       pageParamKey: "query",
       getNextPageParam: lastPage =>
         getConnectNextPageParam(
           lastPage,
-          { query: tableQuery.rqlRequest },
+          { query: rqlQuery },
           "auditRecords",
         ),
       staleTime: 0,
@@ -122,39 +114,13 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
   const data =
     infiniteData?.pages?.flatMap(page => page?.auditRecords || []) || [];
 
-  const onTableQueryChange = useCallback(
-    (query: DataTableQuery) => {
-      const updatedQuery = {
-        ...query,
-        offset: 0,
-        limit: query.limit || DEFAULT_PAGE_SIZE,
-      };
-      const updatedRQLRequest = transformDataTableQueryToRQLRequest(
-        updatedQuery,
-        TRANSFORM_OPTIONS,
-      );
-      queryClient.setQueryData(AUDIT_LOG_QUERY_KEY, updatedRQLRequest);
-      setTableQuery({
-        query: updatedQuery,
-        rqlRequest: updatedRQLRequest,
-      });
-    },
-    [queryClient],
-  );
-
-  // isFetchingNextPage lags a render; the ref doesn't.
-  const isLoadingMoreRef = useRef(false);
-  const handleLoadMore = async () => {
-    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
-    isLoadingMoreRef.current = true;
-    try {
-      await fetchNextPage();
-    } catch (error) {
-      console.error("Error loading more audit logs:", error);
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  };
+  const handleLoadMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "audit logs",
+  });
 
   const columns = useMemo(
     () =>
@@ -201,7 +167,7 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
     <>
       <PageTitle title="Audit Logs" appName={appName} />
       <DataTable
-        query={tableQuery.query}
+        query={tableQuery}
         columns={columns}
         data={data}
         isLoading={loading}
@@ -211,7 +177,7 @@ export default function AuditLogsView({ appName, onExportCsv, onNavigate }: Audi
         onLoadMore={handleLoadMore}
         onRowClick={onRowClick}>
         <Flex direction="column" style={{ width: "100%" }}>
-          <Navbar searchQuery={tableQuery.query.search} onExportCsv={onExportCsv} />
+          <Navbar searchQuery={tableQuery.search} onExportCsv={onExportCsv} />
           <DataTable.Toolbar />
           <Flex className={styles["table-content-container"]}>
             <DataTable.VirtualizedContent

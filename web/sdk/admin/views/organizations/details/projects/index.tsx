@@ -2,12 +2,11 @@ import {
   DataTable,
   EmptyState,
   Flex,
-  type DataTableQuery,
   type DataTableSort,
 } from "@raystack/apsara";
 import { PageTitle } from "~/admin/components/PageTitle";
 import styles from "./projects.module.css";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import type { SearchOrganizationProjectsResponse_OrganizationProject } from "@raystack/proton/frontier";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
@@ -17,21 +16,14 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProjectsIcon } from "~/admin/assets/icons/ProjectsIcon";
 import { ProjectMembersDialog } from "./members";
 import {
-  getConnectNextPageParam,
-  DEFAULT_PAGE_SIZE
+  getConnectNextPageParam
 } from '~/utils/connect-pagination';
-import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
-import { useDebouncedValue } from '~hooks';
 import { useTerminology } from "~/admin/hooks/useTerminology";
 import { useOrgMembersMap } from "~/admin/hooks/useOrgMembersMap";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-  // Must match DataTable's mount emit, or it refetches.
-  sort: [DEFAULT_SORT],
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     createdAt: "created_at",
@@ -105,20 +97,17 @@ export function OrganizationProjectsView() {
     projectId: "",
   });
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
-
   const title = `${t.project({ plural: true, case: "capital" })} | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
-  const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
-    return {
-      ...tempQuery,
-      search: searchQuery || "",
-    };
-  }, [tableQuery, searchQuery]);
-
-  const query = useDebouncedValue(computedQuery, 200);
-
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+    search: searchQuery || "",
+  });
 
   const {
     data: infiniteData,
@@ -157,21 +146,13 @@ export function OrganizationProjectsView() {
   const showZeroState =
     !isLoading && !isError && !hasActiveQuery && data.length === 0;
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery(newQuery);
-  };
-
-  // isFetchingNextPage lags a render; the ref doesn't.
-  const isLoadingMoreRef = useRef(false);
-  const fetchMore = async () => {
-    if (!hasNextPage || isFetchingNextPage || isError || isLoadingMoreRef.current) return;
-    isLoadingMoreRef.current = true;
-    try {
-      await fetchNextPage();
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  };
+  const fetchMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "projects",
+  });
 
   function handleProjectUpdate(
     project: SearchOrganizationProjectsResponse_OrganizationProject,

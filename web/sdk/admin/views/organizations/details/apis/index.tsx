@@ -1,11 +1,11 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import type { DataTableSort } from "@raystack/apsara";
 import styles from "./apis.module.css";
 import {
   CodeIcon,
   ExclamationTriangleIcon,
 } from "@radix-ui/react-icons";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
 import { getColumns } from "./columns";
@@ -18,11 +18,10 @@ import {
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
-  DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
-import { useDebouncedValue } from "~hooks";
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const NoCredentials = () => {
   return (
@@ -66,12 +65,6 @@ const ErrorState = () => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-  // Must match DataTable's mount emit, or it refetches.
-  sort: [DEFAULT_SORT],
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     createdAt: "created_at",
@@ -88,18 +81,15 @@ export function OrganizationApisView() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
-
-  const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
-    return {
-      ...tempQuery,
-      search: searchQuery || "",
-    };
-  }, [tableQuery, searchQuery]);
-
-  const query = useDebouncedValue(computedQuery, 200);
-
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+    search: searchQuery || "",
+  });
 
   const [selectedServiceUser, setSelectedServiceUser] =
     useState<SearchOrganizationServiceUsersResponse_OrganizationServiceUser | null>(
@@ -146,23 +136,13 @@ export function OrganizationApisView() {
   const data =
     infiniteData?.pages?.flatMap(page => page?.organizationServiceUsers || []) || [];
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery(newQuery);
-  };
-
-  // isFetchingNextPage lags a render; the ref doesn't.
-  const isLoadingMoreRef = useRef(false);
-  const handleLoadMore = async () => {
-    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
-    isLoadingMoreRef.current = true;
-    try {
-      await fetchNextPage();
-    } catch (error) {
-      console.error("Error loading more service users:", error);
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  };
+  const handleLoadMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "service users",
+  });
 
   const loading = isLoading || isFetchingNextPage;
 

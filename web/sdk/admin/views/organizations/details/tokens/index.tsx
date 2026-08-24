@@ -1,26 +1,20 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import type { DataTableSort } from "@raystack/apsara";
 import styles from "./tokens.module.css";
 import { CoinIcon } from "@raystack/apsara/icons";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
 import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
-import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import { getConnectNextPageParam } from "~/utils/connect-pagination";
 import { getColumns } from "./columns";
-import { useDebouncedValue } from "~hooks";
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-  // Must match DataTable's mount emit, or it refetches.
-  sort: [DEFAULT_SORT],
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     createdAt: "created_at",
@@ -85,19 +79,17 @@ export function OrganizationTokensView() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
-
   const title = `Tokens | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
-  const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
-    return {
-      ...tempQuery,
-      search: searchQuery || "",
-    };
-  }, [tableQuery, searchQuery]);
-
-  const query = useDebouncedValue(computedQuery, 200);
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+    search: searchQuery || "",
+  });
 
   const {
     data: infiniteData,
@@ -139,21 +131,13 @@ export function OrganizationTokensView() {
   const showZeroState =
     !isLoading && !isError && !hasActiveQuery && data.length === 0;
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery(newQuery);
-  };
-
-  // isFetchingNextPage lags a render; the ref doesn't.
-  const isLoadingMoreRef = useRef(false);
-  const fetchMore = async () => {
-    if (!hasNextPage || isFetchingNextPage || isError || isLoadingMoreRef.current) return;
-    isLoadingMoreRef.current = true;
-    try {
-      await fetchNextPage();
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  };
+  const fetchMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "tokens",
+  });
 
   useEffect(() => {
     setSearchVisibility(true);

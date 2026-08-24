@@ -1,6 +1,6 @@
-import { Button, DataTable, EmptyState, Flex, type DataTableQuery, type DataTableSort } from "@raystack/apsara";
+import { Button, DataTable, EmptyState, Flex, type DataTableSort } from "@raystack/apsara";
 import { OrganizationIcon } from "@raystack/apsara/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
@@ -19,12 +19,11 @@ import { CreateOrganizationPanel } from "./create";
 import {
   getConnectNextPageParam,
   getGroupCountMapFromFirstPage,
-  DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { useDebouncedState } from "@raystack/apsara/hooks";
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const NoOrganizations = () => {
   const t = useTerminology();
@@ -65,12 +64,6 @@ const ZeroState = ({ openCreatePanel }: { openCreatePanel: () => void }) => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-  // Must match DataTable's mount emit, or it refetches.
-  sort: [DEFAULT_SORT],
-};
 
 export type OrganizationListViewProps = {
   /** App name displayed in the page title (e.g. "Frontier Admin"). */
@@ -98,20 +91,21 @@ export const OrganizationListView = ({
   const t = useTerminology();
   const [showCreatePanel, setShowCreatePanel] = useState(false);
 
-  const [tableQuery, setTableQuery] = useDebouncedState<DataTableQuery>(
-    INITIAL_QUERY,
-    200,
-  );
-
-  // Transform the DataTableQuery to RQLRequest format
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      createdBy: "created_by",
-      planName: "plan_name",
-      subscriptionCycleEndAt: "subscription_cycle_end_at",
-      paymentMode: "payment_mode",
-      subscriptionState: "subscription_state",
-      createdAt: "created_at",
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: {
+      fieldNameMapping: {
+        createdBy: "created_by",
+        planName: "plan_name",
+        subscriptionCycleEndAt: "subscription_cycle_end_at",
+        paymentMode: "payment_mode",
+        subscriptionState: "subscription_state",
+        createdAt: "created_at",
+      },
     },
   });
 
@@ -159,27 +153,13 @@ export const OrganizationListView = ({
     ? getGroupCountMapFromFirstPage(infiniteData)
     : {};
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery({
-      ...newQuery,
-      offset: 0,
-      limit: newQuery.limit || DEFAULT_PAGE_SIZE,
-    });
-  };
-
-  // isFetchingNextPage lags a render; the ref doesn't.
-  const isLoadingMoreRef = useRef(false);
-  const handleLoadMore = async () => {
-    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
-    isLoadingMoreRef.current = true;
-    try {
-      await fetchNextPage();
-    } catch (error) {
-      console.error("Error loading more organizations:", error);
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  };
+  const handleLoadMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "organizations",
+  });
 
   function closeCreateOrgPanel() {
     setShowCreatePanel(false);

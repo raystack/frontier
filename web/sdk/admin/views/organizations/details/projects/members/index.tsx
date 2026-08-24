@@ -1,6 +1,6 @@
 import { AlertDialog, DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara";
 import type { DataTableQuery } from "@raystack/apsara";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import {
   AdminServiceQueries,
@@ -8,11 +8,9 @@ import {
   GetProjectRequestSchema,
   ListRolesRequestSchema,
   type SearchProjectUsersResponse_ProjectUser,
-  type RQLRequest,
 } from "@raystack/proton/frontier";
 import { create } from "@bufbuild/protobuf";
 import { useQuery, useInfiniteQuery } from "@connectrpc/connect-query";
-import { useDebouncedState } from "@raystack/apsara/hooks";
 import styles from "./members.module.css";
 import { UsersIcon } from "../../../../../assets/icons/UsersIcon";
 import { getColumns } from "./columns";
@@ -20,8 +18,9 @@ import { UpdateRole, type UpdateRolePayload } from "./update-role";
 import { PROJECT_NAMESPACE } from "../../types";
 import { RemoveMember } from "./remove-member";
 import { AddMembersDropdown } from "./add-members-dropdown";
-import { getConnectNextPageParam, DEFAULT_PAGE_SIZE } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
+import { getConnectNextPageParam } from "~/utils/connect-pagination";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const NoMembers = () => {
   return (
@@ -37,11 +36,6 @@ const NoMembers = () => {
   );
 };
 
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-};
-
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
 export const ProjectMembersDialog = ({
@@ -53,16 +47,14 @@ export const ProjectMembersDialog = ({
   onClose: () => void;
   canAddMember: boolean;
 }) => {
-  const [tableQuery, setTableQuery] = useDebouncedState<{
-    query: DataTableQuery;
-    rqlRequest: RQLRequest;
-  }>(
-    {
-      query: INITIAL_QUERY,
-      rqlRequest: transformDataTableQueryToRQLRequest(INITIAL_QUERY, {}),
-    },
-    200,
-  );
+  const {
+    tableQuery,
+    rqlQuery,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    // This endpoint ignores sort, so keep it out of the request.
+    mapQuery: (query) => ({ ...query, sort: undefined }),
+  });
 
   const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
@@ -97,19 +89,20 @@ export const ProjectMembersDialog = ({
   const {
     data: infiniteData,
     isLoading: isMembersLoading,
+    isError,
     isFetchingNextPage,
     fetchNextPage,
     hasNextPage,
     refetch,
   } = useInfiniteQuery(
     AdminServiceQueries.searchProjectUsers,
-    { id: projectId, query: tableQuery.rqlRequest },
+    { id: projectId, query: rqlQuery },
     {
       pageParamKey: "query",
       getNextPageParam: (lastPage) =>
         getConnectNextPageParam(
           lastPage,
-          { query: tableQuery.rqlRequest },
+          { query: rqlQuery },
           "projectUsers",
         ),
       staleTime: 0,
@@ -122,36 +115,13 @@ export const ProjectMembersDialog = ({
   const data =
     infiniteData?.pages?.flatMap((page) => page?.projectUsers || []) || [];
 
-  const onTableQueryChange = useCallback((query: DataTableQuery) => {
-    const updatedQuery = {
-      ...query,
-      offset: 0,
-      limit: query.limit || DEFAULT_PAGE_SIZE,
-      sort: undefined, // Remove sort as it's not supported by this endpoint
-    };
-    const updatedRQLRequest = transformDataTableQueryToRQLRequest(
-      updatedQuery,
-      {},
-    );
-    setTableQuery({
-      query: updatedQuery,
-      rqlRequest: updatedRQLRequest,
-    });
-  }, []);
-
-  // isFetchingNextPage lags a render; the ref doesn't.
-  const isLoadingMoreRef = useRef(false);
-  const handleLoadMore = useCallback(async () => {
-    if (!hasNextPage || isFetchingNextPage || isLoadingMoreRef.current) return;
-    isLoadingMoreRef.current = true;
-    try {
-      await fetchNextPage();
-    } catch (error) {
-      console.error("Error loading more project members:", error);
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const handleLoadMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "project members",
+  });
 
   async function refetchMembers() {
     await refetch();
@@ -217,7 +187,7 @@ export const ProjectMembersDialog = ({
           </Dialog.Header>
           <Dialog.Body className={styles["dialog-body"]}>
             <DataTable
-              query={tableQuery.query}
+              query={tableQuery}
               columns={columns}
               data={data}
               isLoading={isLoading}
