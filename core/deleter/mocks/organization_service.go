@@ -69,12 +69,12 @@ func (_c *OrganizationService_DeleteModel_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
-// Get provides a mock function with given fields: ctx, id
-func (_m *OrganizationService) Get(ctx context.Context, id string) (organization.Organization, error) {
+// GetRaw provides a mock function with given fields: ctx, id
+func (_m *OrganizationService) GetRaw(ctx context.Context, id string) (organization.Organization, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Get")
+		panic("no return value specified for GetRaw")
 	}
 
 	var r0 organization.Organization
@@ -97,31 +97,31 @@ func (_m *OrganizationService) Get(ctx context.Context, id string) (organization
 	return r0, r1
 }
 
-// OrganizationService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
-type OrganizationService_Get_Call struct {
+// OrganizationService_GetRaw_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRaw'
+type OrganizationService_GetRaw_Call struct {
 	*mock.Call
 }
 
-// Get is a helper method to define mock.On call
+// GetRaw is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *OrganizationService_Expecter) Get(ctx interface{}, id interface{}) *OrganizationService_Get_Call {
-	return &OrganizationService_Get_Call{Call: _e.mock.On("Get", ctx, id)}
+func (_e *OrganizationService_Expecter) GetRaw(ctx interface{}, id interface{}) *OrganizationService_GetRaw_Call {
+	return &OrganizationService_GetRaw_Call{Call: _e.mock.On("GetRaw", ctx, id)}
 }
 
-func (_c *OrganizationService_Get_Call) Run(run func(ctx context.Context, id string)) *OrganizationService_Get_Call {
+func (_c *OrganizationService_GetRaw_Call) Run(run func(ctx context.Context, id string)) *OrganizationService_GetRaw_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *OrganizationService_Get_Call) Return(_a0 organization.Organization, _a1 error) *OrganizationService_Get_Call {
+func (_c *OrganizationService_GetRaw_Call) Return(_a0 organization.Organization, _a1 error) *OrganizationService_GetRaw_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *OrganizationService_Get_Call) RunAndReturn(run func(context.Context, string) (organization.Organization, error)) *OrganizationService_Get_Call {
+func (_c *OrganizationService_GetRaw_Call) RunAndReturn(run func(context.Context, string) (organization.Organization, error)) *OrganizationService_GetRaw_Call {
 	_c.Call.Return(run)
 	return _c
 }
