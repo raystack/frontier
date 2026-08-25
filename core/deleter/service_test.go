@@ -16,6 +16,7 @@ import (
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/deleter/mocks"
 	"github.com/raystack/frontier/core/group"
@@ -28,6 +29,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	mailermocks "github.com/raystack/frontier/pkg/mailer/mocks"
 	"github.com/stretchr/testify/assert"
@@ -95,7 +97,7 @@ func (m deleterMocks) build() *deleter.Service {
 	return deleter.NewCascadeDeleter(m.orgSvc, m.projSvc, m.resSvc, m.grpSvc, m.mbrSvc,
 		m.polSvc, m.roleSvc, m.invSvc, m.usrSvc, m.patSvc, m.suSvc,
 		m.custSvc, m.subSvc, m.invocSvc, m.checkoutSvc, m.creditSvc, m.kycSvc,
-		m.planSvc, m.dialer, billing.TokenForfeitNoticeConfig{})
+		m.planSvc, m.dialer, billing.OrgDeleteNoticeConfig{})
 }
 
 func TestDeleteProject(t *testing.T) {
@@ -150,6 +152,21 @@ func TestDeleteProject(t *testing.T) {
 		err := m.build().DeleteProject(context.Background(), "proj-1")
 		assert.NoError(t, err)
 	})
+}
+
+// expectOwnerNotified wires the owner lookup and one delivered mail; a
+// successful delete must always end in the notice being sent.
+func expectOwnerNotified(m deleterMocks) {
+	m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+		Return(role.Role{ID: "owner-role-id"}, nil)
+	m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, membership.MemberFilter{
+		PrincipalType: schema.UserPrincipal,
+		RoleIDs:       []string{"owner-role-id"},
+	}).Return([]membership.Member{{PrincipalID: "user-1", PrincipalType: schema.UserPrincipal}}, nil)
+	m.usrSvc.EXPECT().GetByIDs(mock.Anything, []string{"user-1"}).
+		Return([]user.User{{ID: "user-1", Email: "owner@acme.test"}}, nil)
+	m.dialer.EXPECT().FromHeader().Return("no-reply@frontier.test")
+	m.dialer.EXPECT().DialAndSend(mock.Anything).Return(nil)
 }
 
 func TestDeleteOrganization(t *testing.T) {
@@ -219,6 +236,26 @@ func TestDeleteOrganization(t *testing.T) {
 
 		// org model
 		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		// every delete notifies the owners, tokens or not
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{ID: "owner-role-id"}, nil)
+		m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, membership.MemberFilter{
+			PrincipalType: schema.UserPrincipal,
+			RoleIDs:       []string{"owner-role-id"},
+		}).Return([]membership.Member{{PrincipalID: "user-1", PrincipalType: schema.UserPrincipal}}, nil)
+		m.usrSvc.EXPECT().GetByIDs(mock.Anything, []string{"user-1"}).
+			Return([]user.User{{ID: "user-1", Email: "owner@acme.test"}}, nil)
+		m.dialer.EXPECT().FromHeader().Return("no-reply@frontier.test")
+		m.dialer.EXPECT().DialAndSend(mock.Anything).Run(func(msg *mail.Message) {
+			var raw bytes.Buffer
+			_, err := msg.WriteTo(&raw)
+			assert.NoError(t, err)
+			body := strings.ReplaceAll(raw.String(), "=\r\n", "")
+			assert.Contains(t, body, "was deleted")
+			// no tokens were on the org, so the settlement line is absent
+			assert.NotContains(t, body, "settled")
+		}).Return(nil)
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
@@ -340,7 +377,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
 			Return([]subscription.Subscription{}, nil)
 
-		// the positive balance makes the delete collect the owners up front
+		// every delete resolves the owners; this one also has a balance
 		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
 			Return(role.Role{ID: "owner-role-id"}, nil)
 		m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, membership.MemberFilter{
@@ -361,8 +398,10 @@ func TestDeleteOrganization(t *testing.T) {
 			assert.NoError(t, err)
 			// undo the quoted-printable soft line breaks before matching
 			body := strings.ReplaceAll(raw.String(), "=\r\n", "")
-			assert.Contains(t, body, "of which <b>40</b> came from purchases")
-			assert.Contains(t, body, "Contact support")
+			// the amounts stay out of the mail; the audit records carry them
+			assert.NotContains(t, body, "<b>40</b>")
+			assert.NotContains(t, body, "tokens remaining")
+			assert.Contains(t, body, "Unused purchased tokens will be settled by the support team")
 		}).Return(nil)
 
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
@@ -434,6 +473,8 @@ func TestDeleteOrganization(t *testing.T) {
 		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
 			Return([]role.Role{}, nil)
 		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		expectOwnerNotified(m)
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
@@ -534,6 +575,8 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]role.Role{}, nil)
 		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
 
+		expectOwnerNotified(m)
+
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
 	})
@@ -631,6 +674,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(errors.New("kyc delete failed"))
 		// strict mocks: no org policy, role, or org model deletion may happen
 
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "kyc delete failed")
 	})
@@ -652,6 +699,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(errors.New("provider is down"))
 		// strict mocks: no policy, project, group, or org deletion may happen
 
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "provider is down")
 	})
@@ -669,6 +720,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return(nil, errors.New("su list failed"))
+
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "su list failed")
@@ -688,6 +743,10 @@ func TestDeleteOrganization(t *testing.T) {
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{{ID: "su-1"}}, nil)
 		m.suSvc.EXPECT().Delete(mock.Anything, "su-1").Return(errors.New("su delete failed"))
+
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "su delete failed")
@@ -762,6 +821,160 @@ func TestCheckOrganizationDelete(t *testing.T) {
 
 		_, err := m.build().CheckOrganizationDelete(context.Background(), "org-1")
 		assert.ErrorIs(t, err, organization.ErrNotExist)
+	})
+}
+
+// fakeAuditRepository keeps the audit logs in memory so the tests can put a
+// real audit service into the context. List returns newest first, matching
+// the postgres repository.
+type fakeAuditRepository struct {
+	logs []audit.Log
+}
+
+func (f *fakeAuditRepository) Create(_ context.Context, l *audit.Log) error {
+	f.logs = append(f.logs, *l)
+	return nil
+}
+
+func (f *fakeAuditRepository) List(_ context.Context, flt audit.Filter) ([]audit.Log, error) {
+	var out []audit.Log
+	for i := len(f.logs) - 1; i >= 0; i-- {
+		l := f.logs[i]
+		if flt.OrgID != "" && l.OrgID != flt.OrgID {
+			continue
+		}
+		if flt.Action != "" && l.Action != flt.Action {
+			continue
+		}
+		out = append(out, l)
+	}
+	return out, nil
+}
+
+func (f *fakeAuditRepository) GetByID(context.Context, string) (audit.Log, error) {
+	return audit.Log{}, nil
+}
+
+type noopWebhookService struct{}
+
+func (noopWebhookService) Publish(context.Context, webhook.Event) error { return nil }
+
+func auditContext(repo *fakeAuditRepository) context.Context {
+	return audit.SetContextWithService(context.Background(), audit.NewService("test", repo, noopWebhookService{}))
+}
+
+func TestForfeitAuditRecord(t *testing.T) {
+	t.Run("the forfeited amounts land in the audit record", func(t *testing.T) {
+		m := newMocks(t)
+		repo := &fakeAuditRepository{}
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
+		// 60 bought, 20 of those refunded: the record must say purchased 40
+		m.creditSvc.EXPECT().List(mock.Anything, credit.Filter{CustomerID: "cust-1"}).
+			Return([]credit.Transaction{
+				{Type: credit.CreditType, Source: credit.SourceSystemBuyEvent, Amount: 60},
+				{Type: credit.DebitType, Source: credit.SourceSystemBuyEvent, Amount: 20},
+			}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{}, nil)
+
+		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
+		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
+			Return([]checkout.Checkout{}, nil)
+		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
+		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+			Return([]policy.Policy{}, nil)
+		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+			Return([]role.Role{}, nil)
+		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+		expectOwnerNotified(m)
+
+		err := m.build().DeleteOrganization(auditContext(repo), "org-1")
+		assert.NoError(t, err)
+
+		forfeits, listErr := repo.List(context.Background(), audit.Filter{
+			OrgID:  "org-1",
+			Action: string(audit.BillingTokensForfeitedEvent),
+		})
+		assert.NoError(t, listErr)
+		assert.Len(t, forfeits, 1)
+		assert.Equal(t, "cust-1", forfeits[0].Target.ID)
+		assert.Equal(t, "100", forfeits[0].Metadata["amount"])
+		assert.Equal(t, "40", forfeits[0].Metadata["purchased"])
+	})
+
+	t.Run("a retry recovers the amounts from the audit records", func(t *testing.T) {
+		m := newMocks(t)
+		// the earlier attempt tore down billing and wrote the record before
+		// failing; this retry finds no billing accounts at all
+		repo := &fakeAuditRepository{logs: []audit.Log{{
+			OrgID:  "org-1",
+			Action: string(audit.BillingTokensForfeitedEvent),
+			Target: audit.Target{ID: "cust-1", Type: "billing_account"},
+			Metadata: map[string]string{
+				"amount":    "750",
+				"purchased": "200",
+			},
+		}}}
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1", Title: "Org One"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+			Return([]policy.Policy{}, nil)
+		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+			Return([]role.Role{}, nil)
+		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{ID: "owner-role-id"}, nil)
+		m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, membership.MemberFilter{
+			PrincipalType: schema.UserPrincipal,
+			RoleIDs:       []string{"owner-role-id"},
+		}).Return([]membership.Member{{PrincipalID: "user-1", PrincipalType: schema.UserPrincipal}}, nil)
+		m.usrSvc.EXPECT().GetByIDs(mock.Anything, []string{"user-1"}).
+			Return([]user.User{{ID: "user-1", Email: "owner@acme.test"}}, nil)
+		m.dialer.EXPECT().FromHeader().Return("no-reply@frontier.test")
+		m.dialer.EXPECT().DialAndSend(mock.Anything).Run(func(msg *mail.Message) {
+			var raw bytes.Buffer
+			_, err := msg.WriteTo(&raw)
+			assert.NoError(t, err)
+			body := strings.ReplaceAll(raw.String(), "=\r\n", "")
+			// the recovered purchased share puts the settlement line back
+			assert.Contains(t, body, "Unused purchased tokens will be settled by the support team")
+		}).Return(nil)
+
+		err := m.build().DeleteOrganization(auditContext(repo), "org-1")
+		assert.NoError(t, err)
 	})
 }
 

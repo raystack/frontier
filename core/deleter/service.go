@@ -157,10 +157,10 @@ type Service struct {
 	creditService      CreditService
 	kycService         KycService
 	planService        PlanService
-	// mailDialer and forfeitNoticeConfig drive the email that tells the org
-	// owners about tokens forfeited by the delete
-	mailDialer          mailer.Dialer
-	forfeitNoticeConfig billing.TokenForfeitNoticeConfig
+	// mailDialer and deleteNoticeConfig drive the email that tells the org
+	// owners their organization was deleted
+	mailDialer         mailer.Dialer
+	deleteNoticeConfig billing.OrgDeleteNoticeConfig
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
@@ -174,28 +174,28 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	invoiceService InvoiceService, checkoutService CheckoutService,
 	creditService CreditService, kycService KycService,
 	planService PlanService,
-	mailDialer mailer.Dialer, forfeitNoticeConfig billing.TokenForfeitNoticeConfig) *Service {
+	mailDialer mailer.Dialer, deleteNoticeConfig billing.OrgDeleteNoticeConfig) *Service {
 	return &Service{
-		projService:         projService,
-		orgService:          orgService,
-		resService:          resService,
-		groupService:        groupService,
-		membershipService:   membershipService,
-		policyService:       policyService,
-		roleService:         roleService,
-		invitationService:   invitationService,
-		userService:         userService,
-		userPATService:      userPATService,
-		serviceUserService:  serviceUserService,
-		customerService:     customerService,
-		subService:          subService,
-		invoiceService:      invoiceService,
-		checkoutService:     checkoutService,
-		creditService:       creditService,
-		kycService:          kycService,
-		planService:         planService,
-		mailDialer:          mailDialer,
-		forfeitNoticeConfig: forfeitNoticeConfig,
+		projService:        projService,
+		orgService:         orgService,
+		resService:         resService,
+		groupService:       groupService,
+		membershipService:  membershipService,
+		policyService:      policyService,
+		roleService:        roleService,
+		invitationService:  invitationService,
+		userService:        userService,
+		userPATService:     userPATService,
+		serviceUserService: serviceUserService,
+		customerService:    customerService,
+		subService:         subService,
+		invoiceService:     invoiceService,
+		checkoutService:    checkoutService,
+		creditService:      creditService,
+		kycService:         kycService,
+		planService:        planService,
+		mailDialer:         mailDialer,
+		deleteNoticeConfig: deleteNoticeConfig,
 	}
 }
 
@@ -263,10 +263,10 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return err
 	}
 
-	// the token forfeit notice reads owners and balances, so it has to be
-	// collected while they still exist; its balance reads are reused by the
-	// blocker check and the teardown audit below
-	notice, err := d.collectForfeitNotice(ctx, org, customers)
+	// the delete notice reads the token balances, so it has to be collected
+	// while they still exist; its balance reads are reused by the blocker
+	// check and the teardown audit below
+	notice, err := d.collectDeleteNotice(ctx, customers)
 	if err != nil {
 		return err
 	}
@@ -280,6 +280,10 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	if err := d.ensureDeletable(ctx, id, customers, notice.Balances); err != nil {
 		return err
 	}
+
+	// the delete is going ahead: find who to notify while the owner
+	// policies still exist. Best-effort — the delete never depends on it
+	notice.Owners = d.resolveOwners(ctx, id)
 
 	// delete all billing accounts
 	if err := d.deleteCustomers(ctx, id, customers, notice.Accounts); err != nil {
@@ -373,10 +377,8 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.OrgDeletedEvent)
 	}
 
-	// the org is gone; tell the owners about any tokens the delete forfeited
-	if notice.Amount > 0 {
-		d.sendForfeitNotices(ctx, org, notice)
-	}
+	// the org is gone; every owner gets the delete notice
+	d.sendDeleteNotices(ctx, org, notice)
 	return nil
 }
 
