@@ -113,10 +113,9 @@ export const DeleteOrganizationDialog = ({
               </Text>
               {tokenBalance > 0 ? (
                 <Text size="small" variant="danger">
-                  You have {tokenBalance.toString()} tokens remaining. Deleting
-                  the {orgLabelLower} forfeits them. Please contact support
-                  about these tokens: any amount that was purchased can be
-                  transferred to your bank account.
+                  This {orgLabelLower} still has unused tokens, and deleting
+                  it forfeits them. If any of them were purchased, our
+                  support team will reach out to you to settle them.
                 </Text>
               ) : null}
               <Field
