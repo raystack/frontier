@@ -282,16 +282,8 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 
 	// the delete is going ahead: find who to notify while the owner
-	// policies still exist. Best-effort — the delete never depends on it.
-	// The owner ids are also written to an audit record: teardown deletes
-	// the owner policies before the org row, so a retry that starts after
-	// that point can only learn the recipients from the record
+	// policies still exist. Best-effort — the delete never depends on it
 	notice.Owners = d.resolveOwners(ctx, id)
-	if len(notice.Owners) == 0 {
-		notice.Owners = d.recoverRecipientsFromAudit(ctx, id)
-	} else {
-		d.recordNoticeRecipients(ctx, id, notice.Owners)
-	}
 
 	// delete all billing accounts
 	if err := d.deleteCustomers(ctx, id, customers, notice.Accounts); err != nil {
