@@ -35,7 +35,7 @@ type deleteNoticeData struct {
 	// Org is the deleted organization.
 	Org organization.Organization
 	// Purchased is the share of Amount that came from purchases; only this
-	// part is transferable.
+	// part is settled with the customer.
 	Purchased int64
 	// DeletedBy identifies who ran the delete; empty when the caller is
 	// not known.
@@ -90,10 +90,6 @@ func (d Service) collectDeleteNotice(ctx context.Context, customers []customer.C
 			accounts[c.ID] = accountTokens{Balance: balance, Purchased: bought}
 		}
 	}
-	if total == 0 {
-		return deleteNotice{Accounts: accounts, Balances: balances}, nil
-	}
-
 	return deleteNotice{
 		Amount:    total,
 		Purchased: purchased,
@@ -209,7 +205,8 @@ func (d Service) purchasedTokens(ctx context.Context, accountID string, balance 
 			bought += t.Amount
 		case credit.DebitType:
 			// a debit recorded against the buy source takes purchased
-			// tokens back (a refund); it must not count as transferable
+			// tokens back (a refund); it must not count toward the
+			// settled share
 			bought -= t.Amount
 		}
 	}

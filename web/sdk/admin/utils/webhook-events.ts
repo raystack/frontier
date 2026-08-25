@@ -23,6 +23,8 @@ const events = [
   "app.permission.checked",
 
   "app.billing.entitlement.checked",
+  "app.billing.checkout.deleted",
+  "app.billing.tokens.forfeited",
 
   "app.policy.created",
   "app.policy.deleted",
