@@ -7,6 +7,7 @@ import (
 	htmltemplate "html/template"
 	"log/slog"
 	"strconv"
+	"strings"
 	texttemplate "text/template"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -130,6 +131,54 @@ func (d Service) resolveOwners(ctx context.Context, orgID string) []user.User {
 		return nil
 	}
 	return owners
+}
+
+// recordNoticeRecipients writes the owner ids to an audit record before
+// teardown starts. Teardown deletes the owner policies before the org row,
+// so a retry that begins after that point cannot resolve the owners any
+// more; the record is what it recovers them from. The users themselves
+// outlive the org, so ids are enough. Best-effort, like the notice itself.
+func (d Service) recordNoticeRecipients(ctx context.Context, orgID string, owners []user.User) {
+	ids := make([]string, 0, len(owners))
+	for _, owner := range owners {
+		ids = append(ids, owner.ID)
+	}
+	if err := audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.OrgDeleteNoticeRecipientsEvent, audit.Target{
+		ID:   orgID,
+		Type: "organization",
+	}, map[string]string{
+		"owner_ids": strings.Join(ids, ","),
+	}); err != nil {
+		slog.WarnContext(ctx, "failed to record the delete notice recipients", "org_id", orgID, "error", err)
+	}
+}
+
+// recoverRecipientsFromAudit loads the owner ids a failed earlier attempt
+// recorded, for a retry that starts after the owner policies were already
+// deleted. Best-effort: without a readable audit store there is nothing to
+// recover and the notice goes unsent, which the send path logs.
+func (d Service) recoverRecipientsFromAudit(ctx context.Context, orgID string) []user.User {
+	logs, err := audit.GetService(ctx).List(ctx, audit.Filter{
+		OrgID:  orgID,
+		Action: string(audit.OrgDeleteNoticeRecipientsEvent),
+	})
+	if err != nil {
+		slog.WarnContext(ctx, "failed to check audit records for the delete notice recipients", "org_id", orgID, "error", err)
+		return nil
+	}
+	for _, l := range logs {
+		raw := l.Metadata["owner_ids"]
+		if raw == "" {
+			continue
+		}
+		owners, err := d.userService.GetByIDs(ctx, strings.Split(raw, ","))
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch the recorded delete notice recipients", "org_id", orgID, "error", err)
+			return nil
+		}
+		return owners
+	}
+	return nil
 }
 
 // recoverForfeitFromAudit adds the forfeits a failed earlier teardown wrote

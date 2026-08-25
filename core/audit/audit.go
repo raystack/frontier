@@ -98,6 +98,7 @@ const (
 	BillingAccountDetailsUpdatedEvent EventName = "app.billing.account.details.updated"
 	BillingCheckoutDeletedEvent       EventName = "app.billing.checkout.deleted"
 	BillingTokensForfeitedEvent       EventName = "app.billing.tokens.forfeited"
+	OrgDeleteNoticeRecipientsEvent    EventName = "app.organization.delete.recipients"
 )
 
 var systemEvents = []EventName{
@@ -115,6 +116,7 @@ var systemEvents = []EventName{
 	OrgDisabledEvent,
 	BillingCheckoutDeletedEvent,
 	BillingTokensForfeitedEvent,
+	OrgDeleteNoticeRecipientsEvent,
 }
 
 func IsSystemEvent(event EventName) bool {
