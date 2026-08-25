@@ -17,6 +17,10 @@ export const DEFAULT_ROLES = {
 
 export const NULL_DATE = "0001-01-01T00:00:00Z";
 
+/* Not a client-wide default: only safe where every writer invalidates the
+ * key, so each query opts in and says why. */
+export const SHARED_QUERY_STALE_TIME = 30 * 1000;
+
 export interface AdminTerminologyConfig {
   organization?: EntityTerminologies;
   project?: EntityTerminologies;

@@ -1,8 +1,8 @@
 import { AlertDialog, Button, DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import type { DataTableSort } from "@raystack/apsara";
 import { PageTitle } from "~/admin/components/PageTitle";
 import styles from "./members.module.css";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import type {
   Invitation,
@@ -27,13 +27,12 @@ import { OrganizationContext } from '../contexts/organization-context';
 import { UpdateRole, type UpdateRolePayload } from './update-role';
 import { RemoveMember } from './remove-member';
 import {
-  getConnectNextPageParam,
-  DEFAULT_PAGE_SIZE
+  getConnectNextPageParam
 } from '~/utils/connect-pagination';
-import { transformDataTableQueryToRQLRequest } from '~/utils/transform-query';
-import { useDebouncedValue } from '~hooks';
 import { useTerminology } from "~/admin/hooks/useTerminology";
 import { InvitedMembersDialog } from './invited-members-dialog';
+import { useLoadMore } from '~/admin/hooks/useLoadMore';
+import { useServerTableQuery } from '~/admin/hooks/useServerTableQuery';
 
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 
@@ -41,10 +40,6 @@ const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
 const NO_INVITATIONS: Invitation[] = [];
 
 const DEFAULT_SORT: DataTableSort = { name: 'orgJoinedAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     orgJoinedAt: "org_joined_at",
@@ -136,17 +131,15 @@ export function OrganizationMembersView() {
 
   const title = `${t.member({ plural: true, case: "capital" })} | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
-
-  const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(tableQuery, TRANSFORM_OPTIONS);
-    return {
-      ...tempQuery,
-      search: searchQuery || "",
-    };
-  }, [tableQuery, searchQuery]);
-
-  const query = useDebouncedValue(computedQuery, 200);
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+    search: searchQuery || "",
+  });
 
   const {
     data: infiniteData,
@@ -196,15 +189,13 @@ export function OrganizationMembersView() {
    */
   const showInvitesBtn = invitations.length > 0;
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery(newQuery);
-  };
-
-  const fetchMore = async () => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
-      await fetchNextPage();
-    }
-  };
+  const fetchMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "members",
+  });
 
   useEffect(() => {
     if (invitationsError) {
@@ -241,14 +232,27 @@ export function OrganizationMembersView() {
   });
 
   async function invalidateMembersQuery() {
-    await queryClient.invalidateQueries({
-      queryKey: createConnectQueryKey({
-        schema: AdminServiceQueries.searchOrganizationUsers,
-        transport,
-        input: {},
-        cardinality: "infinite",
+    /* Two reads per org: this table, and the map the projects surfaces cache.
+     * Keys match partially — omitting query is deliberate, an empty id is not. */
+    if (!organizationId) return;
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: AdminServiceQueries.searchOrganizationUsers,
+          transport,
+          input: { id: organizationId },
+          cardinality: "infinite",
+        }),
       }),
-    });
+      queryClient.invalidateQueries({
+        queryKey: createConnectQueryKey({
+          schema: FrontierServiceQueries.listOrganizationUsers,
+          transport,
+          input: { id: organizationId },
+          cardinality: "finite",
+        }),
+      }),
+    ]);
   }
 
   async function updateMember() {

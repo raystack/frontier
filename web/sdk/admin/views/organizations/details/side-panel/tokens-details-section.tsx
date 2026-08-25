@@ -14,6 +14,7 @@ export const TokensDetailsSection = () => {
     billingAccount,
     organization,
     isTokenBalanceLoading,
+    isBillingAccountLoading,
     billingAccountDetails,
   } = useContext(OrganizationContext);
 
@@ -38,7 +39,7 @@ export const TokensDetailsSection = () => {
     }
   }, [error]);
 
-  const isLoading = isTokensLoading;
+  const isLoading = isBillingAccountLoading || isTokensLoading;
 
   return (
     <List>

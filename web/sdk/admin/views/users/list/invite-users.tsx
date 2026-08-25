@@ -55,6 +55,7 @@ export const InviteUser = () => {
   const t = useTerminology();
   const [open, onOpenChange] = useState(false);
 
+  // This mounts with the page, so gate on open.
   const {
     data: organizations,
     isLoading: isOrganizationsLoading,
@@ -63,6 +64,7 @@ export const InviteUser = () => {
     AdminServiceQueries.searchOrganizations,
     create(SearchOrganizationsRequestSchema, { query: {} }),
     {
+      enabled: open,
       select: (data) => data?.organizations || [],
     }
   );
@@ -75,6 +77,7 @@ export const InviteUser = () => {
     FrontierServiceQueries.listRoles,
     create(ListRolesRequestSchema, { scopes: [SCOPES.ORG] }),
     {
+      enabled: open,
       select: (data) => data?.roles || [],
     }
   );

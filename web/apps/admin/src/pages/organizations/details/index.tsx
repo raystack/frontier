@@ -1,8 +1,13 @@
 import { OrganizationDetailsView, useAdminPaths } from '@raystack/frontier/admin';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, Outlet, Navigate } from 'react-router-dom';
-import { useQuery } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { createConnectQueryKey, useQuery, useTransport } from '@connectrpc/connect-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { create } from '@bufbuild/protobuf';
+import {
+  FrontierServiceQueries,
+  GetOrganizationResponseSchema,
+} from '@raystack/proton/frontier';
 import { AppContext } from '~/contexts/App';
 import { clients } from '~/connect/clients';
 import { exportCsvFromStream } from '~/utils/helper';
@@ -33,6 +38,8 @@ export default function OrganizationDetailsPage() {
   const paths = useAdminPaths();
   const { config } = useContext(AppContext);
   const [countries, setCountries] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+  const transport = useTransport();
 
   const incomingOrgId = (location.state as { orgId?: string } | null)?.orgId;
 
@@ -53,8 +60,9 @@ export default function OrganizationDetailsPage() {
 
   /*
    * Cold-load resolve (only when state carries no id):
-   * - getOrganization takes an id OR a slug and returns disabled orgs too,
-   *   so a single call covers every URL form (server GetRaw branches on UUID)
+   * - getOrganization takes an id OR a slug, so a single call covers every URL
+   *   form (server GetRaw branches on UUID)
+   * - disabled orgs resolve for superusers only; the console is superuser-only
    * - a UUID param is already the id, but we still resolve to read the slug +
    *   state for the canonical-URL rewrite below
    */
@@ -76,6 +84,25 @@ export default function OrganizationDetailsPage() {
 
   const orgId = stateOrgId || (paramIsId ? urlParam : org?.id);
   const notFound = needsResolve && isSuccess && !org?.id;
+
+  /* Resolve caches under the slug, so seed the id key the view reads. Layout,
+   * not passive: the view subscribes to that key in a passive effect this same
+   * commit. Empty keys only — this copy can go stale, edits invalidate the id. */
+  useLayoutEffect(() => {
+    if (!org?.id || org.id === urlParam) return;
+    const orgKey = createConnectQueryKey({
+      schema: FrontierServiceQueries.getOrganization,
+      transport,
+      input: { id: org.id },
+      cardinality: 'finite',
+    });
+    if (queryClient.getQueryData(orgKey) === undefined) {
+      queryClient.setQueryData(
+        orgKey,
+        create(GetOrganizationResponseSchema, { organization: org }),
+      );
+    }
+  }, [org, urlParam, queryClient, transport]);
 
   /*
    * Old UUID bookmark → canonical slug URL:
