@@ -30,6 +30,7 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
+import { instructionLines } from '../../utils/delete-blockers';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -48,19 +49,6 @@ const generalSchema = yup
   .required();
 
 type FormData = yup.InferType<typeof generalSchema>;
-
-// One short instruction per kind of delete blocker the server can report.
-// An unknown kind falls back to the server's own message.
-const BLOCKER_INSTRUCTIONS: Record<string, (count: number) => string> = {
-  ACTIVE_SUBSCRIPTION: () =>
-    'Please downgrade the subscription to the standard plan',
-  UNPAID_INVOICE: count =>
-    count > 1
-      ? `Please pay the ${count} open invoices from the billing page`
-      : 'Please pay the open invoice from the billing page',
-  NEGATIVE_TOKEN_BALANCE: () =>
-    'Please contact support to settle the token balance'
-};
 
 export interface GeneralViewProps {
   onDeleteSuccess?: () => void;
@@ -127,19 +115,10 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
     }
   );
   const isDeleteBlocked = !!deleteCheck && !deleteCheck.canDelete;
-  const blockerLines = useMemo(() => {
-    const blockers = deleteCheck?.blockers ?? [];
-    const counts = new Map<string, number>();
-    for (const blocker of blockers) {
-      counts.set(blocker.type, (counts.get(blocker.type) ?? 0) + 1);
-    }
-    return [...counts.entries()].map(
-      ([type, count]) =>
-        BLOCKER_INSTRUCTIONS[type]?.(count) ??
-        blockers.find(blocker => blocker.type === type)?.message ??
-        type
-    );
-  }, [deleteCheck]);
+  const blockerLines = useMemo(
+    () => instructionLines(deleteCheck?.blockers ?? []),
+    [deleteCheck]
+  );
 
   // Update organization form
   const { mutateAsync: updateOrganization } = useMutation(

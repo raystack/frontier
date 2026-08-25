@@ -21,6 +21,7 @@ import {
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
 import { useTokens } from '../../../hooks/useTokens';
+import { deleteBlockedDescription } from '../../../utils/delete-blockers';
 import { handleConnectError } from '~/utils/error';
 
 const deleteOrgSchema = yup
@@ -88,9 +89,11 @@ export const DeleteOrganizationDialog = ({
     } catch (error) {
       handleConnectError(error, {
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        FailedPrecondition: (err) => toastManager.add({ title: `Cannot delete this ${orgLabelLower} yet`, description: err.message, type: 'error' }),
-        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
-        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
+        // the server names what blocks the delete; show the matching
+        // instructions instead of the raw server text
+        FailedPrecondition: (err) => toastManager.add({ title: `Cannot delete this ${orgLabelLower} yet`, description: deleteBlockedDescription(err), type: 'error' }),
+        NotFound: () => toastManager.add({ title: 'Not found', description: `This ${orgLabelLower} no longer exists.`, type: 'error' }),
+        Default: () => toastManager.add({ title: 'Something went wrong', description: 'Please try again later or contact support.', type: 'error' }),
       });
     }
   }
