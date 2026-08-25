@@ -588,7 +588,7 @@ func buildAPIDependencies(
 		groupService, membershipService, policyService, roleService, invitationService, userService, userPATService,
 		serviceUserService, customerService, subscriptionService, invoiceService, checkoutService,
 		creditService, orgKycService, planService,
-		mailDialer, cfg.Billing.TokenForfeitNotice,
+		mailDialer, cfg.Billing.OrgDeleteNotice,
 	)
 
 	// we should default it with a stdout logger repository as postgres can start to bloat really fast

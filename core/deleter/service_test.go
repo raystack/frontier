@@ -95,7 +95,7 @@ func (m deleterMocks) build() *deleter.Service {
 	return deleter.NewCascadeDeleter(m.orgSvc, m.projSvc, m.resSvc, m.grpSvc, m.mbrSvc,
 		m.polSvc, m.roleSvc, m.invSvc, m.usrSvc, m.patSvc, m.suSvc,
 		m.custSvc, m.subSvc, m.invocSvc, m.checkoutSvc, m.creditSvc, m.kycSvc,
-		m.planSvc, m.dialer, billing.TokenForfeitNoticeConfig{})
+		m.planSvc, m.dialer, billing.OrgDeleteNoticeConfig{})
 }
 
 func TestDeleteProject(t *testing.T) {
@@ -219,6 +219,26 @@ func TestDeleteOrganization(t *testing.T) {
 
 		// org model
 		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		// every delete notifies the owners, tokens or not
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{ID: "owner-role-id"}, nil)
+		m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, membership.MemberFilter{
+			PrincipalType: schema.UserPrincipal,
+			RoleIDs:       []string{"owner-role-id"},
+		}).Return([]membership.Member{{PrincipalID: "user-1", PrincipalType: schema.UserPrincipal}}, nil)
+		m.usrSvc.EXPECT().GetByIDs(mock.Anything, []string{"user-1"}).
+			Return([]user.User{{ID: "user-1", Email: "owner@acme.test"}}, nil)
+		m.dialer.EXPECT().FromHeader().Return("no-reply@frontier.test")
+		m.dialer.EXPECT().DialAndSend(mock.Anything).Run(func(msg *mail.Message) {
+			var raw bytes.Buffer
+			_, err := msg.WriteTo(&raw)
+			assert.NoError(t, err)
+			body := strings.ReplaceAll(raw.String(), "=\r\n", "")
+			assert.Contains(t, body, "was deleted")
+			// no tokens were on the org, so the settlement line is absent
+			assert.NotContains(t, body, "settled")
+		}).Return(nil)
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
@@ -361,8 +381,10 @@ func TestDeleteOrganization(t *testing.T) {
 			assert.NoError(t, err)
 			// undo the quoted-printable soft line breaks before matching
 			body := strings.ReplaceAll(raw.String(), "=\r\n", "")
-			assert.Contains(t, body, "of which <b>40</b> came from purchases")
-			assert.Contains(t, body, "Contact support")
+			// the amounts stay out of the mail; the audit records carry them
+			assert.NotContains(t, body, "<b>40</b>")
+			assert.NotContains(t, body, "tokens remaining")
+			assert.Contains(t, body, "Unused purchased tokens will be settled by the support team")
 		}).Return(nil)
 
 		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
@@ -434,6 +456,10 @@ func TestDeleteOrganization(t *testing.T) {
 		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
 			Return([]role.Role{}, nil)
 		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
@@ -534,6 +560,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]role.Role{}, nil)
 		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
 
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
 	})
@@ -631,6 +661,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(errors.New("kyc delete failed"))
 		// strict mocks: no org policy, role, or org model deletion may happen
 
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "kyc delete failed")
 	})
@@ -652,6 +686,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(errors.New("provider is down"))
 		// strict mocks: no policy, project, group, or org deletion may happen
 
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "provider is down")
 	})
@@ -669,6 +707,10 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return(nil, errors.New("su list failed"))
+
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "su list failed")
@@ -688,6 +730,10 @@ func TestDeleteOrganization(t *testing.T) {
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{{ID: "su-1"}}, nil)
 		m.suSvc.EXPECT().Delete(mock.Anything, "su-1").Return(errors.New("su delete failed"))
+
+		// owner lookup is best-effort; failing it must not affect the delete
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "su delete failed")

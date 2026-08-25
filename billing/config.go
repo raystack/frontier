@@ -14,15 +14,15 @@ type Config struct {
 	SubscriptionConfig SubscriptionConfig `yaml:"subscription" mapstructure:"subscription"`
 	ProductConfig      ProductConfig      `yaml:"product" mapstructure:"product"`
 
-	// TokenForfeitNotice is the email sent to the organization owners when
-	// deleting their organization forfeited unused tokens. Subject and Body
-	// are Go templates; empty values fall back to plain built-in text.
-	TokenForfeitNotice TokenForfeitNoticeConfig `yaml:"token_forfeit_notice" mapstructure:"token_forfeit_notice"`
+	// OrgDeleteNotice is the email sent to the organization owners when
+	// their organization is deleted. Subject and Body are Go templates;
+	// empty values fall back to plain built-in text.
+	OrgDeleteNotice OrgDeleteNoticeConfig `yaml:"org_delete_notice" mapstructure:"org_delete_notice"`
 
 	RefreshInterval RefreshInterval `yaml:"refresh_interval" mapstructure:"refresh_interval"`
 }
 
-type TokenForfeitNoticeConfig struct {
+type OrgDeleteNoticeConfig struct {
 	Subject string `yaml:"subject" mapstructure:"subject"`
 	Body    string `yaml:"body" mapstructure:"body"`
 }
