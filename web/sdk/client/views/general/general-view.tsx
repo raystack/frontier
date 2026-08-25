@@ -112,10 +112,10 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
 
   const isLoading = !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
 
-  // the server's own answer to "would a delete go through right now" — the
-  // same blockers a real delete would refuse with. While it loads the button
-  // stays disabled rather than briefly allowing a delete the server would
-  // refuse; a failed check fails open since the server refuses independently
+  // Ask the server whether a delete would go through right now. While the
+  // answer is loading, the delete button stays disabled. If this check
+  // itself fails, the button stays enabled: the server still refuses a
+  // blocked delete when the user actually clicks.
   const { data: deleteCheck, isLoading: isDeleteCheckLoading } = useQuery(
     FrontierServiceQueries.checkOrganizationDelete,
     create(CheckOrganizationDeleteRequestSchema, {

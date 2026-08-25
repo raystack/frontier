@@ -8,12 +8,15 @@ import { toastManager } from '@raystack/apsara';
 interface UseTokensReturn {
   tokenBalance: bigint;
   isTokensLoading: boolean;
+  // unlike isTokensLoading, this is also true while an already cached
+  // balance is being refetched
+  isTokensFetching: boolean;
   fetchTokenBalance: () => Promise<any>;
 }
 
 export interface UseTokensOptions {
-  // when false the balance is not fetched; callers that only need the
-  // balance in a rarely-opened surface (like a dialog) gate it on that
+  // Set this to false to skip fetching the balance. The delete dialog uses
+  // it so the balance is only fetched while the dialog is open.
   enabled?: boolean;
 }
 
@@ -23,6 +26,7 @@ export const useTokens = (options: UseTokensOptions = {}): UseTokensReturn => {
   const {
     data,
     isLoading: isTokensLoading,
+    isFetching: isTokensFetching,
     error,
     refetch
   } = useQuery(
@@ -55,6 +59,7 @@ export const useTokens = (options: UseTokensOptions = {}): UseTokensReturn => {
   return {
     tokenBalance,
     isTokensLoading,
+    isTokensFetching,
     fetchTokenBalance: refetch
   };
 };

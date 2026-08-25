@@ -2,11 +2,9 @@ import { create } from '@bufbuild/protobuf';
 import { RQLFilterSchema } from '@raystack/proton/frontier';
 import { INVOICE_STATES } from './constants';
 
-// The one definition of "an invoice the customer still has to pay": open
-// state with a non-zero amount. The server refuses an organization delete
-// while any exist, and the billing page's payment-issue banner keys off the
-// same set — both build their queries from these filters so the two can not
-// drift apart.
+// An invoice the customer still has to pay: open state with a non-zero
+// amount. This is defined once here so every caller means the same thing
+// by it.
 export function openInvoiceFilters() {
   return [
     create(RQLFilterSchema, {

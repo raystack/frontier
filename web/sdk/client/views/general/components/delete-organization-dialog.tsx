@@ -45,9 +45,10 @@ export const DeleteOrganizationDialog = ({
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
   const [isAcknowledged, setIsAcknowledged] = useState(false);
-  // fetched only while the dialog is open; the confirm button waits for the
-  // answer so the forfeit warning cannot be skipped by a slow response
-  const { tokenBalance, isTokensLoading } = useTokens({ enabled: open });
+  // The balance is fetched only while the dialog is open. The confirm
+  // button below stays disabled until the fetch finishes, so the user
+  // cannot confirm before the token warning had a chance to appear.
+  const { tokenBalance, isTokensFetching } = useTokens({ enabled: open });
 
   const { mutateAsync: deleteOrganization } = useMutation(
     FrontierServiceQueries.deleteOrganization
@@ -163,7 +164,7 @@ export const DeleteOrganizationDialog = ({
                 !deleteTitle ||
                 !isAcknowledged ||
                 isSubmitting ||
-                isTokensLoading
+                isTokensFetching
               }
               data-test-id="frontier-sdk-delete-organization-btn"
               loading={isSubmitting}
