@@ -14,7 +14,7 @@ const BLOCKER_INSTRUCTIONS: Record<string, (count: number) => string> = {
       ? `Please pay the ${count} open invoices from the billing page`
       : 'Please pay the open invoice from the billing page',
   NEGATIVE_TOKEN_BALANCE: () =>
-    'The token balance needs to be settled. Our support team will reach out to you'
+    'Your token balance is negative. Please add tokens from the Tokens page to bring it back up, or pay the invoice when it arrives, and then you can delete'
 };
 
 // Shown when the server reports a blocker kind this version does not know,
