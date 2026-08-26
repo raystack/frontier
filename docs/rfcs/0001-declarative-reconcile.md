@@ -311,4 +311,3 @@ roles, committed as the desired-state files, then dropping the setting from the 
 ## References
 
 - The `reconcile` package and the `reconcile` and `export` commands in this repository.
-- Pixxel rollout: `docs/RFC/001-frontier-gitops-reconcile.md` in pixxelhq/IAM.
