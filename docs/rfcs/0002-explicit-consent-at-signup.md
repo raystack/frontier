@@ -12,10 +12,10 @@
 Frontier can require a user to accept a set of documents before their account is created, and store
 one consent record for it.
 
-A deployment lists its documents in server config with an id, title, version and URL. The client
-sends the ids the user accepted. Frontier checks that the ids cover every document in config, then
-creates the user and the consent record in one transaction. The record copies each document's
-version and URL from config.
+A deployment lists its documents in server config with an id, title, version and URL. A public
+endpoint serves that list, and the client sends back the ids the user accepted. Frontier checks that
+the ids cover every document in config, then creates the user and the consent record in one
+transaction. The record copies each document's version and URL from config.
 
 Consent applies to signups only, and frontier cannot tell a signup from a login today. So this RFC
 also adds a flow intent, which is what lets the consent check run before the browser leaves for the
@@ -49,9 +49,9 @@ documents.
 - The client sends consent explicitly. Signup fails without it.
 - No API can update or delete a consent record. Deleting the user does not delete it.
 - A record stores the version and URL of every document it covers.
-- Document ids, titles, versions and URLs come from config.
+- Document ids, titles, versions and URLs come from config, and the client reads them from frontier.
 - A login never creates an account. A signup never logs an existing user in.
-- One RPC and one callback, unchanged.
+- The auth flow stays one RPC and one callback, plus one read-only endpoint for the list.
 - Deployments without `app.consent`, and clients without an intent, behave as before.
 
 ## Non-goals
@@ -65,8 +65,8 @@ record is written at user creation and nowhere else.
 Making the login gate a security boundary, or hiding whether an address has an account. Limitations
 says what both cost.
 
-Serving the document text or the document list. Clients keep their own copy. The SDK sign-up view
-gets a checkbox, but the copy and the links are the consumer's.
+Serving the document text. The list endpoint returns URLs, and frontier never reads what is behind
+them.
 
 ## Document config
 
@@ -94,9 +94,9 @@ A map, not a list: it matches `authenticate.Config` keying `oidc_config` by stra
 enforces unique ids, and a single field stays env-overridable.
 
 Every document in the map is required at signup, so there is no per-document `required` flag. An
-optional document would need withdrawal, which is out of scope. The cost is that adding a document
-id breaks signup for clients still sending the old list, so a new document ships with the client
-release that sends it. Version bumps are safe, since the client sends only ids.
+optional document would need withdrawal, which is out of scope. Adding a document id breaks signup
+for a client sending a hardcoded list, which is why the list is served over an endpoint. Version
+bumps are safe either way, since the client sends only ids.
 
 `version` is opaque. Frontier compares it for equality, so dates, semver or commit SHAs all work.
 
@@ -110,6 +110,44 @@ not the config repo, says what a deployment was serving.
 
 Bad config fails at boot: ids, versions and URLs must be non-empty, URLs must parse, and an enabled
 block needs at least one document.
+
+## The document list endpoint
+
+`ListConsentDocuments`, unauthenticated, so a sign-up view can render the documents it is asking the
+user to accept:
+
+```proto
+message ConsentDocument {
+  string id      = 1;
+  string title   = 2;
+  string version = 3;
+  string url     = 4;
+}
+
+message ListConsentDocumentsRequest {}
+
+message ListConsentDocumentsResponse {
+  repeated ConsentDocument documents = 1;
+}
+```
+
+It returns the resolved config set, all four fields per document, ordered by id so the response is
+stable.
+
+With `app.consent` disabled it returns an empty list rather than an error, so one client build works
+against both kinds of deployment: no documents means no checkbox.
+
+The handler mirrors `ListAuthStrategies` (`internal/api/v1beta1connect/authenticate.go:302`). It
+reads the consent service, touches no database, and joins `authenticationSkipList` beside
+`ListAuthStrategies` and `Authenticate`.
+
+Public, because the documents are already public: the URLs are meant to be read by anyone
+considering an account, and the ids are an input to an unauthenticated `Authenticate`. Requiring a
+session to learn what to accept before the account exists is a cycle.
+
+Not folded into `ListAuthStrategies`. Consent is not a strategy, and `AuthStrategy` carries `name`
+and `params` and nothing else, so the documents would go in a `params` map every client has to
+parse. Two thin endpoints beat one that means two things.
 
 ## The request fields
 
@@ -135,11 +173,12 @@ The ids accompany `FLOW_INTENT_SIGNUP` only. With a login intent they are a clie
 handler rejects them, because a login writes no record. Accepting them silently would leave a client
 believing it recorded a consent that does not exist.
 
-Ids rather than one boolean, because the client's copy of the list can drift from config. Ids expose
-the mismatch; a boolean would stamp whatever config holds, writing a record that says the user
-accepted a document they never saw. Ids also allow consenting to a subset later. Versions, titles
-and URLs all come from config, so a client sending them would be ignored. Duplicates are removed
-before the check.
+Ids rather than one boolean, because the list the client rendered can still differ from config: it
+may have been fetched before a restart, or hardcoded by a consumer rendering its own view. Ids
+expose the mismatch; a boolean would stamp whatever config holds, writing a record that says the
+user accepted a document they never saw. Ids also allow consenting to a subset later. Versions,
+titles and URLs all come from config, so a client sending them would be ignored. Duplicates are
+removed before the check.
 
 ## Carrying them across the redirect
 
@@ -231,10 +270,14 @@ passkey login can create an account. The intent replaces the guess: signup picks
 
 ### Consent
 
-The consent service owns the config, so it owns the checks. Three functions, because signup and any
-later use need different rules:
+The consent service owns the config, so it owns the checks. Four functions, because signup, the list
+endpoint and any later use need different rules:
 
 ```go
+// Documents returns every document in config, ordered by id.
+// Empty when the feature is disabled. Serves ListConsentDocuments.
+func (s Service) Documents() []Document
+
 // Resolve maps ids to their config snapshots. Rejects unknown ids.
 // Says nothing about whether the set is complete.
 func (s Service) Resolve(ids []string) ([]Document, error)
@@ -330,16 +373,15 @@ One consent record per consent, listing the documents it covers.
 
 ```sql
 CREATE TABLE user_consents (
-    id           UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    user_id      UUID        NOT NULL,
-    user_email   TEXT        NOT NULL,
-    documents    JSONB       NOT NULL,
-    source       TEXT        NOT NULL DEFAULT 'signup',
-    auth_method  TEXT,
-    ip_address   TEXT,
-    consented_at TIMESTAMPTZ NOT NULL,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    metadata     JSONB       NOT NULL DEFAULT '{}',
+    id            UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id       UUID        NOT NULL,
+    user_email    TEXT        NOT NULL,
+    documents     JSONB       NOT NULL,
+    source        TEXT        NOT NULL DEFAULT 'signup',
+    auth_strategy TEXT,
+    ip_address    TEXT,
+    consented_at  TIMESTAMPTZ NOT NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT documents_not_empty CHECK (
         jsonb_typeof(documents) = 'array' AND jsonb_array_length(documents) > 0
@@ -348,9 +390,6 @@ CREATE TABLE user_consents (
 
 CREATE UNIQUE INDEX uq_user_consents_signup
     ON user_consents(user_id) WHERE source = 'signup';
-
-CREATE INDEX idx_user_consents_documents
-    ON user_consents USING GIN (documents jsonb_path_ops);
 ```
 
 `documents` holds one object per accepted document, copied from config at write time, with the same
@@ -370,8 +409,11 @@ four fields config holds:
 The grain is the consent, not the document. A user accepts a set in one act, so `user_email`,
 `ip_address` and `consented_at` describe the act and are stored once, and the document list is an
 argument to the write rather than something the schema fixes. Alternative 3 has the tradeoff.
-`metadata` is empty today; it gives a later re-consent somewhere to record its context without a
-migration.
+`auth_strategy` holds the `strategy_name` the consent came through: `oidc`, `mailotp` or `passkey`,
+the flow's own word for it.
+
+No `metadata` column. Nothing would write it today, and a re-consent that needs one can add it in
+its own migration.
 
 Four choices are deliberate and look like mistakes otherwise.
 
@@ -403,7 +445,8 @@ following the `entity.verb` naming already there. Every field is set explicitly:
 | `Resource` | the same user |
 | `Target` | the consent record id, `consent` type, document ids and versions in `Metadata` |
 | `OccurredAt` | `consented_at` from the flow, not the write time |
-| `OrgID`, `IdempotencyKey` | empty. Both are nullable, and a signup has no org |
+| `OrgID` | `schema.PlatformOrgID` |
+| `IdempotencyKey` | empty. It is nullable, and there is nothing to deduplicate |
 
 `Actor` cannot be left to enrichment. `AuditRecordRepository.Create` calls `enrichActorFromContext`
 when the actor is empty, and a skip-listed endpoint has no actor in context, so the record would
@@ -412,6 +455,10 @@ land with `uuid.Nil` and the `system` actor for an act a person performed.
 no session exists yet, so it returns `ErrActorNotFound`. So the write goes through the repository
 with the actor filled in, as `userpat` does for its PAT events.
 
+`OrgID` is `schema.PlatformOrgID`, the nil UUID, rather than empty. `user.Service` and
+`userpat.Service` already stamp it on the platform-level events they write, and it saves every
+reader special-casing a blank org.
+
 That write happens after the transaction commits, since `Create` has no `*sqlx.Tx` variant. It
 cannot be atomic with the consent record, which is why that record is the source of truth: if the
 audit write fails, log it and carry on.
@@ -419,14 +466,19 @@ audit write fails, log it and carry on.
 ## Reading it back
 
 No read API and no view. A reporting tool reads `user_consents` as it is. A record is
-self-contained, so "what did this user accept, and when" is one row. The reverse, "who accepted
-privacy policy 2026-04-01", is a containment filter served by the GIN index:
+self-contained, so "what did this user accept, and when" is one row, found by `user_id`.
+
+There is no index on `documents`. The reverse question, "who accepted privacy policy 2026-04-01", is
+a containment filter, answerable as a scan:
 
 ```sql
 SELECT user_email, consented_at, ip_address
 FROM user_consents
 WHERE documents @> '[{"id": "privacy_policy", "version": "2026-04-01"}]';
 ```
+
+That is an occasional compliance query, not a request path, and a GIN index would be maintained on
+every insert to serve it. If it becomes a real access pattern, the index is one migration away.
 
 ## Client
 
@@ -435,26 +487,33 @@ Three files under `web/sdk/client/views/auth`, the only callers of `authenticate
 and `magic-link/magic-link-view.tsx` is shared by both, so it takes the intent as a prop.
 
 Neither view sends document ids, so with consent enabled the shipped sign-up view cannot complete a
-signup. It gets an Apsara `Checkbox`:
+signup. `SignUpView` gains a `listConsentDocuments` query beside the `listAuthStrategies` one it
+already runs, and an Apsara `Checkbox` fed from the response:
 
 ```tsx
 export type SignUpViewProps = /* ... */ & {
-  consent?: {
-    documentIds: string[];
-    label?: ReactNode;
-  };
+  consentLabel?: ReactNode | ((documents: ConsentDocument[]) => ReactNode);
 };
 ```
 
-The prop is optional, so a deployment with consent disabled sees today's view. When it is passed,
-the checkbox starts unchecked, every sign-up control stays disabled until it is checked, and
-`documentIds` goes out as `accepted_document_ids`. `MagicLinkView` takes the ids alongside the
+An empty list means no checkbox, so a deployment with consent disabled sees today's view. With
+documents, the checkbox starts unchecked, every sign-up control stays disabled until it is checked,
+and the fetched ids go out as `accepted_document_ids`. `MagicLinkView` takes the ids alongside the
 intent, so both strategies use one control.
 
-`label` takes a `ReactNode`, so the consumer supplies the copy and the links. The default is plain
-text without links, because the SDK does not know the documents or their URLs, and `documentIds`
-comes from the consumer for the same reason. A second checkbox or a per-document link means a
-consumer rendering its own view and calling `authenticate` directly, which already works.
+The default label is built from the response: the copy around it is the SDK's, and each document
+contributes an Apsara `Link` to its `url`, titled with its `title`. Changing the documents in config
+changes the label, with no client release.
+
+`consentLabel` overrides it: a `ReactNode` for static copy, or a function of the documents for copy
+that links them. `ReactNode` does not admit functions, so one `typeof === 'function'` check tells
+the two apart, and both resolve to a node before the `Checkbox` sees it.
+
+A second checkbox, or one per document, means a consumer rendering its own view and calling
+`authenticate` directly, which already works.
+
+The ids the view sends are the ids the server just gave it, so a set mismatch takes a config change
+between the two calls. Nothing in the SDK hardcodes a document.
 
 `magicLinkHandler` handles only `status === 400` today and writes the message into the email field.
 It needs the three new codes, with copy pointing at the other view for the two gate errors.
@@ -478,11 +537,12 @@ is undecided.
    repeats the email, IP and timestamp on every row, and it needs a synthetic event id to answer
    "what did this user accept in one sitting". The act is what is recorded, so the act is the row.
 
-4. The documents in the database instead of config, as a table, a reconcile kind or an RPC serving
-   the list. Each record already copies its document versions, so the records are the version
-   history and a table answers no query they cannot. Config sits in git, which is a better change
-   log than rows an admin can edit, and all three need a write path, which is one more way to change
-   what the server stamps. Future work has the conditions for revisiting this.
+4. The documents in the database instead of config, as a table or a reconcile kind. Each record
+   already copies its document versions, so the records are the version history and a table answers
+   no query they cannot. Config sits in git, which is a better change log than rows an admin can
+   edit, and both need a write path, which is one more way to change what the server stamps.
+   `ListConsentDocuments` serves the list from config, so storage is a separate question. Future
+   work has the conditions for revisiting it.
 
 5. Taking consent in `AuthCallback`. The client would stash it locally and resend it after the
    redirect, so the record would attest to a re-assertion made after the fact, the IP would be the
@@ -516,10 +576,11 @@ is undecided.
 
 Changing a document version needs a redeploy, since config is read at boot.
 
-The client's document list and the server's are declared separately and can drift. Ids catch a set
-mismatch, but a version mismatch cannot be caught, since the client sends no versions: a client
-showing version A against a config holding version B produces a record that says B. Only frontier
-serving the list would close that.
+Drift between what the user read and what the record says is narrowed, not closed.
+`ListConsentDocuments` and `Authenticate` are two calls, so a config change between them leaves a
+user who read version A with a record that says version B. The window is a page load rather than a
+release cycle. Ids catch a set mismatch; a version mismatch cannot be caught, since the client sends
+no versions.
 
 A record ties to a version string, not to the document text, so editing the file at a URL without
 bumping the version leaves every record for that version describing something the user did not see.
@@ -555,10 +616,6 @@ Keycloak's terms and conditions required action does.
 A server switch that rejects an unset intent, turning the login gate into a boundary. It needs a
 deprecation window first, since it breaks every client that has not moved.
 
-A document list endpoint, if clients keeping their own copy proves too fragile. `ListAuthStrategies`
-is unauthenticated and already fetched by the sign-in page, so the resolved set could ride along on
-it instead of needing a new RPC.
-
 A per-document hash in config, copied into the record, tying a consent to the document text rather
 than to a version string someone typed into config.
 
@@ -575,20 +632,24 @@ RPC, but it does mean the audit record is a breadcrumb and not evidence.
 
 ## Work in order
 
-1. proton PR adding `FlowIntent`, `flow_intent = 6` and `accepted_document_ids = 7` in one change.
+1. proton PR, one change: `FlowIntent`, `flow_intent = 6` and `accepted_document_ids = 7`, plus
+   `ListConsentDocuments` with its request, response and `ConsentDocument` messages.
 2. Bump `PROTON_COMMIT` in `Makefile:7` and run `make proto`.
 3. Core, the login gate first: the `FlowIntent` type, the request fields, the metadata write and the
    nil-safe accessors, the `StartFlow` checks, the passkey branch, and the `getOrCreateUser`
    signature.
 4. Core, consent: `app.consent` with boot validation, the consent service, the migration and
    repository, and the transactional write in `getOrCreateUser`.
-5. Handlers: the intent and ids into `StartFlow`, `ExtractSessionMetadata` in `Authenticate`, and
-   the three errors mapped in both `Authenticate` and `AuthCallback`.
-6. SDK: the intent and ids through `MagicLinkView`, both views, the checkbox, and the error copy.
+5. Handlers: the intent and ids into `StartFlow`, `ExtractSessionMetadata` in `Authenticate`, the
+   three errors mapped in both `Authenticate` and `AuthCallback`, and the `ListConsentDocuments`
+   handler with its skip-list entry.
+6. SDK: the intent and ids through `MagicLinkView`, both views, the documents query, the checkbox,
+   and the error copy.
 7. Tests. Three intents against an address that does and does not have an account, at both
    enforcement points, plus one case per strategy, since OIDC, mail OTP and both passkey methods
    reach `getOrCreateUser` by different routes. Consent adds the complete, incomplete and
-   unknown-id sets, and a consent insert failure rolling back the user row.
+   unknown-id sets, a consent insert failure rolling back the user row, and `ListConsentDocuments`
+   enabled and disabled.
 
 ## References
 
