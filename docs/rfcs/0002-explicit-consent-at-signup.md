@@ -17,13 +17,18 @@ sends the document ids the user accepted. Frontier checks the ids cover every do
 then creates the user and the consent record together. The record lists each accepted document
 with the version and URL from config.
 
+Consent belongs to a signup, and frontier cannot currently tell a signup from a login. Both are the
+same request, and a login creates the account it should have refused. So this RFC also adds a flow
+intent that separates the two, which is what lets the consent check run before the browser leaves
+for the identity provider.
+
 If `app.consent` is not enabled, nothing changes. Frontier never parses document contents or
 version strings.
 
 ## Problem
 
 Frontier creates a user at the end of a registration flow and stores nothing about what the user
-agreed to. Three gaps.
+agreed to.
 
 Finishing signup is the only evidence of agreement. A record built from that only says the user
 signed up, which we already know. It cannot tell apart a user who read the documents from one who
@@ -37,13 +42,24 @@ away with the user row.
 Documents have versions, but nothing records which version a user accepted, so you cannot tell
 which one applies to them.
 
+And frontier does not know which requests are signups. `SignInView` and `SignUpView` are the same
+view with different strings: both call `authenticate({ strategyName, callbackUrl })`, both hand
+mail OTP to the same `MagicLinkView`, and only the title, the footer link and one `gap` value
+differ. `AuthenticateRequest` carries no intent, `Flow` carries none, and every strategy ends at
+`getOrCreateUser` (`core/authenticate/service.go:784`), which returns the existing user or creates
+one. So logging in with an address that has no account creates it, through a view that never showed
+the documents, and no client can ask for anything else.
+
 ## Goals
 
 - The client sends consent explicitly. The server rejects signup when it is missing.
 - No API can update or delete a consent record. Deleting the user does not delete it either.
 - A consent record stores the version and URL of every document it covers.
 - Document ids, titles, versions and URLs come from config. Frontier does not read them.
-- Deployments that do not set or enable `app.consent` behave exactly as before.
+- A login never creates an account. A signup never silently logs an existing user in.
+- One RPC and one callback, unchanged.
+- Deployments that do not set or enable `app.consent`, and clients that send no intent, behave
+  exactly as before.
 
 ## Non-goals
 
@@ -51,7 +67,11 @@ Re-consent, withdrawal, and users who already exist. When a document version cha
 records keep pointing at the old version and nobody is asked again.
 
 Repairing a missing consent record. A record is written when a user is created and at no other
-time. There is no path that adds one to an account that already exists.
+time. There is no path that adds one to an account that already exists, and none for the three
+paths that create a user without starting a flow, which Enforcement lists.
+
+Making the login gate a security boundary, and hiding whether an address has an account. Both are
+given up deliberately, and Limitations says what they cost.
 
 Frontier does not host the document text and does not serve the document list. Clients keep their
 own copy of the list. The SDK sign-up view gets a checkbox so it still works when consent is
@@ -86,11 +106,10 @@ same one. And you can override a single field with an env var, which you cannot 
 a list of objects.
 
 There is no per-document `required` flag. Every document in the map is required at signup. A flag
-would put two lists in config, all documents and the required subset, where one does the job, and
-an optional document is a different feature: it needs withdrawal, which is out of scope. The cost
-is that adding a new document id breaks signup for clients still sending the old list, so a new
-document and the client release that sends it have to ship together. Version bumps are unaffected,
-since the client only sends ids.
+would put two lists in config where one does the job, and an optional document is a different
+feature that needs withdrawal. The cost is that adding a document id breaks signup for clients
+still sending the old list, so a new document and the client release that sends it ship together.
+Version bumps are unaffected, since the client only sends ids.
 
 `version` is an opaque string that frontier only compares for equality, so a deployment can use
 dates, semver or commit SHAs.
@@ -98,39 +117,54 @@ dates, semver or commit SHAs.
 `enabled` is one switch for the whole feature. With `app.consent` absent or `enabled` false,
 frontier behaves exactly as it does today: no check runs, no record is written, and
 `accepted_document_ids` is ignored rather than rejected, so one client build works against both
-kinds of deployment. With `enabled` true, every document in the map is required. `enabled` true
+kinds of deployment. With `enabled` true every document in the map is required, and `enabled` true
 with no documents fails at boot instead of quietly turning the feature off.
 
 Config is read once at boot, so changing a document version needs a restart. Keys are
-env-overridable like the rest of frontier's config. An override cannot change an existing consent
-record, because records are immutable and each holds its own copy of the version, but it can
-produce wrong new ones. So the resolved document set is logged at boot. That log, not the config
-repo, tells you what a deployment was actually serving.
+env-overridable like the rest of frontier's config. An override cannot change an existing record,
+since records are immutable and each holds its own copy of the version, but it can produce wrong
+new ones, so the resolved document set is logged at boot. That log, not the config repo, tells you
+what a deployment was actually serving.
 
 Bad config fails at boot instead of at the first signup: document ids, versions and URLs must be
 non-empty, URLs must parse, and an enabled block needs at least one document.
 
-## The request field
+## The request fields
 
-One repeated field on the existing `AuthenticateRequest`:
+Two new fields on the existing `AuthenticateRequest`, authored in `raystack/proton` and generated
+here through `PROTON_COMMIT`:
 
 ```proto
-repeated string accepted_document_ids = 6;
+enum FlowIntent {
+  FLOW_INTENT_UNSPECIFIED = 0;
+  FLOW_INTENT_LOGIN       = 1;
+  FLOW_INTENT_SIGNUP      = 2;
+}
+
+FlowIntent flow_intent = 6;
+repeated string accepted_document_ids = 7;
 ```
 
-Field 6 is free: `AuthenticateRequest` ends at `callback_url = 5` today.
+Both fields are assigned in one proton PR, so neither can claim the other's number.
 
-Document ids, not a single boolean, because the client has its own copy of the document list and
-the two can go out of sync. With ids, frontier sees the mismatch and rejects the signup. With a
-boolean it would stamp whatever config holds and write a consent record saying the user accepted
-a document they were never shown, and nothing would catch it. Ids also leave room for consenting
-to a subset later without changing the field.
+An enum rather than a string for the intent, because the set is closed. The zero value carries
+backward compatibility for free: unspecified means today's behaviour, so no existing caller has to
+change. `AuthCallback` needs neither field. Both ride in the flow.
+
+The ids only ever accompany `FLOW_INTENT_SIGNUP`. Sent with a login intent they are a client bug
+and the handler rejects them, since a login creates no user and writes no record. Dropping them
+quietly would leave a client believing it had recorded a consent that does not exist.
+
+Document ids, not a single boolean, because the client has its own copy of the list and the two can
+go out of sync. With ids frontier sees the mismatch and rejects the signup. With a boolean it would
+stamp whatever config holds and write a record saying the user accepted a document they were never
+shown, with nothing to catch it. Ids also leave room for consenting to a subset later.
 
 Ids and nothing else. The client never sends versions, titles or URLs, and frontier would not use
 them if it did, since everything on a consent record is stamped from config. Duplicate ids are
 de-duplicated before the check.
 
-## Carrying consent across the redirect
+## Carrying them across the redirect
 
 In an OIDC flow the user accepts the documents before the browser leaves for the identity
 provider, and the account is created after it comes back:
@@ -138,28 +172,40 @@ provider, and the account is created after it comes back:
 ```mermaid
 flowchart TD
     accept["User accepts the documents"]
-    auth["Authenticate: document ids, IP and time<br/>written to flows.metadata"]
+    auth["Authenticate: intent = signup,<br/>ResolveAll on the ids"]
+    early["Reject with FailedPrecondition,<br/>nothing written, no redirect"]
+    store["Intent, ids, IP and time<br/>written to flows.metadata"]
     idp[("Identity provider")]
     cb["AuthCallback: flow row read back"]
-    q{"Would this create<br/>a new user?"}
-    reject["Reject with FailedPrecondition,<br/>no user created"]
+    q{"Does the user<br/>already exist?"}
+    exists["The signup gate rejects it,<br/>no consent record"]
     create["One transaction: create the user<br/>and the consent record"]
-    login["Return the existing user,<br/>write nothing"]
 
-    accept --> auth --> idp
+    accept --> auth
+    auth -->|"incomplete"| early
+    auth -->|"complete"| store --> idp
     idp -->|"state = flow id, code"| cb
     cb --> q
-    q -->|"yes, consent incomplete"| reject
-    q -->|"yes, consent complete"| create
-    q -->|"no"| login
+    q -->|"yes"| exists
+    q -->|"no"| create
 ```
 
 The only thing that survives the redirect is `state`, which already holds the flow id and is
-visible to the browser and the provider. So the consent goes where the flow id points.
-`Flow.Metadata` is a JSONB column that already carries `callback_url`, and `StartFlow` writes one
-more key:
+visible to the browser and the provider. So both fields go where the flow id points.
+`Flow.Metadata` is a JSONB column that already carries `callback_url`, so nothing needs a
+migration. `RegistrationStartRequest` gains the intent and the ids, `core/authenticate` gains the
+type, and `StartFlow` writes two more keys:
 
 ```go
+type FlowIntent string
+
+const (
+    FlowIntentUnspecified FlowIntent = ""
+    FlowIntentLogin       FlowIntent = "login"
+    FlowIntentSignup      FlowIntent = "signup"
+)
+
+flow.Metadata["intent"] = string(intent)
 flow.Metadata["consent"] = map[string]any{
     "accepted_document_ids": ids,
     "ip_address":            ip,
@@ -167,8 +213,8 @@ flow.Metadata["consent"] = map[string]any{
 }
 ```
 
-The flow row is written before the redirect and read after it comes back, so the consent never
-goes through the browser and cannot be changed on the way. The IP and time stored are from when
+The flow row is written before the redirect and read after it comes back, so neither value goes
+through the browser and neither can be changed on the way. The IP and time stored are from when
 the user accepted, not from the callback. Mail OTP and passkey use the same path, so there is one
 code path for every strategy.
 
@@ -180,15 +226,40 @@ configured client IP header. It parses the user agent into an OS and a browser f
 raw string, which is why the record keeps only the IP.
 
 `Flow.Metadata` is `map[string]any` stored as JSONB, so it does not return the types it was given:
-the ids come back as `[]any` and `at` as an RFC 3339 string. One typed parser handles the read, the
-way `otpAttempts` already does for the attempt counter, rather than an unchecked assertion like
-`flow.Metadata["callback_url"].(string)`. A missing or unparseable consent key counts as no consent.
+the ids come back as `[]any` and `at` as an RFC 3339 string. One typed accessor per key handles the
+read, the way `otpAttempts` already does for the attempt counter, rather than an unchecked
+assertion like `flow.Metadata["callback_url"].(string)`. Both accessors are methods on `*Flow` and
+are nil-receiver safe, returning `FlowIntentUnspecified` and no consent, so a caller with no flow
+needs no branch of its own. A missing or unparseable consent key counts as no consent.
 
 This also fixes something unrelated. `applyOIDC` never calls `consumeFlow`, so OIDC flow rows sit
 around until the expiry cron while mail OTP rows are deleted on use. That is hard to justify once
 those rows hold consent.
 
 ## Enforcement
+
+Two gates. `StartFlow` is the fast path and exists for the error message. User creation is the gate
+that matters: it is the only point every strategy reaches, and it is where the account would
+otherwise be created. OIDC does not know the email until the callback, which is why the login gate
+needs both points.
+
+### Login and signup
+
+| Intent | Strategy | At `StartFlow` | At user creation |
+|---|---|---|---|
+| login | mailotp, passkey | reject if no user exists | reject if no user exists |
+| login | oidc | email unknown, no check | reject if no user exists |
+| signup | mailotp, passkey | reject if a user exists | reject if a user exists |
+| signup | oidc | email unknown, no check | reject if a user exists |
+| unspecified | all | no check | create or get, as today |
+
+`StartFlow` guesses signup from login for passkey by looking the user up
+(`core/authenticate/service.go:220`), and `finishPassKeyLoginMethod` calls `getOrCreateUser`, so a
+passkey login can create an account today. The intent replaces the guess: signup picks
+`startPassKeyRegisterMethod`, login picks `startPassKeyLoginMethod`, and unspecified keeps the
+guess so nothing existing breaks.
+
+### Consent
 
 The consent service owns the config, so it owns both checks. They are separate functions because
 signup and any later use want different rules:
@@ -212,37 +283,68 @@ required ids are missing, or which sent ids config does not know. `Grant` takes 
 given, which is what leaves room for a later re-consent covering one document without a second
 write path.
 
-Consent is stored at the start of the flow and required at user creation. It cannot be required at
-the start: in an OIDC flow the email is not known yet, so a signup and a login look like the same
-request. What the `Authenticate` handler can do is call `Resolve` on any ids it was sent, so an
-unknown id fails before the browser leaves for the provider. `ResolveAll` runs at user creation,
-which is the first point where frontier knows who the user is and that they are new.
+The intent decides where the completeness check runs.
 
-So `getOrCreateUser` takes the flow, which is nil for the one caller that has none, and:
+With `FLOW_INTENT_SIGNUP` the `Authenticate` handler knows a signup when it sees one, so
+`ResolveAll` runs there, before the browser leaves for the provider and before mail OTP sends
+anything. An incomplete set is rejected with nothing written and no redirect. This holds for every
+strategy, OIDC included: the email is still unknown at flow start, but the intent is not.
+
+With the intent unset, a signup and a login look like the same request, so the check splits.
+`Resolve` at flow start catches an unknown id before the redirect, and `ResolveAll` runs at user
+creation, the first point where frontier knows the user is new. An unset intent is permissive for
+the login gate but not for this one: `ResolveAll` still has to pass before a user row is written,
+so omitting the intent skips the login gate and not consent.
+
+`ResolveAll` runs again at user creation either way. Not for the error, which under a signup intent
+has already been returned, but as the invariant guarding the write. It is the last point before the
+insert, and it is what makes a user row without a consent record impossible however the flow
+reached it.
+
+`getOrCreateUser` takes the flow, which is a signature change. The flow carries both the intent
+and the consent, so one parameter serves both gates, and the nil-safe accessors mean
+`authenticateWithPassthroughHeader`, which has no flow, passes nil and needs no branch of its own.
+Then:
 
 - New user, `ResolveAll` passes: one transaction creates the user row and the consent record.
-- New user, `ResolveAll` fails: return `ErrConsentRequired` and create nothing. `AuthCallback` maps
-  it to `FailedPrecondition` so the client can tell it apart from a bad code or an expired flow and
-  ask again.
-- Existing user: log them in and write nothing, whatever the flow holds.
+- New user, `ResolveAll` fails: return `ErrConsentRequired` and create nothing.
+- Existing user: write nothing. Under a signup intent the login gate has already rejected the
+  request; under an unset intent they are logged in, whatever the flow holds.
 
-A rejection ends the flow. The user starts a new one with a complete set, and for mail OTP that
-means a fresh code, since `applyMailOTP` calls `consumeFlow` before it creates the user. Reusing
-the flow would only let the same client assert the same wrong set again.
-
-The third case is absolute. There is no branch that notices a missing consent record and fills it
-in. A record written outside a user creation would carry that moment's timestamp and IP for an
-agreement that happened somewhere else, which is worse than having no record: it reads like real
-evidence.
+The third case is absolute. A record written outside a user creation would carry that moment's
+timestamp and IP for an agreement that happened somewhere else, which is worse than having no
+record: it reads like real evidence.
 
 That is why the transaction matters. `ResolveAll` runs before the transaction opens, so an
 incomplete payload never starts one. Inside it, the user insert and the consent insert either both
-land or neither does. Without the transaction a failed consent insert would leave an account with
-no consent record and nothing able to repair it, which is the gap this feature exists to close.
-`pkg/db` has `WithTxn`, but no context-carried transaction, so both repositories need a `Create`
-that accepts the `*sqlx.Tx`. That is additive and breaks no existing caller. If threading the
-transaction through the user repository is rejected, the fallback is to delete the user row when
-the consent insert fails and log loudly if that delete also fails.
+land or neither does; without it a failed consent insert would leave an account with no record and
+nothing able to repair it, which is the gap this feature exists to close. `pkg/db` has `WithTxn`
+but no context-carried transaction, so both repositories need a `Create` that accepts the
+`*sqlx.Tx`. That is additive and breaks no existing caller. If threading it through the user
+repository is rejected, the fallback is to delete the user row when the consent insert fails and
+log loudly if that delete also fails.
+
+### Errors
+
+Three errors alongside the existing block at `core/authenticate/service.go:53`:
+
+```go
+ErrLoginUserNotFound = errors.New("no account for this email")
+ErrSignupUserExists  = errors.New("an account already exists for this email")
+ErrConsentRequired   = errors.New("consent required for the configured documents")
+```
+
+They map to `CodeNotFound`, `CodeAlreadyExists` and `CodeFailedPrecondition`, returned from both
+`Authenticate` and `AuthCallback`. `AuthCallback` maps a fixed list of errors to `InvalidArgument`
+and everything else to `Internal` (`internal/api/v1beta1connect/authenticate.go:117`), so all
+three have to be added to that list or they surface as 500s. `FailedPrecondition` is what lets a
+client tell a consent rejection apart from a bad code or an expired flow and ask again.
+
+A rejection ends the flow. Under a signup intent it happens at `Authenticate`, before an OTP goes
+out or a redirect is issued, so the user retries and loses nothing. Under an unset intent a consent
+rejection happens at user creation, and for mail OTP that means a fresh code, since `applyMailOTP`
+calls `consumeFlow` before it creates the user. Either way, reusing the flow would only let the
+same client assert the same wrong set again.
 
 ### The other paths that create users
 
@@ -322,21 +424,19 @@ only, since old ones keep the shape they were written with.
 `metadata` is written once at insert like every other column and is empty today. It gives a later
 re-consent somewhere to record its own context without a migration. Nothing reads it.
 
-The grain is the consent, not the document. A user accepts a set of documents in one act, at one
-time, from one IP, so `user_email`, `ip_address` and `consented_at` describe the act and are stored
-once. It also means the same write path covers a later re-consent for any subset, because the
-document list is an argument rather than something the schema fixes. The cost is that the
-per-document fields sit inside JSON, which the queries below cover.
+The grain is the consent, not the document. A user accepts a set in one act, so `user_email`,
+`ip_address` and `consented_at` describe the act and are stored once, and the document list is an
+argument to the write rather than something the schema fixes, which is what covers a later
+re-consent for any subset. Alternative 3 has the tradeoff.
 
 Four things in there are deliberate and look like mistakes otherwise.
 
 There is no foreign key to `users`. `UserRepository.Delete` does a hard `DELETE`, so
 `ON DELETE CASCADE` would drop the consent records and `ON DELETE RESTRICT` would block account
-deletion. Consent records have to survive the user being deleted, which is also why `user_email`
-is denormalized: once the user row is gone there is nothing left to join to. `ip_address` is
-`TEXT` and not `INET` because the value comes from a request header, and a bad one must not fail a
-signup. For the same reason it is nullable: a deployment that does not set the header gets a record
-with no IP rather than a failed signup.
+deletion. Records have to survive the user, which is also why `user_email` is denormalized: once
+the user row is gone there is nothing left to join to. `ip_address` is `TEXT` and nullable, not
+`INET`, because the value comes from a request header and a bad or absent one must not fail a
+signup.
 
 The document versions and URLs are copies, not references. A consent record has to stay readable
 years later and stay correct after the document is dropped from config. It is also why a document
@@ -353,16 +453,36 @@ deleted consent record leaves a user who looks like they never consented. The re
 `Create` and nothing else, so no admin API path reaches a record even if a trigger gets dropped.
 `DROP TABLE` still works, so `migrate down` is fine.
 
-A signup also writes one `user.consent_granted` audit record so the audit trail shows it happened.
-The consent record is the source of truth; if the audit write fails, log it and carry on.
+A signup also writes one audit record so the audit trail shows it happened. `pkg/auditrecord` gains
+`UserConsentGrantedEvent Event = "user.consent_granted"` and `ConsentType EntityType = "consent"`,
+following the `entity.verb` naming already there. Every field is set explicitly:
+
+| Field | Value |
+|---|---|
+| `Actor` | the new user: its id, `app/user`, email as name |
+| `Resource` | the same user |
+| `Target` | the consent record id, `consent` type, document ids and versions in `Metadata` |
+| `OccurredAt` | `consented_at` from the flow, not the write time |
+| `OrgID`, `IdempotencyKey` | empty. Both are nullable, and a signup has no org |
+
+`Actor` cannot be left to enrichment, and this is the part that looks fine and is not.
+`AuditRecordRepository.Create` calls `enrichActorFromContext` when the actor is empty, and nothing
+puts an actor in the context of a skip-listed endpoint, so the record would land with `uuid.Nil` and
+the `system` actor for an act a person performed. Going through `auditrecord.Service.Create`
+instead is worse: its `enrichUserActor` reads `Actor.ID` as a session id and resolves the user from
+`session.UserID`, and no session exists yet, so it returns `ErrActorNotFound`. So the write goes
+through the repository with the actor filled in, the way `userpat` writes its PAT events.
+`actor_id` is `UUID NOT NULL` and the user id exists by then, because the row is already committed.
+
+The write happens after the transaction commits, since `Create` has no `*sqlx.Tx` variant, so it
+cannot be atomic with the consent record. That is why the consent record is the source of truth: if
+the audit write fails, log it and carry on.
 
 ## Reading it back
 
 There is no read API and no view. A reporting tool points at `user_consents` and reads the rows as
-they are, one per consent, with the accepted documents in `documents`.
-
-A record is self-contained, so "what did this user accept, and when" is one row. The reverse, "who
-accepted privacy policy 2026-04-01", is a containment filter:
+they are. A record is self-contained, so "what did this user accept, and when" is one row. The
+reverse, "who accepted privacy policy 2026-04-01", is a containment filter:
 
 ```sql
 SELECT user_email, consented_at, ip_address
@@ -375,10 +495,12 @@ view would be one more object to keep in step with the table it summarizes.
 
 ## Client
 
-Frontier ships its own sign-up view in `web/sdk/client/views/auth/sign-up`. It calls `authenticate`
-for the OIDC buttons and hands mail OTP to `MagicLinkView`, which calls `authenticate` itself.
-Neither sends ids, so with consent enabled the shipped view cannot complete a signup. It gets an
-Apsara `Checkbox`:
+Three files under `web/sdk/client/views/auth`, which are the only callers of `authenticate` in the
+repo. `sign-up/sign-up-view.tsx` sends signup on the OIDC buttons, `sign-in/sign-in-view.tsx` sends
+login, and `magic-link/magic-link-view.tsx` is shared by both, so it takes the intent as a prop.
+
+Neither sends document ids, so with consent enabled the shipped sign-up view cannot complete a
+signup. It gets an Apsara `Checkbox`:
 
 ```tsx
 export type SignUpViewProps = /* ... */ & {
@@ -392,16 +514,22 @@ export type SignUpViewProps = /* ... */ & {
 The prop is optional and the checkbox renders only when it is passed, so a deployment with consent
 disabled sees the view it sees today. When it is passed the checkbox starts unchecked, every
 sign-up control stays disabled until it is checked, and `documentIds` goes out as
-`accepted_document_ids`. `MagicLinkView` takes the ids as a prop, so both strategies go through one
-control.
+`accepted_document_ids`. `MagicLinkView` takes the ids alongside the intent, so both strategies go
+through one control.
 
 `label` takes a `ReactNode` so the consumer supplies the copy and the links. The default is plain
-text without links, since the SDK does not know the documents or their URLs. A second checkbox or a
-per-document link is a consumer rendering its own view and calling `authenticate` directly, which
-already works today.
+text without links, since the SDK does not know the documents or their URLs, and `documentIds`
+comes from the consumer for the same reason. It is the duplication Limitations describes, now
+visible in a prop. A second checkbox or a per-document link is a consumer rendering its own view
+and calling `authenticate` directly, which already works today.
 
-`documentIds` comes from the consumer because frontier does not serve the document list. It is the
-duplication Limitations describes, now visible in a prop.
+`magicLinkHandler` handles only `status === 400` today and writes the message into the email field.
+It needs the three new codes, with copy that points at the other view for the two gate errors;
+`config.redirectSignup` and `config.redirectLogin` already exist for the links.
+
+The OIDC rejections arrive at `AuthCallback`, which is the callback page rather than the view that
+started the flow, and that page has no error UI. Redirecting back to the originating view with an
+error param is the smaller change, rendering it in place is the other option, and this is undecided.
 
 ## Alternatives considered
 
@@ -418,33 +546,44 @@ duplication Limitations describes, now visible in a prop.
    "what did this user accept in one sitting" once there is more than one occasion. The act is what
    is being recorded, so the act is the row.
 
-4. A `consent_documents` table instead of config. Each consent record already copies its document
-   versions, so the records are the version history and the table answers no query they cannot.
-   Config sits in git, which is a better change log than rows an admin can edit, and a table would
-   need a write API, which is one more way to change what the server stamps.
+4. The documents in the database instead of config, whether as a plain `consent_documents` table,
+   a `ConsentDocument` reconcile kind or an RPC serving the list. Each consent record already
+   copies its document versions, so the records are the version history and a table answers no
+   query they cannot. Config sits in git, which is a better change log than rows an admin can
+   edit, and any of the three needs a write path, which is one more way to change what the server
+   stamps. A deployment that wants one source of truth can generate both the config block and the
+   client's copy from a single file. Future work has the conditions under which this is revisited.
 
-5. A `ConsentDocument` reconcile kind. The reconciler drives the admin API over RPC, so a kind
-   needs list and write RPCs plus a table, and it would make the document list editable by any
-   superuser. A restart is the narrower path.
-
-6. An RPC for the document list. Clients keeping their own copy costs one proto field for the
-   whole feature instead of a new endpoint. Deployments that want one source of truth can generate
-   both the config block and the client's copy from a single file.
-
-7. Taking consent in `AuthCallback`. The client would have to stash it locally and resend it after
+5. Taking consent in `AuthCallback`. The client would have to stash it locally and resend it after
    the redirect, so the consent record would attest to a client re-assertion made after the fact,
    the IP would be the post-redirect one, and it would break when the provider comes back into a
    different tab.
 
-8. Requiring the full document set at flow start. In an OIDC flow that looks the same as a login,
-   so it would block returning users. Only the unknown-id check can run there.
+6. Repairing a missing consent record on a later login. See Enforcement.
 
-9. A login or signup intent on `AuthenticateRequest`, which would make a signup identifiable at
-   flow start and let the full check run before the redirect. It also turns an unknown email on
-   login into an account enumeration oracle on an unauthenticated endpoint, which frontier does
-   not have today because it auto-provisions. Not worth it for an earlier error.
+7. Two RPCs, `Login` and `Signup`, instead of the intent. `AuthCallback` cannot be split alongside
+   them: `state` is the flow id, both gates run at callback time, and two callback URLs would have
+   to be registered with every provider. The intent would still have to ride on the flow, so the
+   split duplicates the entry point without moving either gate, and leaves `Authenticate` as a
+   permanent ungated path since no existing caller can be broken. Frontier already discriminates
+   strategies with `strategy_name` on one RPC.
 
-10. Repairing a missing consent record on a later login. See Enforcement.
+8. A `oneof` carrying a `LoginIntent` and a `SignupIntent` message, with the accepted ids on the
+   signup arm only. It makes a signup-only field unrepresentable on a login rather than merely
+   rejected, and there is precedent in `ChangeSubscriptionRequest.Change`. But
+   `AuthenticateRequest.email` is already a field only some strategies use, checked at runtime, so
+   the flat field is the shape this message has. Moving later means deprecating field 6 and
+   carrying both for a window, so adopt it now if more signup-only fields are expected.
+
+9. Enforcing the login gate only at user creation, or accepting the flow and failing at
+   verification without sending anything. Both keep `Authenticate` quiet about whether an address
+   has an account. The first costs a wasted OTP mail and puts "no account for this email" on the
+   verification screen, where it reads like a bad code; the second wastes nothing but leaves the
+   user waiting for a code that never arrives. The clearer error was chosen over the quieter
+   endpoint.
+
+10. A first-class `Intent` field on `Flow`. It types better than metadata and costs a migration on
+    `flows` for one string, when the consent payload has to go in `metadata` regardless.
 
 ## Limitations
 
@@ -468,6 +607,16 @@ get to full coverage. Neither do users created through the three exempt paths un
 "No account without consent" holds for the signup flow, not for every row in `users`, and a
 deployment has to accept that distinction before it relies on the records.
 
+The unauthenticated `Authenticate` endpoint now answers whether an address has an account, for
+mailotp and passkey where the email is known at flow start. Frontier does not answer that today,
+because it auto-provisions instead. Rate limiting per address and per IP is the mitigation, not
+hiding the answer. Passkey already leaks existence through its response shape, since register and
+login return different options, and the intent neither widens that nor closes it.
+
+The login gate is a UX boundary and not a security one: an unset intent keeps create-or-get, so any
+client can opt out by omitting the field. Consent cannot be opted out that way, since `ResolveAll`
+runs at user creation under every intent.
+
 Sharing a transaction with the user insert means the user repository gains a create that takes a
 transaction. It is additive, but it is the one place this feature reaches outside its own domain.
 
@@ -477,6 +626,9 @@ Re-consent when a document version changes. The write path already handles it: `
 document list as an argument and `source` separates one occasion from another. What is missing is
 enforcement, which has to move from user creation to a gate on authenticated requests, roughly
 what Keycloak's terms and conditions required action does. That is its own feature.
+
+A server switch that rejects an unset intent, which turns the login gate into a boundary. It needs
+a deprecation window first, since it breaks every client that has not moved.
 
 A document list endpoint, if clients keeping their own copy turns out to be too fragile.
 `ListAuthStrategies` is unauthenticated and already fetched by the sign-in page, so the resolved
@@ -493,8 +645,27 @@ directly and nothing needs backfilling, since no consent record points at it.
 Withdrawal, which needs a decision on what happens to the account.
 
 A reserved-event guard on `CreateAuditRecord`, so events frontier writes itself cannot be injected
-through the public RPC. Not part of this feature, but the same gap lets any platform member forge
-a backdated `pat.revoked`.
+through the public RPC. Any platform member can forge a backdated `user.consent_granted` through
+it, the same way they can forge `pat.revoked`. That does not weaken `user_consents`, which has no
+write RPC, but it does mean the audit record is a breadcrumb and not evidence.
+
+## Work in order
+
+1. proton PR adding `FlowIntent`, `flow_intent = 6` and `accepted_document_ids = 7` in one change.
+2. Bump `PROTON_COMMIT` in `Makefile:7` and run `make proto`.
+3. Core, the login gate first: the `FlowIntent` type, the request fields, the metadata write and
+   the nil-safe accessors, the `StartFlow` checks, the passkey branch, and the `getOrCreateUser`
+   signature.
+4. Core, consent: `app.consent` with boot validation, the consent service, the migration and
+   repository, and the transactional write in `getOrCreateUser`.
+5. Handlers: the intent and ids into `StartFlow`, `ExtractSessionMetadata` in `Authenticate`, and
+   the three errors mapped in both `Authenticate` and `AuthCallback`.
+6. SDK: the intent and ids through `MagicLinkView`, both views, the checkbox, and the error copy.
+7. Tests. `core/authenticate/service_test.go` covers three intents against an address that does and
+   does not have an account, at both enforcement points, plus one case per strategy, since OIDC,
+   mail OTP and both passkey methods reach `getOrCreateUser` by different routes. Consent adds the
+   complete, incomplete and unknown-id sets, and a consent insert failure rolling back the user
+   row.
 
 ## References
 
