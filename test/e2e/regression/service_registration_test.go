@@ -80,18 +80,15 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
-					Name:      "get",
-					Namespace: "database/instance",
-					Title:     "",
+					Key:   "database.instance.get",
+					Title: "",
 				},
 				{
-					Name:      "update",
-					Namespace: "database/instance",
-					Title:     "update db instance",
+					Key:   "database.instance.update",
+					Title: "update db instance",
 				},
 				{
-					Name:      "delete",
-					Namespace: "database/instance",
+					Key: "database.instance.delete",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"description": structpb.NewStringValue("bar"),
@@ -117,13 +114,11 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 			Bodies: []*frontierv1beta1.PermissionRequestBody{
 				{
-					Name:      "update",
-					Namespace: "database/alert",
-					Title:     "update db alert",
+					Key:   "database.alert.update",
+					Title: "update db alert",
 				},
 				{
-					Name:      "delete",
-					Namespace: "database/alert",
+					Key: "database.alert.delete",
 					Metadata: &structpb.Struct{
 						Fields: map[string]*structpb.Value{
 							"description": structpb.NewStringValue("bar"),
@@ -165,7 +160,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestPermissionDeleteCascade() {
 
 	createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 		Bodies: []*frontierv1beta1.PermissionRequestBody{
-			{Name: "act", Namespace: "permcascade/res"},
+			{Key: "permcascade.res.act"},
 		},
 	}))
 	s.Require().NoError(err)
@@ -254,7 +249,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestPermissionDeleteBlockedByRe
 	// authorizes the "delete" permission on the resource's namespace)
 	createPermResp, err := s.testBench.AdminClient.CreatePermission(ctx, connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
 		Bodies: []*frontierv1beta1.PermissionRequestBody{
-			{Name: "delete", Namespace: "orphanguard/widget"},
+			{Key: "orphanguard.widget.delete"},
 		},
 	}))
 	s.Require().NoError(err)

@@ -3,7 +3,7 @@ import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
 import styles from "./invoices.module.css";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { BanknotesIcon } from "~/admin/assets/icons/BanknotesIcon";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
 import { getColumns } from "./columns";
@@ -11,18 +11,13 @@ import { FrontierServiceQueries } from "@raystack/proton/frontier";
 import { useInfiniteQuery } from "@connectrpc/connect-query";
 import {
   getConnectNextPageParam,
-  DEFAULT_PAGE_SIZE,
   getGroupCountMapFromFirstPage,
 } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
-import { useDebouncedValue } from "~hooks";
 import { useTerminology } from "~/admin/hooks/useTerminology";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const DEFAULT_SORT: DataTableSort = { name: 'createdAt', order: 'desc' };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     createdAt: "created_at",
@@ -109,22 +104,18 @@ export function OrganizationInvoicesView() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
-
   const title = `Invoices | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
-  const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(
-      convertAmountFiltersToCents(tableQuery),
-      TRANSFORM_OPTIONS,
-    );
-    return {
-      ...tempQuery,
-      search: searchQuery || "",
-    };
-  }, [tableQuery, searchQuery]);
-
-  const query = useDebouncedValue(computedQuery, 200);
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+    search: searchQuery || "",
+    mapQuery: convertAmountFiltersToCents,
+  });
 
   const {
     data: infiniteData,
@@ -168,15 +159,13 @@ export function OrganizationInvoicesView() {
     ? getGroupCountMapFromFirstPage(infiniteData)
     : {};
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery(newQuery);
-  };
-
-  const fetchMore = async () => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
-      await fetchNextPage();
-    }
-  };
+  const fetchMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "invoices",
+  });
 
   useEffect(() => {
     setSearchVisibility(true);

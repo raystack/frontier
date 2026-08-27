@@ -11,6 +11,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	frontierv1beta1connect "github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/raystack/salt/cli/printer"
@@ -112,10 +113,10 @@ func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1
 	}
 
 	str := "created custom permissions : "
-	//nolint:staticcheck
 	for _, v := range permissionBodies {
-		str = fmt.Sprintf("%s %s:%s", str, v.GetNamespace(), v.GetName())
-		resourceNamespaces = append(resourceNamespaces, v.GetNamespace())
+		permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(v.GetKey())
+		str = fmt.Sprintf("%s %s:%s", str, permNamespace, permName)
+		resourceNamespaces = append(resourceNamespaces, permNamespace)
 	}
 	fmt.Println(str)
 

@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import type { DataTableQuery, DataTableSort } from "@raystack/apsara";
+import type { DataTableSort } from "@raystack/apsara";
 import { LockClosedIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@connectrpc/connect-query";
@@ -9,24 +9,19 @@ import {
   type Project,
   type SearchOrganizationPATsResponse_OrganizationPAT,
 } from "@raystack/proton/frontier";
-import { useDebouncedValue } from "~hooks";
 import { OrganizationContext } from "../contexts/organization-context";
 import { PageTitle } from "~/admin/components/PageTitle";
 import {
-  DEFAULT_PAGE_SIZE,
   getConnectNextPageParam,
 } from "~/utils/connect-pagination";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useTerminology } from "~/admin/hooks/useTerminology";
 import { getColumns } from "./columns";
 import { PatDetailsDialog } from "./components/pat-details-dialog";
 import styles from "./pat.module.css";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const DEFAULT_SORT: DataTableSort = { name: "createdAt", order: "desc" };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-};
 const TRANSFORM_OPTIONS = {
   fieldNameMapping: {
     createdAt: "created_at",
@@ -88,24 +83,20 @@ export function OrganizationPatView() {
     query: searchQuery,
   } = search;
 
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
   const [selectedPat, setSelectedPat] =
     useState<SearchOrganizationPATsResponse_OrganizationPAT | null>(null);
 
   const title = `PAT | ${organization?.title} | ${t.organization({ plural: true, case: "capital" })}`;
 
-  const computedQuery = useMemo(() => {
-    const tempQuery = transformDataTableQueryToRQLRequest(
-      tableQuery,
-      TRANSFORM_OPTIONS,
-    );
-    return {
-      ...tempQuery,
-      search: searchQuery || "",
-    };
-  }, [tableQuery, searchQuery]);
-
-  const query = useDebouncedValue(computedQuery, 200);
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: TRANSFORM_OPTIONS,
+    search: searchQuery || "",
+  });
 
   const {
     data: infiniteData,
@@ -167,15 +158,13 @@ export function OrganizationPatView() {
   const showZeroState =
     !isLoading && !isError && !hasActiveQuery && data.length === 0;
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery(newQuery);
-  };
-
-  const fetchMore = async () => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
-      await fetchNextPage();
-    }
-  };
+  const fetchMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "personal access tokens",
+  });
 
   useEffect(() => {
     setSearchVisibility(true);

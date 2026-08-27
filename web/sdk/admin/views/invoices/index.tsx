@@ -1,11 +1,9 @@
 import {
   DataTable,
-  type DataTableQuery,
   type DataTableSort,
   EmptyState,
   Flex,
 } from "@raystack/apsara";
-import { useState } from "react";
 import { PageTitle } from "../../components/PageTitle";
 import { InvoicesNavabar } from "./navbar";
 import styles from "./invoices.module.css";
@@ -15,11 +13,11 @@ import { useInfiniteQuery } from "@connectrpc/connect-query";
 import { AdminServiceQueries } from "@raystack/proton/frontier";
 import {
   getConnectNextPageParam,
-  DEFAULT_PAGE_SIZE,
 } from "~/utils/connect-pagination";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { transformDataTableQueryToRQLRequest } from "~/utils/transform-query";
 import { useTerminology } from "../../hooks/useTerminology";
+import { useLoadMore } from "~/admin/hooks/useLoadMore";
+import { useServerTableQuery } from "~/admin/hooks/useServerTableQuery";
 
 const NoInvoices = () => {
   const t = useTerminology();
@@ -37,10 +35,6 @@ const NoInvoices = () => {
 };
 
 const DEFAULT_SORT: DataTableSort = { name: "createdAt", order: "desc" };
-const INITIAL_QUERY: DataTableQuery = {
-  offset: 0,
-  limit: DEFAULT_PAGE_SIZE,
-};
 
 export type InvoicesViewProps = {
   /** App name displayed in the page title. */
@@ -49,11 +43,16 @@ export type InvoicesViewProps = {
 
 export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
   const t = useTerminology();
-  const [tableQuery, setTableQuery] = useState<DataTableQuery>(INITIAL_QUERY);
-
-  const query = transformDataTableQueryToRQLRequest(tableQuery, {
-    fieldNameMapping: {
-      createdAt: "created_at",
+  const {
+    tableQuery,
+    rqlQuery: query,
+    onTableQueryChange,
+  } = useServerTableQuery({
+    defaultSort: DEFAULT_SORT,
+    transformOptions: {
+      fieldNameMapping: {
+        createdAt: "created_at",
+      },
     },
   });
 
@@ -81,22 +80,13 @@ export default function InvoicesView({ appName }: InvoicesViewProps = {}) {
 
   const data = infiniteData?.pages?.flatMap(page => page?.invoices || []) || [];
 
-  const onTableQueryChange = (newQuery: DataTableQuery) => {
-    setTableQuery({
-      ...newQuery,
-      offset: 0,
-      limit: newQuery.limit || DEFAULT_PAGE_SIZE,
-    });
-  };
-
-  const handleLoadMore = async () => {
-    try {
-      if (!hasNextPage) return;
-      await fetchNextPage();
-    } catch (error) {
-      console.error("Error loading more invoices:", error);
-    }
-  };
+  const handleLoadMore = useLoadMore({
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    label: "invoices",
+  });
 
   const columns = getColumns({ t });
 

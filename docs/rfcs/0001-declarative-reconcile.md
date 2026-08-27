@@ -16,7 +16,7 @@ file with the live server, prints a plan, and applies the difference through the
 be seeded from a running server.
 
 This document sets the rules every kind follows. The kinds are PlatformUser, Permission, Role,
-Preference, and Webhook. New kinds plug in under the same rules without changing the commands
+Preference, Webhook, MetaSchema, BillingProduct, and BillingPlan. New kinds plug in under the same rules without changing the commands
 or the file format.
 
 ## At a glance
@@ -41,8 +41,8 @@ means and whether you can delete it:
 ```mermaid
 flowchart TD
     r["A resource the kind manages"] --> q{"Can reconcile<br/>create and delete it?"}
-    q -->|"yes"| o["Object<br/>Permission, Webhook, custom Role<br/>on the server but not in the file: the plan fails<br/>to delete one, set delete: true"]
-    q -->|"no"| v["Value<br/>PlatformUser, Preference, predefined Role<br/>always exists, so no delete flag<br/>not in the file: back to its default"]
+    q -->|"yes"| o["Object<br/>Permission, Webhook, custom Role, BillingProduct, BillingPlan<br/>on the server but not in the file: the plan fails<br/>to delete one, set delete: true, or retire it if it has no delete API"]
+    q -->|"no"| v["Value<br/>PlatformUser, Preference, predefined Role, MetaSchema<br/>always exists, so no delete flag<br/>not in the file: back to its default"]
 ```
 
 The kinds split cleanly, except Role, which is both: a custom role is an object, a predefined
@@ -51,12 +51,14 @@ role is a value.
 | Kind | Object or value | Identity | A missing entry | How to remove |
 |---|---|---|---|---|
 | PlatformUser | value | principal + relation | access removed | leave the entry out |
-| Permission | object | namespace + name | plan fails | set `delete: true` |
+| Permission | object | key | plan fails | set `delete: true` |
 | Role, custom | object | name | plan fails | set `delete: true` |
 | Role, predefined | value | name | reset to the shipped definition | cannot be removed |
 | Preference | value | trait name | reset to the trait default | leave the entry out, it resets |
 | Webhook | object | URL | plan fails | set `delete: true` |
 | MetaSchema | value | name | reset to the shipped schema | leave the entry out, it resets |
+| BillingProduct | object | name | plan fails | no delete API, archive the product by hand |
+| BillingPlan | object | name | plan fails | no delete API, set the plan inactive instead |
 
 Every kind, current and future, follows the same five rules:
 
@@ -207,8 +209,8 @@ entry removes that access. A user with both relations has two entries. Adding a 
 email that does not exist creates the user. The bootstrap service account is server-managed:
 the flow skips it on the server side and rejects it in the file.
 
-**Permission.** An entry is `{namespace, name}`, for example `compute/order` + `get`. A
-permission is an identity only, so it is created or deleted, never updated. Creating one also
+**Permission.** An entry is `{key}` in `service.resource.verb` form, for example
+`compute.order.get`. A permission is an identity only, so it is created or deleted, never updated. Creating one also
 updates the authorization schema, so it is usable in roles right away, on every pod at once. The
 base `app` namespaces are server-managed.
 
@@ -235,6 +237,23 @@ schemas the server validates entity metadata against: user, group, organization,
 role, and prospect. Each is a value whose default is the shipped schema. The file
 sets a schema; a built-in left out resets to its default. There is no delete flag,
 and a name outside the built-in set is rejected. The schema is a JSON string.
+
+**BillingProduct.** An entry is a product `{name, title, description, behavior, config,
+prices, features, delete}`. The name is the identity. It is an object: every product on the
+server must be in the file, and a missing one fails the plan. A product is managed in full, and
+its prices are keyed by name within it, so a new price name is added and a name the file drops
+is retired, since a provider price cannot be deleted. `behavior` and a price's amount are
+create-only. There is no API to delete a product, so `delete: true` is rejected: archive it by
+hand. A product this kind cannot represent (a tiered price, an empty title, or a name shorter
+than three characters) is out of scope.
+
+**BillingPlan.** An entry is a plan `{name, title, description, interval, on_start_credits,
+trial_days, state, products, delete}`. The name is the identity. It is an object: every plan on
+the server must be in the file, and a missing one fails the plan. It groups products by name;
+the products themselves are managed by the BillingProduct kind. `interval` and the product set
+are create-only. There is no API to delete a plan, so `delete: true` is rejected: retire it by
+setting `state: inactive` instead. Metadata is out of scope: not set, diffed, or exported, but
+preserved on update.
 
 ## Server-side changes
 
@@ -286,11 +305,9 @@ roles, committed as the desired-state files, then dropping the setting from the 
   comes from the running server instead of the CLI's compiled copy. This removes the
   image-version coupling.
 - Passing the auth token without putting it in the process arguments.
-- Billing plans as a kind, replacing the boot-time plans loader.
 - Removing relation-based ownership from the base schema, so narrowing a predefined role
   restricts everyone who holds it.
 
 ## References
 
 - The `reconcile` package and the `reconcile` and `export` commands in this repository.
-- Pixxel rollout: `docs/RFC/001-frontier-gitops-reconcile.md` in pixxelhq/IAM.

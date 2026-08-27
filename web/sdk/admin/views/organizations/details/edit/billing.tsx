@@ -125,7 +125,12 @@ export function EditBillingPanel({ open = false, onClose }: EditBillingPanelProp
     },
   );
 
+  /* Reachable without a billing account: the navbar's Edit menu is ungated.
+   * The submit below returns silently there, so the button must not look live. */
+  const canSave = !!organizationId && !!billingId;
+
   const onSubmit = async (data: BillingDetailsForm) => {
+    if (!canSave) return;
     try {
       // For prepaid, set values to 0; for postpaid, use form values
       const creditMinValue = data.tokenPaymentType === "prepaid" ? 0n : BigInt(data.creditMin);
@@ -263,7 +268,7 @@ export function EditBillingPanel({ open = false, onClose }: EditBillingPanelProp
               <Button
                 data-test-id="save-update-billing-details-button"
                 type="submit"
-                disabled={isLoading || isSubmitting}
+                disabled={isLoading || !canSave || isSubmitting}
                 loading={isSubmitting}
                 loaderText="Saving..."
               >

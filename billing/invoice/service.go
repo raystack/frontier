@@ -244,6 +244,59 @@ func (s *Service) isCreditOverdraftDayOfInvoice() bool {
 	return time.Now().UTC().Day() == s.creditOverdraftInvoiceDay
 }
 
+// ListPayableOnProvider returns the customer's invoices that still ask for
+// money — open, uncollectible, or being prepared as drafts — read straight
+// from the billing provider so the answer is current. Zero-amount invoices
+// are skipped. Where a local row exists for the invoice it keeps its local
+// id; an invoice the sync has not seen yet is returned with an empty id and
+// only its provider reference. Unlike SyncWithProvider this touches no local
+// rows, expands nothing, and reads one status-filtered listing per payable
+// state — a customer with very many payable invoices pages through more
+// requests, but the cost scales with what is still owed, not with the whole
+// invoice history.
+func (s *Service) ListPayableOnProvider(ctx context.Context, customr customer.Customer) ([]Invoice, error) {
+	localInvoices, err := s.repository.List(ctx, Filter{
+		CustomerID: customr.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	localByProviderID := make(map[string]Invoice, len(localInvoices))
+	for _, inv := range localInvoices {
+		localByProviderID[inv.ProviderID] = inv
+	}
+
+	var payable []Invoice
+	for _, status := range PayableStates {
+		stripeInvoices := s.stripeClient.Invoices.List(&stripe.InvoiceListParams{
+			Customer: stripe.String(customr.ProviderID),
+			Status:   stripe.String(string(status)),
+			ListParams: stripe.ListParams{
+				Context: ctx,
+			},
+		})
+		for stripeInvoices.Next() {
+			stripeInvoice := stripeInvoices.Invoice()
+			// AmountRemaining is what the customer still owes; Total is not:
+			// a negative total is a credit owed to the customer, and an open
+			// invoice fully covered by their credit balance has a positive
+			// total with nothing due. Neither asks for money.
+			if stripeInvoice.AmountRemaining <= 0 {
+				continue
+			}
+			inv := stripeInvoiceToInvoice(customr.ID, stripeInvoice)
+			if local, ok := localByProviderID[stripeInvoice.ID]; ok {
+				inv.ID = local.ID
+			}
+			payable = append(payable, inv)
+		}
+		if err := stripeInvoices.Err(); err != nil {
+			return nil, fmt.Errorf("failed to list %s invoices: %w", status, billingerrors.TranslateStripeError(err))
+		}
+	}
+	return payable, nil
+}
+
 func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Customer) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

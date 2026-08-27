@@ -23,18 +23,15 @@ func (h *ConnectHandler) CreatePermission(ctx context.Context, request *connect.
 	var permissionSlugs []string
 	for _, permBody := range request.Msg.GetBodies() {
 		permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(permBody.GetKey())
-		if permNamespace == "" || permName == "" {
-			permNamespace, permName = permBody.GetNamespace(), permBody.GetName() //nolint:staticcheck
-		}
 		if permName == "" || permNamespace == "" {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
 		}
-		if !schema.IsValidPermissionName(permName) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("permission name cannot contain special characters"))
-		}
-
-		if permNamespace == schema.DefaultNamespace {
-			return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("permission namespace cannot be "+schema.DefaultNamespace))
+		// One shared check for the verb grammar, the namespace grammar, the reserved
+		// verbs, and the slug length, so the create API and the reconcile plan agree
+		// and a permission that would fail when SpiceDB compiles the schema is
+		// rejected up front with a message that says which rule it broke.
+		if err := schema.ValidateCustomPermission(permNamespace, permName); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		permissionSlugs = append(permissionSlugs, schema.FQPermissionNameFromNamespace(permNamespace, permName))
 
@@ -94,10 +91,11 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 		}
 	}
 
-	// key is the replacement for the deprecated namespace/name fields, so it
-	// must read back to the exact stored pair. A row that cannot round-trip
-	// (namespace without a slash, or with a dot in a part) fails loudly here
-	// instead of returning a key that reads back as a different permission.
+	// The key is the namespace and name joined with dots, and readers split
+	// it back on dots. If splitting the key does not give back the same
+	// namespace and name (a namespace without a slash, or a dot inside a
+	// namespace part), the key would point at a different permission than
+	// this row, so return an error instead of a misleading key.
 	key := schema.PermissionKeyFromNamespaceAndName(perm.NamespaceID, perm.Name)
 	if ns, name := schema.PermissionNamespaceAndNameFromKey(key); ns != perm.NamespaceID || name != perm.Name {
 		return nil, fmt.Errorf("permission namespace %q and name %q do not round-trip through key %q", perm.NamespaceID, perm.Name, key)
@@ -105,10 +103,8 @@ func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permi
 
 	return &frontierv1beta1.Permission{
 		Id:        perm.ID,
-		Name:      perm.Name,
 		CreatedAt: timestamppb.New(perm.CreatedAt),
 		UpdatedAt: timestamppb.New(perm.UpdatedAt),
-		Namespace: perm.NamespaceID,
 		Metadata:  metadata,
 		Key:       key,
 	}, nil
@@ -125,7 +121,12 @@ func (h *ConnectHandler) UpdatePermission(ctx context.Context, request *connect.
 
 	permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(request.Msg.GetBody().GetKey())
 	if permNamespace == "" || permName == "" {
-		permNamespace, permName = request.Msg.GetBody().GetNamespace(), request.Msg.GetBody().GetName() //nolint:staticcheck
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrPermissionKeyNotation)
+	}
+	// Same shared check as create, so an update cannot rename a permission to a key
+	// SpiceDB will reject and then break the next schema compile at boot.
+	if err := schema.ValidateCustomPermission(permNamespace, permName); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 	updatedPermission, err := h.permissionService.Update(ctx, permission.Permission{
 		ID:          request.Msg.GetId(),

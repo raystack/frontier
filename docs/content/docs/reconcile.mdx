@@ -85,24 +85,33 @@ Because the file is the full list, `spec: []` removes every platform user. The b
 service account is the exception: it is never removed. Keep `app.admin.bootstrap` configured,
 since that account is the recovery path if a file ever empties the list.
 
+Disabled users are out of scope. A disabled user does not appear in the platform-user
+listing the reconciler reads, so it cannot see or manage their platform access: a disabled
+admin is not exported, and an empty file does not remove their grant. Do not list a disabled
+user in the file. Re-enable them first if you need to reconcile their access. This only
+concerns users. Service users cannot be disabled today, so they are always listed.
+
 ## The Permission kind
 
-A permission is an identity: a `service/resource` namespace plus a verb. There is nothing
+A permission is an identity: a key in `service.resource.verb` form. There is nothing
 else to manage on it, so it is either created or deleted.
 
 ```yaml
 apiVersion: v1
 kind: Permission
 spec:
-  - namespace: compute/order
-    name: get
-  - namespace: compute/order
-    name: legacy
+  - key: compute.order.get
+  - key: compute.order.legacy
     delete: true
 ```
 
-- The namespace has two parts, `service/resource`. The name is alphanumeric.
-- Frontier's own permissions (the `app` namespaces) belong to the base schema. The
+- The key has three parts joined by dots, `service.resource.verb`. Each part is lowercase,
+  starts with a letter, and is at least three characters.
+- The verb cannot be `owner`, `project`, or `granted`. The generated schema already defines
+  relations with those names on every resource.
+- The whole flattened name `service_resource_verb` must be at most 64 characters, SpiceDB's
+  limit on a relation name.
+- Frontier's own permissions (the `app` service) belong to the base schema. The
   reconciler ignores them and rejects a file entry that names one.
 - A custom permission on the server that the file does not list fails the plan. Nothing
   is deleted just because it is missing; deleting needs `delete: true` on the entry.

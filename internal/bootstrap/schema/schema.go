@@ -299,32 +299,87 @@ func IsSystemNamespace(namespace string) bool {
 		namespace == PATPrincipal || namespace == PlatformNamespace
 }
 
-// IsValidPermissionName checks if the provided name is a valid permission name
+// permissionNameRe matches a permission verb. The verb becomes a SpiceDB
+// relation name directly, so it must satisfy SpiceDB's relation grammar
+// (^[a-z][a-z0-9_]{1,62}[a-z0-9]$): start with a lowercase letter, then
+// lowercase alphanumerics, three to sixty-four characters. Underscore is left
+// out here because the slug joins service, resource, and verb with "_", so an
+// underscore in the verb is treated the same as in a namespace part.
+var permissionNameRe = regexp.MustCompile(`^[a-z][a-z0-9]{2,63}$`)
+
+// IsValidPermissionName reports whether name is a valid permission verb that
+// SpiceDB will accept as a relation name.
 func IsValidPermissionName(name string) bool {
-	if name == "" {
-		return false
-	}
-	// check if name contains anything other than alphanumeric characters
-	for _, r := range name {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
-			return false
-		}
-	}
-	return true
+	return permissionNameRe.MatchString(name)
 }
 
-// permissionNamespaceRe matches a custom permission namespace: service/resource
-// with each part one or more lowercase alphanumeric characters. It forbids the
-// underscore inside a part, because FQPermissionNameFromNamespace joins service,
-// resource, and the verb with "_", so an underscore in a part would let two
-// different namespaces flatten to the same slug. Uppercase is forbidden because
-// SpiceDB object type names are lowercase, so it could never be stored anyway.
-var permissionNamespaceRe = regexp.MustCompile(`^[a-z0-9]+/[a-z0-9]+$`)
+// permissionNamespaceRe matches a custom permission namespace: service/resource,
+// where each part is a valid SpiceDB object type segment (^[a-z][a-z0-9_]{1,62}
+// [a-z0-9]$): start with a lowercase letter, then lowercase alphanumerics, three
+// to sixty-four characters. It forbids the underscore inside a part, because
+// FQPermissionNameFromNamespace joins service, resource, and the verb with "_",
+// so an underscore in a part would let two different namespaces flatten to the
+// same slug. Uppercase and a leading digit are forbidden because SpiceDB rejects
+// them in an object type name, so such a namespace could never be stored anyway.
+var permissionNamespaceRe = regexp.MustCompile(`^[a-z][a-z0-9]{2,63}/[a-z][a-z0-9]{2,63}$`)
 
 // IsValidPermissionNamespace reports whether namespace is in service/resource
 // form with each part lowercase alphanumeric.
 func IsValidPermissionNamespace(namespace string) bool {
 	return permissionNamespaceRe.MatchString(namespace)
+}
+
+// maxPermissionSlugLen is SpiceDB's ceiling on a relation name. The reconcile and
+// API paths flatten a permission to the slug service_resource_verb and register
+// that slug as a SpiceDB relation, so a longer slug is rejected when the schema is
+// compiled.
+const maxPermissionSlugLen = 64
+
+// PermissionSlugWithinLimit reports whether the flattened slug
+// service_resource_verb fits SpiceDB's relation-name limit. Each part can be up to
+// sixty-four characters on its own, so a valid namespace and verb can still combine
+// into a slug that SpiceDB will not store.
+func PermissionSlugWithinLimit(namespace, name string) bool {
+	return len(FQPermissionNameFromNamespace(namespace, name)) <= maxPermissionSlugLen
+}
+
+// reservedPermissionVerbs are the relation names the schema generator adds to
+// every custom resource definition (see internal/bootstrap/generator.go's owner,
+// project, and granted relations). A permission whose verb equals one of these
+// makes the generator declare the same relation twice, which SpiceDB rejects when
+// it compiles the schema.
+var reservedPermissionVerbs = map[string]bool{
+	OwnerRelationName:     true, // owner
+	ProjectRelationName:   true, // project
+	RoleGrantRelationName: true, // granted
+}
+
+// IsReservedPermissionVerb reports whether name collides with a relation the
+// generator always adds to a custom resource.
+func IsReservedPermissionVerb(name string) bool {
+	return reservedPermissionVerbs[strings.ToLower(name)]
+}
+
+// ValidateCustomPermission checks that a custom permission's namespace and verb
+// can be created and then reconciled without a plan that passes and an apply that
+// fails: the verb and each namespace part must satisfy SpiceDB's grammar, the verb
+// must not collide with a generated relation, and the flattened slug must fit
+// SpiceDB's relation-name limit. Both the reconcile validator and the
+// CreatePermission handler call this, so the two paths agree.
+func ValidateCustomPermission(namespace, name string) error {
+	if !IsValidPermissionName(name) {
+		return fmt.Errorf("invalid permission verb %q: must be lowercase, start with a letter, and be at least three characters", name)
+	}
+	if IsReservedPermissionVerb(name) {
+		return fmt.Errorf("permission verb %q is reserved: the schema already defines a relation with that name on every resource", name)
+	}
+	if !IsValidPermissionNamespace(namespace) {
+		return fmt.Errorf("invalid permission namespace %q: service and resource must each be lowercase alphanumeric and three to sixty-four characters", namespace)
+	}
+	if !PermissionSlugWithinLimit(namespace, name) {
+		return fmt.Errorf("permission %s:%s is too long: the flattened service_resource_verb must be at most 64 characters", namespace, name)
+	}
+	return nil
 }
 
 func IsPlatformPermission(name string) bool {
