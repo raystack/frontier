@@ -297,6 +297,9 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 	if toUpdate.HostedURL != "" {
 		updateRecord["hosted_url"] = toUpdate.HostedURL
 	}
+	// Do not guard this with `!= 0` like the fields above: an invoice can
+	// be credited down to zero, and that zero must be saved.
+	updateRecord["amount"] = toUpdate.Amount
 
 	query, params, err := dialect.Update(TABLE_BILLING_INVOICES).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,

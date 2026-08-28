@@ -363,6 +363,10 @@ func (s *Service) upsert(ctx context.Context, customerID string,
 			existingInvoice.HostedURL = stripeInvoice.HostedInvoiceURL
 			updateNeeded = true
 		}
+		if existingInvoice.Amount != stripeInvoice.Total {
+			existingInvoice.Amount = stripeInvoice.Total
+			updateNeeded = true
+		}
 
 		if updateNeeded {
 			if _, err := s.repository.UpdateByID(ctx, *existingInvoice); err != nil {
