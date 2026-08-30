@@ -63,6 +63,40 @@ var APIAssertions = []ClientAssertion{
 	PassthroughHeaderClientAssertion,
 }
 
+// FlowIntent says whether the caller wants to log an existing user in or create
+// a new one. It rides on the flow, the only thing that survives an OIDC redirect.
+type FlowIntent string
+
+const (
+	// FlowIntentUnspecified keeps the old create-or-get behaviour, so clients
+	// that send no intent are unaffected.
+	FlowIntentUnspecified FlowIntent = ""
+	FlowIntentLogin       FlowIntent = "login"
+	FlowIntentSignup      FlowIntent = "signup"
+)
+
+func (i FlowIntent) String() string {
+	return string(i)
+}
+
+// keys under Flow.Metadata.
+const (
+	flowIntentKey  = "intent"
+	flowConsentKey = "consent"
+
+	consentDocumentIDsKey = "accepted_document_ids"
+	consentIPAddressKey   = "ip_address"
+	consentAtKey          = "at"
+)
+
+// FlowConsent is what the user accepted at flow start, read back after the
+// redirect. The IP and timestamp are from the acceptance, not the callback.
+type FlowConsent struct {
+	AcceptedDocumentIDs []string
+	IPAddress           string
+	At                  time.Time
+}
+
 // Flow is a temporary state used to finish login/registration flows
 type Flow struct {
 	ID uuid.UUID
@@ -94,6 +128,74 @@ func (f Flow) IsValid(currentTime time.Time) bool {
 	return f.ExpiresAt.After(currentTime)
 }
 
+// Intent reads the flow intent from metadata. A nil flow is allowed, so callers
+// with no flow need no branch, and reads as unspecified.
+func (f *Flow) Intent() FlowIntent {
+	if f == nil {
+		return FlowIntentUnspecified
+	}
+	intent, ok := f.Metadata[flowIntentKey].(string)
+	if !ok {
+		return FlowIntentUnspecified
+	}
+	return FlowIntent(intent)
+}
+
+// Consent reads what the user accepted from metadata, reporting whether the flow
+// carries one at all. A nil flow is allowed.
+//
+// Metadata is JSONB and does not return the types it was given — ids come back
+// as []any and the timestamp as a string — so this parses rather than asserts,
+// and treats an unparseable key as no consent.
+func (f *Flow) Consent() (FlowConsent, bool) {
+	if f == nil {
+		return FlowConsent{}, false
+	}
+	raw, ok := f.Metadata[flowConsentKey].(map[string]any)
+	if !ok {
+		return FlowConsent{}, false
+	}
+
+	consent := FlowConsent{
+		AcceptedDocumentIDs: parseStringSlice(raw[consentDocumentIDsKey]),
+	}
+	if ip, ok := raw[consentIPAddressKey].(string); ok {
+		consent.IPAddress = ip
+	}
+	switch at := raw[consentAtKey].(type) {
+	case time.Time:
+		consent.At = at
+	case string:
+		if parsed, err := time.Parse(time.RFC3339Nano, at); err == nil {
+			consent.At = parsed
+		}
+	}
+	if len(consent.AcceptedDocumentIDs) == 0 {
+		// a consent that names no document is not a consent
+		return FlowConsent{}, false
+	}
+	return consent, true
+}
+
+// parseStringSlice reads a string list that may have been through a JSON round
+// trip, where it comes back as []any. Non-string entries are dropped.
+func parseStringSlice(value any) []string {
+	switch list := value.(type) {
+	case []string:
+		return list
+	case []any:
+		parsed := make([]string, 0, len(list))
+		for _, item := range list {
+			if str, ok := item.(string); ok {
+				parsed = append(parsed, str)
+			}
+		}
+		return parsed
+	default:
+		return nil
+	}
+}
+
 type RegistrationStartRequest struct {
 	Method string
 	// ReturnToURL is where flow should end to after successful verification
@@ -106,6 +208,15 @@ type RegistrationStartRequest struct {
 	// For most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.
 	// callback_url should be one of the allowed urls configured at instance level
 	CallbackUrl string
+
+	// Intent says whether this is a login or a signup. Unset keeps create-or-get.
+	Intent FlowIntent
+	// AcceptedDocumentIDs are stored on the flow so they survive the redirect to
+	// an identity provider, and are checked when the user is created.
+	AcceptedDocumentIDs []string
+	// IPAddress is where the acceptance came from. Authenticate is skip-listed,
+	// so the handler extracts it rather than reading it off the context.
+	IPAddress string
 }
 
 type RegistrationFinishRequest struct {
