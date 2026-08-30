@@ -78,9 +78,11 @@ type UserService interface {
 }
 
 // ConsentService checks what a caller accepted against what the deployment
-// configures, and writes the record for it. With app.consent disabled it
-// resolves nothing, so an empty document set is the signal to write no record.
+// configures, and writes the record for it. With app.consent disabled both
+// Resolve and ResolveAll resolve nothing, so an empty document set is the signal
+// to write no record, and the ids are ignored rather than rejected.
 type ConsentService interface {
+	Resolve(ids []string) ([]consent.Document, error)
 	ResolveAll(ids []string) ([]consent.Document, error)
 	Grant(ctx context.Context, tx *sqlx.Tx, req consent.GrantRequest) (consent.Consent, error)
 	RecordGranted(ctx context.Context, granted consent.Consent)
@@ -231,6 +233,11 @@ func hashOTP(otp string) (string, error) {
 func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest) (*RegistrationStartResponse, error) {
 	if !utils.Contains(s.SupportedStrategies(), request.Method) {
 		return nil, ErrUnsupportedMethod
+	}
+	// the consent gate runs first: a check on the request alone, costing no
+	// lookup, and it has to fail before anything is sent or redirected
+	if err := s.gateFlowConsent(request.Intent, request.AcceptedDocumentIDs); err != nil {
+		return nil, err
 	}
 	// both mail strategies know the address before anything is sent, and share
 	// applyMailOTP at the other end, so they share the gate here. Passkey gates
@@ -458,6 +465,30 @@ func (s Service) gateFlowStart(ctx context.Context, intent FlowIntent, email str
 	}
 	_, err := s.userService.GetByID(ctx, email)
 	return checkIntent(intent, err == nil)
+}
+
+// gateFlowConsent is the consent half of the flow start check, and the intent
+// decides which rule applies, because without one a signup and a login look
+// identical. A signup runs the completeness rule here, before anything is sent
+// or redirected — true for OIDC too, where the email is unknown but the intent
+// is not. Without an intent only the unknown-id rule runs, and completeness
+// waits for user creation. A login checks nothing, because it writes no record.
+func (s Service) gateFlowConsent(intent FlowIntent, ids []string) error {
+	if s.consentService == nil || intent == FlowIntentLogin {
+		return nil
+	}
+
+	var err error
+	if intent == FlowIntentSignup {
+		_, err = s.consentService.ResolveAll(ids)
+	} else {
+		_, err = s.consentService.Resolve(ids)
+	}
+	if err != nil {
+		// the wrapped error names what is missing, for the log not the response
+		return fmt.Errorf("%w: %w", ErrConsentRequired, err)
+	}
+	return nil
 }
 
 // applyMailOTP actions when user submitted otp from the email

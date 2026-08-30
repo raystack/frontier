@@ -73,4 +73,5 @@ var (
 	ErrInvalidSessionID            = errors.New("invalid session_id format: must be a valid UUID")
 	ErrInvalidUserID               = errors.New("invalid user_id format: must be a valid UUID")
 	ErrRoleNotFound                = errors.New("role doesn't exist")
+	ErrConsentOnLoginIntent        = errors.New("accepted_document_ids can only be sent with a signup intent")
 )
