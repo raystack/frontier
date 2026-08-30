@@ -76,6 +76,9 @@ const (
 	// Resource Events
 	ResourceCreatedEvent Event = "resource.created"
 
+	// User Events
+	UserConsentGrantedEvent Event = "user.consent_granted"
+
 	// PAT Events
 	PATCreatedEvent        Event = "pat.created"
 	PATUpdatedEvent        Event = "pat.updated"
@@ -102,6 +105,7 @@ const (
 	BillingTransactionType  EntityType = "billing_transaction"
 	SessionType             EntityType = "session"
 	PATType                 EntityType = "pat"
+	ConsentType             EntityType = "consent"
 	PlatformType            EntityType = "platform"
 )
 

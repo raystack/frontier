@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/salt/rql"
 
 	"github.com/raystack/frontier/pkg/utils"
@@ -82,14 +83,25 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 }
 
 func (s Service) Create(ctx context.Context, user User) (User, error) {
-	return s.repository.Create(ctx, User{
+	return s.repository.Create(ctx, toCreate(user))
+}
+
+// CreateWithTx is Create inside a transaction the caller opened, so the user row
+// and the consent record land together or not at all.
+func (s Service) CreateWithTx(ctx context.Context, tx *sqlx.Tx, user User) (User, error) {
+	return s.repository.CreateWithTx(ctx, tx, toCreate(user))
+}
+
+// toCreate normalises a user the same way for both create paths.
+func toCreate(user User) User {
+	return User{
 		Name:     strings.ToLower(user.Name),
 		Email:    strings.ToLower(user.Email),
 		State:    Enabled,
 		Avatar:   user.Avatar,
 		Title:    user.Title,
 		Metadata: user.Metadata,
-	})
+	}
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
