@@ -25,7 +25,67 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+// authFlowRejection carries a gate or consent error out to a client. Both auth
+// RPCs answer with a connect code, because both are called from application
+// JavaScript — AuthCallback from whatever page the callback URL points at — so
+// neither is a redirect the browser follows on its own.
+type authFlowRejection struct {
+	code connect.Code
+	// err is the bare sentinel; the wrapped one names the documents and belongs
+	// in a log, not a response.
+	err error
+}
+
+// lookupAuthFlowRejection maps the four errors both auth RPCs have to make
+// legible. FailedPrecondition for consent, because it is what separates a
+// consent rejection from a bad code or an expired flow, which are
+// InvalidArgument. ErrInvalidMethod shares that code rather than joining the
+// InvalidArgument set: the strategy name is a valid argument that would have
+// worked against an account holding that credential, so what is wrong is this
+// account's state and not the request. Those two are the one pair a code does
+// not separate, and the message does, because it is the bare sentinel and
+// nothing else. Anything missing here surfaces as a 500.
+func lookupAuthFlowRejection(err error) (authFlowRejection, bool) {
+	switch {
+	case errors.Is(err, authenticate.ErrLoginUserNotFound):
+		return authFlowRejection{
+			code: connect.CodeNotFound,
+			err:  authenticate.ErrLoginUserNotFound,
+		}, true
+	case errors.Is(err, authenticate.ErrSignupUserExists):
+		return authFlowRejection{
+			code: connect.CodeAlreadyExists,
+			err:  authenticate.ErrSignupUserExists,
+		}, true
+	case errors.Is(err, authenticate.ErrConsentRequired):
+		return authFlowRejection{
+			code: connect.CodeFailedPrecondition,
+			err:  authenticate.ErrConsentRequired,
+		}, true
+	case errors.Is(err, authenticate.ErrInvalidMethod):
+		return authFlowRejection{
+			code: connect.CodeFailedPrecondition,
+			err:  authenticate.ErrInvalidMethod,
+		}, true
+	}
+	return authFlowRejection{}, false
+}
+
+// toFlowIntent maps the request enum onto the flow intent. An unknown value
+// reads as unspecified, which is the behaviour clients had before intents.
+func toFlowIntent(intent frontierv1beta1.FlowIntent) authenticate.FlowIntent {
+	switch intent {
+	case frontierv1beta1.FlowIntent_FLOW_INTENT_LOGIN:
+		return authenticate.FlowIntentLogin
+	case frontierv1beta1.FlowIntent_FLOW_INTENT_SIGNUP:
+		return authenticate.FlowIntentSignup
+	default:
+		return authenticate.FlowIntentUnspecified
+	}
+}
+
 func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Request[frontierv1beta1.AuthenticateRequest]) (*connect.Response[frontierv1beta1.AuthenticateResponse], error) {
+	errorLogger := NewErrorLogger()
 	returnToURL := h.authnService.SanitizeReturnToURL(request.Msg.GetReturnTo())
 	callbackURL := h.authnService.SanitizeCallbackURL(request.Msg.GetCallbackUrl())
 
@@ -46,14 +106,38 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidEmail)
 	}
 
+	intent := toFlowIntent(request.Msg.GetFlowIntent())
+	acceptedDocumentIDs := request.Msg.GetAcceptedDocumentIds()
+	if intent == authenticate.FlowIntentLogin && len(acceptedDocumentIDs) > 0 && h.consentEnabled() {
+		// a login writes no record, so accepting these silently would leave the
+		// client believing it recorded a consent that does not exist. Disabled,
+		// no record is written for any intent, so the ids are ignored rather
+		// than refused, as they are everywhere else
+		return nil, connect.NewError(connect.CodeInvalidArgument, ErrConsentOnLoginIntent)
+	}
+
+	// Authenticate is skip-listed, so nothing put session metadata on the context
+	// and the handler extracts it itself. Only the IP is passed on.
+	sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, request, h.authConfig.Session.Headers)
+
 	// not logged in, try registration
 	response, err := h.authnService.StartFlow(ctx, authenticate.RegistrationStartRequest{
-		Method:      request.Msg.GetStrategyName(),
-		ReturnToURL: returnToURL,
-		CallbackUrl: callbackURL,
-		Email:       request.Msg.GetEmail(),
+		Method:              request.Msg.GetStrategyName(),
+		ReturnToURL:         returnToURL,
+		CallbackUrl:         callbackURL,
+		Email:               request.Msg.GetEmail(),
+		Intent:              intent,
+		AcceptedDocumentIDs: acceptedDocumentIDs,
+		IPAddress:           sessionMetadata.IpAddress,
 	})
 	if err != nil {
+		// their own codes rather than a 500; the wrapped error stays in the log
+		if rejection, ok := lookupAuthFlowRejection(err); ok {
+			errorLogger.LogServiceError(ctx, request, "Authenticate.StartFlow", err,
+				"strategy", request.Msg.GetStrategyName(),
+				"intent", intent.String())
+			return nil, connect.NewError(rejection.code, rejection.err)
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Authenticate: strategy=%s email=%s: %w", request.Msg.GetStrategyName(), request.Msg.GetEmail(), err))
 	}
 
@@ -107,6 +191,18 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		StateConfig: request.Msg.GetStateOptions().AsMap(),
 	})
 	if err != nil {
+		// These join the errors handled here rather than falling through to
+		// Internal, keeping their own codes rather than this list's
+		// InvalidArgument. The rejection is the answer and not a redirect: the
+		// callback URL points at a page the application hosts, and that page is
+		// what calls this RPC, so it decides where the user goes next.
+		if rejection, ok := lookupAuthFlowRejection(err); ok {
+			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
+				"strategy", request.Msg.GetStrategyName(),
+				"state", request.Msg.GetState())
+			return nil, connect.NewError(rejection.code, rejection.err)
+		}
+
 		// ErrUnsupportedMethod here means the strategy and state the client sent match
 		// no known method (e.g. a malformed, non-base64 state). That is bad client
 		// input, same class as an empty or invalid state, so return a 4xx not a 500.
