@@ -25,6 +25,7 @@ import (
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/core/event"
@@ -64,6 +65,7 @@ type Deps struct {
 	ResourceService    *resource.Service
 	SessionService     *session.Service
 	AuthnService       *authenticate.Service
+	ConsentService     *consent.Service
 	DeleterService     *deleter.Service
 	MetaSchemaService  *metaschema.Service
 	BootstrapService   *bootstrap.Service

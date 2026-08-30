@@ -108,8 +108,8 @@ Config is read at boot, so a version change needs a restart. An env override can
 existing record, but it can produce wrong new ones, so the resolved set is logged at boot. That log,
 not the config repo, says what a deployment was serving.
 
-Bad config fails at boot: ids, versions and URLs must be non-empty, URLs must parse, and an enabled
-block needs at least one document.
+Bad config fails at boot: ids, titles, versions and URLs must be non-empty, URLs must parse, and
+an enabled block needs at least one document.
 
 ## The document list endpoint
 
