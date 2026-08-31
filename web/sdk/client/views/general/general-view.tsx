@@ -8,12 +8,14 @@ import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
+  useQuery,
   useTransport
 } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   FrontierServiceQueries,
-  UpdateOrganizationRequestSchema
+  UpdateOrganizationRequestSchema,
+  CheckOrganizationDeleteRequestSchema
 } from '@raystack/proton/frontier';
 import {
   Button,
@@ -28,6 +30,7 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
+import { instructionLines } from '../../utils/delete-blockers';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -96,6 +99,26 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
   }, [permissions, resource]);
 
   const isLoading = !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
+
+  // Ask the server whether a delete would go through right now. While the
+  // answer is loading, the delete button stays disabled. If this check
+  // itself fails, the button stays enabled: the server still refuses a
+  // blocked delete when the user actually clicks.
+  const { data: deleteCheck, isLoading: isDeleteCheckLoading } = useQuery(
+    FrontierServiceQueries.checkOrganizationDelete,
+    create(CheckOrganizationDeleteRequestSchema, {
+      id: organization?.id ?? ''
+    }),
+    {
+      enabled: canDeleteWorkspace && !!organization?.id,
+      retry: false
+    }
+  );
+  const isDeleteBlocked = !!deleteCheck && !deleteCheck.canDelete;
+  const blockerLines = useMemo(
+    () => instructionLines(deleteCheck?.blockers ?? []),
+    [deleteCheck]
+  );
 
   // Update organization form
   const { mutateAsync: updateOrganization } = useMutation(
@@ -280,22 +303,34 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                 </Text>
                 <Tooltip>
                   <Tooltip.Trigger
-                    disabled={canDeleteWorkspace}
+                    disabled={canDeleteWorkspace && !isDeleteBlocked}
                     render={<span className={styles.fitContent} />}
                   >
                     <Button
                       variant="solid"
                       color="danger"
                       onClick={() => setShowDeleteDialog(true)}
-                      disabled={!canDeleteWorkspace}
+                      disabled={
+                        !canDeleteWorkspace ||
+                        isDeleteBlocked ||
+                        isDeleteCheckLoading
+                      }
                       data-test-id="frontier-sdk-delete-organization-btn"
                     >
                       Delete {orgLabelLower}
                     </Button>
                   </Tooltip.Trigger>
-                  {!canDeleteWorkspace && (
+                  {!canDeleteWorkspace ? (
                     <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
-                  )}
+                  ) : isDeleteBlocked ? (
+                    <Tooltip.Content>
+                      <Flex direction="column" gap={2}>
+                        {blockerLines.map(line => (
+                          <span key={line}>{line}</span>
+                        ))}
+                      </Flex>
+                    </Tooltip.Content>
+                  ) : null}
                 </Tooltip>
               </>
             )}

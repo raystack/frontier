@@ -6,11 +6,11 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import {
   Subscription,
   RQLRequestSchema,
-  RQLFilterSchema,
   RQLSortSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '../../../utils/constants';
+import { openInvoiceFilters } from '../../../utils/invoice-queries';
 import { DEFAULT_PAGE_SIZE } from '../../../utils/connect-pagination';
 import { useOrganizationInvoices } from '../../../hooks/useOrganizationInvoices';
 import styles from '../billing-view.module.css';
@@ -18,18 +18,7 @@ import styles from '../billing-view.module.css';
 // Open invoices with a non-zero amount, newest first — the invoice that needs
 // payment when a subscription is past due.
 const OPEN_INVOICES_QUERY = create(RQLRequestSchema, {
-  filters: [
-    create(RQLFilterSchema, {
-      name: 'state',
-      operator: 'eq',
-      value: { case: 'stringValue', value: INVOICE_STATES.OPEN }
-    }),
-    create(RQLFilterSchema, {
-      name: 'amount',
-      operator: 'gt',
-      value: { case: 'numberValue', value: 0 }
-    })
-  ],
+  filters: openInvoiceFilters(),
   sort: [create(RQLSortSchema, { name: 'created_at', order: 'desc' })],
   offset: 0,
   limit: DEFAULT_PAGE_SIZE

@@ -20,6 +20,8 @@ import {
 } from '@raystack/apsara';
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
+import { useTokens } from '../../../hooks/useTokens';
+import { deleteBlockedDescription } from '../../../utils/delete-blockers';
 import { handleConnectError } from '~/utils/error';
 
 const deleteOrgSchema = yup
@@ -44,6 +46,10 @@ export const DeleteOrganizationDialog = ({
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
   const [isAcknowledged, setIsAcknowledged] = useState(false);
+  // The balance is fetched only while the dialog is open. The confirm
+  // button below stays disabled until the fetch finishes, so the user
+  // cannot confirm before the token warning had a chance to appear.
+  const { tokenBalance, isTokensFetching } = useTokens({ enabled: open });
 
   const { mutateAsync: deleteOrganization } = useMutation(
     FrontierServiceQueries.deleteOrganization
@@ -83,8 +89,11 @@ export const DeleteOrganizationDialog = ({
     } catch (error) {
       handleConnectError(error, {
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
-        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
+        // the server names what blocks the delete; show the matching
+        // instructions instead of the raw server text
+        FailedPrecondition: (err) => toastManager.add({ title: `Cannot delete this ${orgLabelLower} yet`, description: deleteBlockedDescription(err), type: 'error' }),
+        NotFound: () => toastManager.add({ title: 'Not found', description: `This ${orgLabelLower} no longer exists.`, type: 'error' }),
+        Default: () => toastManager.add({ title: 'Something went wrong', description: 'Please try again later or contact support.', type: 'error' }),
       });
     }
   }
@@ -102,6 +111,13 @@ export const DeleteOrganizationDialog = ({
                 This action can not be undone. This will permanently
                 delete all the projects and resources in {organization?.title}.
               </Text>
+              {tokenBalance > 0 ? (
+                <Text size="small" variant="danger">
+                  This {orgLabelLower} still has unused tokens, and deleting
+                  it forfeits them. If any of them were purchased, our
+                  support team will reach out to you to settle them.
+                </Text>
+              ) : null}
               <Field
                 label={`Please type name of the ${orgLabel} to confirm.`}
                 error={
@@ -146,7 +162,12 @@ export const DeleteOrganizationDialog = ({
               variant="solid"
               color="danger"
               type="submit"
-              disabled={!deleteTitle || !isAcknowledged}
+              disabled={
+                !deleteTitle ||
+                !isAcknowledged ||
+                isSubmitting ||
+                isTokensFetching
+              }
               data-test-id="frontier-sdk-delete-organization-btn"
               loading={isSubmitting}
               loaderText="Deleting..."
