@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -16,7 +17,8 @@ import (
 )
 
 var (
-	ErrLockBusy = errors.New("lock busy")
+	ErrLockBusy    = errors.New("lock busy")
+	ErrLockNotHeld = errors.New("lock not held by this session")
 )
 
 type Client struct {
@@ -80,27 +82,39 @@ func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc fu
 }
 
 type Lock struct {
-	ID   int64
-	conn *sqlx.Conn
+	ID      int64
+	conn    *sqlx.Conn
+	timeout time.Duration
 }
 
 // Unlock uses postgres advisory locks to release a lock on a given id
 func (l Lock) Unlock(ctx context.Context) error {
+	// the release must run even if the caller's context is already canceled,
+	// otherwise the lock stays held until the pool closes this connection
+	ctx = context.WithoutCancel(ctx)
+	if l.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, l.timeout)
+		defer cancel()
+	}
+
+	var released bool
+	if err := l.conn.GetContext(ctx, &released, "SELECT pg_advisory_unlock($1)", l.ID); err != nil {
+		// the session may still hold the lock, so drop the physical
+		// connection instead of returning it to the pool: postgres releases
+		// the lock as soon as the session ends
+		_ = l.conn.Raw(func(any) error { return driver.ErrBadConn })
+		return err
+	}
+
 	var errs []error
-	_, err := l.conn.ExecContext(ctx, "SELECT pg_advisory_unlock($1)", l.ID)
-	if err != nil {
+	if !released {
+		errs = append(errs, fmt.Errorf("advisory lock %d: %w", l.ID, ErrLockNotHeld))
+	}
+	if err := l.conn.Close(); err != nil {
 		errs = append(errs, err)
 	}
-
-	err = l.conn.Close()
-	if err != nil {
-		errs = append(errs, err)
-	}
-
-	if len(errs) > 0 {
-		return errors.Join(errs...)
-	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // TryLock uses postgres advisory locks to acquire a lock on a given id
@@ -117,7 +131,10 @@ func (c Client) TryLock(ctx context.Context, id string) (*Lock, error) {
 	intHash := int64(hash % uint64(math.MaxInt64)) // Reduce hash to fit within int64 range
 	query := "SELECT pg_try_advisory_lock($1)"
 	var acquired bool
-	if err := c.GetContext(ctx, &acquired, query, intHash); err != nil {
+	// the lock query must run on the pinned connection: an advisory lock
+	// belongs to the session that acquired it, and only that session can
+	// release it
+	if err := newConn.GetContext(ctx, &acquired, query, intHash); err != nil {
 		var errs []error
 		errs = append(errs, err)
 		if connErr := newConn.Close(); connErr != nil {
@@ -134,8 +151,9 @@ func (c Client) TryLock(ctx context.Context, id string) (*Lock, error) {
 	}
 
 	lock := &Lock{
-		ID:   intHash,
-		conn: newConn,
+		ID:      intHash,
+		conn:    newConn,
+		timeout: c.queryTimeOut,
 	}
 	return lock, nil
 }
