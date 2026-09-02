@@ -8,6 +8,7 @@ import (
 	"io"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -154,14 +155,18 @@ type lockConn struct {
 }
 
 func (c *lockConn) Prepare(string) (driver.Stmt, error) { return nil, errors.New("not implemented") }
-func (c *lockConn) Close() error                        { return nil }
+func (c *lockConn) Close() error                        { c.rec.closed(c.id); return nil }
 func (c *lockConn) Begin() (driver.Tx, error)           { return nil, errors.New("not implemented") }
 
 func (c *lockConn) QueryContext(ctx context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	c.rec.add(c.id, query, args)
+	if err := c.rec.takeFailure(); err != nil {
+		return nil, err
+	}
+	_, hasDeadline := ctx.Deadline()
+	c.rec.add(c.id, query, args, hasDeadline)
 	return &boolRows{value: c.acquired}, nil
 }
 
@@ -183,20 +188,23 @@ func (r *boolRows) Next(dest []driver.Value) error {
 }
 
 type recordedQuery struct {
-	connID int
-	query  string
-	arg    driver.Value
+	connID      int
+	query       string
+	arg         driver.Value
+	hasDeadline bool
 }
 
 type queryRecorder struct {
-	mu      sync.Mutex
-	queries []recordedQuery
+	mu       sync.Mutex
+	queries  []recordedQuery
+	closes   []int
+	failNext error
 }
 
-func (r *queryRecorder) add(connID int, query string, args []driver.NamedValue) {
+func (r *queryRecorder) add(connID int, query string, args []driver.NamedValue, hasDeadline bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	q := recordedQuery{connID: connID, query: query}
+	q := recordedQuery{connID: connID, query: query, hasDeadline: hasDeadline}
 	if len(args) > 0 {
 		q.arg = args[0].Value
 	}
@@ -207,6 +215,32 @@ func (r *queryRecorder) all() []recordedQuery {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return append([]recordedQuery(nil), r.queries...)
+}
+
+func (r *queryRecorder) closed(connID int) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.closes = append(r.closes, connID)
+}
+
+func (r *queryRecorder) closedConns() []int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return append([]int(nil), r.closes...)
+}
+
+func (r *queryRecorder) failNextQuery(err error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.failNext = err
+}
+
+func (r *queryRecorder) takeFailure() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	err := r.failNext
+	r.failNext = nil
+	return err
 }
 
 // lockConnector hands out a fresh numbered connection on every Connect call,
@@ -284,5 +318,38 @@ func TestUnlock(t *testing.T) {
 		lock := &Lock{ID: 42, conn: conn}
 
 		assert.ErrorIs(t, lock.Unlock(context.Background()), ErrLockNotHeld)
+	})
+
+	t.Run("discards the connection when the release fails", func(t *testing.T) {
+		client, rec := newLockClient(t, true)
+
+		lock, err := client.TryLock(context.Background(), "some-job")
+		require.NoError(t, err)
+
+		queryErr := errors.New("network down")
+		rec.failNextQuery(queryErr)
+		assert.ErrorIs(t, lock.Unlock(context.Background()), queryErr)
+
+		queries := rec.all()
+		require.NotEmpty(t, queries)
+		assert.Contains(t, rec.closedConns(), queries[0].connID)
+	})
+
+	t.Run("applies the client's query timeout to the release", func(t *testing.T) {
+		rec := &queryRecorder{}
+		client := Client{
+			DB:           sqlx.NewDb(sql.OpenDB(&lockConnector{rec: rec, acquired: true}), "postgres"),
+			queryTimeOut: time.Second,
+		}
+		t.Cleanup(func() { _ = client.Close() })
+
+		lock, err := client.TryLock(context.Background(), "some-job")
+		require.NoError(t, err)
+		require.NoError(t, lock.Unlock(context.Background()))
+
+		queries := rec.all()
+		require.Len(t, queries, 2)
+		assert.Contains(t, queries[1].query, "pg_advisory_unlock")
+		assert.True(t, queries[1].hasDeadline)
 	})
 }

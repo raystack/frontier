@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -81,8 +82,9 @@ func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc fu
 }
 
 type Lock struct {
-	ID   int64
-	conn *sqlx.Conn
+	ID      int64
+	conn    *sqlx.Conn
+	timeout time.Duration
 }
 
 // Unlock uses postgres advisory locks to release a lock on a given id
@@ -90,25 +92,29 @@ func (l Lock) Unlock(ctx context.Context) error {
 	// the release must run even if the caller's context is already canceled,
 	// otherwise the lock stays held until the pool closes this connection
 	ctx = context.WithoutCancel(ctx)
+	if l.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, l.timeout)
+		defer cancel()
+	}
+
+	var released bool
+	if err := l.conn.GetContext(ctx, &released, "SELECT pg_advisory_unlock($1)", l.ID); err != nil {
+		// the session may still hold the lock, so drop the physical
+		// connection instead of returning it to the pool: postgres releases
+		// the lock as soon as the session ends
+		_ = l.conn.Raw(func(any) error { return driver.ErrBadConn })
+		return err
+	}
 
 	var errs []error
-	var released bool
-	err := l.conn.GetContext(ctx, &released, "SELECT pg_advisory_unlock($1)", l.ID)
-	if err != nil {
-		errs = append(errs, err)
-	} else if !released {
+	if !released {
 		errs = append(errs, fmt.Errorf("advisory lock %d: %w", l.ID, ErrLockNotHeld))
 	}
-
-	err = l.conn.Close()
-	if err != nil {
+	if err := l.conn.Close(); err != nil {
 		errs = append(errs, err)
 	}
-
-	if len(errs) > 0 {
-		return errors.Join(errs...)
-	}
-	return nil
+	return errors.Join(errs...)
 }
 
 // TryLock uses postgres advisory locks to acquire a lock on a given id
@@ -145,8 +151,9 @@ func (c Client) TryLock(ctx context.Context, id string) (*Lock, error) {
 	}
 
 	lock := &Lock{
-		ID:   intHash,
-		conn: newConn,
+		ID:      intHash,
+		conn:    newConn,
+		timeout: c.queryTimeOut,
 	}
 	return lock, nil
 }
