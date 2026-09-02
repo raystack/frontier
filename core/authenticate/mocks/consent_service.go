@@ -116,6 +116,64 @@ func (_c *ConsentService_RecordGranted_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// Resolve provides a mock function with given fields: ids
+func (_m *ConsentService) Resolve(ids []string) ([]consent.Document, error) {
+	ret := _m.Called(ids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Resolve")
+	}
+
+	var r0 []consent.Document
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) ([]consent.Document, error)); ok {
+		return rf(ids)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []consent.Document); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]consent.Document)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConsentService_Resolve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Resolve'
+type ConsentService_Resolve_Call struct {
+	*mock.Call
+}
+
+// Resolve is a helper method to define mock.On call
+//   - ids []string
+func (_e *ConsentService_Expecter) Resolve(ids interface{}) *ConsentService_Resolve_Call {
+	return &ConsentService_Resolve_Call{Call: _e.mock.On("Resolve", ids)}
+}
+
+func (_c *ConsentService_Resolve_Call) Run(run func(ids []string)) *ConsentService_Resolve_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]string))
+	})
+	return _c
+}
+
+func (_c *ConsentService_Resolve_Call) Return(_a0 []consent.Document, _a1 error) *ConsentService_Resolve_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ConsentService_Resolve_Call) RunAndReturn(run func([]string) ([]consent.Document, error)) *ConsentService_Resolve_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ResolveAll provides a mock function with given fields: ids
 func (_m *ConsentService) ResolveAll(ids []string) ([]consent.Document, error) {
 	ret := _m.Called(ids)

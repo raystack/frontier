@@ -1346,6 +1346,162 @@ func TestService_StartFlow_WritesIntentAndConsent(t *testing.T) {
 	})
 }
 
+// TestService_StartFlow_Consent covers the first of the two consent gates. It
+// is the one that exists for the error: it runs before an OTP is sent and
+// before the browser leaves for an identity provider, so a rejection costs the
+// user a retry and nothing else.
+//
+// The intent decides which rule applies, because without one a signup and a
+// login look identical.
+func TestService_StartFlow_Consent(t *testing.T) {
+	defaultHashCost := authenticate.OTPHashCost
+	authenticate.OTPHashCost = bcrypt.MinCost
+	t.Cleanup(func() { authenticate.OTPHashCost = defaultHashCost })
+
+	const email = "test@example.com"
+	documents := []consent.Document{
+		{ID: "privacy_policy", Title: "Privacy Policy", Version: "2026-04-01", URL: "https://example.org/p"},
+		{ID: "terms_of_service", Title: "Terms & Conditions", Version: "2026-04-01", URL: "https://example.org/t"},
+	}
+	acceptedIDs := []string{"privacy_policy", "terms_of_service"}
+
+	// startFlow runs a mail otp flow start against whatever consent service it
+	// is given. Mail otp is the strategy that shows the point of this gate,
+	// because a rejection here is a code that never gets sent. The dialer is a
+	// bare mock with no expectations, so a flow that reaches SendMail fails
+	// rather than passing quietly.
+	startFlow := func(t *testing.T, consentService authenticate.ConsentService,
+		request authenticate.RegistrationStartRequest, wantFlow bool) (*authenticate.RegistrationStartResponse, error) {
+		t.Helper()
+
+		ctx := context.Background()
+		mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+		if request.Intent != authenticate.FlowIntentUnspecified {
+			mockUserService.EXPECT().GetByID(ctx, email).
+				Return(user.User{}, errors.New("user not found")).Maybe()
+		}
+
+		var dialer mailer.Dialer = &mailerMock.Dialer{}
+		if wantFlow {
+			mockFlowRepo.EXPECT().Set(ctx, mock.Anything).Return(nil)
+			dialer = mailer.NewMockDialer()
+		}
+
+		srv := authenticate.NewService(nil, authenticate.Config{
+			MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
+			TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+		}, mockFlowRepo, dialer, nil, nil, mockUserService, nil, nil, nil, consentService, nil)
+
+		request.Method = authenticate.MailOTPAuthMethod.String()
+		request.Email = email
+		return srv.StartFlow(ctx, request)
+	}
+
+	t.Run("a signup carrying every document starts the flow", func(t *testing.T) {
+		mockConsent := mocks.NewConsentService(t)
+		mockConsent.EXPECT().ResolveAll(acceptedIDs).Return(documents, nil)
+
+		got, err := startFlow(t, mockConsent, authenticate.RegistrationStartRequest{
+			Intent:              authenticate.FlowIntentSignup,
+			AcceptedDocumentIDs: acceptedIDs,
+		}, true)
+
+		require.NoError(t, err)
+		require.NotNil(t, got)
+	})
+
+	t.Run("a signup missing a document is rejected before the code is sent", func(t *testing.T) {
+		mockConsent := mocks.NewConsentService(t)
+		mockConsent.EXPECT().ResolveAll([]string{"privacy_policy"}).
+			Return(nil, consent.ErrMissingDocuments)
+
+		got, err := startFlow(t, mockConsent, authenticate.RegistrationStartRequest{
+			Intent:              authenticate.FlowIntentSignup,
+			AcceptedDocumentIDs: []string{"privacy_policy"},
+		}, false)
+
+		assert.ErrorIs(t, err, authenticate.ErrConsentRequired)
+		// the wrapped error still names what was missing, for the log
+		assert.ErrorIs(t, err, consent.ErrMissingDocuments)
+		assert.Nil(t, got)
+	})
+
+	t.Run("a signup carrying no document at all is rejected too", func(t *testing.T) {
+		mockConsent := mocks.NewConsentService(t)
+		mockConsent.EXPECT().ResolveAll([]string(nil)).Return(nil, consent.ErrMissingDocuments)
+
+		_, err := startFlow(t, mockConsent, authenticate.RegistrationStartRequest{
+			Intent: authenticate.FlowIntentSignup,
+		}, false)
+
+		assert.ErrorIs(t, err, authenticate.ErrConsentRequired)
+	})
+
+	t.Run("an unspecified intent checks only that the ids are known", func(t *testing.T) {
+		// frontier cannot yet know this request will create a user, so
+		// completeness waits for user creation, but a typo can still be caught
+		// before the redirect
+		mockConsent := mocks.NewConsentService(t)
+		mockConsent.EXPECT().Resolve([]string{"privacy_policy"}).Return(documents[:1], nil)
+
+		_, err := startFlow(t, mockConsent, authenticate.RegistrationStartRequest{
+			AcceptedDocumentIDs: []string{"privacy_policy"},
+		}, true)
+
+		require.NoError(t, err)
+	})
+
+	t.Run("an unspecified intent is rejected for an id config does not know", func(t *testing.T) {
+		mockConsent := mocks.NewConsentService(t)
+		mockConsent.EXPECT().Resolve([]string{"not_a_document"}).
+			Return(nil, consent.ErrUnknownDocuments)
+
+		_, err := startFlow(t, mockConsent, authenticate.RegistrationStartRequest{
+			AcceptedDocumentIDs: []string{"not_a_document"},
+		}, false)
+
+		assert.ErrorIs(t, err, authenticate.ErrConsentRequired)
+		assert.ErrorIs(t, err, consent.ErrUnknownDocuments)
+	})
+
+	t.Run("a login checks nothing, because it writes no record", func(t *testing.T) {
+		// an unexpected call fails the test rather than passing silently
+		mockConsent := mocks.NewConsentService(t)
+
+		mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+		ctx := context.Background()
+		mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{ID: "user-id", Email: email}, nil)
+		mockFlowRepo.EXPECT().Set(ctx, mock.Anything).Return(nil)
+
+		srv := authenticate.NewService(nil, authenticate.Config{
+			MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
+			TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil, mockConsent, nil)
+
+		_, err := srv.StartFlow(ctx, authenticate.RegistrationStartRequest{
+			Method: authenticate.MailOTPAuthMethod.String(),
+			Email:  email,
+			Intent: authenticate.FlowIntentLogin,
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("a deployment with consent disabled ignores the ids rather than rejecting them", func(t *testing.T) {
+		// one client build works against both kinds of deployment, so the same
+		// signup that a configured deployment gates goes straight through here
+		disabled := consent.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
+			consent.Config{Enabled: false}, nil, nil)
+
+		got, err := startFlow(t, disabled, authenticate.RegistrationStartRequest{
+			Intent:              authenticate.FlowIntentSignup,
+			AcceptedDocumentIDs: acceptedIDs,
+		}, true)
+
+		require.NoError(t, err)
+		require.NotNil(t, got)
+	})
+}
+
 // TestFlow_IntentAndConsent covers the accessors directly: the JSON round trip
 // the database puts metadata through, and the nil receiver callers rely on.
 func TestFlow_IntentAndConsent(t *testing.T) {
@@ -1494,6 +1650,8 @@ func TestService_FinishFlow_Intent(t *testing.T) {
 
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
+				// a rejection is the error and nothing else: the handler maps it
+				// to a connect code and the caller decides what to do with it
 				assert.Nil(t, got)
 				return
 			}
@@ -1618,6 +1776,7 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		assert.ErrorIs(t, err, authenticate.ErrConsentRequired)
 		// the wrapped error still names what was missing
 		assert.ErrorIs(t, err, consent.ErrMissingDocuments)
+		// the rejection is the error and nothing else
 		assert.Nil(t, got)
 		mockUserService.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
 		mockUserService.AssertNotCalled(t, "CreateWithTx", mock.Anything, mock.Anything, mock.Anything)
