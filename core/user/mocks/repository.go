@@ -8,6 +8,8 @@ import (
 	rql "github.com/raystack/salt/rql"
 	mock "github.com/stretchr/testify/mock"
 
+	sqlx "github.com/jmoiron/sqlx"
+
 	user "github.com/raystack/frontier/core/user"
 )
 
@@ -77,6 +79,64 @@ func (_c *Repository_Create_Call) Return(_a0 user.User, _a1 error) *Repository_C
 }
 
 func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *Repository_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateWithTx provides a mock function with given fields: ctx, tx, _a2
+func (_m *Repository) CreateWithTx(ctx context.Context, tx *sqlx.Tx, _a2 user.User) (user.User, error) {
+	ret := _m.Called(ctx, tx, _a2)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateWithTx")
+	}
+
+	var r0 user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, user.User) (user.User, error)); ok {
+		return rf(ctx, tx, _a2)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, user.User) user.User); ok {
+		r0 = rf(ctx, tx, _a2)
+	} else {
+		r0 = ret.Get(0).(user.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *sqlx.Tx, user.User) error); ok {
+		r1 = rf(ctx, tx, _a2)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_CreateWithTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateWithTx'
+type Repository_CreateWithTx_Call struct {
+	*mock.Call
+}
+
+// CreateWithTx is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tx *sqlx.Tx
+//   - _a2 user.User
+func (_e *Repository_Expecter) CreateWithTx(ctx interface{}, tx interface{}, _a2 interface{}) *Repository_CreateWithTx_Call {
+	return &Repository_CreateWithTx_Call{Call: _e.mock.On("CreateWithTx", ctx, tx, _a2)}
+}
+
+func (_c *Repository_CreateWithTx_Call) Run(run func(ctx context.Context, tx *sqlx.Tx, _a2 user.User)) *Repository_CreateWithTx_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*sqlx.Tx), args[2].(user.User))
+	})
+	return _c
+}
+
+func (_c *Repository_CreateWithTx_Call) Return(_a0 user.User, _a1 error) *Repository_CreateWithTx_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_CreateWithTx_Call) RunAndReturn(run func(context.Context, *sqlx.Tx, user.User) (user.User, error)) *Repository_CreateWithTx_Call {
 	_c.Call.Return(run)
 	return _c
 }

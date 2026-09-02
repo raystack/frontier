@@ -110,11 +110,8 @@ func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, 
 	return transformedUser, nil
 }
 
-func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
-	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
-		return user.User{}, user.ErrInvalidDetails
-	}
-
+// buildUserInsertQuery is shared by both create paths so they cannot drift.
+func buildUserInsertQuery(usr user.User) (string, []any, error) {
 	insertRow := goqu.Record{
 		"name":       strings.ToLower(usr.Name),
 		"email":      strings.ToLower(usr.Email),
@@ -126,14 +123,59 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	if usr.Metadata != nil {
 		marshaledMetadata, err := json.Marshal(usr.Metadata)
 		if err != nil {
-			return user.User{}, fmt.Errorf("%w: %w", errParse, err)
+			return "", nil, fmt.Errorf("%w: %w", errParse, err)
 		}
 		insertRow["metadata"] = marshaledMetadata
 	}
 	if usr.State != "" {
 		insertRow["state"] = usr.State
 	}
-	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
+	return dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
+}
+
+// CreateWithTx creates a user inside the transaction it is given, so a signup can
+// write the user row and the consent record together. Rolling back is the
+// caller's job: the transaction is wider than this insert.
+func (r UserRepository) CreateWithTx(ctx context.Context, tx *sqlx.Tx, usr user.User) (user.User, error) {
+	// a nil transaction is a wiring mistake, and a panic is a poor way to report it
+	if tx == nil {
+		return user.User{}, fmt.Errorf("%w: no transaction", errQuery)
+	}
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
+		return user.User{}, user.ErrInvalidDetails
+	}
+
+	createQuery, params, err := buildUserInsertQuery(usr)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
+	}
+
+	var userModel User
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "CreateWithTx", func(ctx context.Context) error {
+		return tx.QueryRowxContext(ctx, createQuery, params...).StructScan(&userModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			return user.User{}, err
+		}
+	}
+
+	transformedUser, err := userModel.transformToUser()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
+	}
+	return transformedUser, nil
+}
+
+func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
+		return user.User{}, user.ErrInvalidDetails
+	}
+
+	createQuery, params, err := buildUserInsertQuery(usr)
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/rql"
 )
@@ -25,6 +26,9 @@ type Repository interface {
 	GetByIDs(ctx context.Context, userIds []string) ([]User, error)
 	GetByName(ctx context.Context, name string) (User, error)
 	Create(ctx context.Context, user User) (User, error)
+	// CreateWithTx is Create inside a transaction the caller opened, so the row
+	// can be written together with something outside this domain.
+	CreateWithTx(ctx context.Context, tx *sqlx.Tx, user User) (User, error)
 	List(ctx context.Context, flt Filter) ([]User, error)
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByName(ctx context.Context, toUpdate User) (User, error)

@@ -56,6 +56,7 @@ const (
 	TABLE_WEBHOOK_ENDPOINTS      = "webhook_endpoints"
 	TABLE_PROSPECTS              = "prospects"
 	TABLE_USER_PATS              = "user_pats"
+	TABLE_USER_CONSENTS          = "user_consents"
 )
 
 func checkPostgresError(err error) error {

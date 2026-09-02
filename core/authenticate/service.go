@@ -3,6 +3,7 @@ package authenticate
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,10 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/jmoiron/sqlx"
+
+	"github.com/raystack/frontier/core/consent"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
@@ -62,12 +67,29 @@ var (
 	ErrLoginUserNotFound     = errors.New("no account for this email")
 	ErrSignupUserExists      = errors.New("an account already exists for this email")
 	ErrInvalidMethod         = errors.New("this account cannot use the requested authentication method")
+	ErrConsentRequired       = errors.New("consent required for the configured documents")
 )
 
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	Create(context.Context, user.User) (user.User, error)
+	CreateWithTx(ctx context.Context, tx *sqlx.Tx, toCreate user.User) (user.User, error)
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
+}
+
+// ConsentService checks what a caller accepted against what the deployment
+// configures, and writes the record for it. With app.consent disabled it
+// resolves nothing, so an empty document set is the signal to write no record.
+type ConsentService interface {
+	ResolveAll(ids []string) ([]consent.Document, error)
+	Grant(ctx context.Context, tx *sqlx.Tx, req consent.GrantRequest) (consent.Consent, error)
+	RecordGranted(ctx context.Context, granted consent.Consent)
+}
+
+// Transactor opens a database transaction. pkg/db carries none on the context,
+// so the two inserts are held together by passing one down explicitly.
+type Transactor interface {
+	WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc func(*sqlx.Tx) error) error
 }
 
 type ServiceUserService interface {
@@ -117,12 +139,14 @@ type Service struct {
 	userPATService       UserPATService
 	orgService           OrgService
 	webAuth              *webauthn.WebAuthn
+	consentService       ConsentService
+	transactor           Transactor
 }
 
 func NewService(logger *slog.Logger, config Config, flowRepo FlowRepository,
 	mailDialer mailer.Dialer, tokenService TokenService, sessionService SessionService,
 	userService UserService, serviceUserService ServiceUserService, webAuthConfig *webauthn.WebAuthn,
-	userPATService UserPATService) *Service {
+	userPATService UserPATService, consentService ConsentService, transactor Transactor) *Service {
 	r := &Service{
 		log: logger,
 		cron: cron.New(cron.WithChain(
@@ -141,6 +165,8 @@ func NewService(logger *slog.Logger, config Config, flowRepo FlowRepository,
 		serviceUserService:   serviceUserService,
 		userPATService:       userPATService,
 		webAuth:              webAuthConfig,
+		consentService:       consentService,
+		transactor:           transactor,
 	}
 	return r
 }
@@ -857,7 +883,9 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 		if intent == FlowIntentSignup {
 			return user.User{}, ErrSignupUserExists
 		}
-		// user is already registered
+		// an existing user gets no record whatever the flow carries: one written
+		// outside a user creation would carry this moment's timestamp and IP for
+		// an agreement made elsewhere, which reads like evidence
 
 		// TODO(kushsharma): should we update metadata like profile picture from social logins
 		// for registered users every time the login?
@@ -871,11 +899,7 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 	}
 
 	// register a new user
-	newUser, err := s.userService.Create(ctx, user.User{
-		Title: title,
-		Email: email,
-		Name:  str.GenerateUserSlug(email),
-	})
+	newUser, err := s.createUser(ctx, flow, email, title)
 	if err != nil {
 		return user.User{}, err
 	}
@@ -887,6 +911,79 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 			"avatar": newUser.Avatar,
 		})
 	return newUser, nil
+}
+
+// createUser writes the user row, and the consent record alongside it in one
+// transaction when the deployment asks for consent. ResolveAll runs before the
+// transaction opens, so an incomplete payload never starts one; inside, both
+// inserts land or neither does.
+func (s Service) createUser(ctx context.Context, flow *Flow, email, title string) (user.User, error) {
+	toCreate := user.User{
+		Title: title,
+		Email: email,
+		Name:  str.GenerateUserSlug(email),
+	}
+
+	documents, err := s.resolveConsent(flow)
+	if err != nil {
+		return user.User{}, err
+	}
+	if len(documents) == 0 {
+		// nothing to record, so nothing to hold a transaction open for
+		return s.userService.Create(ctx, toCreate)
+	}
+
+	// documents is non-empty, so the flow carried a consent that covered them
+	consented, _ := flow.Consent()
+	var newUser user.User
+	var granted consent.Consent
+	if err := s.transactor.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var txErr error
+		if newUser, txErr = s.userService.CreateWithTx(ctx, tx, toCreate); txErr != nil {
+			return txErr
+		}
+		granted, txErr = s.consentService.Grant(ctx, tx, consent.GrantRequest{
+			UserID:    newUser.ID,
+			UserEmail: newUser.Email,
+			Documents: documents,
+			Source:    consent.SourceSignup,
+			// the flow's own word for how the consent came in
+			AuthStrategy: flow.Method,
+			// the IP and the time are from when the user accepted, not from now
+			IPAddress:   consented.IPAddress,
+			ConsentedAt: consented.At,
+		})
+		return txErr
+	}); err != nil {
+		return user.User{}, err
+	}
+
+	// after the commit: the audit repository has no transactional create, so this
+	// is a breadcrumb and the consent record is the source of truth
+	s.consentService.RecordGranted(ctx, granted)
+	return newUser, nil
+}
+
+// resolveConsent reports which documents this user creation has to record, and
+// rejects it when the flow does not carry a complete consent.
+//
+// The check runs here under every intent, not for the error but as the invariant
+// guarding the write: an unset intent is permissive for the login gate, never
+// for consent. A nil flow is one of the paths that create a user without one,
+// and stays exempt because no account holder is present to consent.
+func (s Service) resolveConsent(flow *Flow) ([]consent.Document, error) {
+	if flow == nil || s.consentService == nil {
+		return nil, nil
+	}
+
+	// an empty set is complete only when the deployment configures no documents
+	consented, _ := flow.Consent()
+	documents, err := s.consentService.ResolveAll(consented.AcceptedDocumentIDs)
+	if err != nil {
+		// the wrapped error names what is missing, for the log not the response
+		return nil, fmt.Errorf("%w: %w", ErrConsentRequired, err)
+	}
+	return documents, nil
 }
 
 func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion) (Principal, error) {

@@ -349,8 +349,6 @@ func buildAPIDependencies(
 	if err := cfg.App.Consent.Validate(); err != nil {
 		return api.Deps{}, err
 	}
-	consentService := consent.NewService(cfg.App.Consent)
-	logConsentDocuments(logger, consentService.Documents())
 
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
@@ -398,6 +396,10 @@ func buildAPIDependencies(
 	permissionService := permission.NewService(logger, permissionRepository, relationService)
 
 	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
+
+	consentService := consent.NewService(logger, cfg.App.Consent,
+		postgres.NewUserConsentRepository(dbc), auditRecordRepository)
+	logConsentDocuments(logger, consentService.Documents())
 
 	roleRepository := postgres.NewRoleRepository(dbc)
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
@@ -450,7 +452,8 @@ func buildAPIDependencies(
 	userService := user.NewService(userRepository, relationService, sessionService, auditRecordRepository)
 	patValidator := userpat.NewValidator(logger, userPATRepo, cfg.App.PAT)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
-		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator)
+		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator,
+		consentService, dbc)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, roleService)

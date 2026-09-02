@@ -5,6 +5,8 @@ package mocks
 import (
 	context "context"
 
+	sqlx "github.com/jmoiron/sqlx"
+
 	user "github.com/raystack/frontier/core/user"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -75,6 +77,64 @@ func (_c *UserService_Create_Call) Return(_a0 user.User, _a1 error) *UserService
 }
 
 func (_c *UserService_Create_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *UserService_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateWithTx provides a mock function with given fields: ctx, tx, toCreate
+func (_m *UserService) CreateWithTx(ctx context.Context, tx *sqlx.Tx, toCreate user.User) (user.User, error) {
+	ret := _m.Called(ctx, tx, toCreate)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateWithTx")
+	}
+
+	var r0 user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, user.User) (user.User, error)); ok {
+		return rf(ctx, tx, toCreate)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, user.User) user.User); ok {
+		r0 = rf(ctx, tx, toCreate)
+	} else {
+		r0 = ret.Get(0).(user.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *sqlx.Tx, user.User) error); ok {
+		r1 = rf(ctx, tx, toCreate)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_CreateWithTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateWithTx'
+type UserService_CreateWithTx_Call struct {
+	*mock.Call
+}
+
+// CreateWithTx is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tx *sqlx.Tx
+//   - toCreate user.User
+func (_e *UserService_Expecter) CreateWithTx(ctx interface{}, tx interface{}, toCreate interface{}) *UserService_CreateWithTx_Call {
+	return &UserService_CreateWithTx_Call{Call: _e.mock.On("CreateWithTx", ctx, tx, toCreate)}
+}
+
+func (_c *UserService_CreateWithTx_Call) Run(run func(ctx context.Context, tx *sqlx.Tx, toCreate user.User)) *UserService_CreateWithTx_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*sqlx.Tx), args[2].(user.User))
+	})
+	return _c
+}
+
+func (_c *UserService_CreateWithTx_Call) Return(_a0 user.User, _a1 error) *UserService_CreateWithTx_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_CreateWithTx_Call) RunAndReturn(run func(context.Context, *sqlx.Tx, user.User) (user.User, error)) *UserService_CreateWithTx_Call {
 	_c.Call.Return(run)
 	return _c
 }
