@@ -93,6 +93,7 @@ import (
 
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/namespace"
@@ -342,6 +343,14 @@ func buildAPIDependencies(
 		return api.Deps{}, fmt.Errorf("failed to load additional traits: %w", err)
 	}
 	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc), traits)
+
+	// validated here so a deployment that asks for documents it cannot serve
+	// fails at boot instead of at someone's signup
+	if err := cfg.App.Consent.Validate(); err != nil {
+		return api.Deps{}, err
+	}
+	consentService := consent.NewService(cfg.App.Consent)
+	logConsentDocuments(logger, consentService.Documents())
 
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
@@ -628,6 +637,7 @@ func buildAPIDependencies(
 		ResourceService:                  resourceService,
 		SessionService:                   sessionService,
 		AuthnService:                     authnService,
+		ConsentService:                   consentService,
 		DeleterService:                   cascadeDeleter,
 		MetaSchemaService:                metaschemaService,
 		BootstrapService:                 bootstrapService,
@@ -666,6 +676,24 @@ func buildAPIDependencies(
 		MembershipService:                membershipService,
 	}
 	return dependencies, nil
+}
+
+// logConsentDocuments records the set resolved at boot. Any field can be
+// overridden through the environment, so this log, not the config repository,
+// is what says which documents a deployment was actually serving.
+func logConsentDocuments(logger *slog.Logger, documents []consent.Document) {
+	if len(documents) == 0 {
+		logger.Info("consent disabled, no documents required at signup")
+		return
+	}
+	logger.Info("consent enabled", "documents", len(documents))
+	for _, document := range documents {
+		logger.Info("consent document",
+			"id", document.ID,
+			"title", document.Title,
+			"version", document.Version,
+			"url", document.URL)
+	}
 }
 
 // StripeTransport wraps the default http.RoundTripper to add metrics.

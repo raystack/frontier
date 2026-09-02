@@ -32,6 +32,7 @@ type ConnectHandler struct {
 	resourceService                  ResourceService
 	sessionService                   SessionService
 	authnService                     AuthnService
+	consentService                   ConsentService
 	deleterService                   CascadeDeleter
 	metaSchemaService                MetaSchemaService
 	bootstrapService                 BootstrapService
@@ -83,6 +84,7 @@ func NewConnectHandler(deps api.Deps, authConf authenticate.Config) *ConnectHand
 		resourceService:                  deps.ResourceService,
 		sessionService:                   deps.SessionService,
 		authnService:                     deps.AuthnService,
+		consentService:                   deps.ConsentService,
 		deleterService:                   deps.DeleterService,
 		metaSchemaService:                deps.MetaSchemaService,
 		bootstrapService:                 deps.BootstrapService,
