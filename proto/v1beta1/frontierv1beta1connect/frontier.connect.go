@@ -364,6 +364,9 @@ const (
 	// FrontierServiceListAuthStrategiesProcedure is the fully-qualified name of the FrontierService's
 	// ListAuthStrategies RPC.
 	FrontierServiceListAuthStrategiesProcedure = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
+	// FrontierServiceListConsentDocumentsProcedure is the fully-qualified name of the FrontierService's
+	// ListConsentDocuments RPC.
+	FrontierServiceListConsentDocumentsProcedure = "/raystack.frontier.v1beta1.FrontierService/ListConsentDocuments"
 	// FrontierServiceAuthenticateProcedure is the fully-qualified name of the FrontierService's
 	// Authenticate RPC.
 	FrontierServiceAuthenticateProcedure = "/raystack.frontier.v1beta1.FrontierService/Authenticate"
@@ -702,6 +705,11 @@ type FrontierServiceClient interface {
 	// Ping user current active session.
 	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
+	// ListConsentDocuments returns the documents a user has to accept before an
+	// account is created for them. Unauthenticated, like ListAuthStrategies, so a
+	// sign-up view can render them before the account exists. An empty list means
+	// the deployment asks for no consent.
+	ListConsentDocuments(context.Context, *connect.Request[v1beta1.ListConsentDocumentsRequest]) (*connect.Response[v1beta1.ListConsentDocumentsResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
 	AuthToken(context.Context, *connect.Request[v1beta1.AuthTokenRequest]) (*connect.Response[v1beta1.AuthTokenResponse], error)
@@ -1463,6 +1471,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("ListAuthStrategies")),
 			connect.WithClientOptions(opts...),
 		),
+		listConsentDocuments: connect.NewClient[v1beta1.ListConsentDocumentsRequest, v1beta1.ListConsentDocumentsResponse](
+			httpClient,
+			baseURL+FrontierServiceListConsentDocumentsProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("ListConsentDocuments")),
+			connect.WithClientOptions(opts...),
+		),
 		authenticate: connect.NewClient[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse](
 			httpClient,
 			baseURL+FrontierServiceAuthenticateProcedure,
@@ -1987,6 +2001,7 @@ type frontierServiceClient struct {
 	revokeSession                  *connect.Client[v1beta1.RevokeSessionRequest, v1beta1.RevokeSessionResponse]
 	pingUserSession                *connect.Client[v1beta1.PingUserSessionRequest, v1beta1.PingUserSessionResponse]
 	listAuthStrategies             *connect.Client[v1beta1.ListAuthStrategiesRequest, v1beta1.ListAuthStrategiesResponse]
+	listConsentDocuments           *connect.Client[v1beta1.ListConsentDocumentsRequest, v1beta1.ListConsentDocumentsResponse]
 	authenticate                   *connect.Client[v1beta1.AuthenticateRequest, v1beta1.AuthenticateResponse]
 	authCallback                   *connect.Client[v1beta1.AuthCallbackRequest, v1beta1.AuthCallbackResponse]
 	authToken                      *connect.Client[v1beta1.AuthTokenRequest, v1beta1.AuthTokenResponse]
@@ -2630,6 +2645,11 @@ func (c *frontierServiceClient) ListAuthStrategies(ctx context.Context, req *con
 	return c.listAuthStrategies.CallUnary(ctx, req)
 }
 
+// ListConsentDocuments calls raystack.frontier.v1beta1.FrontierService.ListConsentDocuments.
+func (c *frontierServiceClient) ListConsentDocuments(ctx context.Context, req *connect.Request[v1beta1.ListConsentDocumentsRequest]) (*connect.Response[v1beta1.ListConsentDocumentsResponse], error) {
+	return c.listConsentDocuments.CallUnary(ctx, req)
+}
+
 // Authenticate calls raystack.frontier.v1beta1.FrontierService.Authenticate.
 func (c *frontierServiceClient) Authenticate(ctx context.Context, req *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error) {
 	return c.authenticate.CallUnary(ctx, req)
@@ -3114,6 +3134,11 @@ type FrontierServiceHandler interface {
 	// Ping user current active session.
 	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
+	// ListConsentDocuments returns the documents a user has to accept before an
+	// account is created for them. Unauthenticated, like ListAuthStrategies, so a
+	// sign-up view can render them before the account exists. An empty list means
+	// the deployment asks for no consent.
+	ListConsentDocuments(context.Context, *connect.Request[v1beta1.ListConsentDocumentsRequest]) (*connect.Response[v1beta1.ListConsentDocumentsResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
 	AuthToken(context.Context, *connect.Request[v1beta1.AuthTokenRequest]) (*connect.Response[v1beta1.AuthTokenResponse], error)
@@ -3871,6 +3896,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("ListAuthStrategies")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceListConsentDocumentsHandler := connect.NewUnaryHandler(
+		FrontierServiceListConsentDocumentsProcedure,
+		svc.ListConsentDocuments,
+		connect.WithSchema(frontierServiceMethods.ByName("ListConsentDocuments")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceAuthenticateHandler := connect.NewUnaryHandler(
 		FrontierServiceAuthenticateProcedure,
 		svc.Authenticate,
@@ -4503,6 +4534,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServicePingUserSessionHandler.ServeHTTP(w, r)
 		case FrontierServiceListAuthStrategiesProcedure:
 			frontierServiceListAuthStrategiesHandler.ServeHTTP(w, r)
+		case FrontierServiceListConsentDocumentsProcedure:
+			frontierServiceListConsentDocumentsHandler.ServeHTTP(w, r)
 		case FrontierServiceAuthenticateProcedure:
 			frontierServiceAuthenticateHandler.ServeHTTP(w, r)
 		case FrontierServiceAuthCallbackProcedure:
@@ -5090,6 +5123,10 @@ func (UnimplementedFrontierServiceHandler) PingUserSession(context.Context, *con
 
 func (UnimplementedFrontierServiceHandler) ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListAuthStrategies is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) ListConsentDocuments(context.Context, *connect.Request[v1beta1.ListConsentDocumentsRequest]) (*connect.Response[v1beta1.ListConsentDocumentsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.ListConsentDocuments is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error) {
