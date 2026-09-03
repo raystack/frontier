@@ -220,7 +220,8 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 		return nil, ErrUnsupportedMethod
 	}
 	// the gate runs before anything is sent or redirected
-	if err := s.gateFlowConsent(request.Intent, request.AcceptedDocumentIDs); err != nil {
+	consented, err := s.gateFlowConsent(request.Intent, request.AcceptedDocumentIDs)
+	if err != nil {
 		return nil, err
 	}
 	// both mail strategies know the address before anything is sent, and share
@@ -246,7 +247,7 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 	if request.Intent != FlowIntentUnspecified {
 		flow.Metadata[flowIntentKey] = request.Intent.String()
 	}
-	if len(request.AcceptedDocumentIDs) > 0 {
+	if len(consented) > 0 {
 		flow.Metadata[flowConsentKey] = map[string]any{
 			consentDocumentIDsKey: request.AcceptedDocumentIDs,
 			consentIPAddressKey:   request.IPAddress,
@@ -455,21 +456,22 @@ func (s Service) gateFlowStart(ctx context.Context, intent FlowIntent, email str
 // decides which rule applies, because without one a signup and a login look
 // identical: a signup has to be complete here, an unset intent only has to
 // name known ids, and a login checks nothing because it writes no record.
-func (s Service) gateFlowConsent(intent FlowIntent, ids []string) error {
+func (s Service) gateFlowConsent(intent FlowIntent, ids []string) ([]consent.Document, error) {
 	if s.consentService == nil || intent == FlowIntentLogin {
-		return nil
+		return nil, nil
 	}
 
+	var documents []consent.Document
 	var err error
 	if intent == FlowIntentSignup {
-		_, err = s.consentService.ResolveAll(ids)
+		documents, err = s.consentService.ResolveAll(ids)
 	} else {
-		_, err = s.consentService.Resolve(ids)
+		documents, err = s.consentService.Resolve(ids)
 	}
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrConsentRequired, err)
+		return nil, fmt.Errorf("%w: %w", ErrConsentRequired, err)
 	}
-	return nil
+	return documents, nil
 }
 
 // applyMailOTP actions when user submitted otp from the email
