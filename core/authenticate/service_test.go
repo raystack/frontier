@@ -1301,10 +1301,16 @@ func TestService_StartFlow_WritesIntentAndConsent(t *testing.T) {
 			storedFlow = flow
 		}).Return(nil)
 
+		enabled := consent.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
+			consent.Config{Enabled: true, Documents: map[string]consent.DocumentConfig{
+				"terms_of_service": {Title: "Terms & Conditions", Version: "v2", URL: "https://example.org/t"},
+				"privacy_policy":   {Title: "Privacy Policy", Version: "v1", URL: "https://example.org/p"},
+			}}, nil, nil)
+
 		srv := authenticate.NewService(nil, authenticate.Config{
 			MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
 			TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
-		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil, nil, nil)
+		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil, enabled, nil)
 		srv.Now = func() time.Time { return timeNow }
 
 		_, err := srv.StartFlow(ctx, request)
@@ -1464,14 +1470,18 @@ func TestService_StartFlow_Consent(t *testing.T) {
 		assert.ErrorIs(t, err, consent.ErrUnknownDocuments)
 	})
 
-	t.Run("a login checks nothing, because it writes no record", func(t *testing.T) {
+	t.Run("a login checks nothing, and persists nothing, because it writes no record", func(t *testing.T) {
 		// an unexpected call fails the test rather than passing silently
 		mockConsent := mocks.NewConsentService(t)
 
 		mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
 		ctx := context.Background()
 		mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{ID: "user-id", Email: email}, nil)
-		mockFlowRepo.EXPECT().Set(ctx, mock.Anything).Return(nil)
+
+		var storedFlow *authenticate.Flow
+		mockFlowRepo.EXPECT().Set(ctx, mock.Anything).Run(func(_ context.Context, flow *authenticate.Flow) {
+			storedFlow = flow
+		}).Return(nil)
 
 		srv := authenticate.NewService(nil, authenticate.Config{
 			MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
@@ -1479,11 +1489,17 @@ func TestService_StartFlow_Consent(t *testing.T) {
 		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil, mockConsent, nil)
 
 		_, err := srv.StartFlow(ctx, authenticate.RegistrationStartRequest{
-			Method: authenticate.MailOTPAuthMethod.String(),
-			Email:  email,
-			Intent: authenticate.FlowIntentLogin,
+			Method:              authenticate.MailOTPAuthMethod.String(),
+			Email:               email,
+			Intent:              authenticate.FlowIntentLogin,
+			AcceptedDocumentIDs: acceptedIDs,
+			IPAddress:           "10.0.0.1",
 		})
 		require.NoError(t, err)
+		require.NotNil(t, storedFlow)
+
+		_, ok := storedFlow.Consent()
+		assert.False(t, ok, "a login must persist no consent block")
 	})
 
 	t.Run("a deployment with consent disabled ignores the ids rather than rejecting them", func(t *testing.T) {
@@ -1499,6 +1515,40 @@ func TestService_StartFlow_Consent(t *testing.T) {
 
 		require.NoError(t, err)
 		require.NotNil(t, got)
+	})
+
+	t.Run("a deployment with consent disabled persists no consent onto the flow", func(t *testing.T) {
+		disabled := consent.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
+			consent.Config{Enabled: false}, nil, nil)
+
+		ctx := context.Background()
+		mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+		mockUserService.EXPECT().GetByID(ctx, email).
+			Return(user.User{}, errors.New("user not found")).Maybe()
+
+		var storedFlow *authenticate.Flow
+		mockFlowRepo.EXPECT().Set(ctx, mock.Anything).Run(func(_ context.Context, flow *authenticate.Flow) {
+			storedFlow = flow
+		}).Return(nil)
+
+		srv := authenticate.NewService(nil, authenticate.Config{
+			MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
+			TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil, disabled, nil)
+
+		_, err := srv.StartFlow(ctx, authenticate.RegistrationStartRequest{
+			Method:              authenticate.MailOTPAuthMethod.String(),
+			Email:               email,
+			Intent:              authenticate.FlowIntentSignup,
+			AcceptedDocumentIDs: acceptedIDs,
+			IPAddress:           "10.0.0.1",
+		})
+		require.NoError(t, err)
+		require.NotNil(t, storedFlow)
+
+		_, ok := storedFlow.Consent()
+		assert.False(t, ok, "a disabled deployment must persist no consent block")
+		assert.Equal(t, authenticate.FlowIntentSignup, storedFlow.Intent())
 	})
 }
 

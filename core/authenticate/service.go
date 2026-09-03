@@ -236,7 +236,8 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 	}
 	// the consent gate runs first: a check on the request alone, costing no
 	// lookup, and it has to fail before anything is sent or redirected
-	if err := s.gateFlowConsent(request.Intent, request.AcceptedDocumentIDs); err != nil {
+	consented, err := s.gateFlowConsent(request.Intent, request.AcceptedDocumentIDs)
+	if err != nil {
 		return nil, err
 	}
 	// both mail strategies know the address before anything is sent, and share
@@ -262,7 +263,7 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 	if request.Intent != FlowIntentUnspecified {
 		flow.Metadata[flowIntentKey] = request.Intent.String()
 	}
-	if len(request.AcceptedDocumentIDs) > 0 {
+	if len(consented) > 0 {
 		flow.Metadata[flowConsentKey] = map[string]any{
 			consentDocumentIDsKey: request.AcceptedDocumentIDs,
 			consentIPAddressKey:   request.IPAddress,
@@ -473,22 +474,23 @@ func (s Service) gateFlowStart(ctx context.Context, intent FlowIntent, email str
 // or redirected — true for OIDC too, where the email is unknown but the intent
 // is not. Without an intent only the unknown-id rule runs, and completeness
 // waits for user creation. A login checks nothing, because it writes no record.
-func (s Service) gateFlowConsent(intent FlowIntent, ids []string) error {
+func (s Service) gateFlowConsent(intent FlowIntent, ids []string) ([]consent.Document, error) {
 	if s.consentService == nil || intent == FlowIntentLogin {
-		return nil
+		return nil, nil
 	}
 
+	var documents []consent.Document
 	var err error
 	if intent == FlowIntentSignup {
-		_, err = s.consentService.ResolveAll(ids)
+		documents, err = s.consentService.ResolveAll(ids)
 	} else {
-		_, err = s.consentService.Resolve(ids)
+		documents, err = s.consentService.Resolve(ids)
 	}
 	if err != nil {
 		// the wrapped error names what is missing, for the log not the response
-		return fmt.Errorf("%w: %w", ErrConsentRequired, err)
+		return nil, fmt.Errorf("%w: %w", ErrConsentRequired, err)
 	}
-	return nil
+	return documents, nil
 }
 
 // applyMailOTP actions when user submitted otp from the email
