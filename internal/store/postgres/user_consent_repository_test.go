@@ -221,62 +221,42 @@ func (s *UserConsentRepositoryTestSuite) TestCreateIsAtomicWithTheUserRow() {
 	s.Run("should keep both rows when both inserts succeed", func() {
 		defer func() { s.Require().NoError(s.cleanup()) }()
 
-		var createdUser user.User
-		err := s.client.WithTxn(s.ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-			var txErr error
-			createdUser, txErr = s.userRepository.CreateWithTx(s.ctx, tx, newUser("both@example.com"))
-			if txErr != nil {
-				return txErr
-			}
-			_, txErr = s.repository.Create(s.ctx, tx, consent.Consent{
-				UserID:       createdUser.ID,
-				UserEmail:    createdUser.Email,
+		createdUser, createdConsent, err := s.userRepository.CreateWithConsent(s.ctx,
+			newUser("both@example.com"), consent.Consent{
 				Documents:    testDocuments(),
 				Source:       consent.SourceSignup,
 				AuthStrategy: "mailotp",
 				ConsentedAt:  consentedAt,
 			})
-			return txErr
-		})
 		s.Require().NoError(err)
 
 		fetched, err := s.userRepository.GetByID(s.ctx, createdUser.ID)
 		s.Require().NoError(err)
 		s.Assert().Equal("both@example.com", fetched.Email)
 		s.Assert().Equal(1, s.countConsents(createdUser.ID))
+
+		// the identity is stamped from the row that was just written, not from
+		// anything the caller could have known before the insert
+		s.Assert().Equal(createdUser.ID, createdConsent.UserID)
+		s.Assert().Equal(createdUser.Email, createdConsent.UserEmail)
 	})
 
 	s.Run("should roll the user row back when the consent insert fails", func() {
 		defer func() { s.Require().NoError(s.cleanup()) }()
 
-		var createdUser user.User
-		err := s.client.WithTxn(s.ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-			var txErr error
-			createdUser, txErr = s.userRepository.CreateWithTx(s.ctx, tx, newUser("rollback@example.com"))
-			if txErr != nil {
-				return txErr
-			}
-			// an empty document list violates documents_not_empty, so this is
-			// a real failure from Postgres inside a real transaction
-			_, txErr = s.repository.Create(s.ctx, tx, consent.Consent{
-				UserID:      createdUser.ID,
-				UserEmail:   createdUser.Email,
+		// an empty document list violates documents_not_empty, so this is a real
+		// failure from Postgres inside a real transaction
+		_, _, err := s.userRepository.CreateWithConsent(s.ctx,
+			newUser("rollback@example.com"), consent.Consent{
 				Source:      consent.SourceSignup,
 				ConsentedAt: consentedAt,
 			})
-			return txErr
-		})
 		s.Require().Error(err)
-		s.Require().NotEmpty(createdUser.ID)
-
-		_, err = s.userRepository.GetByID(s.ctx, createdUser.ID)
-		s.Assert().ErrorIs(err, user.ErrNotExist)
-		s.Assert().Equal(0, s.countConsents(createdUser.ID))
 
 		var count int
 		query := fmt.Sprintf("SELECT count(*) FROM %s WHERE email = $1", postgres.TABLE_USERS)
 		s.Require().NoError(s.client.DB.QueryRowxContext(s.ctx, query, "rollback@example.com").Scan(&count))
-		s.Assert().Zero(count)
+		s.Assert().Zero(count, "the user row must not survive a failed consent insert")
 	})
 }
 

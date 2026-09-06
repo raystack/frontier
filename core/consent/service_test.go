@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -69,7 +68,7 @@ func allDocuments() []consent.Document {
 
 func TestService_Documents(t *testing.T) {
 	t.Run("returns every configured document ordered by id", func(t *testing.T) {
-		documents := consent.NewService(nil, enabledConfig(), nil, nil).Documents()
+		documents := consent.NewService(nil, enabledConfig(), nil).Documents()
 
 		assert.Equal(t, allDocuments(), documents)
 	})
@@ -77,7 +76,7 @@ func TestService_Documents(t *testing.T) {
 	t.Run("orders by id whatever order config was read in", func(t *testing.T) {
 		// map iteration is randomised, so run it enough times that an
 		// unsorted implementation cannot pass by luck
-		service := consent.NewService(nil, enabledConfig(), nil, nil)
+		service := consent.NewService(nil, enabledConfig(), nil)
 		for i := 0; i < 20; i++ {
 			assert.Equal(t, []string{"eula", "privacy_policy", "terms_of_service"}, ids(service.Documents()))
 		}
@@ -87,16 +86,16 @@ func TestService_Documents(t *testing.T) {
 		config := enabledConfig()
 		config.Enabled = false
 
-		assert.Empty(t, consent.NewService(nil, config, nil, nil).Documents())
+		assert.Empty(t, consent.NewService(nil, config, nil).Documents())
 	})
 
 	t.Run("returns empty for the zero config", func(t *testing.T) {
-		assert.Empty(t, consent.NewService(nil, consent.Config{}, nil, nil).Documents())
+		assert.Empty(t, consent.NewService(nil, consent.Config{}, nil).Documents())
 	})
 }
 
 func TestService_Resolve(t *testing.T) {
-	service := consent.NewService(nil, enabledConfig(), nil, nil)
+	service := consent.NewService(nil, enabledConfig(), nil)
 
 	t.Run("maps known ids to their config snapshots", func(t *testing.T) {
 		documents, err := service.Resolve([]string{"terms_of_service"})
@@ -159,7 +158,7 @@ func TestService_Resolve(t *testing.T) {
 		config := enabledConfig()
 		config.Enabled = false
 
-		documents, err := consent.NewService(nil, config, nil, nil).Resolve([]string{"anything_at_all"})
+		documents, err := consent.NewService(nil, config, nil).Resolve([]string{"anything_at_all"})
 
 		require.NoError(t, err)
 		assert.Empty(t, documents)
@@ -167,7 +166,7 @@ func TestService_Resolve(t *testing.T) {
 }
 
 func TestService_ResolveAll(t *testing.T) {
-	service := consent.NewService(nil, enabledConfig(), nil, nil)
+	service := consent.NewService(nil, enabledConfig(), nil)
 
 	t.Run("accepts a set covering every configured document", func(t *testing.T) {
 		documents, err := service.ResolveAll([]string{"privacy_policy", "terms_of_service", "eula"})
@@ -217,7 +216,7 @@ func TestService_ResolveAll(t *testing.T) {
 	t.Run("ignores ids when disabled rather than rejecting them", func(t *testing.T) {
 		config := enabledConfig()
 		config.Enabled = false
-		service := consent.NewService(nil, config, nil, nil)
+		service := consent.NewService(nil, config, nil)
 
 		documents, err := service.ResolveAll(nil)
 		require.NoError(t, err)
@@ -241,22 +240,6 @@ func ids(documents []consent.Document) []string {
 // generated mocks, and the write is one method, so a fake here reads better
 // than a mock and keeps the transaction out of the picture: what Grant hands
 // the repository is the whole question.
-type fakeRepository struct {
-	created []consent.Consent
-	id      string
-	err     error
-}
-
-func (f *fakeRepository) Create(_ context.Context, _ *sqlx.Tx, cnst consent.Consent) (consent.Consent, error) {
-	if f.err != nil {
-		return consent.Consent{}, f.err
-	}
-	f.created = append(f.created, cnst)
-	cnst.ID = f.id
-	cnst.CreatedAt = time.Date(2026, 8, 30, 12, 0, 0, 0, time.UTC)
-	return cnst, nil
-}
-
 type fakeAuditRecordRepository struct {
 	created []models.AuditRecord
 	err     error
@@ -279,86 +262,77 @@ func grantRequest() consent.GrantRequest {
 	}
 }
 
-func TestService_Grant(t *testing.T) {
-	t.Run("writes one record carrying everything that describes the act", func(t *testing.T) {
-		repo := &fakeRepository{id: "consent-id"}
-		service := consent.NewService(nil, enabledConfig(), repo, nil)
+func TestService_PrepareGrant(t *testing.T) {
+	t.Run("carries everything that describes the act onto the record", func(t *testing.T) {
+		service := consent.NewService(nil, enabledConfig(), nil)
 
 		req := grantRequest()
-		granted, err := service.Grant(context.Background(), nil, req)
+		prepared, err := service.PrepareGrant(req)
 		require.NoError(t, err)
 
-		require.Len(t, repo.created, 1)
-		written := repo.created[0]
-		assert.Equal(t, req.UserID, written.UserID)
-		assert.Equal(t, req.UserEmail, written.UserEmail)
-		assert.Equal(t, allDocuments(), written.Documents)
-		assert.Equal(t, consent.SourceSignup, written.Source)
-		assert.Equal(t, "mailotp", written.AuthStrategy)
-		assert.Equal(t, "203.0.113.9", written.IPAddress)
-		assert.Equal(t, req.ConsentedAt, written.ConsentedAt)
-
-		assert.Equal(t, "consent-id", granted.ID)
+		assert.Equal(t, req.UserID, prepared.UserID)
+		assert.Equal(t, req.UserEmail, prepared.UserEmail)
+		assert.Equal(t, allDocuments(), prepared.Documents)
+		assert.Equal(t, consent.SourceSignup, prepared.Source)
+		assert.Equal(t, "mailotp", prepared.AuthStrategy)
+		assert.Equal(t, "203.0.113.9", prepared.IPAddress)
+		assert.Equal(t, req.ConsentedAt, prepared.ConsentedAt)
 	})
 
 	t.Run("has no completeness rule of its own", func(t *testing.T) {
 		// one document out of the three configured. ResolveAll is what decides
-		// a signup covers everything; keeping that out of Grant is what leaves
+		// a signup covers everything; keeping that out of here is what leaves
 		// room for a re-consent covering a subset without a second write path.
-		repo := &fakeRepository{id: "consent-id"}
-		service := consent.NewService(nil, enabledConfig(), repo, nil)
+		service := consent.NewService(nil, enabledConfig(), nil)
 
 		req := grantRequest()
 		req.Documents = allDocuments()[:1]
-		_, err := service.Grant(context.Background(), nil, req)
+		prepared, err := service.PrepareGrant(req)
 		require.NoError(t, err)
 
-		require.Len(t, repo.created, 1)
-		assert.Equal(t, []string{"eula"}, ids(repo.created[0].Documents))
+		assert.Equal(t, []string{"eula"}, ids(prepared.Documents))
 	})
 
 	t.Run("defaults the source to signup", func(t *testing.T) {
-		repo := &fakeRepository{id: "consent-id"}
-		service := consent.NewService(nil, enabledConfig(), repo, nil)
+		service := consent.NewService(nil, enabledConfig(), nil)
 
 		req := grantRequest()
 		req.Source = ""
-		_, err := service.Grant(context.Background(), nil, req)
+		prepared, err := service.PrepareGrant(req)
 		require.NoError(t, err)
 
-		require.Len(t, repo.created, 1)
-		assert.Equal(t, consent.SourceSignup, repo.created[0].Source)
+		assert.Equal(t, consent.SourceSignup, prepared.Source)
 	})
 
 	t.Run("rejects a request the record cannot be written from", func(t *testing.T) {
 		cases := map[string]func(*consent.GrantRequest){
-			"no user id":      func(r *consent.GrantRequest) { r.UserID = "" },
-			"no user email":   func(r *consent.GrantRequest) { r.UserEmail = "" },
 			"no documents":    func(r *consent.GrantRequest) { r.Documents = nil },
 			"no consented at": func(r *consent.GrantRequest) { r.ConsentedAt = time.Time{} },
 		}
 		for name, break_ := range cases {
 			t.Run(name, func(t *testing.T) {
-				repo := &fakeRepository{id: "consent-id"}
-				service := consent.NewService(nil, enabledConfig(), repo, nil)
+				service := consent.NewService(nil, enabledConfig(), nil)
 
 				req := grantRequest()
 				break_(&req)
-				_, err := service.Grant(context.Background(), nil, req)
+				_, err := service.PrepareGrant(req)
 				assert.ErrorIs(t, err, consent.ErrInvalidGrant)
-				// nothing reached the repository, so the surrounding
-				// transaction has nothing to roll back
-				assert.Empty(t, repo.created)
 			})
 		}
 	})
 
-	t.Run("surfaces a repository failure so the transaction rolls back", func(t *testing.T) {
-		repo := &fakeRepository{err: consent.ErrConsentExists}
-		service := consent.NewService(nil, enabledConfig(), repo, nil)
+	t.Run("does not require the identity, which the writer stamps", func(t *testing.T) {
+		// the user row does not exist yet when this runs: the id is generated by
+		// the insert, and the column is NOT NULL with a foreign key, so a record
+		// pointing at nobody is refused by the database rather than by a check
+		// that would have to guess
+		service := consent.NewService(nil, enabledConfig(), nil)
 
-		_, err := service.Grant(context.Background(), nil, grantRequest())
-		assert.ErrorIs(t, err, consent.ErrConsentExists)
+		req := grantRequest()
+		req.UserID, req.UserEmail = "", ""
+		prepared, err := service.PrepareGrant(req)
+		require.NoError(t, err)
+		assert.Empty(t, prepared.UserID)
 	})
 }
 
@@ -375,7 +349,7 @@ func TestService_RecordGranted(t *testing.T) {
 
 	t.Run("sets every field explicitly, the actor included", func(t *testing.T) {
 		auditRepo := &fakeAuditRecordRepository{}
-		service := consent.NewService(nil, enabledConfig(), nil, auditRepo)
+		service := consent.NewService(nil, enabledConfig(), auditRepo)
 
 		service.RecordGranted(context.Background(), granted)
 
@@ -432,7 +406,7 @@ func TestService_RecordGranted(t *testing.T) {
 		// why that record is the source of truth and this one is a breadcrumb
 		auditRepo := &fakeAuditRecordRepository{err: errors.New("audit is down")}
 		service := consent.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
-			enabledConfig(), nil, auditRepo)
+			enabledConfig(), auditRepo)
 
 		assert.NotPanics(t, func() {
 			service.RecordGranted(context.Background(), granted)

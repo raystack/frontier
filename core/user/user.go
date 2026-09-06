@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/rql"
 )
@@ -26,9 +26,11 @@ type Repository interface {
 	GetByIDs(ctx context.Context, userIds []string) ([]User, error)
 	GetByName(ctx context.Context, name string) (User, error)
 	Create(ctx context.Context, user User) (User, error)
-	// CreateWithTx is Create inside a transaction the caller opened, so the row
-	// can be written together with something outside this domain.
-	CreateWithTx(ctx context.Context, tx *sqlx.Tx, user User) (User, error)
+	// CreateWithConsent writes the user row and the record of what the user
+	// accepted at signup in one transaction, so neither can exist without the
+	// other. Temporary: it lives here because there is no pattern yet for a
+	// transaction spanning two domains, which is pending its own RFC.
+	CreateWithConsent(ctx context.Context, user User, cnst consent.Consent) (User, consent.Consent, error)
 	List(ctx context.Context, flt Filter) ([]User, error)
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByName(ctx context.Context, toUpdate User) (User, error)

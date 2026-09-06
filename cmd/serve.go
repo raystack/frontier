@@ -397,8 +397,7 @@ func buildAPIDependencies(
 
 	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
 
-	consentService := consent.NewService(logger, cfg.App.Consent,
-		postgres.NewUserConsentRepository(dbc), auditRecordRepository)
+	consentService := consent.NewService(logger, cfg.App.Consent, auditRecordRepository)
 	logConsentDocuments(logger, consentService.Documents())
 
 	roleRepository := postgres.NewRoleRepository(dbc)
@@ -453,7 +452,7 @@ func buildAPIDependencies(
 	patValidator := userpat.NewValidator(logger, userPATRepo, cfg.App.PAT)
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig, patValidator,
-		consentService, dbc)
+		consentService)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService, roleService)

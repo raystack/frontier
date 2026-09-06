@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/raystack/salt/rql"
 
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
@@ -86,10 +86,14 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	return s.repository.Create(ctx, toCreate(user))
 }
 
-// CreateWithTx is Create inside a transaction the caller opened, so the user row
-// and the consent record land together or not at all.
-func (s Service) CreateWithTx(ctx context.Context, tx *sqlx.Tx, user User) (User, error) {
-	return s.repository.CreateWithTx(ctx, tx, toCreate(user))
+// CreateWithConsent creates the user and records the consent given at signup in
+// the same transaction, so a user row without a consent record is impossible.
+//
+// Temporary: the composite write lives in this domain because the codebase has
+// no pattern for a transaction that spans two of them. When that pattern lands,
+// this moves with it.
+func (s Service) CreateWithConsent(ctx context.Context, user User, cnst consent.Consent) (User, consent.Consent, error) {
+	return s.repository.CreateWithConsent(ctx, toCreate(user), cnst)
 }
 
 // toCreate normalises a user the same way for both create paths.

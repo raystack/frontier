@@ -15,6 +15,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/db"
 )
@@ -133,10 +134,39 @@ func buildUserInsertQuery(usr user.User) (string, []any, error) {
 	return dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
 }
 
-// CreateWithTx creates a user inside the transaction it is given, so a signup can
-// write the user row and the consent record together. Rolling back is the
-// caller's job: the transaction is wider than this insert.
-func (r UserRepository) CreateWithTx(ctx context.Context, tx *sqlx.Tx, usr user.User) (user.User, error) {
+// CreateWithConsent writes the user row and the record of what the user accepted
+// at signup in one transaction, so a user without a consent record is
+// impossible. It opens the transaction, so rolling back is its own job.
+//
+// Temporary: the codebase has no pattern for a transaction spanning two domains,
+// which is pending its own RFC. Until then the two inserts are held together
+// here, where both tables are already in reach.
+func (r UserRepository) CreateWithConsent(ctx context.Context, usr user.User, cnst consent.Consent) (user.User, consent.Consent, error) {
+	var createdUser user.User
+	var createdConsent consent.Consent
+
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var txErr error
+		if createdUser, txErr = r.createWithTx(ctx, tx, usr); txErr != nil {
+			return txErr
+		}
+		// the id only exists once the row is written, and the record's foreign
+		// key has to point at it, so the identity is stamped here rather than
+		// guessed by the caller
+		cnst.UserID = createdUser.ID
+		cnst.UserEmail = createdUser.Email
+		createdConsent, txErr = NewUserConsentRepository(r.dbc).Create(ctx, tx, cnst)
+		return txErr
+	}); err != nil {
+		return user.User{}, consent.Consent{}, err
+	}
+
+	return createdUser, createdConsent, nil
+}
+
+// createWithTx creates a user inside the transaction it is given. Rolling back
+// is the caller's job: the transaction is wider than this insert.
+func (r UserRepository) createWithTx(ctx context.Context, tx *sqlx.Tx, usr user.User) (user.User, error) {
 	// a nil transaction is a wiring mistake, and a panic is a poor way to report it
 	if tx == nil {
 		return user.User{}, fmt.Errorf("%w: no transaction", errQuery)
@@ -151,7 +181,7 @@ func (r UserRepository) CreateWithTx(ctx context.Context, tx *sqlx.Tx, usr user.
 	}
 
 	var userModel User
-	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "CreateWithTx", func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "createWithTx", func(ctx context.Context) error {
 		return tx.QueryRowxContext(ctx, createQuery, params...).StructScan(&userModel)
 	}); err != nil {
 		err = checkPostgresError(err)

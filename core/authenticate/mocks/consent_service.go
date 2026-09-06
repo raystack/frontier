@@ -5,9 +5,8 @@ package mocks
 import (
 	context "context"
 
-	sqlx "github.com/jmoiron/sqlx"
-
 	consent "github.com/raystack/frontier/core/consent"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -24,27 +23,27 @@ func (_m *ConsentService) EXPECT() *ConsentService_Expecter {
 	return &ConsentService_Expecter{mock: &_m.Mock}
 }
 
-// Grant provides a mock function with given fields: ctx, tx, req
-func (_m *ConsentService) Grant(ctx context.Context, tx *sqlx.Tx, req consent.GrantRequest) (consent.Consent, error) {
-	ret := _m.Called(ctx, tx, req)
+// PrepareGrant provides a mock function with given fields: req
+func (_m *ConsentService) PrepareGrant(req consent.GrantRequest) (consent.Consent, error) {
+	ret := _m.Called(req)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Grant")
+		panic("no return value specified for PrepareGrant")
 	}
 
 	var r0 consent.Consent
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, consent.GrantRequest) (consent.Consent, error)); ok {
-		return rf(ctx, tx, req)
+	if rf, ok := ret.Get(0).(func(consent.GrantRequest) (consent.Consent, error)); ok {
+		return rf(req)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, consent.GrantRequest) consent.Consent); ok {
-		r0 = rf(ctx, tx, req)
+	if rf, ok := ret.Get(0).(func(consent.GrantRequest) consent.Consent); ok {
+		r0 = rf(req)
 	} else {
 		r0 = ret.Get(0).(consent.Consent)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *sqlx.Tx, consent.GrantRequest) error); ok {
-		r1 = rf(ctx, tx, req)
+	if rf, ok := ret.Get(1).(func(consent.GrantRequest) error); ok {
+		r1 = rf(req)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -52,32 +51,30 @@ func (_m *ConsentService) Grant(ctx context.Context, tx *sqlx.Tx, req consent.Gr
 	return r0, r1
 }
 
-// ConsentService_Grant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Grant'
-type ConsentService_Grant_Call struct {
+// ConsentService_PrepareGrant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PrepareGrant'
+type ConsentService_PrepareGrant_Call struct {
 	*mock.Call
 }
 
-// Grant is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tx *sqlx.Tx
+// PrepareGrant is a helper method to define mock.On call
 //   - req consent.GrantRequest
-func (_e *ConsentService_Expecter) Grant(ctx interface{}, tx interface{}, req interface{}) *ConsentService_Grant_Call {
-	return &ConsentService_Grant_Call{Call: _e.mock.On("Grant", ctx, tx, req)}
+func (_e *ConsentService_Expecter) PrepareGrant(req interface{}) *ConsentService_PrepareGrant_Call {
+	return &ConsentService_PrepareGrant_Call{Call: _e.mock.On("PrepareGrant", req)}
 }
 
-func (_c *ConsentService_Grant_Call) Run(run func(ctx context.Context, tx *sqlx.Tx, req consent.GrantRequest)) *ConsentService_Grant_Call {
+func (_c *ConsentService_PrepareGrant_Call) Run(run func(req consent.GrantRequest)) *ConsentService_PrepareGrant_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*sqlx.Tx), args[2].(consent.GrantRequest))
+		run(args[0].(consent.GrantRequest))
 	})
 	return _c
 }
 
-func (_c *ConsentService_Grant_Call) Return(_a0 consent.Consent, _a1 error) *ConsentService_Grant_Call {
+func (_c *ConsentService_PrepareGrant_Call) Return(_a0 consent.Consent, _a1 error) *ConsentService_PrepareGrant_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ConsentService_Grant_Call) RunAndReturn(run func(context.Context, *sqlx.Tx, consent.GrantRequest) (consent.Consent, error)) *ConsentService_Grant_Call {
+func (_c *ConsentService_PrepareGrant_Call) RunAndReturn(run func(consent.GrantRequest) (consent.Consent, error)) *ConsentService_PrepareGrant_Call {
 	_c.Call.Return(run)
 	return _c
 }

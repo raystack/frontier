@@ -2,7 +2,6 @@ package authenticate_test
 
 import (
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -12,8 +11,6 @@ import (
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/jmoiron/sqlx"
 
 	"github.com/raystack/frontier/core/consent"
 
@@ -89,7 +86,7 @@ func TestService_GetPrincipal(t *testing.T) {
 			},
 			wantErr: false,
 			setup: func() *authenticate.Service {
-				return authenticate.NewService(nil, authenticate.Config{}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+				return authenticate.NewService(nil, authenticate.Config{}, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 			},
 		},
 		{
@@ -125,7 +122,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
 			},
 		},
 		{
@@ -149,7 +146,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				mockSessionService.EXPECT().ExtractFromContext(mock.Anything).Return(mockSess, nil)
 
 				return authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
 			},
 		},
 		{
@@ -178,7 +175,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
 			},
 		},
 		{
@@ -196,7 +193,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).Return("", map[string]any{}, errors.New("invalid token"))
 
 				return authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
 			},
 		},
 		{
@@ -224,7 +221,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
 			},
 		},
 		{
@@ -242,7 +239,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				mockServiceUserService.EXPECT().GetByJWT(mock.Anything, string(tokenBytes)).Return(serviceuser.ServiceUser{}, errors.New("invalid"))
 
 				return authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
 			},
 		},
 		{
@@ -270,7 +267,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}, nil)
 
 				return authenticate.NewService(nil, authenticate.Config{},
-					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil, nil)
+					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
 			},
 		},
 	}
@@ -344,7 +341,7 @@ func TestService_StartFlow(t *testing.T) {
 			wantErr: authenticate.ErrUnsupportedMethod,
 			setup: func() *authenticate.Service {
 				return authenticate.NewService(nil, authenticate.Config{}, nil, nil,
-					nil, nil, nil, nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil, nil, nil)
 			},
 		},
 		{
@@ -375,7 +372,7 @@ func TestService_StartFlow(t *testing.T) {
 						TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
 					},
 					mockFlowRepo, mockDialer, nil, nil,
-					nil, nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -407,7 +404,7 @@ func TestService_StartFlow(t *testing.T) {
 						TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
 					},
 					mockFlowRepo, mockDialer, nil, nil,
-					nil, nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -438,7 +435,7 @@ func TestService_StartFlow(t *testing.T) {
 						MailOTP: authenticate.MailOTPConfig{},
 					},
 					mockFlowRepo, mockDialer, nil, nil,
-					nil, nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -518,7 +515,7 @@ func TestService_FinishFlow(t *testing.T) {
 				mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
 				mockUserService.EXPECT().GetByID(ctx, "test@example.com").Return(sampleUser, nil)
 				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-					nil, nil, mockUserService, nil, nil, nil, nil, nil)
+					nil, nil, mockUserService, nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -546,7 +543,7 @@ func TestService_FinishFlow(t *testing.T) {
 					return f.Metadata["attempt"] == 1 && f.Nonce == string(otpHash)
 				})).Return(nil)
 				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-					nil, nil, nil, nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -574,7 +571,7 @@ func TestService_FinishFlow(t *testing.T) {
 					return f.Metadata["attempt"] == 1 && f.Nonce == "111111"
 				})).Return(nil)
 				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-					nil, nil, nil, nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -600,7 +597,7 @@ func TestService_FinishFlow(t *testing.T) {
 					Return(mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": "", "attempt": 2}), nil)
 				mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
 				srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-					nil, nil, nil, nil, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil, nil, nil)
 				srv.Now = func() time.Time {
 					return timeNow
 				}
@@ -640,7 +637,7 @@ func TestService_FinishFlow_WrongThenRightOTP(t *testing.T) {
 	mockUserService.EXPECT().GetByID(ctx, "test@example.com").Return(sampleUser, nil).Once()
 
 	srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-		nil, nil, mockUserService, nil, nil, nil, nil, nil)
+		nil, nil, mockUserService, nil, nil, nil, nil)
 	srv.Now = func() time.Time {
 		return timeNow
 	}
@@ -719,7 +716,7 @@ func TestService_FinishFlow_OTPAttemptCapAfterJSONRoundTrip(t *testing.T) {
 	require.NoError(t, flowRepo.Set(ctx, mailOTPFlow(flowID, timeNow, string(otpHash), pkgMetadata.Metadata{"callback_url": ""})))
 
 	srv := authenticate.NewService(nil, authenticate.Config{}, flowRepo, nil,
-		nil, nil, nil, nil, nil, nil, nil, nil)
+		nil, nil, nil, nil, nil, nil, nil)
 	srv.Now = func() time.Time {
 		return timeNow
 	}
@@ -764,7 +761,7 @@ func TestService_GetPrincipal_JWTGrantSkipsNonGrantToken(t *testing.T) {
 		Return(user.User{ID: userID.String()}, nil)
 
 	svc := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-		mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, mockPATService, nil, nil)
+		mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, mockPATService, nil)
 
 	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{
 		consts.UserTokenGatewayKey: {patValue},
@@ -808,7 +805,7 @@ func TestService_GetPrincipal_RestrictsByAuthVia(t *testing.T) {
 		{"authtoken rejects passthrough", authenticate.PassthroughHeaderClientAssertion, authTokenSet, true},
 	}
 
-	svc := authenticate.NewService(nil, authenticate.Config{}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	svc := authenticate.NewService(nil, authenticate.Config{}, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -853,7 +850,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 				org := mocks.NewOrgService(t)
 				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(false, nil)
 				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					nil, nil, nil, nil, usr, nil, nil, pat, nil, nil)
+					nil, nil, nil, nil, usr, nil, nil, pat, nil)
 				s.SetOrgService(org)
 				return s
 			},
@@ -872,7 +869,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 				usr.EXPECT().GetByID(mock.Anything, userID).Return(user.User{ID: userID}, nil)
 				org := mocks.NewOrgService(t)
 				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					nil, nil, nil, nil, usr, nil, nil, pat, nil, nil)
+					nil, nil, nil, nil, usr, nil, nil, pat, nil)
 				s.SetOrgService(org)
 				return s
 			},
@@ -898,7 +895,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 				org := mocks.NewOrgService(t)
 				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(true, nil)
 				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					nil, nil, nil, nil, usr, nil, nil, pat, nil, nil)
+					nil, nil, nil, nil, usr, nil, nil, pat, nil)
 				s.SetOrgService(org)
 				return s
 			},
@@ -916,7 +913,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 				org := mocks.NewOrgService(t)
 				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(false, nil)
 				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					nil, nil, nil, nil, nil, su, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil, su, nil, nil, nil)
 				s.SetOrgService(org)
 				return s
 			},
@@ -934,7 +931,7 @@ func TestService_GetPrincipal_OrgStateGate(t *testing.T) {
 				org := mocks.NewOrgService(t)
 				org.EXPECT().IsEnabled(mock.Anything, orgID).Return(false, nil)
 				s := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-					nil, nil, nil, nil, nil, su, nil, nil, nil, nil)
+					nil, nil, nil, nil, nil, su, nil, nil, nil)
 				s.SetOrgService(org)
 				return s
 			},
@@ -1024,7 +1021,7 @@ func TestService_BuildToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockToken := mocks.NewTokenService(t)
 			mockToken.EXPECT().Build(tt.principal.ID, tt.wantClaims).Return([]byte("signed-token"), nil)
-			s := authenticate.NewService(nil, tt.config, nil, nil, mockToken, nil, nil, nil, nil, nil, nil, nil)
+			s := authenticate.NewService(nil, tt.config, nil, nil, mockToken, nil, nil, nil, nil, nil, nil)
 
 			got, err := s.BuildToken(context.Background(), tt.principal, map[string]string{})
 			assert.NoError(t, err)
@@ -1251,7 +1248,7 @@ func TestService_StartFlow_Intent(t *testing.T) {
 				MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
 				MailLink:  authenticate.MailLinkConfig{Validity: 10 * time.Minute},
 				TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
-			}, mockFlowRepo, mockDialer, nil, nil, mockUserService, nil, webAuth, nil, nil, nil)
+			}, mockFlowRepo, mockDialer, nil, nil, mockUserService, nil, webAuth, nil, nil)
 
 			got, err := srv.StartFlow(ctx, authenticate.RegistrationStartRequest{
 				Method: tt.method,
@@ -1304,7 +1301,7 @@ func TestService_StartFlow_WritesIntentAndConsent(t *testing.T) {
 		srv := authenticate.NewService(nil, authenticate.Config{
 			MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
 			TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
-		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil, nil, nil)
+		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil, nil)
 		srv.Now = func() time.Time { return timeNow }
 
 		_, err := srv.StartFlow(ctx, request)
@@ -1483,7 +1480,7 @@ func TestService_FinishFlow_Intent(t *testing.T) {
 			}
 
 			srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-				nil, nil, mockUserService, nil, nil, nil, nil, nil)
+				nil, nil, mockUserService, nil, nil, nil, nil)
 			srv.Now = func() time.Time { return timeNow }
 
 			got, err := srv.FinishFlow(ctx, authenticate.RegistrationFinishRequest{
@@ -1555,21 +1552,28 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockFlowRepo.EXPECT().Get(ctx, flowID).Return(mailOTPFlow(flowID, timeNow, string(otpHash), consentMetadata()), nil)
 		mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
 		mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
-		mockUserService.EXPECT().CreateWithTx(ctx, (*sqlx.Tx)(nil), mock.Anything).Return(newUser, nil)
+
+		// what the consent service prepared, and what came back written
+		prepared := consent.Consent{Documents: documents, Source: consent.SourceSignup}
+		granted := consent.Consent{ID: "consent-id", UserID: newUser.ID}
+
+		var written consent.Consent
+		mockUserService.EXPECT().CreateWithConsent(ctx, mock.Anything, mock.Anything).
+			Run(func(_ context.Context, _ user.User, cnst consent.Consent) { written = cnst }).
+			Return(newUser, granted, nil)
 
 		mockConsent := mocks.NewConsentService(t)
 		mockConsent.EXPECT().ResolveAll(acceptedIDs).Return(documents, nil)
 
-		granted := consent.Consent{ID: "consent-id", UserID: newUser.ID}
 		var grantRequest consent.GrantRequest
-		mockConsent.EXPECT().Grant(ctx, (*sqlx.Tx)(nil), mock.Anything).
-			Run(func(_ context.Context, _ *sqlx.Tx, req consent.GrantRequest) { grantRequest = req }).
-			Return(granted, nil)
-		// after the commit, not inside it
+		mockConsent.EXPECT().PrepareGrant(mock.Anything).
+			Run(func(req consent.GrantRequest) { grantRequest = req }).
+			Return(prepared, nil)
+		// after the write, not inside it
 		mockConsent.EXPECT().RecordGranted(ctx, granted).Return()
 
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-			nil, nil, mockUserService, nil, nil, nil, mockConsent, fakeTransactor{})
+			nil, nil, mockUserService, nil, nil, nil, mockConsent)
 		srv.Now = func() time.Time { return timeNow }
 
 		got, err := finish(t, srv, ctx, flowID)
@@ -1577,8 +1581,13 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		require.NotNil(t, got)
 		assert.Equal(t, newUser, got.User)
 
-		assert.Equal(t, newUser.ID, grantRequest.UserID)
-		assert.Equal(t, newUser.Email, grantRequest.UserEmail)
+		// the prepared record is what the writer is handed, unchanged
+		assert.Equal(t, prepared, written)
+
+		// the identity is absent on purpose: the user id does not exist until
+		// the insert returns, and the writer stamps it from the row it wrote
+		assert.Empty(t, grantRequest.UserID)
+		assert.Empty(t, grantRequest.UserEmail)
 		assert.Equal(t, documents, grantRequest.Documents)
 		assert.Equal(t, consent.SourceSignup, grantRequest.Source)
 		// the flow's own word for how the consent came in
@@ -1611,7 +1620,7 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		// no transactor at all: an incomplete payload must never open one, and
 		// a nil one would panic if it did
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-			nil, nil, mockUserService, nil, nil, nil, mockConsent, nil)
+			nil, nil, mockUserService, nil, nil, nil, mockConsent)
 		srv.Now = func() time.Time { return timeNow }
 
 		got, err := finish(t, srv, ctx, flowID)
@@ -1620,7 +1629,7 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		assert.ErrorIs(t, err, consent.ErrMissingDocuments)
 		assert.Nil(t, got)
 		mockUserService.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
-		mockUserService.AssertNotCalled(t, "CreateWithTx", mock.Anything, mock.Anything, mock.Anything)
+		mockUserService.AssertNotCalled(t, "CreateWithConsent", mock.Anything, mock.Anything, mock.Anything)
 	})
 
 	t.Run("a flow carrying no consent at all is rejected too", func(t *testing.T) {
@@ -1639,7 +1648,7 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockConsent.EXPECT().ResolveAll([]string(nil)).Return(nil, consent.ErrMissingDocuments)
 
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-			nil, nil, mockUserService, nil, nil, nil, mockConsent, nil)
+			nil, nil, mockUserService, nil, nil, nil, mockConsent)
 		srv.Now = func() time.Time { return timeNow }
 
 		got, err := finish(t, srv, ctx, flowID)
@@ -1666,7 +1675,7 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockConsent := mocks.NewConsentService(t)
 
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-			nil, nil, mockUserService, nil, nil, nil, mockConsent, nil)
+			nil, nil, mockUserService, nil, nil, nil, mockConsent)
 		srv.Now = func() time.Time { return timeNow }
 
 		got, err := finish(t, srv, ctx, flowID)
@@ -1691,7 +1700,7 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockConsent.EXPECT().ResolveAll(acceptedIDs).Return(nil, nil)
 
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-			nil, nil, mockUserService, nil, nil, nil, mockConsent, nil)
+			nil, nil, mockUserService, nil, nil, nil, mockConsent)
 		srv.Now = func() time.Time { return timeNow }
 
 		got, err := finish(t, srv, ctx, flowID)
@@ -1708,15 +1717,16 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockFlowRepo.EXPECT().Get(ctx, flowID).Return(mailOTPFlow(flowID, timeNow, string(otpHash), consentMetadata()), nil)
 		mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
 		mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
-		mockUserService.EXPECT().CreateWithTx(ctx, (*sqlx.Tx)(nil), mock.Anything).Return(newUser, nil)
+		mockUserService.EXPECT().CreateWithConsent(ctx, mock.Anything, mock.Anything).
+			Return(user.User{}, consent.Consent{}, consent.ErrConsentExists)
 
 		mockConsent := mocks.NewConsentService(t)
 		mockConsent.EXPECT().ResolveAll(acceptedIDs).Return(documents, nil)
-		mockConsent.EXPECT().Grant(ctx, (*sqlx.Tx)(nil), mock.Anything).
-			Return(consent.Consent{}, consent.ErrConsentExists)
+		mockConsent.EXPECT().PrepareGrant(mock.Anything).
+			Return(consent.Consent{Documents: documents}, nil)
 
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
-			nil, nil, mockUserService, nil, nil, nil, mockConsent, fakeTransactor{})
+			nil, nil, mockUserService, nil, nil, nil, mockConsent)
 		srv.Now = func() time.Time { return timeNow }
 
 		got, err := finish(t, srv, ctx, flowID)
@@ -1725,16 +1735,6 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		// no breadcrumb for a consent that was rolled back
 		mockConsent.AssertNotCalled(t, "RecordGranted", mock.Anything, mock.Anything)
 	})
-}
-
-// fakeTransactor runs the function it is given without a database, which is all
-// the service needs from it: the rollback that makes the two inserts atomic is
-// Postgres's job, and is tested against a real one in
-// internal/store/postgres/user_consent_repository_test.go.
-type fakeTransactor struct{}
-
-func (fakeTransactor) WithTxn(_ context.Context, _ sql.TxOptions, txFunc func(*sqlx.Tx) error) error {
-	return txFunc(nil)
 }
 
 // TestService_PassthroughHeader_Consent pins the exemption. Three paths create
@@ -1755,7 +1755,7 @@ func TestService_PassthroughHeader_Consent(t *testing.T) {
 	mockConsent := mocks.NewConsentService(t)
 
 	srv := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
-		nil, nil, nil, nil, mockUserService, nil, nil, nil, mockConsent, nil)
+		nil, nil, nil, nil, mockUserService, nil, nil, nil, mockConsent)
 
 	got, err := srv.GetPrincipal(ctx, authenticate.PassthroughHeaderClientAssertion)
 	require.NoError(t, err)

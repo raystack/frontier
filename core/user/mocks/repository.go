@@ -5,10 +5,11 @@ package mocks
 import (
 	context "context"
 
-	rql "github.com/raystack/salt/rql"
+	consent "github.com/raystack/frontier/core/consent"
+
 	mock "github.com/stretchr/testify/mock"
 
-	sqlx "github.com/jmoiron/sqlx"
+	rql "github.com/raystack/salt/rql"
 
 	user "github.com/raystack/frontier/core/user"
 )
@@ -83,60 +84,67 @@ func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, user.Us
 	return _c
 }
 
-// CreateWithTx provides a mock function with given fields: ctx, tx, _a2
-func (_m *Repository) CreateWithTx(ctx context.Context, tx *sqlx.Tx, _a2 user.User) (user.User, error) {
-	ret := _m.Called(ctx, tx, _a2)
+// CreateWithConsent provides a mock function with given fields: ctx, _a1, cnst
+func (_m *Repository) CreateWithConsent(ctx context.Context, _a1 user.User, cnst consent.Consent) (user.User, consent.Consent, error) {
+	ret := _m.Called(ctx, _a1, cnst)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateWithTx")
+		panic("no return value specified for CreateWithConsent")
 	}
 
 	var r0 user.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, user.User) (user.User, error)); ok {
-		return rf(ctx, tx, _a2)
+	var r1 consent.Consent
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, user.User, consent.Consent) (user.User, consent.Consent, error)); ok {
+		return rf(ctx, _a1, cnst)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *sqlx.Tx, user.User) user.User); ok {
-		r0 = rf(ctx, tx, _a2)
+	if rf, ok := ret.Get(0).(func(context.Context, user.User, consent.Consent) user.User); ok {
+		r0 = rf(ctx, _a1, cnst)
 	} else {
 		r0 = ret.Get(0).(user.User)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *sqlx.Tx, user.User) error); ok {
-		r1 = rf(ctx, tx, _a2)
+	if rf, ok := ret.Get(1).(func(context.Context, user.User, consent.Consent) consent.Consent); ok {
+		r1 = rf(ctx, _a1, cnst)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(consent.Consent)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, user.User, consent.Consent) error); ok {
+		r2 = rf(ctx, _a1, cnst)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
-// Repository_CreateWithTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateWithTx'
-type Repository_CreateWithTx_Call struct {
+// Repository_CreateWithConsent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateWithConsent'
+type Repository_CreateWithConsent_Call struct {
 	*mock.Call
 }
 
-// CreateWithTx is a helper method to define mock.On call
+// CreateWithConsent is a helper method to define mock.On call
 //   - ctx context.Context
-//   - tx *sqlx.Tx
-//   - _a2 user.User
-func (_e *Repository_Expecter) CreateWithTx(ctx interface{}, tx interface{}, _a2 interface{}) *Repository_CreateWithTx_Call {
-	return &Repository_CreateWithTx_Call{Call: _e.mock.On("CreateWithTx", ctx, tx, _a2)}
+//   - _a1 user.User
+//   - cnst consent.Consent
+func (_e *Repository_Expecter) CreateWithConsent(ctx interface{}, _a1 interface{}, cnst interface{}) *Repository_CreateWithConsent_Call {
+	return &Repository_CreateWithConsent_Call{Call: _e.mock.On("CreateWithConsent", ctx, _a1, cnst)}
 }
 
-func (_c *Repository_CreateWithTx_Call) Run(run func(ctx context.Context, tx *sqlx.Tx, _a2 user.User)) *Repository_CreateWithTx_Call {
+func (_c *Repository_CreateWithConsent_Call) Run(run func(ctx context.Context, _a1 user.User, cnst consent.Consent)) *Repository_CreateWithConsent_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*sqlx.Tx), args[2].(user.User))
+		run(args[0].(context.Context), args[1].(user.User), args[2].(consent.Consent))
 	})
 	return _c
 }
 
-func (_c *Repository_CreateWithTx_Call) Return(_a0 user.User, _a1 error) *Repository_CreateWithTx_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *Repository_CreateWithConsent_Call) Return(_a0 user.User, _a1 consent.Consent, _a2 error) *Repository_CreateWithConsent_Call {
+	_c.Call.Return(_a0, _a1, _a2)
 	return _c
 }
 
-func (_c *Repository_CreateWithTx_Call) RunAndReturn(run func(context.Context, *sqlx.Tx, user.User) (user.User, error)) *Repository_CreateWithTx_Call {
+func (_c *Repository_CreateWithConsent_Call) RunAndReturn(run func(context.Context, user.User, consent.Consent) (user.User, consent.Consent, error)) *Repository_CreateWithConsent_Call {
 	_c.Call.Return(run)
 	return _c
 }

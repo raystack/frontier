@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/user/mocks"
@@ -1022,10 +1022,10 @@ func TestService_UnSudo(t *testing.T) {
 	}
 }
 
-// TestService_CreateWithTx pins that the transactional create normalises a user
-// exactly as Create does. The two paths share one helper for that reason, and
-// this is what keeps them from drifting apart again.
-func TestService_CreateWithTx(t *testing.T) {
+// TestService_CreateWithConsent pins that the create carrying a consent record
+// normalises the user exactly as Create does. The two paths share one helper for
+// that reason, and this is what keeps them from drifting apart again.
+func TestService_CreateWithConsent(t *testing.T) {
 	toCreate := user.User{
 		ID:     "test-id",
 		Name:   "TEST",
@@ -1050,25 +1050,29 @@ func TestService_CreateWithTx(t *testing.T) {
 		Title:  "tesT",
 	}
 
-	t.Run("passes the transaction and the normalised user to the repository", func(t *testing.T) {
+	granted := consent.Consent{Documents: []consent.Document{{ID: "eula"}}, Source: consent.SourceSignup}
+
+	t.Run("passes the normalised user and the record through to the repository", func(t *testing.T) {
 		repo, relationService, sessionService, auditRecordRepository := mockService(t)
-		// a nil transaction is enough here: what the repository does with it is
-		// exercised against a real database in internal/store/postgres.
-		repo.EXPECT().CreateWithTx(mock.Anything, (*sqlx.Tx)(nil), normalised).Return(created, nil)
+		// what the repository does with the two of them is exercised against a
+		// real database in internal/store/postgres.
+		written := consent.Consent{ID: "consent-id", UserID: created.ID}
+		repo.EXPECT().CreateWithConsent(mock.Anything, normalised, granted).Return(created, written, nil)
 
 		svc := user.NewService(repo, relationService, sessionService, auditRecordRepository)
-		got, err := svc.CreateWithTx(context.Background(), nil, toCreate)
+		got, gotConsent, err := svc.CreateWithConsent(context.Background(), toCreate, granted)
 		require.NoError(t, err)
 		assert.Equal(t, created, got)
+		assert.Equal(t, written, gotConsent)
 	})
 
 	t.Run("surfaces the repository error so the transaction rolls back", func(t *testing.T) {
 		repo, relationService, sessionService, auditRecordRepository := mockService(t)
-		repo.EXPECT().CreateWithTx(mock.Anything, (*sqlx.Tx)(nil), normalised).
-			Return(user.User{}, errors.New("failed to create"))
+		repo.EXPECT().CreateWithConsent(mock.Anything, normalised, granted).
+			Return(user.User{}, consent.Consent{}, errors.New("failed to create"))
 
 		svc := user.NewService(repo, relationService, sessionService, auditRecordRepository)
-		_, err := svc.CreateWithTx(context.Background(), nil, toCreate)
+		_, _, err := svc.CreateWithConsent(context.Background(), toCreate, granted)
 		assert.Error(t, err)
 	})
 }
