@@ -1621,6 +1621,43 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockUserService.AssertNotCalled(t, "CreateWithConsent", mock.Anything, mock.Anything, mock.Anything)
 	})
 
+	t.Run("a consent whose timestamp did not parse writes neither row", func(t *testing.T) {
+		ctx := context.Background()
+		flowID := uuid.New()
+
+		md := consentMetadata()
+		md["consent"] = map[string]any{
+			"accepted_document_ids": []any{"privacy_policy", "terms_of_service"},
+			"ip_address":            "203.0.113.9",
+			"at":                    "yesterday",
+		}
+
+		mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+		mockFlowRepo.EXPECT().Get(ctx, flowID).Return(mailOTPFlow(flowID, timeNow, string(otpHash), md), nil)
+		mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
+		mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
+
+		mockConsent := mocks.NewConsentService(t)
+		mockConsent.EXPECT().ResolveAll(acceptedIDs).Return(documents, nil)
+
+		var grantRequest consent.GrantRequest
+		mockConsent.EXPECT().PrepareGrant(mock.Anything).
+			Run(func(req consent.GrantRequest) { grantRequest = req }).
+			Return(consent.Consent{}, consent.ErrInvalidGrant)
+
+		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+			nil, nil, mockUserService, nil, nil, nil, mockConsent)
+		srv.Now = func() time.Time { return timeNow }
+
+		got, err := finish(t, srv, ctx, flowID)
+		// raw, not wrapped in ErrConsentRequired: the ids themselves were complete
+		assert.ErrorIs(t, err, consent.ErrInvalidGrant)
+		assert.Nil(t, got)
+		assert.True(t, grantRequest.ConsentedAt.IsZero())
+		mockUserService.AssertNotCalled(t, "CreateWithConsent", mock.Anything, mock.Anything, mock.Anything)
+		mockConsent.AssertNotCalled(t, "RecordGranted", mock.Anything, mock.Anything)
+	})
+
 	t.Run("a flow carrying no consent at all is rejected too", func(t *testing.T) {
 		ctx := context.Background()
 		flowID := uuid.New()
