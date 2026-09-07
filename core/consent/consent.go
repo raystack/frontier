@@ -3,8 +3,6 @@ package consent
 import "time"
 
 // Document is one document a user has to accept before an account is created.
-// Version is opaque: compared for equality only, so dates, semver or SHAs all
-// work. Frontier never reads what is behind URL.
 type Document struct {
 	ID      string
 	Title   string
@@ -14,8 +12,7 @@ type Document struct {
 
 const SourceSignup = "signup"
 
-// Consent is an immutable record of one act of accepting documents. UserEmail
-// and the documents are snapshots: the record outlives what it describes.
+// Consent is an immutable record of one act of accepting documents
 type Consent struct {
 	ID           string
 	UserID       string

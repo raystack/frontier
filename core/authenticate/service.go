@@ -74,9 +74,6 @@ type UserService interface {
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 }
 
-// ConsentService checks what a caller accepted against what the deployment
-// configures. Disabled, it resolves nothing, so an empty document set means
-// write no record.
 type ConsentService interface {
 	ResolveAll(ids []string) ([]consent.Document, error)
 	PrepareGrant(req consent.GrantRequest) (consent.Consent, error)

@@ -16,9 +16,6 @@ type AuditRecordRepository interface {
 	Create(ctx context.Context, auditRecord models.AuditRecord) (models.AuditRecord, error)
 }
 
-// Service owns the document config, so it owns the checks that read it. Config
-// is read at boot, so a version change needs a restart. It writes no record
-// itself: that lands in the same transaction as the user row, in user.Service.
 type Service struct {
 	logger                *slog.Logger
 	config                Config
@@ -34,9 +31,7 @@ func NewService(logger *slog.Logger, config Config,
 	}
 }
 
-// Documents returns every configured document, ordered by id so a response built
-// from it is stable. Empty when disabled, so one client build works against both
-// kinds of deployment.
+// Documents returns every configured document, ordered by id
 func (s Service) Documents() []Document {
 	if !s.config.Enabled {
 		return nil
@@ -50,10 +45,7 @@ func (s Service) Documents() []Document {
 	return documents
 }
 
-// Resolve maps ids to their config snapshots and rejects unknown ones, saying
-// nothing about whether the set is complete — for callers where completeness is
-// not yet knowable. Duplicates are removed.
-//
+// Resolve maps ids to their config snapshots and rejects unknown ones
 // Disabled, it resolves nothing and rejects nothing, so the ids are ignored
 // rather than refused.
 func (s Service) Resolve(ids []string) ([]Document, error) {
@@ -80,8 +72,7 @@ func (s Service) Resolve(ids []string) ([]Document, error) {
 }
 
 // ResolveAll is Resolve plus the completeness rule: the ids must cover every
-// configured document, no more and no less. Both directions are compared, so the
-// error names what is wrong rather than just that something is.
+// configured document, no more and no less
 func (s Service) ResolveAll(ids []string) ([]Document, error) {
 	if !s.config.Enabled {
 		return nil, nil
@@ -110,9 +101,6 @@ func (s Service) ResolveAll(ids []string) ([]Document, error) {
 	return documents, nil
 }
 
-// PrepareGrant applies the defaults and the checks this domain owns, and
-// returns the record to write. It performs no I/O: the record lands in the
-// transaction that creates the user, and that writer fills in the identity.
 func (s Service) PrepareGrant(req GrantRequest) (Consent, error) {
 	if req.Source == "" {
 		req.Source = SourceSignup
@@ -132,9 +120,7 @@ func (s Service) PrepareGrant(req GrantRequest) (Consent, error) {
 	}, nil
 }
 
-// RecordGranted writes the audit breadcrumb after the commit: the audit
-// repository has no transactional create, so a failure here is logged rather
-// than returned, and the consent record stays the source of truth.
+// RecordGranted writes the audit record after the commit
 func (s Service) RecordGranted(ctx context.Context, granted Consent) {
 	documents := make([]map[string]string, 0, len(granted.Documents))
 	for _, document := range granted.Documents {
@@ -198,8 +184,6 @@ func (s Service) document(id string) Document {
 	}
 }
 
-// uniqueSorted so the same accepted set produces the same document list
-// whatever order the client sent it in.
 func uniqueSorted(ids []string) []string {
 	seen := make(map[string]struct{}, len(ids))
 	for _, id := range ids {
