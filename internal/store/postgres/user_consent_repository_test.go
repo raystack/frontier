@@ -98,8 +98,7 @@ func (s *UserConsentRepositoryTestSuite) countConsents(userID string) int {
 	return count
 }
 
-// TestCreate covers the write itself: what the record keeps, and the two rules
-// the table enforces on it.
+// TestCreate covers what the record keeps, and the two rules the table enforces.
 func (s *UserConsentRepositoryTestSuite) TestCreate() {
 	consentedAt := time.Date(2026, 8, 30, 10, 0, 0, 0, time.UTC)
 
@@ -133,8 +132,6 @@ func (s *UserConsentRepositoryTestSuite) TestCreate() {
 		s.Assert().Equal("203.0.113.9", granted.IPAddress)
 		s.Assert().True(consentedAt.Equal(granted.ConsentedAt))
 		s.Assert().False(granted.CreatedAt.IsZero())
-		// every document keeps all four fields, copied from config at write
-		// time, so the record stays readable after the document leaves config
 		s.Assert().Equal(testDocuments(), granted.Documents)
 	})
 
@@ -181,8 +178,7 @@ func (s *UserConsentRepositoryTestSuite) TestCreate() {
 		}
 		s.Require().NoError(write())
 
-		// the partial unique index: nothing repairs a record, so a second
-		// signup write is a bug and has to fail rather than leave two rows
+		// the partial unique index: a second signup write is a bug, not a repair
 		s.Assert().ErrorIs(write(), consent.ErrConsentExists)
 		s.Assert().Equal(1, s.countConsents(createdUser.ID))
 	})
@@ -212,9 +208,8 @@ func (s *UserConsentRepositoryTestSuite) TestCreate() {
 	})
 }
 
-// TestCreateIsAtomicWithTheUserRow is the invariant this whole feature rests
-// on: a user row without a consent record is impossible. It runs against a real
-// database on purpose — a mocked transaction can only pretend to roll back.
+// TestCreateIsAtomicWithTheUserRow pins the invariant: a user row without a
+// consent record is impossible. A mocked transaction can only pretend to roll back.
 func (s *UserConsentRepositoryTestSuite) TestCreateIsAtomicWithTheUserRow() {
 	consentedAt := time.Date(2026, 8, 30, 10, 0, 0, 0, time.UTC)
 
@@ -235,8 +230,6 @@ func (s *UserConsentRepositoryTestSuite) TestCreateIsAtomicWithTheUserRow() {
 		s.Assert().Equal("both@example.com", fetched.Email)
 		s.Assert().Equal(1, s.countConsents(createdUser.ID))
 
-		// the identity is stamped from the row that was just written, not from
-		// anything the caller could have known before the insert
 		s.Assert().Equal(createdUser.ID, createdConsent.UserID)
 		s.Assert().Equal(createdUser.Email, createdConsent.UserEmail)
 	})
@@ -245,7 +238,7 @@ func (s *UserConsentRepositoryTestSuite) TestCreateIsAtomicWithTheUserRow() {
 		defer func() { s.Require().NoError(s.cleanup()) }()
 
 		// an empty document list violates documents_not_empty, so this is a real
-		// failure from Postgres inside a real transaction
+		// failure inside a real transaction
 		_, _, err := s.userRepository.CreateWithConsent(s.ctx,
 			newUser("rollback@example.com"), consent.Consent{
 				Source:      consent.SourceSignup,

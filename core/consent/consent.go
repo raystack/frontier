@@ -12,14 +12,10 @@ type Document struct {
 	URL     string
 }
 
-// SourceSignup is the only occasion a record is written on today. A later
-// re-consent would separate itself with another source, not another write path.
 const SourceSignup = "signup"
 
-// Consent is one record: the documents a user accepted and the act that accepted
-// them. The grain is the act, not the document, so the email, IP and timestamp
-// are stored once. A record is immutable and outlives the user it describes,
-// which is why UserEmail and the document snapshots are copies.
+// Consent is an immutable record of one act of accepting documents. UserEmail
+// and the documents are snapshots: the record outlives what it describes.
 type Consent struct {
 	ID           string
 	UserID       string
@@ -34,8 +30,6 @@ type Consent struct {
 	CreatedAt   time.Time
 }
 
-// GrantRequest describes the act being recorded. Only the row id and created_at
-// are made at write time.
 type GrantRequest struct {
 	UserID       string
 	UserEmail    string

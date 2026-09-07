@@ -1022,9 +1022,7 @@ func TestService_UnSudo(t *testing.T) {
 	}
 }
 
-// TestService_CreateWithConsent pins that the create carrying a consent record
-// normalises the user exactly as Create does. The two paths share one helper for
-// that reason, and this is what keeps them from drifting apart again.
+// TestService_CreateWithConsent pins that it normalises the user exactly as Create does.
 func TestService_CreateWithConsent(t *testing.T) {
 	toCreate := user.User{
 		ID:     "test-id",
@@ -1054,8 +1052,6 @@ func TestService_CreateWithConsent(t *testing.T) {
 
 	t.Run("passes the normalised user and the record through to the repository", func(t *testing.T) {
 		repo, relationService, sessionService, auditRecordRepository := mockService(t)
-		// what the repository does with the two of them is exercised against a
-		// real database in internal/store/postgres.
 		written := consent.Consent{ID: "consent-id", UserID: created.ID}
 		repo.EXPECT().CreateWithConsent(mock.Anything, normalised, granted).Return(created, written, nil)
 

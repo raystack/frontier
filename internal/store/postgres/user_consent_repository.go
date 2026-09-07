@@ -11,9 +11,8 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 )
 
-// UserConsentRepository writes consent records and nothing else: the table has
-// BEFORE UPDATE and BEFORE DELETE triggers, so there is no other operation to
-// offer. Reads are left to reporting tools, which query the table directly.
+// UserConsentRepository only writes: the table has BEFORE UPDATE and BEFORE
+// DELETE triggers, so there is no other operation to offer.
 type UserConsentRepository struct {
 	dbc *db.Client
 }
@@ -24,11 +23,9 @@ func NewUserConsentRepository(dbc *db.Client) *UserConsentRepository {
 	}
 }
 
-// Create writes one record inside the transaction it is given rather than
-// opening its own, because it has to land with the user row or not at all.
-// Rolling back is the caller's job: the transaction is wider than this insert.
+// Create writes one record inside the transaction it is given: it has to land
+// with the user row or not at all, so rolling back is the caller's job.
 func (r UserConsentRepository) Create(ctx context.Context, tx *sqlx.Tx, cnst consent.Consent) (consent.Consent, error) {
-	// a nil transaction is a wiring mistake, and a panic is a poor way to report it
 	if tx == nil {
 		return consent.Consent{}, fmt.Errorf("%w: no transaction", consent.ErrInvalidGrant)
 	}
@@ -39,12 +36,10 @@ func (r UserConsentRepository) Create(ctx context.Context, tx *sqlx.Tx, cnst con
 	}
 
 	createQuery, params, err := dialect.Insert(TABLE_USER_CONSENTS).Rows(UserConsent{
-		UserID:    cnst.UserID,
-		UserEmail: cnst.UserEmail,
-		Documents: documents,
-		Source:    cnst.Source,
-		// both nullable: a deployment that sets no client IP header stores no IP
-		// rather than failing the signup
+		UserID:       cnst.UserID,
+		UserEmail:    cnst.UserEmail,
+		Documents:    documents,
+		Source:       cnst.Source,
 		AuthStrategy: toNullString(cnst.AuthStrategy),
 		IPAddress:    toNullString(cnst.IPAddress),
 		ConsentedAt:  cnst.ConsentedAt,
@@ -60,7 +55,6 @@ func (r UserConsentRepository) Create(ctx context.Context, tx *sqlx.Tx, cnst con
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrDuplicateKey):
-			// the partial unique index: a second signup write is a bug
 			return consent.Consent{}, consent.ErrConsentExists
 		default:
 			return consent.Consent{}, fmt.Errorf("%w: %w", errDB, err)

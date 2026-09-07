@@ -62,7 +62,6 @@ func (from UserConsent) transformToConsent() (consent.Consent, error) {
 	}, nil
 }
 
-// marshalConsentDocuments renders the document list for the JSONB column.
 func marshalConsentDocuments(documents []consent.Document) ([]byte, error) {
 	rows := make([]ConsentDocument, 0, len(documents))
 	for _, document := range documents {

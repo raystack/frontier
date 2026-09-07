@@ -134,13 +134,8 @@ func buildUserInsertQuery(usr user.User) (string, []any, error) {
 	return dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
 }
 
-// CreateWithConsent writes the user row and the record of what the user accepted
-// at signup in one transaction, so a user without a consent record is
-// impossible. It opens the transaction, so rolling back is its own job.
-//
-// Temporary: the codebase has no pattern for a transaction spanning two domains,
-// which is pending its own RFC. Until then the two inserts are held together
-// here, where both tables are already in reach.
+// CreateWithConsent writes both rows in one transaction, so a user without a
+// consent record is impossible.
 func (r UserRepository) CreateWithConsent(ctx context.Context, usr user.User, cnst consent.Consent) (user.User, consent.Consent, error) {
 	var createdUser user.User
 	var createdConsent consent.Consent
@@ -150,9 +145,7 @@ func (r UserRepository) CreateWithConsent(ctx context.Context, usr user.User, cn
 		if createdUser, txErr = r.createWithTx(ctx, tx, usr); txErr != nil {
 			return txErr
 		}
-		// the id only exists once the row is written, and the record's foreign
-		// key has to point at it, so the identity is stamped here rather than
-		// guessed by the caller
+		// the id only exists once the row is written
 		cnst.UserID = createdUser.ID
 		cnst.UserEmail = createdUser.Email
 		createdConsent, txErr = NewUserConsentRepository(r.dbc).Create(ctx, tx, cnst)
@@ -164,10 +157,8 @@ func (r UserRepository) CreateWithConsent(ctx context.Context, usr user.User, cn
 	return createdUser, createdConsent, nil
 }
 
-// createWithTx creates a user inside the transaction it is given. Rolling back
-// is the caller's job: the transaction is wider than this insert.
+// createWithTx creates a user inside the transaction it is given.
 func (r UserRepository) createWithTx(ctx context.Context, tx *sqlx.Tx, usr user.User) (user.User, error) {
-	// a nil transaction is a wiring mistake, and a panic is a poor way to report it
 	if tx == nil {
 		return user.User{}, fmt.Errorf("%w: no transaction", errQuery)
 	}

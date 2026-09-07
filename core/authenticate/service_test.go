@@ -1501,12 +1501,9 @@ func TestService_FinishFlow_Intent(t *testing.T) {
 	}
 }
 
-// TestService_FinishFlow_Consent covers the invariant this feature rests on: a
-// user row without a consent record is impossible. The rollback that backs it
-// is exercised against a real database in
-// internal/store/postgres/user_consent_repository_test.go; what is checked here
-// is which of the three outcomes each request reaches, and what is written for
-// it.
+// TestService_FinishFlow_Consent covers which of the three outcomes each request
+// reaches, and what is written for it. The rollback behind the invariant is
+// exercised against a real database in internal/store/postgres.
 func TestService_FinishFlow_Consent(t *testing.T) {
 	timeNow := time.Now()
 	otpHash, err := bcrypt.GenerateFromPassword([]byte("111111"), bcrypt.MinCost)
@@ -1553,7 +1550,6 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
 		mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
 
-		// what the consent service prepared, and what came back written
 		prepared := consent.Consent{Documents: documents, Source: consent.SourceSignup}
 		granted := consent.Consent{ID: "consent-id", UserID: newUser.ID}
 
@@ -1581,18 +1577,13 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		require.NotNil(t, got)
 		assert.Equal(t, newUser, got.User)
 
-		// the prepared record is what the writer is handed, unchanged
 		assert.Equal(t, prepared, written)
 
-		// the identity is absent on purpose: the user id does not exist until
-		// the insert returns, and the writer stamps it from the row it wrote
 		assert.Empty(t, grantRequest.UserID)
 		assert.Empty(t, grantRequest.UserEmail)
 		assert.Equal(t, documents, grantRequest.Documents)
 		assert.Equal(t, consent.SourceSignup, grantRequest.Source)
-		// the flow's own word for how the consent came in
 		assert.Equal(t, authenticate.MailOTPAuthMethod.String(), grantRequest.AuthStrategy)
-		// the IP and the time are from when the user accepted, not from now
 		assert.Equal(t, "203.0.113.9", grantRequest.IPAddress)
 		assert.True(t, consentedAt.Equal(grantRequest.ConsentedAt))
 	})
@@ -1617,8 +1608,6 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockConsent.EXPECT().ResolveAll([]string{"privacy_policy"}).
 			Return(nil, consent.ErrMissingDocuments)
 
-		// no transactor at all: an incomplete payload must never open one, and
-		// a nil one would panic if it did
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
 			nil, nil, mockUserService, nil, nil, nil, mockConsent)
 		srv.Now = func() time.Time { return timeNow }
@@ -1633,8 +1622,6 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 	})
 
 	t.Run("a flow carrying no consent at all is rejected too", func(t *testing.T) {
-		// the check runs under every intent, not for the error but as the
-		// invariant guarding the write
 		ctx := context.Background()
 		flowID := uuid.New()
 
@@ -1657,8 +1644,6 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 	})
 
 	t.Run("an existing user gets no consent record", func(t *testing.T) {
-		// absolute: a record written outside a user creation would carry this
-		// moment's timestamp and IP for an agreement made elsewhere
 		ctx := context.Background()
 		flowID := uuid.New()
 
@@ -1670,8 +1655,6 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
 		mockUserService.EXPECT().GetByID(ctx, email).Return(newUser, nil)
 
-		// the consent service is never reached, so an unexpected call fails the
-		// test rather than passing silently
 		mockConsent := mocks.NewConsentService(t)
 
 		srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
@@ -1685,8 +1668,7 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 	})
 
 	t.Run("a deployment that asks for no consent creates the user as before", func(t *testing.T) {
-		// with app.consent disabled ResolveAll accepts anything and resolves
-		// nothing, and an empty set means write no record
+		// with app.consent disabled ResolveAll resolves nothing, so no record is written
 		ctx := context.Background()
 		flowID := uuid.New()
 
@@ -1737,10 +1719,8 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 	})
 }
 
-// TestService_PassthroughHeader_Consent pins the exemption. Three paths create
-// a user with no flow behind them, and they stay exempt because no account
-// holder is present to consent. This is the one of the three that runs through
-// getOrCreateUser, so it is the one that could have been gated by accident.
+// TestService_PassthroughHeader_Consent pins the exemption: this path creates a
+// user with no flow behind it, so there is nothing that could carry a consent.
 func TestService_PassthroughHeader_Consent(t *testing.T) {
 	const email = "passthrough@example.com"
 	ctx := authenticate.SetContextWithEmail(context.Background(), email)
@@ -1750,8 +1730,7 @@ func TestService_PassthroughHeader_Consent(t *testing.T) {
 	mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
 	mockUserService.EXPECT().Create(ctx, mock.Anything).Return(newUser, nil)
 
-	// the consent service is wired and enabled, and is still never reached:
-	// there is no flow, so there is nothing that could carry a consent
+	// wired and enabled, and still never reached
 	mockConsent := mocks.NewConsentService(t)
 
 	srv := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},

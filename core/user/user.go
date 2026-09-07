@@ -26,10 +26,9 @@ type Repository interface {
 	GetByIDs(ctx context.Context, userIds []string) ([]User, error)
 	GetByName(ctx context.Context, name string) (User, error)
 	Create(ctx context.Context, user User) (User, error)
-	// CreateWithConsent writes the user row and the record of what the user
-	// accepted at signup in one transaction, so neither can exist without the
-	// other. Temporary: it lives here because there is no pattern yet for a
-	// transaction spanning two domains, which is pending its own RFC.
+	// CreateWithConsent writes the user row and the signup consent record in one
+	// transaction, so neither can exist without the other. Temporary: it lives here
+	// until there is a pattern for a transaction spanning two domains.
 	CreateWithConsent(ctx context.Context, user User, cnst consent.Consent) (User, consent.Consent, error)
 	List(ctx context.Context, flt Filter) ([]User, error)
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)

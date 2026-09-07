@@ -75,8 +75,8 @@ type UserService interface {
 }
 
 // ConsentService checks what a caller accepted against what the deployment
-// configures, and prepares the record for it. With app.consent disabled it
-// resolves nothing, so an empty document set is the signal to write no record.
+// configures. Disabled, it resolves nothing, so an empty document set means
+// write no record.
 type ConsentService interface {
 	ResolveAll(ids []string) ([]consent.Document, error)
 	PrepareGrant(req consent.GrantRequest) (consent.Consent, error)
@@ -872,9 +872,8 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 		if intent == FlowIntentSignup {
 			return user.User{}, ErrSignupUserExists
 		}
-		// an existing user gets no record whatever the flow carries: one written
-		// outside a user creation would carry this moment's timestamp and IP for
-		// an agreement made elsewhere, which reads like evidence
+		// user is already registered: no consent record, because one written outside
+		// a user creation would date an agreement made elsewhere
 
 		// TODO(kushsharma): should we update metadata like profile picture from social logins
 		// for registered users every time the login?
@@ -903,9 +902,8 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 }
 
 // createUser writes the user row, and the consent record alongside it when the
-// deployment asks for consent. ResolveAll runs first, so an incomplete payload
-// is rejected before anything is written; past it, user.Service writes both rows
-// in one transaction and they land together or not at all.
+// deployment asks for consent. An incomplete payload is rejected before
+// anything is written; past that, both rows land together or not at all.
 func (s Service) createUser(ctx context.Context, flow *Flow, email, title string) (user.User, error) {
 	toCreate := user.User{
 		Title: title,
@@ -918,22 +916,17 @@ func (s Service) createUser(ctx context.Context, flow *Flow, email, title string
 		return user.User{}, err
 	}
 	if len(documents) == 0 {
-		// nothing to record, so nothing to hold a transaction open for
 		return s.userService.Create(ctx, toCreate)
 	}
 
-	// documents is non-empty, so the flow carried a consent that covered them
 	consented, _ := flow.Consent()
-	// the record is built and checked before anything is written: the identity
-	// is left blank because the user id does not exist until the insert returns
+	// the identity is left blank: the user id does not exist until the insert returns
 	granted, err := s.consentService.PrepareGrant(consent.GrantRequest{
-		Documents: documents,
-		Source:    consent.SourceSignup,
-		// the flow's own word for how the consent came in
+		Documents:    documents,
+		Source:       consent.SourceSignup,
 		AuthStrategy: flow.Method,
-		// the IP and the time are from when the user accepted, not from now
-		IPAddress:   consented.IPAddress,
-		ConsentedAt: consented.At,
+		IPAddress:    consented.IPAddress,
+		ConsentedAt:  consented.At,
 	})
 	if err != nil {
 		return user.User{}, err
@@ -944,25 +937,18 @@ func (s Service) createUser(ctx context.Context, flow *Flow, email, title string
 		return user.User{}, err
 	}
 
-	// after the commit: the audit repository has no transactional create, so this
-	// is a breadcrumb and the consent record is the source of truth
 	s.consentService.RecordGranted(ctx, granted)
 	return newUser, nil
 }
 
-// resolveConsent reports which documents this user creation has to record, and
-// rejects it when the flow does not carry a complete consent.
-//
-// The check runs here under every intent, not for the error but as the invariant
-// guarding the write: an unset intent is permissive for the login gate, never
-// for consent. A nil flow is one of the paths that create a user without one,
-// and stays exempt because no account holder is present to consent.
+// resolveConsent reports which documents this user creation has to record. It
+// runs under every intent: an unset intent is permissive for the login gate,
+// never for consent. A nil flow has nobody present to consent, so it is exempt.
 func (s Service) resolveConsent(flow *Flow) ([]consent.Document, error) {
 	if flow == nil || s.consentService == nil {
 		return nil, nil
 	}
 
-	// an empty set is complete only when the deployment configures no documents
 	consented, _ := flow.Consent()
 	documents, err := s.consentService.ResolveAll(consented.AcceptedDocumentIDs)
 	if err != nil {
