@@ -21,12 +21,14 @@ import (
 )
 
 type UserRepository struct {
-	dbc *db.Client
+	dbc         *db.Client
+	consentRepo *UserConsentRepository
 }
 
 func NewUserRepository(dbc *db.Client) *UserRepository {
 	return &UserRepository{
-		dbc: dbc,
+		dbc:         dbc,
+		consentRepo: NewUserConsentRepository(dbc),
 	}
 }
 
@@ -148,7 +150,7 @@ func (r UserRepository) CreateWithConsent(ctx context.Context, usr user.User, cn
 		// the id only exists once the row is written
 		cnst.UserID = createdUser.ID
 		cnst.UserEmail = createdUser.Email
-		createdConsent, txErr = NewUserConsentRepository(r.dbc).Create(ctx, tx, cnst)
+		createdConsent, txErr = r.consentRepo.Create(ctx, tx, cnst)
 		return txErr
 	}); err != nil {
 		return user.User{}, consent.Consent{}, err
