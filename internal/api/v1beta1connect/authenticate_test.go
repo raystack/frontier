@@ -352,8 +352,7 @@ func testSessionHeaders() authenticate.Config {
 }
 
 // TestConnectHandler_Authenticate_PassesIntentConsentAndIP pins what the handler
-// hands StartFlow. Authenticate is on the authentication skip list, so nothing
-// puts session metadata on the context and the handler extracts it itself.
+// hands StartFlow, including the session metadata it extracts itself.
 func TestConnectHandler_Authenticate_PassesIntentConsentAndIP(t *testing.T) {
 	ctx := context.Background()
 
@@ -390,16 +389,13 @@ func TestConnectHandler_Authenticate_PassesIntentConsentAndIP(t *testing.T) {
 
 	assert.Equal(t, authenticate.FlowIntentSignup, startRequest.Intent)
 	assert.Equal(t, []string{"terms_of_service", "privacy_policy"}, startRequest.AcceptedDocumentIDs)
-	// the first hop of the forwarded chain reaches the consent record, and the
-	// user agent does not: the helper keeps an OS and a browser family from it
-	// and drops the raw string, and neither is passed on
+	// the first hop of the forwarded chain reaches the consent record; the user
+	// agent does not, and neither is passed on
 	assert.Equal(t, "203.0.113.9", startRequest.IPAddress)
 }
 
 // TestConnectHandler_Authenticate_RejectsIdsWithALoginIntent covers the one
-// request shape the handler turns down on its own. A login writes no consent
-// record, so accepting the ids would leave the client believing it recorded a
-// consent that does not exist.
+// request shape the handler turns down on its own: a login writes no record.
 func TestConnectHandler_Authenticate_RejectsIdsWithALoginIntent(t *testing.T) {
 	ctx := context.Background()
 
@@ -429,14 +425,12 @@ func TestConnectHandler_Authenticate_RejectsIdsWithALoginIntent(t *testing.T) {
 	connectErr := err.(*connect.Error)
 	assert.Equal(t, connect.CodeInvalidArgument, connectErr.Code())
 	assert.Equal(t, ErrConsentOnLoginIntent.Error(), connectErr.Message())
-	// the flow is never started for a request the handler will not accept
 	mockAuthnSrv.AssertNotCalled(t, "StartFlow", mock.Anything, mock.Anything)
 }
 
 // TestConnectHandler_Authenticate_IgnoresIdsWithALoginIntentWhenConsentIsDisabled
-// is the other half of that rule. With consent off no record is written under
-// any intent, so the ids mean nothing and a client built for a consent
-// deployment still logs in against one that does not ask for consent.
+// is the other half of that rule: with consent off the ids mean nothing, so a
+// client built for a consent deployment still logs in against one without it.
 func TestConnectHandler_Authenticate_IgnoresIdsWithALoginIntentWhenConsentIsDisabled(t *testing.T) {
 	ctx := context.Background()
 
@@ -446,8 +440,7 @@ func TestConnectHandler_Authenticate_IgnoresIdsWithALoginIntentWhenConsentIsDisa
 	mockAuthnSrv.EXPECT().SanitizeReturnToURL("").Return("")
 	mockAuthnSrv.EXPECT().SanitizeCallbackURL("").Return("https://example.org/callback")
 	mockSessionSrv.EXPECT().ExtractFromContext(ctx).Return(nil, frontiersession.ErrNoSession)
-	// disabled: Documents is empty, which boot validation guarantees an enabled
-	// deployment never is
+	// disabled: an enabled deployment always has documents
 	mockConsentSrv.EXPECT().Documents().Return(nil)
 
 	var startRequest authenticate.RegistrationStartRequest
@@ -471,14 +464,12 @@ func TestConnectHandler_Authenticate_IgnoresIdsWithALoginIntentWhenConsentIsDisa
 
 	require.NoError(t, err)
 	assert.Equal(t, authenticate.FlowIntentLogin, startRequest.Intent)
-	// passed through rather than stripped: the service resolves nothing while
-	// disabled, so nothing downstream reads them
+	// passed through rather than stripped: nothing downstream reads them
 	assert.Equal(t, []string{"terms_of_service"}, startRequest.AcceptedDocumentIDs)
 }
 
-// TestConnectHandler_Authenticate_Rejections covers the three errors reaching
-// the client with their own codes. Authenticate is an XHR, so it answers with
-// the code and no redirect.
+// TestConnectHandler_Authenticate_Rejections covers the three errors reaching the
+// client with their own codes.
 func TestConnectHandler_Authenticate_Rejections(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -499,17 +490,12 @@ func TestConnectHandler_Authenticate_Rejections(t *testing.T) {
 			wantMsg:  authenticate.ErrSignupUserExists.Error(),
 		},
 		{
-			// FailedPrecondition is what lets a client separate a consent
-			// rejection from a bad code or an expired flow
 			name:     "an incomplete consent is a failed precondition",
 			err:      fmt.Errorf("%w: %w: terms_of_service", authenticate.ErrConsentRequired, consent.ErrMissingDocuments),
 			wantCode: connect.CodeFailedPrecondition,
 			wantMsg:  authenticate.ErrConsentRequired.Error(),
 		},
 		{
-			// shares the code with consent, and is told apart by the message.
-			// Not InvalidArgument: the strategy name is valid, and would have
-			// worked against an account that holds the credential
 			name:     "a method the account cannot use is a failed precondition",
 			err:      authenticate.ErrInvalidMethod,
 			wantCode: connect.CodeFailedPrecondition,
@@ -542,17 +528,14 @@ func TestConnectHandler_Authenticate_Rejections(t *testing.T) {
 			assert.Nil(t, resp)
 			connectErr := err.(*connect.Error)
 			assert.Equal(t, tt.wantCode, connectErr.Code())
-			// the bare sentinel, never the wrapped error: which documents were
-			// missing belongs in a log, not in the response
 			assert.Equal(t, tt.wantMsg, connectErr.Message())
 			assert.NotContains(t, connectErr.Message(), "terms_of_service")
 		})
 	}
 }
 
-// TestConnectHandler_AuthCallback_Rejections covers the settled decision: the
-// callback is a browser navigation, so a rejection sends the user back to the
-// page they started from with a machine-readable code, not onto an error page.
+// TestConnectHandler_AuthCallback_Rejections covers the same mapping on the
+// callback, where the rejection is the answer rather than a redirect.
 func TestConnectHandler_AuthCallback_Rejections(t *testing.T) {
 	tests := []struct {
 		name string
@@ -602,23 +585,17 @@ func TestConnectHandler_AuthCallback_Rejections(t *testing.T) {
 				Code:         "111111",
 			}))
 
-			// the rejection is the answer. The callback URL points at a page the
-			// application hosts, and that page is what called this RPC, so it
-			// has the code in hand and decides where the user goes next.
 			assert.Nil(t, resp)
 			connectErr := err.(*connect.Error)
 			assert.Equal(t, tt.wantCode, connectErr.Code())
-			// the bare sentinel: the wrapped error names the documents that were
-			// missing, and that belongs in the log rather than in the response
 			assert.Equal(t, tt.wantMsg, connectErr.Message())
 			assert.NotContains(t, connectErr.Message(), "terms_of_service")
 		})
 	}
 }
 
-// TestConnectHandler_AuthCallback_UnmappedErrorStaysInternal pins the boundary
-// of the closed code set: an error with no code of its own is not turned into a
-// redirect with some passthrough string.
+// TestConnectHandler_AuthCallback_UnmappedErrorStaysInternal pins the boundary of
+// the closed code set: an error with no code of its own stays a 500.
 func TestConnectHandler_AuthCallback_UnmappedErrorStaysInternal(t *testing.T) {
 	ctx := context.Background()
 
@@ -639,7 +616,5 @@ func TestToFlowIntent(t *testing.T) {
 	assert.Equal(t, authenticate.FlowIntentLogin, toFlowIntent(frontierv1beta1.FlowIntent_FLOW_INTENT_LOGIN))
 	assert.Equal(t, authenticate.FlowIntentSignup, toFlowIntent(frontierv1beta1.FlowIntent_FLOW_INTENT_SIGNUP))
 	assert.Equal(t, authenticate.FlowIntentUnspecified, toFlowIntent(frontierv1beta1.FlowIntent_FLOW_INTENT_UNSPECIFIED))
-	// an unknown value reads as unspecified, which is the create-or-get
-	// behaviour every client had before intents existed
 	assert.Equal(t, authenticate.FlowIntentUnspecified, toFlowIntent(frontierv1beta1.FlowIntent(99)))
 }

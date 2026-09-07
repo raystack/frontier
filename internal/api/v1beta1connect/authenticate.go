@@ -26,25 +26,18 @@ import (
 )
 
 // authFlowRejection carries a gate or consent error out to a client. Both auth
-// RPCs answer with a connect code, because both are called from application
-// JavaScript — AuthCallback from whatever page the callback URL points at — so
-// neither is a redirect the browser follows on its own.
+// RPCs answer with a connect code, not a redirect: both are called from
+// application JavaScript.
 type authFlowRejection struct {
 	code connect.Code
-	// err is the bare sentinel; the wrapped one names the documents and belongs
-	// in a log, not a response.
+	// err is the bare sentinel: the wrapped one belongs in a log.
 	err error
 }
 
 // lookupAuthFlowRejection maps the four errors both auth RPCs have to make
-// legible. FailedPrecondition for consent, because it is what separates a
-// consent rejection from a bad code or an expired flow, which are
-// InvalidArgument. ErrInvalidMethod shares that code rather than joining the
-// InvalidArgument set: the strategy name is a valid argument that would have
-// worked against an account holding that credential, so what is wrong is this
-// account's state and not the request. Those two are the one pair a code does
-// not separate, and the message does, because it is the bare sentinel and
-// nothing else. Anything missing here surfaces as a 500.
+// legible. FailedPrecondition separates a consent rejection from a bad code or
+// an expired flow, and ErrInvalidMethod shares it because what is wrong is the
+// account's state, not the request. Anything missing here surfaces as a 500.
 func lookupAuthFlowRejection(err error) (authFlowRejection, bool) {
 	switch {
 	case errors.Is(err, authenticate.ErrLoginUserNotFound):
@@ -109,15 +102,14 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 	intent := toFlowIntent(request.Msg.GetFlowIntent())
 	acceptedDocumentIDs := request.Msg.GetAcceptedDocumentIds()
 	if intent == authenticate.FlowIntentLogin && len(acceptedDocumentIDs) > 0 && h.consentEnabled() {
-		// a login writes no record, so accepting these silently would leave the
-		// client believing it recorded a consent that does not exist. Disabled,
-		// no record is written for any intent, so the ids are ignored rather
-		// than refused, as they are everywhere else
+		// a login writes no record, so accepting these would leave the client
+		// believing it recorded a consent that does not exist. Disabled, the ids are
+		// ignored rather than refused, as they are everywhere else
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrConsentOnLoginIntent)
 	}
 
 	// Authenticate is skip-listed, so nothing put session metadata on the context
-	// and the handler extracts it itself. Only the IP is passed on.
+	// and the handler extracts it itself
 	sessionMetadata := sessionutils.ExtractSessionMetadata(ctx, request, h.authConfig.Session.Headers)
 
 	// not logged in, try registration
@@ -191,11 +183,9 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 		StateConfig: request.Msg.GetStateOptions().AsMap(),
 	})
 	if err != nil {
-		// These join the errors handled here rather than falling through to
-		// Internal, keeping their own codes rather than this list's
-		// InvalidArgument. The rejection is the answer and not a redirect: the
-		// callback URL points at a page the application hosts, and that page is
-		// what calls this RPC, so it decides where the user goes next.
+		// their own codes rather than a 500. The rejection is the answer, not a
+		// redirect: the callback URL points at a page the application hosts, and that
+		// page is what calls this RPC
 		if rejection, ok := lookupAuthFlowRejection(err); ok {
 			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
 				"strategy", request.Msg.GetStrategyName(),

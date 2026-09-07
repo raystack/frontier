@@ -25,7 +25,7 @@ func (h *ConnectHandler) ListConsentDocuments(ctx context.Context, request *conn
 
 // consentEnabled reports whether this deployment asks for consent at all. Boot
 // validation rejects an enabled block with no documents, so an empty set means
-// the feature is off and there is nothing a document id could refer to.
+// the feature is off.
 func (h *ConnectHandler) consentEnabled() bool {
 	return h.consentService != nil && len(h.consentService.Documents()) > 0
 }

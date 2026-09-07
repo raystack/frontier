@@ -1343,13 +1343,9 @@ func TestService_StartFlow_WritesIntentAndConsent(t *testing.T) {
 	})
 }
 
-// TestService_StartFlow_Consent covers the first of the two consent gates. It
-// is the one that exists for the error: it runs before an OTP is sent and
-// before the browser leaves for an identity provider, so a rejection costs the
-// user a retry and nothing else.
-//
-// The intent decides which rule applies, because without one a signup and a
-// login look identical.
+// TestService_StartFlow_Consent covers the first of the two consent gates, the
+// one that exists for the error: it runs before an OTP is sent and before the
+// browser leaves for an identity provider, so a rejection costs only a retry.
 func TestService_StartFlow_Consent(t *testing.T) {
 	defaultHashCost := authenticate.OTPHashCost
 	authenticate.OTPHashCost = bcrypt.MinCost
@@ -1362,11 +1358,8 @@ func TestService_StartFlow_Consent(t *testing.T) {
 	}
 	acceptedIDs := []string{"privacy_policy", "terms_of_service"}
 
-	// startFlow runs a mail otp flow start against whatever consent service it
-	// is given. Mail otp is the strategy that shows the point of this gate,
-	// because a rejection here is a code that never gets sent. The dialer is a
-	// bare mock with no expectations, so a flow that reaches SendMail fails
-	// rather than passing quietly.
+	// startFlow runs a mail otp flow start against whatever consent service it is
+	// given. The dialer has no expectations, so reaching SendMail fails the test.
 	startFlow := func(t *testing.T, consentService authenticate.ConsentService,
 		request authenticate.RegistrationStartRequest, wantFlow bool) (*authenticate.RegistrationStartResponse, error) {
 		t.Helper()
@@ -1435,9 +1428,8 @@ func TestService_StartFlow_Consent(t *testing.T) {
 	})
 
 	t.Run("an unspecified intent checks only that the ids are known", func(t *testing.T) {
-		// frontier cannot yet know this request will create a user, so
-		// completeness waits for user creation, but a typo can still be caught
-		// before the redirect
+		// without an intent frontier cannot know this will create a user, so
+		// completeness waits for user creation and only a typo is caught here
 		mockConsent := mocks.NewConsentService(t)
 		mockConsent.EXPECT().Resolve([]string{"privacy_policy"}).Return(documents[:1], nil)
 
@@ -1462,7 +1454,6 @@ func TestService_StartFlow_Consent(t *testing.T) {
 	})
 
 	t.Run("a login checks nothing, because it writes no record", func(t *testing.T) {
-		// an unexpected call fails the test rather than passing silently
 		mockConsent := mocks.NewConsentService(t)
 
 		mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
@@ -1484,8 +1475,7 @@ func TestService_StartFlow_Consent(t *testing.T) {
 	})
 
 	t.Run("a deployment with consent disabled ignores the ids rather than rejecting them", func(t *testing.T) {
-		// one client build works against both kinds of deployment, so the same
-		// signup that a configured deployment gates goes straight through here
+		// one client build works against both kinds of deployment
 		disabled := consent.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
 			consent.Config{Enabled: false}, nil)
 
@@ -1647,8 +1637,6 @@ func TestService_FinishFlow_Intent(t *testing.T) {
 
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
-				// a rejection is the error and nothing else: the handler maps it
-				// to a connect code and the caller decides what to do with it
 				assert.Nil(t, got)
 				return
 			}

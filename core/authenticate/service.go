@@ -219,8 +219,7 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 	if !utils.Contains(s.SupportedStrategies(), request.Method) {
 		return nil, ErrUnsupportedMethod
 	}
-	// the consent gate runs first: a check on the request alone, costing no
-	// lookup, and it has to fail before anything is sent or redirected
+	// the gate runs before anything is sent or redirected
 	if err := s.gateFlowConsent(request.Intent, request.AcceptedDocumentIDs); err != nil {
 		return nil, err
 	}
@@ -454,10 +453,8 @@ func (s Service) gateFlowStart(ctx context.Context, intent FlowIntent, email str
 
 // gateFlowConsent is the consent half of the flow start check, and the intent
 // decides which rule applies, because without one a signup and a login look
-// identical. A signup runs the completeness rule here, before anything is sent
-// or redirected — true for OIDC too, where the email is unknown but the intent
-// is not. Without an intent only the unknown-id rule runs, and completeness
-// waits for user creation. A login checks nothing, because it writes no record.
+// identical: a signup has to be complete here, an unset intent only has to
+// name known ids, and a login checks nothing because it writes no record.
 func (s Service) gateFlowConsent(intent FlowIntent, ids []string) error {
 	if s.consentService == nil || intent == FlowIntentLogin {
 		return nil
@@ -470,7 +467,6 @@ func (s Service) gateFlowConsent(intent FlowIntent, ids []string) error {
 		_, err = s.consentService.Resolve(ids)
 	}
 	if err != nil {
-		// the wrapped error names what is missing, for the log not the response
 		return fmt.Errorf("%w: %w", ErrConsentRequired, err)
 	}
 	return nil
