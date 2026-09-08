@@ -96,11 +96,16 @@ export const SignUpView = ({
   // lands would send an empty id set for a deployment that does.
   const blocked = consentPending || (documents.length > 0 && !consented);
 
+  // Starting any strategy supersedes whatever rejection is on screen.
+  const dismissRejection = useCallback(() => {
+    setAuthError(null);
+    setShowCallbackError(false);
+  }, []);
+
   const clickHandler = useCallback(
     async (name?: string) => {
       if (!name) return;
-      setAuthError(null);
-      setShowCallbackError(false);
+      dismissRejection();
       try {
         const response = await authenticate({
           strategyName: name,
@@ -118,7 +123,7 @@ export const SignUpView = ({
         });
       }
     },
-    [authenticate, config, acceptedDocumentIds]
+    [authenticate, config, acceptedDocumentIds, dismissRejection]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
@@ -184,6 +189,7 @@ export const SignUpView = ({
             acceptedDocumentIds={acceptedDocumentIds}
             disabled={blocked}
             error={mailRejection}
+            onActivate={dismissRejection}
           />
         )}
         {groupMessage && <Field error={groupMessage} />}

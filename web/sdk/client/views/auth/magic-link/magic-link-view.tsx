@@ -30,6 +30,9 @@ export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
     // the button, or on the email field once the form is open, until the next
     // submit supersedes it.
     error?: string;
+    // Fires when the user starts this strategy, by opening the form or
+    // submitting it, so the owning view can drop a rejection shown elsewhere.
+    onActivate?: () => void;
   };
 
 const emailSchema = yup.object({
@@ -56,6 +59,7 @@ export const MagicLinkView = ({
   acceptedDocumentIds,
   disabled = false,
   error,
+  onActivate,
   ...props
 }: MagicLinkViewProps) => {
   const { config } = useFrontier();
@@ -80,6 +84,7 @@ export const MagicLinkView = ({
   const magicLinkHandler = useCallback(
     async (data: FormData) => {
       setDismissed(true);
+      onActivate?.();
       try {
         const response = await authenticate({
           strategyName: 'mailotp',
@@ -104,7 +109,7 @@ export const MagicLinkView = ({
         setError('email', { message: describeAuthError(err).message });
       }
     },
-    [authenticate, config, intent, acceptedDocumentIds, setError]
+    [authenticate, config, intent, acceptedDocumentIds, setError, onActivate]
   );
 
   const email = watch('email', '');
@@ -115,7 +120,10 @@ export const MagicLinkView = ({
         variant="outline"
         color="neutral"
         className={styles.button}
-        onClick={() => setVisible(true)}
+        onClick={() => {
+          setVisible(true);
+          onActivate?.();
+        }}
         disabled={disabled}
         data-test-id="frontier-sdk-mail-otp-login-btn"
       >

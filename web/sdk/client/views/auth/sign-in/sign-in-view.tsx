@@ -67,11 +67,16 @@ export const SignInView = ({
     FrontierServiceQueries.authenticate
   );
 
+  // Starting any strategy supersedes whatever rejection is on screen.
+  const dismissRejection = useCallback(() => {
+    setAuthError(null);
+    setShowCallbackError(false);
+  }, []);
+
   const clickHandler = useCallback(
     async (name?: string) => {
       if (!name) return;
-      setAuthError(null);
-      setShowCallbackError(false);
+      dismissRejection();
       try {
         const response = await authenticate({
           strategyName: name,
@@ -88,7 +93,7 @@ export const SignInView = ({
         });
       }
     },
-    [authenticate, config]
+    [authenticate, config, dismissRejection]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
@@ -146,6 +151,7 @@ export const SignInView = ({
             inline
             intent={FlowIntent.LOGIN}
             error={mailRejection}
+            onActivate={dismissRejection}
           />
         )}
         {groupMessage && <Field error={groupMessage} />}
