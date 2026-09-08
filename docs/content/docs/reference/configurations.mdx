@@ -143,6 +143,29 @@ app:
     # encryption key used to encrypt the secrets stored in database not to encrypt
     # the webhook payload
     encryption_key: "encryption-key-should-be-32-chars--"
+  # documents a user has to accept before an account is created
+  consent:
+    # false (the default) keeps the behaviour frontier had before consent
+    # existed: ListConsentDocuments returns an empty list and no signup is
+    # gated. true with no documents fails at boot rather than doing nothing.
+    enabled: false
+    # keyed by document id. every document listed here is required at signup,
+    # and the key is what the client sends back as accepted_document_ids.
+    # title, version and url are all mandatory: an empty one fails at boot.
+    # version is opaque: it is compared for equality only, never parsed.
+    documents:
+      terms_of_service:
+        title: "Terms & Conditions"
+        version: "2026-04-01"
+        url: "https://example.org/legal/terms/2026-04-01"
+      privacy_policy:
+        title: "Privacy Policy"
+        version: "2026-04-01"
+        url: "https://example.org/legal/privacy/2026-04-01"
+      eula:
+        title: "End User License Agreement"
+        version: "2026-02-14"
+        url: "https://example.org/legal/eula/2026-02-14"
   # metaschema cache configuration
   metaschema:
     # how often each server reloads the metaschema cache from the database, so a
@@ -269,6 +292,19 @@ Configuration to allow authentication in Frontier.
 | **app.authentication.oidc_config.google.client_id** | Google client ID for OIDC authentication.           | No           | "xxxxx.apps.googleusercontent.com"                |
 | **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.       | No           | "xxxxx"                                           |
 | **app.authentication.oidc_config.google.issuer_url** | Google issuer URL for OIDC authentication.          | No           | "https://accounts.google.com"                     |
+
+### Consent Configurations
+
+Documents a user has to accept before an account is created. Frontier stores one consent record per signup, copying each document's version and URL into it, and never reads what is behind the URL.
+
+Every document in the map is required at signup, so there is no per-document `required` flag. The map key is the document id, which is what a client sends back as `accepted_document_ids` — the key also enforces unique ids, and keeps a single field env-overridable. Config is read at boot, so any change here needs a restart, and the resolved set is logged at startup so a log, rather than the config repository, says what a deployment was serving.
+
+| **Field**                                       | **Description**                                                                                                                                                    | **Example**                          | **Required**             |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ | ------------------------ |
+| **app.consent.enabled**                         | Switches the whole feature. Disabled, `ListConsentDocuments` returns an empty list and no signup is gated. Enabled with no documents fails at boot.                 | `false`                              | No (default: `false`)    |
+| **app.consent.documents.\<id\>.title**          | Human readable name, used by the client to label the link.                                                                                                          | `"Terms & Conditions"`               | Yes (when enabled)       |
+| **app.consent.documents.\<id\>.version**        | Opaque version, copied into the consent record and compared for equality only. Dates, semver or commit SHAs all work.                                               | `"2026-04-01"`                       | Yes (when enabled)       |
+| **app.consent.documents.\<id\>.url**            | Absolute URL of the document. Frontier never reads what is behind it.                                                                                               | `"https://example.org/legal/terms"`  | Yes (when enabled)       |
 
 ### Admin Configurations
 

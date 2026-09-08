@@ -29,6 +29,7 @@ import (
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/authenticate"
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/core/event"
@@ -367,6 +368,11 @@ type AuthnService interface {
 	InitFlows(ctx context.Context) error
 	SanitizeReturnToURL(url string) string
 	SanitizeCallbackURL(url string) string
+}
+
+// ConsentService serves the documents a user must accept at signup, from config.
+type ConsentService interface {
+	Documents() []consent.Document
 }
 
 type SessionService interface {

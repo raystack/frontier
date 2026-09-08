@@ -94,6 +94,7 @@ func NewAuthorizationInterceptor(h *v1beta1connect.ConnectHandler) *Authorizatio
 var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/GetJWKs":                 true,
 	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies":      true,
+	"/raystack.frontier.v1beta1.FrontierService/ListConsentDocuments":    true,
 	"/raystack.frontier.v1beta1.FrontierService/Authenticate":            true,
 	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":            true,
 	"/raystack.frontier.v1beta1.FrontierService/AuthToken":               true,

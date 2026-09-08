@@ -3,6 +3,7 @@ package server
 import (
 	"time"
 
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
@@ -93,6 +94,9 @@ type Config struct {
 
 	Webhook webhook.Config `yaml:"webhook" mapstructure:"webhook"`
 	PAT     userpat.Config `yaml:"pat" mapstructure:"pat"`
+
+	// Consent lists the documents a user must accept at signup. Disabled by default.
+	Consent consent.Config `yaml:"consent" mapstructure:"consent"`
 
 	Metaschema metaschema.Config `yaml:"metaschema" mapstructure:"metaschema"`
 

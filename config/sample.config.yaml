@@ -202,6 +202,36 @@ app:
     # this is used to validate the webhook payloads
     encryption_key: "hash-secret-should-be-32-chars--"
 
+  # documents a user has to accept before an account is created.
+  # frontier stores one consent record per signup, copying each document's
+  # version and url into it, and never reads what is behind the url.
+  consent:
+    # false (the default) keeps the behaviour frontier had before consent
+    # existed: ListConsentDocuments returns an empty list and no signup is
+    # gated. true with no documents fails at boot rather than doing nothing.
+    enabled: false
+    # keyed by document id. the key is what the client sends back as
+    # accepted_document_ids, and every document listed here is required at
+    # signup — there is no per-document "required" flag. title, version and url
+    # are all mandatory: an empty one fails at boot.
+    # version is opaque: it is compared for equality only, so dates, semver or
+    # commit SHAs all work, and it is a version bump, not the url, that makes a
+    # new document. config is read at boot, so changing any of this needs a
+    # restart.
+    documents:
+      terms_of_service:
+        title: "Terms & Conditions"
+        version: "2026-04-01"
+        url: "https://example.org/legal/terms/2026-04-01"
+      privacy_policy:
+        title: "Privacy Policy"
+        version: "2026-04-01"
+        url: "https://example.org/legal/privacy/2026-04-01"
+      eula:
+        title: "End User License Agreement"
+        version: "2026-02-14"
+        url: "https://example.org/legal/eula/2026-02-14"
+
   # metaschema cache configuration
   metaschema:
     # how often each server reloads the metaschema cache from the database, so a
