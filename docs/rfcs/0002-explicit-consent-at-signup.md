@@ -171,7 +171,8 @@ because the set is closed, and its zero value gives backward compatibility for f
 
 The ids accompany `FLOW_INTENT_SIGNUP` only. With a login intent they are a client bug and the
 handler rejects them, because a login writes no record. Accepting them silently would leave a client
-believing it recorded a consent that does not exist.
+believing it recorded a consent that does not exist. With `app.consent` disabled nothing is recorded
+under any intent, so there they are ignored rather than rejected, like every other id.
 
 Ids rather than one boolean, because the list the client rendered can still differ from config: it
 may have been fetched before a restart, or hardcoded by a consumer rendering its own view. Ids

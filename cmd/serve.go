@@ -398,7 +398,7 @@ func buildAPIDependencies(
 	auditRecordRepository := postgres.NewAuditRecordRepository(dbc)
 
 	consentService := consent.NewService(logger, cfg.App.Consent, auditRecordRepository)
-	logConsentDocuments(logger, consentService.Documents())
+	logConsentDocuments(logger, consentService)
 
 	roleRepository := postgres.NewRoleRepository(dbc)
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
@@ -683,11 +683,12 @@ func buildAPIDependencies(
 // logConsentDocuments records the set resolved at boot. Any field can be
 // overridden through the environment, so this log, not the config repository,
 // is what says which documents a deployment was actually serving.
-func logConsentDocuments(logger *slog.Logger, documents []consent.Document) {
-	if len(documents) == 0 {
+func logConsentDocuments(logger *slog.Logger, consentService *consent.Service) {
+	if !consentService.Enabled() {
 		logger.Info("consent disabled, no documents required at signup")
 		return
 	}
+	documents := consentService.Documents()
 	logger.Info("consent enabled", "documents", len(documents))
 	for _, document := range documents {
 		logger.Info("consent document",
