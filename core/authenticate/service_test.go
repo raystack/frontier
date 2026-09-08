@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/raystack/frontier/core/authenticate/strategy"
@@ -1023,6 +1024,477 @@ func TestService_BuildToken(t *testing.T) {
 			got, err := s.BuildToken(context.Background(), tt.principal, map[string]string{})
 			assert.NoError(t, err)
 			assert.Equal(t, []byte("signed-token"), got)
+		})
+	}
+}
+
+// passkeyUserMetadata returns metadata holding one stored passkey credential,
+// base64 encoded the way startPassKeyLoginMethod expects it.
+func passkeyUserMetadata(t *testing.T) pkgMetadata.Metadata {
+	t.Helper()
+
+	credBytes, err := json.Marshal([]webauthn.Credential{{
+		ID:        []byte("credential-id"),
+		PublicKey: []byte("public-key"),
+	}})
+	require.NoError(t, err)
+
+	return pkgMetadata.Metadata{
+		"passkey_credentials": base64.StdEncoding.EncodeToString(credBytes),
+	}
+}
+
+func testWebAuthn(t *testing.T) *webauthn.WebAuthn {
+	t.Helper()
+
+	webAuth, err := webauthn.New(&webauthn.Config{
+		RPDisplayName: "frontier test",
+		RPID:          "example.com",
+		RPOrigins:     []string{"https://example.com"},
+	})
+	require.NoError(t, err)
+	return webAuth
+}
+
+// TestService_StartFlow_Intent walks the intent-by-strategy table. For passkey
+// the intent also picks the ceremony, which used to be guessed.
+func TestService_StartFlow_Intent(t *testing.T) {
+	defaultHashCost := authenticate.OTPHashCost
+	authenticate.OTPHashCost = bcrypt.MinCost
+	t.Cleanup(func() { authenticate.OTPHashCost = defaultHashCost })
+
+	const email = "test@example.com"
+
+	tests := []struct {
+		name string
+
+		method         string
+		intent         authenticate.FlowIntent
+		userExists     bool
+		userHasPasskey bool
+
+		wantErr             error
+		wantPasskeyCeremony string
+	}{
+		{
+			name:       "mail otp login starts the flow when the address has an account",
+			method:     authenticate.MailOTPAuthMethod.String(),
+			intent:     authenticate.FlowIntentLogin,
+			userExists: true,
+		},
+		{
+			name:    "mail otp login is rejected before the code is sent when it does not",
+			method:  authenticate.MailOTPAuthMethod.String(),
+			intent:  authenticate.FlowIntentLogin,
+			wantErr: authenticate.ErrLoginUserNotFound,
+		},
+		{
+			name:   "mail otp signup starts the flow when the address has no account",
+			method: authenticate.MailOTPAuthMethod.String(),
+			intent: authenticate.FlowIntentSignup,
+		},
+		{
+			name:       "mail otp signup is rejected when the address already has one",
+			method:     authenticate.MailOTPAuthMethod.String(),
+			intent:     authenticate.FlowIntentSignup,
+			userExists: true,
+			wantErr:    authenticate.ErrSignupUserExists,
+		},
+		{
+			name:       "mail otp without an intent starts the flow for a known address",
+			method:     authenticate.MailOTPAuthMethod.String(),
+			intent:     authenticate.FlowIntentUnspecified,
+			userExists: true,
+		},
+		{
+			name:   "mail otp without an intent starts the flow for an unknown address",
+			method: authenticate.MailOTPAuthMethod.String(),
+			intent: authenticate.FlowIntentUnspecified,
+		},
+		// mail link knows the address as early as mail otp and shares its finish
+		// path, so the gate has to behave the same for both
+		{
+			name:       "mail link login starts the flow when the address has an account",
+			method:     authenticate.MailLinkAuthMethod.String(),
+			intent:     authenticate.FlowIntentLogin,
+			userExists: true,
+		},
+		{
+			name:    "mail link login is rejected before the link is sent when it does not",
+			method:  authenticate.MailLinkAuthMethod.String(),
+			intent:  authenticate.FlowIntentLogin,
+			wantErr: authenticate.ErrLoginUserNotFound,
+		},
+		{
+			name:   "mail link signup starts the flow when the address has no account",
+			method: authenticate.MailLinkAuthMethod.String(),
+			intent: authenticate.FlowIntentSignup,
+		},
+		{
+			name:       "mail link signup is rejected when the address already has one",
+			method:     authenticate.MailLinkAuthMethod.String(),
+			intent:     authenticate.FlowIntentSignup,
+			userExists: true,
+			wantErr:    authenticate.ErrSignupUserExists,
+		},
+		{
+			name:       "mail link without an intent starts the flow for a known address",
+			method:     authenticate.MailLinkAuthMethod.String(),
+			intent:     authenticate.FlowIntentUnspecified,
+			userExists: true,
+		},
+		{
+			name:   "mail link without an intent starts the flow for an unknown address",
+			method: authenticate.MailLinkAuthMethod.String(),
+			intent: authenticate.FlowIntentUnspecified,
+		},
+		{
+			name:                "passkey login runs the login ceremony when the address has an account",
+			method:              authenticate.PassKeyAuthMethod.String(),
+			intent:              authenticate.FlowIntentLogin,
+			userExists:          true,
+			userHasPasskey:      true,
+			wantPasskeyCeremony: strategy.PasskeyLoginType,
+		},
+		{
+			name:    "passkey login is rejected when the address has no account",
+			method:  authenticate.PassKeyAuthMethod.String(),
+			intent:  authenticate.FlowIntentLogin,
+			wantErr: authenticate.ErrLoginUserNotFound,
+		},
+		{
+			name:       "passkey login fails when the account has no registered passkey",
+			method:     authenticate.PassKeyAuthMethod.String(),
+			intent:     authenticate.FlowIntentLogin,
+			userExists: true,
+			wantErr:    authenticate.ErrInvalidMethod,
+		},
+		{
+			name:                "passkey signup runs the register ceremony when the address has no account",
+			method:              authenticate.PassKeyAuthMethod.String(),
+			intent:              authenticate.FlowIntentSignup,
+			wantPasskeyCeremony: strategy.PasskeyRegisterType,
+		},
+		{
+			name:           "passkey signup is rejected when the address already has an account",
+			method:         authenticate.PassKeyAuthMethod.String(),
+			intent:         authenticate.FlowIntentSignup,
+			userExists:     true,
+			userHasPasskey: true,
+			wantErr:        authenticate.ErrSignupUserExists,
+		},
+		{
+			name:                "passkey without an intent still guesses register for an unknown address",
+			method:              authenticate.PassKeyAuthMethod.String(),
+			intent:              authenticate.FlowIntentUnspecified,
+			wantPasskeyCeremony: strategy.PasskeyRegisterType,
+		},
+		{
+			name:                "passkey without an intent still guesses login for a registered passkey",
+			method:              authenticate.PassKeyAuthMethod.String(),
+			intent:              authenticate.FlowIntentUnspecified,
+			userExists:          true,
+			userHasPasskey:      true,
+			wantPasskeyCeremony: strategy.PasskeyLoginType,
+		},
+		{
+			name:                "passkey without an intent still guesses register when the account has no passkey",
+			method:              authenticate.PassKeyAuthMethod.String(),
+			intent:              authenticate.FlowIntentUnspecified,
+			userExists:          true,
+			wantPasskeyCeremony: strategy.PasskeyRegisterType,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			isPasskey := tt.method == authenticate.PassKeyAuthMethod.String()
+
+			mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+
+			// passkey always looks the address up; the mail strategies only do
+			// when there is an intent to check
+			if isPasskey || tt.intent != authenticate.FlowIntentUnspecified {
+				if tt.userExists {
+					existing := user.User{ID: uuid.New().String(), Email: email}
+					if tt.userHasPasskey {
+						existing.Metadata = passkeyUserMetadata(t)
+					}
+					mockUserService.EXPECT().GetByID(ctx, email).Return(existing, nil)
+				} else {
+					mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
+				}
+			}
+
+			var storedFlow *authenticate.Flow
+			if tt.wantErr == nil {
+				mockFlowRepo.EXPECT().Set(ctx, mock.Anything).Run(func(_ context.Context, flow *authenticate.Flow) {
+					storedFlow = flow
+				}).Return(nil)
+			}
+
+			var webAuth *webauthn.WebAuthn
+			var mockDialer mailer.Dialer
+			if isPasskey {
+				webAuth = testWebAuthn(t)
+			} else {
+				mockDialer = mailer.NewMockDialer()
+			}
+
+			srv := authenticate.NewService(nil, authenticate.Config{
+				MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
+				MailLink:  authenticate.MailLinkConfig{Validity: 10 * time.Minute},
+				TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+			}, mockFlowRepo, mockDialer, nil, nil, mockUserService, nil, webAuth, nil)
+
+			got, err := srv.StartFlow(ctx, authenticate.RegistrationStartRequest{
+				Method: tt.method,
+				Email:  email,
+				Intent: tt.intent,
+				// mail link embeds the callback host in the link it sends
+				CallbackUrl: "http://localhost:7400/v1beta1/auth/callback",
+			})
+
+			switch {
+			case tt.wantErr != nil:
+				assert.ErrorIs(t, err, tt.wantErr)
+				assert.Nil(t, got)
+			default:
+				require.NoError(t, err)
+				require.NotNil(t, got)
+				require.NotNil(t, storedFlow)
+				if tt.wantPasskeyCeremony != "" {
+					assert.Equal(t, tt.wantPasskeyCeremony, storedFlow.Metadata["passkey_type"])
+				}
+			}
+		})
+	}
+}
+
+// TestService_StartFlow_WritesIntentAndConsent covers what StartFlow puts on the
+// flow, which is where both fields have to live to survive an OIDC redirect.
+func TestService_StartFlow_WritesIntentAndConsent(t *testing.T) {
+	defaultHashCost := authenticate.OTPHashCost
+	authenticate.OTPHashCost = bcrypt.MinCost
+	t.Cleanup(func() { authenticate.OTPHashCost = defaultHashCost })
+
+	const email = "test@example.com"
+	timeNow := time.Now().UTC()
+
+	startFlow := func(t *testing.T, request authenticate.RegistrationStartRequest) *authenticate.Flow {
+		t.Helper()
+
+		ctx := context.Background()
+		mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+		if request.Intent != authenticate.FlowIntentUnspecified {
+			mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
+		}
+
+		var storedFlow *authenticate.Flow
+		mockFlowRepo.EXPECT().Set(ctx, mock.Anything).Run(func(_ context.Context, flow *authenticate.Flow) {
+			storedFlow = flow
+		}).Return(nil)
+
+		srv := authenticate.NewService(nil, authenticate.Config{
+			MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
+			TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+		}, mockFlowRepo, mailer.NewMockDialer(), nil, nil, mockUserService, nil, nil, nil)
+		srv.Now = func() time.Time { return timeNow }
+
+		_, err := srv.StartFlow(ctx, request)
+		require.NoError(t, err)
+		require.NotNil(t, storedFlow)
+		return storedFlow
+	}
+
+	t.Run("writes the intent and the consent when the caller sends them", func(t *testing.T) {
+		flow := startFlow(t, authenticate.RegistrationStartRequest{
+			Method:              authenticate.MailOTPAuthMethod.String(),
+			Email:               email,
+			Intent:              authenticate.FlowIntentSignup,
+			AcceptedDocumentIDs: []string{"terms_of_service", "privacy_policy"},
+			IPAddress:           "10.0.0.1",
+		})
+
+		assert.Equal(t, authenticate.FlowIntentSignup, flow.Intent())
+
+		consent, ok := flow.Consent()
+		require.True(t, ok)
+		assert.Equal(t, []string{"terms_of_service", "privacy_policy"}, consent.AcceptedDocumentIDs)
+		assert.Equal(t, "10.0.0.1", consent.IPAddress)
+		// the timestamp is when the user accepted, not when the flow finishes
+		assert.Equal(t, timeNow, consent.At)
+	})
+
+	t.Run("leaves the flow untouched when the caller sends neither", func(t *testing.T) {
+		flow := startFlow(t, authenticate.RegistrationStartRequest{
+			Method: authenticate.MailOTPAuthMethod.String(),
+			Email:  email,
+		})
+
+		// a client that sends no intent writes the same flow row it does today
+		assert.Equal(t, pkgMetadata.Metadata{"callback_url": ""}, flow.Metadata)
+		assert.Equal(t, authenticate.FlowIntentUnspecified, flow.Intent())
+		_, ok := flow.Consent()
+		assert.False(t, ok)
+	})
+}
+
+// TestFlow_IntentAndConsent covers the accessors directly: the JSON round trip
+// the database puts metadata through, and the nil receiver callers rely on.
+func TestFlow_IntentAndConsent(t *testing.T) {
+	acceptedAt := time.Now().UTC().Truncate(time.Second)
+
+	t.Run("a nil flow reads as no intent and no consent", func(t *testing.T) {
+		var flow *authenticate.Flow
+
+		assert.Equal(t, authenticate.FlowIntentUnspecified, flow.Intent())
+		_, ok := flow.Consent()
+		assert.False(t, ok)
+	})
+
+	t.Run("survives the round trip the database puts metadata through", func(t *testing.T) {
+		ctx := context.Background()
+		flowRepo := &jsonFlowRepository{flows: map[uuid.UUID]jsonStoredFlow{}}
+		flowID := uuid.New()
+
+		require.NoError(t, flowRepo.Set(ctx, mailOTPFlow(flowID, acceptedAt, "nonce", pkgMetadata.Metadata{
+			"callback_url": "",
+			"intent":       authenticate.FlowIntentSignup.String(),
+			"consent": map[string]any{
+				"accepted_document_ids": []string{"terms_of_service"},
+				"ip_address":            "10.0.0.1",
+				"at":                    acceptedAt,
+			},
+		})))
+
+		stored, err := flowRepo.Get(ctx, flowID)
+		require.NoError(t, err)
+
+		// JSON gives the ids back as []any and the timestamp as a string, so the
+		// accessors parse rather than assert
+		assert.Equal(t, authenticate.FlowIntentSignup, stored.Intent())
+		consent, ok := stored.Consent()
+		require.True(t, ok)
+		assert.Equal(t, []string{"terms_of_service"}, consent.AcceptedDocumentIDs)
+		assert.Equal(t, "10.0.0.1", consent.IPAddress)
+		assert.True(t, acceptedAt.Equal(consent.At))
+	})
+
+	t.Run("an unparseable or empty consent is no consent", func(t *testing.T) {
+		for name, md := range map[string]pkgMetadata.Metadata{
+			"missing":       {"callback_url": ""},
+			"wrong type":    {"consent": "yes"},
+			"no documents":  {"consent": map[string]any{"ip_address": "10.0.0.1"}},
+			"unknown types": {"consent": map[string]any{"accepted_document_ids": []any{1, 2}}},
+		} {
+			t.Run(name, func(t *testing.T) {
+				flow := &authenticate.Flow{Metadata: md}
+				_, ok := flow.Consent()
+				assert.False(t, ok)
+			})
+		}
+	})
+
+	t.Run("an intent of the wrong type reads as unspecified", func(t *testing.T) {
+		flow := &authenticate.Flow{Metadata: pkgMetadata.Metadata{"intent": 2}}
+		assert.Equal(t, authenticate.FlowIntentUnspecified, flow.Intent())
+	})
+}
+
+// TestService_FinishFlow_Intent covers the second gate, at user creation, which
+// is the only point OIDC can be gated at since it has no email before then.
+func TestService_FinishFlow_Intent(t *testing.T) {
+	timeNow := time.Now()
+	otpHash, err := bcrypt.GenerateFromPassword([]byte("111111"), bcrypt.MinCost)
+	require.NoError(t, err)
+
+	const email = "test@example.com"
+	existingUser := user.User{ID: "user-id", Email: email}
+
+	tests := []struct {
+		name       string
+		intent     authenticate.FlowIntent
+		userExists bool
+
+		wantErr        error
+		wantUserCreate bool
+	}{
+		{
+			name:       "login logs the existing user in",
+			intent:     authenticate.FlowIntentLogin,
+			userExists: true,
+		},
+		{
+			name:    "login never creates the account",
+			intent:  authenticate.FlowIntentLogin,
+			wantErr: authenticate.ErrLoginUserNotFound,
+		},
+		{
+			name:           "signup creates the account",
+			intent:         authenticate.FlowIntentSignup,
+			wantUserCreate: true,
+		},
+		{
+			name:       "signup never logs the existing user in",
+			intent:     authenticate.FlowIntentSignup,
+			userExists: true,
+			wantErr:    authenticate.ErrSignupUserExists,
+		},
+		{
+			name:       "without an intent an existing user is logged in",
+			intent:     authenticate.FlowIntentUnspecified,
+			userExists: true,
+		},
+		{
+			name:           "without an intent an unknown address is created, as before",
+			intent:         authenticate.FlowIntentUnspecified,
+			wantUserCreate: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			flowID := uuid.New()
+
+			md := pkgMetadata.Metadata{"callback_url": ""}
+			if tt.intent != authenticate.FlowIntentUnspecified {
+				md["intent"] = tt.intent.String()
+			}
+
+			mockFlowRepo, mockUserService, _, _, _ := createMocks(t)
+			mockFlowRepo.EXPECT().Get(ctx, flowID).Return(mailOTPFlow(flowID, timeNow, string(otpHash), md), nil)
+			mockFlowRepo.EXPECT().Delete(ctx, flowID).Return(nil)
+
+			if tt.userExists {
+				mockUserService.EXPECT().GetByID(ctx, email).Return(existingUser, nil)
+			} else {
+				mockUserService.EXPECT().GetByID(ctx, email).Return(user.User{}, errors.New("user not found"))
+			}
+			if tt.wantUserCreate {
+				mockUserService.EXPECT().Create(ctx, mock.Anything).Return(existingUser, nil)
+			}
+
+			srv := authenticate.NewService(nil, authenticate.Config{}, mockFlowRepo, nil,
+				nil, nil, mockUserService, nil, nil, nil)
+			srv.Now = func() time.Time { return timeNow }
+
+			got, err := srv.FinishFlow(ctx, authenticate.RegistrationFinishRequest{
+				Method: authenticate.MailOTPAuthMethod.String(),
+				State:  flowID.String(),
+				Code:   "111111",
+			})
+
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+				assert.Nil(t, got)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			assert.Equal(t, existingUser, got.User)
 		})
 	}
 }

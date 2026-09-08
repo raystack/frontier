@@ -277,7 +277,8 @@ func authenticateWithPassthroughHeader(ctx context.Context, s *Service) (Princip
 		return Principal{}, errSkip
 	}
 
-	currentUser, err := s.getOrCreateUser(ctx, strings.TrimSpace(val), strings.Split(val, "@")[0])
+	// no flow on this path; the nil-safe accessors make that a nil argument
+	currentUser, err := s.getOrCreateUser(ctx, nil, strings.TrimSpace(val), strings.Split(val, "@")[0])
 	if err != nil {
 		s.log.DebugContext(ctx, "failed to get user", "err", err)
 		return Principal{}, err

@@ -59,6 +59,9 @@ var (
 	ErrInvalidOIDCState      = errors.New("invalid auth state")
 	ErrFlowInvalid           = errors.New("invalid flow or expired")
 	ErrOIDCTokenExchange     = errors.New("failed to exchange oidc authorization code")
+	ErrLoginUserNotFound     = errors.New("no account for this email")
+	ErrSignupUserExists      = errors.New("an account already exists for this email")
+	ErrInvalidMethod         = errors.New("this account cannot use the requested authentication method")
 )
 
 type UserService interface {
@@ -203,6 +206,14 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 	if !utils.Contains(s.SupportedStrategies(), request.Method) {
 		return nil, ErrUnsupportedMethod
 	}
+	// both mail strategies know the address before anything is sent, and share
+	// applyMailOTP at the other end, so they share the gate here. Passkey gates
+	// in its own branch, where it already looks the user up to pick a ceremony.
+	if request.Method == MailOTPAuthMethod.String() || request.Method == MailLinkAuthMethod.String() {
+		if err := s.gateFlowStart(ctx, request.Intent, request.Email); err != nil {
+			return nil, err
+		}
+	}
 	flow := &Flow{
 		ID:        uuid.New(),
 		Method:    request.Method,
@@ -214,19 +225,37 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 			"callback_url": request.CallbackUrl,
 		},
 	}
+	// only write what the caller sent, so today's clients produce today's flow row
+	if request.Intent != FlowIntentUnspecified {
+		flow.Metadata[flowIntentKey] = request.Intent.String()
+	}
+	if len(request.AcceptedDocumentIDs) > 0 {
+		flow.Metadata[flowConsentKey] = map[string]any{
+			consentDocumentIDsKey: request.AcceptedDocumentIDs,
+			consentIPAddressKey:   request.IPAddress,
+			consentAtKey:          s.Now(),
+		}
+	}
 
 	if request.Method == PassKeyAuthMethod.String() {
-		needRegistration := false
-		loggedInUser, err := s.userService.GetByID(ctx, request.Email)
-		if err != nil {
-			needRegistration = true
-		} else {
-			storedPasskey, passKeyExists := loggedInUser.Metadata["passkey_credentials"]
-			if !passKeyExists {
+		loggedInUser, userErr := s.userService.GetByID(ctx, request.Email)
+		if err := checkIntent(request.Intent, userErr == nil); err != nil {
+			return nil, err
+		}
+
+		// the intent picks the ceremony; without one, fall back to the old guess
+		needRegistration := request.Intent == FlowIntentSignup
+		if request.Intent == FlowIntentUnspecified {
+			if userErr != nil {
 				needRegistration = true
-			}
-			if _, ok := storedPasskey.(string); !ok {
-				needRegistration = true
+			} else {
+				storedPasskey, passKeyExists := loggedInUser.Metadata["passkey_credentials"]
+				if !passKeyExists {
+					needRegistration = true
+				}
+				if _, ok := storedPasskey.(string); !ok {
+					needRegistration = true
+				}
 			}
 		}
 
@@ -377,6 +406,34 @@ func otpAttempts(md metadata.Metadata) int {
 	}
 }
 
+// checkIntent applies the login and signup gates. An unspecified intent checks
+// nothing, which is what keeps existing clients working.
+func checkIntent(intent FlowIntent, userExists bool) error {
+	switch intent {
+	case FlowIntentLogin:
+		if !userExists {
+			return ErrLoginUserNotFound
+		}
+	case FlowIntentSignup:
+		if userExists {
+			return ErrSignupUserExists
+		}
+	}
+	return nil
+}
+
+// gateFlowStart is the fast path of the login gate, for the strategies that know
+// the email up front: it fails before anything is mailed. The gate that matters
+// is at user creation, which every strategy reaches including OIDC.
+func (s Service) gateFlowStart(ctx context.Context, intent FlowIntent, email string) error {
+	if intent == FlowIntentUnspecified {
+		// nothing to check, and no reason to spend a lookup
+		return nil
+	}
+	_, err := s.userService.GetByID(ctx, email)
+	return checkIntent(intent, err == nil)
+}
+
 // applyMailOTP actions when user submitted otp from the email
 // user can be considered as verified if code is valid
 // create a new user if required
@@ -417,7 +474,7 @@ func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishReq
 		return nil, fmt.Errorf("failed to successfully register via otp: %w", err)
 	}
 
-	newUser, err := s.getOrCreateUser(ctx, flow.Email, "")
+	newUser, err := s.getOrCreateUser(ctx, flow, flow.Email, "")
 	if err != nil {
 		return nil, err
 	}
@@ -460,7 +517,15 @@ func (s Service) startPassKeyRegisterMethod(ctx context.Context, flow *Flow) (*R
 }
 
 func (s Service) startPassKeyLoginMethod(ctx context.Context, loggedInUser user.User, flow *Flow) (*RegistrationStartResponse, error) {
-	decodedCredBytes, err := base64.StdEncoding.DecodeString(loggedInUser.Metadata["passkey_credentials"].(string))
+	// a login intent reaches this unchecked, so read rather than assert. The
+	// account exists and the deployment does offer passkeys — it is this
+	// account that has no credential to challenge, so the method is wrong for
+	// this user rather than unknown to the server.
+	storedPasskey, ok := loggedInUser.Metadata["passkey_credentials"].(string)
+	if !ok {
+		return nil, ErrInvalidMethod
+	}
+	decodedCredBytes, err := base64.StdEncoding.DecodeString(storedPasskey)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +602,7 @@ func (s Service) finishPassKeyRegisterMethod(ctx context.Context, request Regist
 	if err != nil {
 		return nil, err
 	}
-	newUser, err := s.getOrCreateUser(ctx, flow.Email, "")
+	newUser, err := s.getOrCreateUser(ctx, flow, flow.Email, "")
 	if err != nil {
 		return nil, err
 	}
@@ -598,7 +663,7 @@ func (s Service) finishPassKeyLoginMethod(ctx context.Context, request Registrat
 		return nil, err
 	}
 
-	existingUser, err := s.getOrCreateUser(ctx, flow.Email, "")
+	existingUser, err := s.getOrCreateUser(ctx, flow, flow.Email, "")
 	if err != nil {
 		return nil, err
 	}
@@ -723,7 +788,7 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 	}
 
 	// register a new user
-	newUser, err := s.getOrCreateUser(ctx, oauthProfile.Email, oauthProfile.Name)
+	newUser, err := s.getOrCreateUser(ctx, flow, oauthProfile.Email, oauthProfile.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -781,15 +846,28 @@ func (s Service) consumeFlow(ctx context.Context, id uuid.UUID) error {
 	return s.flowRepo.Delete(ctx, id)
 }
 
-func (s Service) getOrCreateUser(ctx context.Context, email, title string) (user.User, error) {
+// getOrCreateUser returns the user for the email, creating one if there is none.
+// A nil flow means a caller that has none, and gets the old create-or-get.
+func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title string) (user.User, error) {
+	intent := flow.Intent()
+
 	// create a new user based on email if it doesn't exist
 	existingUser, err := s.userService.GetByID(ctx, email)
 	if err == nil {
+		if intent == FlowIntentSignup {
+			return user.User{}, ErrSignupUserExists
+		}
 		// user is already registered
 
 		// TODO(kushsharma): should we update metadata like profile picture from social logins
 		// for registered users every time the login?
 		return existingUser, nil
+	}
+
+	// the gate that matters: every strategy ends here, the last point before an
+	// account would be created for someone trying to log in
+	if intent == FlowIntentLogin {
+		return user.User{}, ErrLoginUserNotFound
 	}
 
 	// register a new user
