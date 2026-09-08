@@ -60,7 +60,8 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
   const {
     activeOrganization: organization,
     isActiveOrganizationLoading,
-    setActiveOrganization
+    setActiveOrganization,
+    basePlan
   } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -116,8 +117,12 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
   );
   const isDeleteBlocked = !!deleteCheck && !deleteCheck.canDelete;
   const blockerLines = useMemo(
-    () => instructionLines(deleteCheck?.blockers ?? []),
-    [deleteCheck]
+    () =>
+      instructionLines(deleteCheck?.blockers ?? [], {
+        organizationLabel: t.organization({ case: 'lower' }),
+        basePlanTitle: basePlan?.title
+      }),
+    [deleteCheck, t, basePlan]
   );
 
   // Update organization form
@@ -326,7 +331,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                     <Tooltip.Content>
                       <Flex direction="column" gap={2}>
                         {blockerLines.map(line => (
-                          <span key={line}>{line}</span>
+                          <Text key={line}>{line}</Text>
                         ))}
                       </Flex>
                     </Tooltip.Content>

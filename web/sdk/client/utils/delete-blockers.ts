@@ -1,32 +1,42 @@
 import { ConnectError } from '@connectrpc/connect';
 
-// The server reports why an organization cannot be deleted as a list of
-// blockers, each with a machine-readable type. These are the types the
-// server knows today, mapped to a short instruction the user can act on.
-// The wording must stay in line with the server behavior: a paid
-// subscription must be downgraded, unpaid invoices must be paid, and a
-// token debt is settled through support.
-const BLOCKER_INSTRUCTIONS: Record<string, (count: number) => string> = {
-  ACTIVE_SUBSCRIPTION: () =>
-    'Please downgrade the subscription to the standard plan',
-  UNPAID_INVOICE: count =>
-    count > 1
-      ? `Please pay the ${count} open invoices from the billing page`
-      : 'Please pay the open invoice from the billing page',
-  NEGATIVE_TOKEN_BALANCE: () =>
-    'Your token balance is negative. Please add tokens from the Tokens page to bring it back up, or pay the invoice when it arrives, and then you can delete'
+// Words that come from the host app: what it calls an organization
+// and what it calls its base plan.
+export interface BlockerWording {
+  organizationLabel: string;
+  basePlanTitle?: string;
+}
+
+const DEFAULT_WORDING: BlockerWording = {
+  organizationLabel: 'organization'
 };
 
-// Shown when the server reports a blocker kind this version does not know,
-// or when the error could not be read at all.
+// One sentence per blocker type the server can return.
+const BLOCKER_INSTRUCTIONS: Record<
+  string,
+  (count: number, wording: BlockerWording) => string
+> = {
+  ACTIVE_SUBSCRIPTION: (_, { organizationLabel, basePlanTitle }) =>
+    `Downgrade your current subscription and switch to the ${
+      basePlanTitle || 'standard plan'
+    } before deleting this ${organizationLabel}.`,
+  UNPAID_INVOICE: (count, { organizationLabel }) =>
+    count > 1
+      ? `Please pay your ${count} outstanding invoices before deleting this ${organizationLabel}.`
+      : `Please pay your outstanding invoice before deleting this ${organizationLabel}.`,
+  NEGATIVE_TOKEN_BALANCE: (_, { organizationLabel }) =>
+    `Please purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
+};
+
+// Used for blocker types this version does not know.
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
-// instructionLines turns a list of blockers into one instruction per kind
-// of blocker. Blockers of the same kind are counted so the instruction can
-// say "the 2 open invoices". A kind without a known instruction becomes the
-// generic message, once.
-export function instructionLines(blockers: { type: string }[]): string[] {
+// Returns one sentence per blocker type. Same-type blockers are counted.
+export function instructionLines(
+  blockers: { type: string }[],
+  wording: BlockerWording = DEFAULT_WORDING
+): string[] {
   const counts = new Map<string, number>();
   for (const blocker of blockers) {
     counts.set(blocker.type, (counts.get(blocker.type) ?? 0) + 1);
@@ -36,7 +46,7 @@ export function instructionLines(blockers: { type: string }[]): string[] {
   for (const [type, count] of counts) {
     const instruction = BLOCKER_INSTRUCTIONS[type];
     if (instruction) {
-      lines.push(instruction(count));
+      lines.push(instruction(count, wording));
     } else {
       hasUnknown = true;
     }
@@ -47,13 +57,14 @@ export function instructionLines(blockers: { type: string }[]): string[] {
   return lines;
 }
 
-// deleteBlockedDescription reads the blockers out of a failed_precondition
-// error from DeleteOrganization and returns the instructions as one string.
-// The server attaches them as a google.rpc.PreconditionFailure detail; over
-// the Connect JSON protocol that detail arrives with a ready-made JSON copy
-// in its debug field. When the error carries nothing readable, the generic
-// message is returned, so the raw server text is never shown.
-export function deleteBlockedDescription(err: ConnectError): string {
+// Reads the blockers from a failed_precondition error and returns the
+// sentences as one string. The server sends them as a
+// google.rpc.PreconditionFailure detail, which Connect exposes in the
+// detail's debug field.
+export function deleteBlockedDescription(
+  err: ConnectError,
+  wording: BlockerWording = DEFAULT_WORDING
+): string {
   for (const detail of err.details) {
     if (!('type' in detail) || detail.type !== 'google.rpc.PreconditionFailure') {
       continue;
@@ -73,9 +84,9 @@ export function deleteBlockedDescription(err: ConnectError): string {
           violation !== null &&
           typeof (violation as { type?: unknown }).type === 'string'
       );
-    const lines = instructionLines(blockers);
+    const lines = instructionLines(blockers, wording);
     if (lines.length > 0) {
-      return lines.join('. ');
+      return lines.join(' ');
     }
   }
   return GENERIC_DELETE_BLOCKED_MESSAGE;

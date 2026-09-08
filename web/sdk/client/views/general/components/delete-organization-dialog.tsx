@@ -42,7 +42,7 @@ export const DeleteOrganizationDialog = ({
   onDeleteSuccess
 }: DeleteOrganizationDialogProps) => {
   const t = useTerminology();
-  const { activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization, basePlan } = useFrontier();
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
   const [isAcknowledged, setIsAcknowledged] = useState(false);
@@ -89,9 +89,15 @@ export const DeleteOrganizationDialog = ({
     } catch (error) {
       handleConnectError(error, {
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        // the server names what blocks the delete; show the matching
-        // instructions instead of the raw server text
-        FailedPrecondition: (err) => toastManager.add({ title: `Cannot delete this ${orgLabelLower} yet`, description: deleteBlockedDescription(err), type: 'error' }),
+        FailedPrecondition: (err) =>
+          toastManager.add({
+            title: `Cannot delete this ${orgLabelLower} yet`,
+            description: deleteBlockedDescription(err, {
+              organizationLabel: orgLabelLower,
+              basePlanTitle: basePlan?.title
+            }),
+            type: 'error'
+          }),
         NotFound: () => toastManager.add({ title: 'Not found', description: `This ${orgLabelLower} no longer exists.`, type: 'error' }),
         Default: () => toastManager.add({ title: 'Something went wrong', description: 'Please try again later or contact support.', type: 'error' }),
       });
