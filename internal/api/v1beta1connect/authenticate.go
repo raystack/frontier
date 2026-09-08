@@ -34,16 +34,7 @@ type authFlowRejection struct {
 	err error
 }
 
-// toConnectError builds what the client sees: the code, the bare sentinel as
-// the message, and, when the flow is known, an AuthStrategy detail naming the
-// strategy it came through, so a client can put the message under the button
-// that caused it. On the callback path only the flow knows that: an OIDC
-// callback names no strategy. At flow start the client named it itself, so
-// nothing is attached. AuthStrategy is the message ListAuthStrategies already
-// serves, so the client reads the detail with the type it renders buttons
-// from. The detail follows the organization delete guard, which attaches a
-// PreconditionFailure the same way; a header would need CORS exposure and
-// carries no structure.
+// toConnectError builds a connect error with details for flow rejection
 func (r authFlowRejection) toConnectError(err error) *connect.Error {
 	connectErr := connect.NewError(r.code, r.err)
 	var flowRejection *authenticate.FlowRejection
@@ -51,8 +42,7 @@ func (r authFlowRejection) toConnectError(err error) *connect.Error {
 		return connectErr
 	}
 	strategy := &frontierv1beta1.AuthStrategy{Name: flowRejection.Strategy}
-	// wrapping a static, well-formed message into an Any does not fail; if it
-	// ever did, the code and message still answer without the detail
+	
 	if detail, detailErr := connect.NewErrorDetail(strategy); detailErr == nil {
 		connectErr.AddDetail(detail)
 	}

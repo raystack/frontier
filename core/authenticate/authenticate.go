@@ -141,8 +141,7 @@ func (f *Flow) Intent() FlowIntent {
 	return FlowIntent(intent)
 }
 
-// reject tags a rejection with the strategy this flow came through. A nil flow
-// has no strategy, so the error passes through untouched.
+// reject tags a rejection with the strategy this flow came through
 func (f *Flow) reject(err error) error {
 	if f == nil || f.Method == "" {
 		return err

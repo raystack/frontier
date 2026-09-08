@@ -67,10 +67,7 @@ var (
 	ErrConsentRequired       = errors.New("consent required for the configured documents")
 )
 
-// FlowRejection is a login, signup or consent rejection tagged with the
-// strategy the flow came through. On the callback path the client cannot know
-// it: the request names no strategy for OIDC, and the flow row is gone by the
-// time it answers. Unwrap keeps errors.Is on the sentinel inside working.
+// FlowRejection is a login, signup rejection tagged with the strategy
 type FlowRejection struct {
 	Err      error
 	Strategy string
