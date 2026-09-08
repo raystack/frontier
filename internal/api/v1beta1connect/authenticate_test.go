@@ -17,12 +17,23 @@ import (
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontiererrors "github.com/raystack/frontier/pkg/errors"
-	"github.com/raystack/frontier/pkg/server/consts"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+// authRejectionStrategy reads the one AuthStrategy detail a callback rejection
+// carries.
+func authRejectionStrategy(t *testing.T, connectErr *connect.Error) *frontierv1beta1.AuthStrategy {
+	t.Helper()
+	require.Len(t, connectErr.Details(), 1)
+	msg, err := connectErr.Details()[0].Value()
+	require.NoError(t, err)
+	strategy, ok := msg.(*frontierv1beta1.AuthStrategy)
+	require.True(t, ok, "detail is %T, want AuthStrategy", msg)
+	return strategy
+}
 
 func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 	tests := []struct {
@@ -530,6 +541,9 @@ func TestConnectHandler_Authenticate_Rejections(t *testing.T) {
 			assert.Equal(t, tt.wantCode, connectErr.Code())
 			assert.Equal(t, tt.wantMsg, connectErr.Message())
 			assert.NotContains(t, connectErr.Message(), "terms_of_service")
+			// at flow start the client named the strategy itself, so nothing is
+			// echoed back
+			assert.Empty(t, connectErr.Details())
 		})
 	}
 }
@@ -594,22 +608,23 @@ func TestConnectHandler_AuthCallback_Rejections(t *testing.T) {
 	}
 }
 
-// TestConnectHandler_AuthCallback_RejectionNamesStrategy covers the header the
-// callback sets so a client can put the message under the button that caused it.
-// A rejection with no flow behind it sets nothing rather than an empty header.
+// TestConnectHandler_AuthCallback_RejectionNamesStrategy covers the
+// AuthStrategy detail the callback attaches so a client can put the message
+// under the button that caused it. A rejection with no flow behind it carries
+// no detail.
 func TestConnectHandler_AuthCallback_RejectionNamesStrategy(t *testing.T) {
 	tests := []struct {
 		name string
 		err  error
 
 		wantCode     connect.Code
-		wantStrategy []string
+		wantStrategy string
 	}{
 		{
 			name:         "an oidc rejection names its provider",
 			err:          &authenticate.FlowRejection{Err: authenticate.ErrLoginUserNotFound, Strategy: "google"},
 			wantCode:     connect.CodeNotFound,
-			wantStrategy: []string{"google"},
+			wantStrategy: "google",
 		},
 		{
 			name: "a wrapped consent rejection keeps its strategy",
@@ -618,10 +633,10 @@ func TestConnectHandler_AuthCallback_RejectionNamesStrategy(t *testing.T) {
 				Strategy: authenticate.MailOTPAuthMethod.String(),
 			},
 			wantCode:     connect.CodeFailedPrecondition,
-			wantStrategy: []string{authenticate.MailOTPAuthMethod.String()},
+			wantStrategy: authenticate.MailOTPAuthMethod.String(),
 		},
 		{
-			name:     "a bare sentinel sets no header",
+			name:     "a bare sentinel carries no detail",
 			err:      authenticate.ErrSignupUserExists,
 			wantCode: connect.CodeAlreadyExists,
 		},
@@ -644,8 +659,11 @@ func TestConnectHandler_AuthCallback_RejectionNamesStrategy(t *testing.T) {
 			connectErr := err.(*connect.Error)
 			assert.Equal(t, tt.wantCode, connectErr.Code())
 			assert.NotContains(t, connectErr.Message(), "terms_of_service")
-			// Values, not Get: a second value would be comma-joined by connect-es
-			assert.Equal(t, tt.wantStrategy, connectErr.Meta().Values(consts.AuthStrategyResponseKey))
+			if tt.wantStrategy == "" {
+				assert.Empty(t, connectErr.Details())
+				return
+			}
+			assert.Equal(t, tt.wantStrategy, authRejectionStrategy(t, connectErr).GetName())
 		})
 	}
 }

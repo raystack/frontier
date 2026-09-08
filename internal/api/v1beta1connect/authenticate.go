@@ -34,6 +34,31 @@ type authFlowRejection struct {
 	err error
 }
 
+// toConnectError builds what the client sees: the code, the bare sentinel as
+// the message, and, when the flow is known, an AuthStrategy detail naming the
+// strategy it came through, so a client can put the message under the button
+// that caused it. On the callback path only the flow knows that: an OIDC
+// callback names no strategy. At flow start the client named it itself, so
+// nothing is attached. AuthStrategy is the message ListAuthStrategies already
+// serves, so the client reads the detail with the type it renders buttons
+// from. The detail follows the organization delete guard, which attaches a
+// PreconditionFailure the same way; a header would need CORS exposure and
+// carries no structure.
+func (r authFlowRejection) toConnectError(err error) *connect.Error {
+	connectErr := connect.NewError(r.code, r.err)
+	var flowRejection *authenticate.FlowRejection
+	if !errors.As(err, &flowRejection) {
+		return connectErr
+	}
+	strategy := &frontierv1beta1.AuthStrategy{Name: flowRejection.Strategy}
+	// wrapping a static, well-formed message into an Any does not fail; if it
+	// ever did, the code and message still answer without the detail
+	if detail, detailErr := connect.NewErrorDetail(strategy); detailErr == nil {
+		connectErr.AddDetail(detail)
+	}
+	return connectErr
+}
+
 // lookupAuthFlowRejection maps the four errors both auth RPCs have to make
 // legible. FailedPrecondition separates a consent rejection from a bad code or
 // an expired flow, and ErrInvalidMethod shares it because what is wrong is the
@@ -128,7 +153,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 			errorLogger.LogServiceError(ctx, request, "Authenticate.StartFlow", err,
 				"strategy", request.Msg.GetStrategyName(),
 				"intent", intent.String())
-			return nil, connect.NewError(rejection.code, rejection.err)
+			return nil, rejection.toConnectError(err)
 		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Authenticate: strategy=%s email=%s: %w", request.Msg.GetStrategyName(), request.Msg.GetEmail(), err))
 	}
@@ -190,14 +215,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
 				"strategy", request.Msg.GetStrategyName(),
 				"state", request.Msg.GetState())
-			connectErr := connect.NewError(rejection.code, rejection.err)
-			// The flow knows the strategy when the request does not, which is the case
-			// for OIDC. Set, not Add: connect-es joins repeated headers with commas.
-			var flowRejection *authenticate.FlowRejection
-			if errors.As(err, &flowRejection) {
-				connectErr.Meta().Set(consts.AuthStrategyResponseKey, flowRejection.Strategy)
-			}
-			return nil, connectErr
+			return nil, rejection.toConnectError(err)
 		}
 
 		// ErrUnsupportedMethod here means the strategy and state the client sent match

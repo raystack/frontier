@@ -51,10 +51,6 @@ const (
 	// LocationRequestKey is used to set location response header for redirecting browser
 	LocationRequestKey = "location"
 
-	// AuthStrategyResponseKey names the strategy an auth rejection came through,
-	// so a client can show it under the right button. Set on the error only.
-	AuthStrategyResponseKey = "frontier-auth-strategy"
-
 	// ProjectRequestKey is used to set current project in jwt token
 	ProjectRequestKey = "x-project"
 

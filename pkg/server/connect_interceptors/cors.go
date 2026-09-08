@@ -5,8 +5,6 @@ import (
 
 	connectcors "connectrpc.com/cors"
 	"github.com/rs/cors"
-
-	"github.com/raystack/frontier/pkg/server/consts"
 )
 
 type CorsConfig struct {
@@ -27,9 +25,8 @@ func WithConnectCORS(connectHandler http.Handler, conf CorsConfig) http.Handler 
 		AllowedMethods: connectcors.AllowedMethods(),
 		// Use wildcard for headers to support all Connect RPC headers
 		// Connect can send various headers depending on the request type
-		AllowedHeaders: []string{"*"},
-		// plus the one header of our own a browser client has to read
-		ExposedHeaders:   append(connectcors.ExposedHeaders(), consts.AuthStrategyResponseKey),
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   connectcors.ExposedHeaders(),
 		AllowCredentials: true,
 		MaxAge:           conf.MaxAge,
 		Debug:            false,

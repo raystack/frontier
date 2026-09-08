@@ -1,4 +1,5 @@
 import { Code, ConnectError } from '@connectrpc/connect';
+import { AuthStrategySchema } from '@raystack/proton/frontier';
 
 // Both auth RPCs answer a rejection with a connect code and a bare sentinel
 // message. FailedPrecondition covers a consent rejection and an account that
@@ -17,13 +18,19 @@ export type AuthErrorKind =
 export type AuthError = {
   kind: AuthErrorKind;
   message: string;
-  // The strategy the rejection came through, read from the response header
-  // the callback sets. The flow row knows it when the client does not: an
-  // oidc callback carries no strategy name. Absent from older servers.
+  // The strategy the rejection came through, when the server attached it.
+  // The flow row knows it where the client cannot: an oidc callback names no
+  // strategy. Absent from older servers and from flow-start rejections.
   strategy?: string;
 };
 
-const AUTH_STRATEGY_HEADER = 'frontier-auth-strategy';
+// A callback rejection carries an AuthStrategy detail, the same message the
+// strategy buttons are rendered from, naming the strategy it came through.
+// Flow-start rejections and older servers send none.
+const readStrategy = (error: ConnectError): string | undefined => {
+  const [strategy] = error.findDetails(AuthStrategySchema);
+  return strategy?.name || undefined;
+};
 
 const AUTH_ERROR_MESSAGES: Record<AuthErrorKind, string> = {
   login_user_not_found:
@@ -48,8 +55,9 @@ export const authErrorMessage = (kind: AuthErrorKind): string =>
   AUTH_ERROR_MESSAGES[kind];
 
 export const describeAuthError = (error: unknown): AuthError => {
-  const { code, rawMessage, metadata } = ConnectError.from(error);
-  const strategy = metadata.get(AUTH_STRATEGY_HEADER) ?? undefined;
+  const connectError = ConnectError.from(error);
+  const { code, rawMessage } = connectError;
+  const strategy = readStrategy(connectError);
 
   switch (code) {
     case Code.NotFound:
