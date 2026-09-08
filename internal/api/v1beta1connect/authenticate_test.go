@@ -405,7 +405,7 @@ func TestConnectHandler_Authenticate_RejectsIdsWithALoginIntent(t *testing.T) {
 	mockAuthnSrv.EXPECT().SanitizeReturnToURL("").Return("")
 	mockAuthnSrv.EXPECT().SanitizeCallbackURL("").Return("https://example.org/callback")
 	mockSessionSrv.EXPECT().ExtractFromContext(ctx).Return(nil, frontiersession.ErrNoSession)
-	mockConsentSrv.EXPECT().Documents().Return([]consent.Document{{ID: "terms_of_service"}})
+	mockConsentSrv.EXPECT().Enabled().Return(true)
 
 	handler := &ConnectHandler{
 		authnService:   mockAuthnSrv,
@@ -440,8 +440,7 @@ func TestConnectHandler_Authenticate_IgnoresIdsWithALoginIntentWhenConsentIsDisa
 	mockAuthnSrv.EXPECT().SanitizeReturnToURL("").Return("")
 	mockAuthnSrv.EXPECT().SanitizeCallbackURL("").Return("https://example.org/callback")
 	mockSessionSrv.EXPECT().ExtractFromContext(ctx).Return(nil, frontiersession.ErrNoSession)
-	// disabled: an enabled deployment always has documents
-	mockConsentSrv.EXPECT().Documents().Return(nil)
+	mockConsentSrv.EXPECT().Enabled().Return(false)
 
 	var startRequest authenticate.RegistrationStartRequest
 	mockAuthnSrv.EXPECT().StartFlow(ctx, mock.Anything).

@@ -101,7 +101,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 
 	intent := toFlowIntent(request.Msg.GetFlowIntent())
 	acceptedDocumentIDs := request.Msg.GetAcceptedDocumentIds()
-	if intent == authenticate.FlowIntentLogin && len(acceptedDocumentIDs) > 0 && h.consentEnabled() {
+	if intent == authenticate.FlowIntentLogin && len(acceptedDocumentIDs) > 0 && h.consentService.Enabled() {
 		// a login writes no record, so accepting these would leave the client
 		// believing it recorded a consent that does not exist. Disabled, the ids are
 		// ignored rather than refused, as they are everywhere else

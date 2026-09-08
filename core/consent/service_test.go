@@ -66,6 +66,29 @@ func allDocuments() []consent.Document {
 	}
 }
 
+func TestService_Enabled(t *testing.T) {
+	t.Run("reports on when documents are configured", func(t *testing.T) {
+		assert.True(t, consent.NewService(nil, enabledConfig(), nil).Enabled())
+	})
+
+	t.Run("reports off when the flag is off, even with documents configured", func(t *testing.T) {
+		config := enabledConfig()
+		config.Enabled = false
+
+		assert.False(t, consent.NewService(nil, config, nil).Enabled())
+	})
+
+	t.Run("reports off when the flag is on but nothing is configured", func(t *testing.T) {
+		// boot validation rejects this, so it is only reachable by a caller that
+		// skipped Validate: a deployment that asks for nothing
+		assert.False(t, consent.NewService(nil, consent.Config{Enabled: true}, nil).Enabled())
+	})
+
+	t.Run("reports off for the zero config", func(t *testing.T) {
+		assert.False(t, consent.NewService(nil, consent.Config{}, nil).Enabled())
+	})
+}
+
 func TestService_Documents(t *testing.T) {
 	t.Run("returns every configured document ordered by id", func(t *testing.T) {
 		documents := consent.NewService(nil, enabledConfig(), nil).Documents()

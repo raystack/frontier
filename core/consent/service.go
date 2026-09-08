@@ -31,6 +31,11 @@ func NewService(logger *slog.Logger, config Config,
 	}
 }
 
+// Enabled reports whether this deployment asks for consent at all
+func (s Service) Enabled() bool {
+	return s.config.Enabled && len(s.config.Documents) > 0
+}
+
 // Documents returns every configured document, ordered by id
 func (s Service) Documents() []Document {
 	if !s.config.Enabled {

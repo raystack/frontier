@@ -373,6 +373,7 @@ type AuthnService interface {
 // ConsentService serves the documents a user must accept at signup, from config.
 type ConsentService interface {
 	Documents() []consent.Document
+	Enabled() bool
 }
 
 type SessionService interface {

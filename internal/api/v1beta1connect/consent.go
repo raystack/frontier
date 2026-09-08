@@ -22,10 +22,3 @@ func (h *ConnectHandler) ListConsentDocuments(ctx context.Context, request *conn
 	}
 	return connect.NewResponse(&frontierv1beta1.ListConsentDocumentsResponse{Documents: pbdocuments}), nil
 }
-
-// consentEnabled reports whether this deployment asks for consent at all. Boot
-// validation rejects an enabled block with no documents, so an empty set means
-// the feature is off.
-func (h *ConnectHandler) consentEnabled() bool {
-	return h.consentService != nil && len(h.consentService.Documents()) > 0
-}
