@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/rql"
 )
@@ -25,6 +26,7 @@ type Repository interface {
 	GetByIDs(ctx context.Context, userIds []string) ([]User, error)
 	GetByName(ctx context.Context, name string) (User, error)
 	Create(ctx context.Context, user User) (User, error)
+	CreateWithConsent(ctx context.Context, user User, cnst consent.Consent) (User, consent.Consent, error)
 	List(ctx context.Context, flt Filter) ([]User, error)
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByName(ctx context.Context, toUpdate User) (User, error)

@@ -9,13 +9,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/user/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/str"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func mockService(t *testing.T) (*mocks.Repository, *mocks.RelationService, *mocks.SessionService, *mocks.AuditRecordRepository) {
@@ -1017,4 +1020,55 @@ func TestService_UnSudo(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestService_CreateWithConsent pins that it normalises the user exactly as Create does.
+func TestService_CreateWithConsent(t *testing.T) {
+	toCreate := user.User{
+		ID:     "test-id",
+		Name:   "TEST",
+		Email:  "TEST@email.com",
+		State:  "enable",
+		Avatar: "abc",
+		Title:  "tesT",
+	}
+	normalised := user.User{
+		Name:   "test",
+		Email:  "test@email.com",
+		State:  user.Enabled,
+		Avatar: "abc",
+		Title:  "tesT",
+	}
+	created := user.User{
+		ID:     "test-id",
+		Name:   "test",
+		Email:  "test@email.com",
+		State:  user.Enabled,
+		Avatar: "abc",
+		Title:  "tesT",
+	}
+
+	granted := consent.Consent{Documents: []consent.Document{{ID: "eula"}}, Source: consent.SourceSignup}
+
+	t.Run("passes the normalised user and the record through to the repository", func(t *testing.T) {
+		repo, relationService, sessionService, auditRecordRepository := mockService(t)
+		written := consent.Consent{ID: "consent-id", UserID: created.ID}
+		repo.EXPECT().CreateWithConsent(mock.Anything, normalised, granted).Return(created, written, nil)
+
+		svc := user.NewService(repo, relationService, sessionService, auditRecordRepository)
+		got, gotConsent, err := svc.CreateWithConsent(context.Background(), toCreate, granted)
+		require.NoError(t, err)
+		assert.Equal(t, created, got)
+		assert.Equal(t, written, gotConsent)
+	})
+
+	t.Run("surfaces the repository error so the transaction rolls back", func(t *testing.T) {
+		repo, relationService, sessionService, auditRecordRepository := mockService(t)
+		repo.EXPECT().CreateWithConsent(mock.Anything, normalised, granted).
+			Return(user.User{}, consent.Consent{}, errors.New("failed to create"))
+
+		svc := user.NewService(repo, relationService, sessionService, auditRecordRepository)
+		_, _, err := svc.CreateWithConsent(context.Background(), toCreate, granted)
+		assert.Error(t, err)
+	})
 }

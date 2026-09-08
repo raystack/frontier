@@ -10,4 +10,10 @@ var (
 	// ErrMissingDocuments is returned when the ids do not cover every configured
 	// document. All of them are required at signup.
 	ErrMissingDocuments = errors.New("missing consent document ids")
+
+	// ErrInvalidGrant is returned when a grant is missing something the record needs.
+	ErrInvalidGrant = errors.New("invalid consent grant")
+
+	// ErrConsentExists is returned when a user already has a signup record.
+	ErrConsentExists = errors.New("a consent record already exists for this user")
 )

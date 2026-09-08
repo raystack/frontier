@@ -443,7 +443,7 @@ following the `entity.verb` naming already there. Every field is set explicitly:
 |---|---|
 | `Actor` | the new user: its id, `app/user`, email as name |
 | `Resource` | the same user |
-| `Target` | the consent record id, `consent` type, document ids and versions in `Metadata` |
+| `Target` | the consent record id, `consent` type, the full document snapshots in `Metadata` |
 | `OccurredAt` | `consented_at` from the flow, not the write time |
 | `OrgID` | `schema.PlatformOrgID` |
 | `IdempotencyKey` | empty. It is nullable, and there is nothing to deduplicate |

@@ -15,17 +15,20 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/db"
 )
 
 type UserRepository struct {
-	dbc *db.Client
+	dbc         *db.Client
+	consentRepo *UserConsentRepository
 }
 
 func NewUserRepository(dbc *db.Client) *UserRepository {
 	return &UserRepository{
-		dbc: dbc,
+		dbc:         dbc,
+		consentRepo: NewUserConsentRepository(dbc),
 	}
 }
 
@@ -110,11 +113,8 @@ func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, 
 	return transformedUser, nil
 }
 
-func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
-	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
-		return user.User{}, user.ErrInvalidDetails
-	}
-
+// buildUserInsertQuery is shared by both create paths so they cannot drift.
+func buildUserInsertQuery(usr user.User) (string, []any, error) {
 	insertRow := goqu.Record{
 		"name":       strings.ToLower(usr.Name),
 		"email":      strings.ToLower(usr.Email),
@@ -126,14 +126,79 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	if usr.Metadata != nil {
 		marshaledMetadata, err := json.Marshal(usr.Metadata)
 		if err != nil {
-			return user.User{}, fmt.Errorf("%w: %w", errParse, err)
+			return "", nil, fmt.Errorf("%w: %w", errParse, err)
 		}
 		insertRow["metadata"] = marshaledMetadata
 	}
 	if usr.State != "" {
 		insertRow["state"] = usr.State
 	}
-	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
+	return dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
+}
+
+// CreateWithConsent writes both rows in one transaction, so a user without a
+// consent record is impossible.
+func (r UserRepository) CreateWithConsent(ctx context.Context, usr user.User, cnst consent.Consent) (user.User, consent.Consent, error) {
+	var createdUser user.User
+	var createdConsent consent.Consent
+
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var txErr error
+		if createdUser, txErr = r.createWithTx(ctx, tx, usr); txErr != nil {
+			return txErr
+		}
+		// the id only exists once the row is written
+		cnst.UserID = createdUser.ID
+		cnst.UserEmail = createdUser.Email
+		createdConsent, txErr = r.consentRepo.Create(ctx, tx, cnst)
+		return txErr
+	}); err != nil {
+		return user.User{}, consent.Consent{}, err
+	}
+
+	return createdUser, createdConsent, nil
+}
+
+// createWithTx creates a user inside the transaction it is given.
+func (r UserRepository) createWithTx(ctx context.Context, tx *sqlx.Tx, usr user.User) (user.User, error) {
+	if tx == nil {
+		return user.User{}, fmt.Errorf("%w: no transaction", errQuery)
+	}
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
+		return user.User{}, user.ErrInvalidDetails
+	}
+
+	createQuery, params, err := buildUserInsertQuery(usr)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
+	}
+
+	var userModel User
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "createWithTx", func(ctx context.Context) error {
+		return tx.QueryRowxContext(ctx, createQuery, params...).StructScan(&userModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrDuplicateKey):
+			return user.User{}, user.ErrConflict
+		default:
+			return user.User{}, err
+		}
+	}
+
+	transformedUser, err := userModel.transformToUser()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
+	}
+	return transformedUser, nil
+}
+
+func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
+	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
+		return user.User{}, user.ErrInvalidDetails
+	}
+
+	createQuery, params, err := buildUserInsertQuery(usr)
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}

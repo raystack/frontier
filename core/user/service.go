@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/auditrecord/models"
+	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
@@ -82,14 +83,23 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 }
 
 func (s Service) Create(ctx context.Context, user User) (User, error) {
-	return s.repository.Create(ctx, User{
+	return s.repository.Create(ctx, toCreate(user))
+}
+
+func (s Service) CreateWithConsent(ctx context.Context, user User, cnst consent.Consent) (User, consent.Consent, error) {
+	return s.repository.CreateWithConsent(ctx, toCreate(user), cnst)
+}
+
+// toCreate normalises a user the same way for both create paths.
+func toCreate(user User) User {
+	return User{
 		Name:     strings.ToLower(user.Name),
 		Email:    strings.ToLower(user.Email),
 		State:    Enabled,
 		Avatar:   user.Avatar,
 		Title:    user.Title,
 		Metadata: user.Metadata,
-	})
+	}
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {

@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/consent"
+
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -62,12 +64,20 @@ var (
 	ErrLoginUserNotFound     = errors.New("no account for this email")
 	ErrSignupUserExists      = errors.New("an account already exists for this email")
 	ErrInvalidMethod         = errors.New("this account cannot use the requested authentication method")
+	ErrConsentRequired       = errors.New("consent required for the configured documents")
 )
 
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	Create(context.Context, user.User) (user.User, error)
+	CreateWithConsent(ctx context.Context, toCreate user.User, cnst consent.Consent) (user.User, consent.Consent, error)
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
+}
+
+type ConsentService interface {
+	ResolveAll(ids []string) ([]consent.Document, error)
+	PrepareGrant(req consent.GrantRequest) (consent.Consent, error)
+	RecordGranted(ctx context.Context, granted consent.Consent)
 }
 
 type ServiceUserService interface {
@@ -117,12 +127,13 @@ type Service struct {
 	userPATService       UserPATService
 	orgService           OrgService
 	webAuth              *webauthn.WebAuthn
+	consentService       ConsentService
 }
 
 func NewService(logger *slog.Logger, config Config, flowRepo FlowRepository,
 	mailDialer mailer.Dialer, tokenService TokenService, sessionService SessionService,
 	userService UserService, serviceUserService ServiceUserService, webAuthConfig *webauthn.WebAuthn,
-	userPATService UserPATService) *Service {
+	userPATService UserPATService, consentService ConsentService) *Service {
 	r := &Service{
 		log: logger,
 		cron: cron.New(cron.WithChain(
@@ -141,6 +152,7 @@ func NewService(logger *slog.Logger, config Config, flowRepo FlowRepository,
 		serviceUserService:   serviceUserService,
 		userPATService:       userPATService,
 		webAuth:              webAuthConfig,
+		consentService:       consentService,
 	}
 	return r
 }
@@ -857,7 +869,8 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 		if intent == FlowIntentSignup {
 			return user.User{}, ErrSignupUserExists
 		}
-		// user is already registered
+		// user is already registered: no consent record, because one written outside
+		// a user creation would date an agreement made elsewhere
 
 		// TODO(kushsharma): should we update metadata like profile picture from social logins
 		// for registered users every time the login?
@@ -871,11 +884,7 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 	}
 
 	// register a new user
-	newUser, err := s.userService.Create(ctx, user.User{
-		Title: title,
-		Email: email,
-		Name:  str.GenerateUserSlug(email),
-	})
+	newUser, err := s.createUser(ctx, flow, email, title)
 	if err != nil {
 		return user.User{}, err
 	}
@@ -887,6 +896,63 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 			"avatar": newUser.Avatar,
 		})
 	return newUser, nil
+}
+
+// createUser writes the user row, and the consent record alongside it when the
+// deployment asks for consent. An incomplete payload is rejected before
+// anything is written; past that, both rows land together or not at all.
+func (s Service) createUser(ctx context.Context, flow *Flow, email, title string) (user.User, error) {
+	toCreate := user.User{
+		Title: title,
+		Email: email,
+		Name:  str.GenerateUserSlug(email),
+	}
+
+	documents, err := s.resolveConsent(flow)
+	if err != nil {
+		return user.User{}, err
+	}
+	if len(documents) == 0 {
+		return s.userService.Create(ctx, toCreate)
+	}
+
+	consented, _ := flow.Consent()
+	// the identity is left blank: the user id does not exist until the insert returns
+	granted, err := s.consentService.PrepareGrant(consent.GrantRequest{
+		Documents:    documents,
+		Source:       consent.SourceSignup,
+		AuthStrategy: flow.Method,
+		IPAddress:    consented.IPAddress,
+		ConsentedAt:  consented.At,
+	})
+	if err != nil {
+		return user.User{}, err
+	}
+
+	newUser, granted, err := s.userService.CreateWithConsent(ctx, toCreate, granted)
+	if err != nil {
+		return user.User{}, err
+	}
+
+	s.consentService.RecordGranted(ctx, granted)
+	return newUser, nil
+}
+
+// resolveConsent reports which documents this user creation has to record. It
+// runs under every intent: an unset intent is permissive for the login gate,
+// never for consent. A nil flow has nobody present to consent, so it is exempt.
+func (s Service) resolveConsent(flow *Flow) ([]consent.Document, error) {
+	if flow == nil || s.consentService == nil {
+		return nil, nil
+	}
+
+	consented, _ := flow.Consent()
+	documents, err := s.consentService.ResolveAll(consented.AcceptedDocumentIDs)
+	if err != nil {
+		// the wrapped error names what is missing, for the log not the response
+		return nil, fmt.Errorf("%w: %w", ErrConsentRequired, err)
+	}
+	return documents, nil
 }
 
 func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion) (Principal, error) {
