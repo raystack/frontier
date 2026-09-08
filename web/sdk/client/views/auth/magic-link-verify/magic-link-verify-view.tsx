@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Text, Link, Flex, Input } from '@raystack/apsara';
+import { Button, Text, Link, Flex, Field, Input } from '@raystack/apsara';
 import {
   ChangeEvent,
   ComponentPropsWithRef,
@@ -19,6 +19,7 @@ import {
   type AuthContainerProps
 } from '~/client/components/auth-container';
 import { AuthHeader } from '~/client/components/auth-header';
+import { describeAuthError } from '~/client/components/auth-error';
 import styles from './magic-link-verify-view.module.css';
 
 export type MagicLinkVerifyViewProps = ComponentPropsWithRef<'div'> &
@@ -48,7 +49,7 @@ export const MagicLinkVerifyView = ({
   const handleOTPChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     isButtonDisabledRef.current = value.length === 0;
-    if (submitError.length > 0) setSubmitError('');
+    if (submitError) setSubmitError('');
     setOTP(value);
   };
 
@@ -74,9 +75,15 @@ export const MagicLinkVerifyView = ({
         const destination = redirectURL ?? window.location.origin;
         window.location.replace(destination);
       } catch (error) {
-        console.log(error);
         isButtonDisabledRef.current = true;
-        setSubmitError('Please enter a valid OTP');
+        // Without an intent the gates and the consent check run at user
+        // creation, so a rejection arrives here rather than at Authenticate.
+        // An InvalidArgument is the bad or expired code this view used to
+        // assume every failure was.
+        const { kind, message } = describeAuthError(error);
+        setSubmitError(
+          kind === 'invalid_request' ? 'Please enter a valid OTP' : message
+        );
       }
     },
     [otp, stateParam, authCallback, redirectURL]
@@ -95,7 +102,7 @@ export const MagicLinkVerifyView = ({
       </Flex>
 
       <form onSubmit={OTPVerifyHandler} className={styles.form}>
-        <Flex direction="column" gap={2} className={styles.otpInputContainer}>
+        <Field error={submitError}>
           <Input
             data-test-id="enter-code"
             autoFocus
@@ -104,11 +111,7 @@ export const MagicLinkVerifyView = ({
             onChange={handleOTPChange}
             className={styles.textFieldCode}
           />
-
-          <Text size="small" variant="danger" className={styles.error}>
-            {submitError && String(submitError)}
-          </Text>
-        </Flex>
+        </Field>
 
         <Button
           data-test-id="continue-with-login-code"

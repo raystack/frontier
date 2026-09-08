@@ -3,6 +3,15 @@ export { ViewContainer } from './components/view-container';
 export { ViewHeader } from './components/view-header';
 export { AuthContainer } from './components/auth-container';
 export { AuthHeader } from './components/auth-header';
+// An OIDC or mail link rejection arrives at the callback page the application
+// hosts. That page decides where the user goes next, so it needs to read the
+// rejection; the copy and the closed set of kinds stay here.
+export {
+  describeAuthError,
+  authErrorMessage,
+  isAuthErrorKind
+} from './components/auth-error';
+export type { AuthError, AuthErrorKind } from './components/auth-error';
 
 export { SignInView } from './views/auth/sign-in';
 export { SignUpView } from './views/auth/sign-up';
