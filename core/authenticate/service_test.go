@@ -1688,6 +1688,10 @@ func TestService_FinishFlow_Intent(t *testing.T) {
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
 				assert.Nil(t, got)
+				// the rejection names the strategy, for the client that cannot know it
+				var rejection *authenticate.FlowRejection
+				require.ErrorAs(t, err, &rejection)
+				assert.Equal(t, authenticate.MailOTPAuthMethod.String(), rejection.Strategy)
 				return
 			}
 			require.NoError(t, err)
@@ -1812,6 +1816,10 @@ func TestService_FinishFlow_Consent(t *testing.T) {
 		assert.ErrorIs(t, err, authenticate.ErrConsentRequired)
 		// the wrapped error still names what was missing
 		assert.ErrorIs(t, err, consent.ErrMissingDocuments)
+		// and the strategy it came through
+		var rejection *authenticate.FlowRejection
+		require.ErrorAs(t, err, &rejection)
+		assert.Equal(t, authenticate.MailOTPAuthMethod.String(), rejection.Strategy)
 		// the rejection is the error and nothing else
 		assert.Nil(t, got)
 		mockUserService.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)

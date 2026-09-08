@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	frontiererrors "github.com/raystack/frontier/pkg/errors"
+	"github.com/raystack/frontier/pkg/server/consts"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -589,6 +590,62 @@ func TestConnectHandler_AuthCallback_Rejections(t *testing.T) {
 			assert.Equal(t, tt.wantCode, connectErr.Code())
 			assert.Equal(t, tt.wantMsg, connectErr.Message())
 			assert.NotContains(t, connectErr.Message(), "terms_of_service")
+		})
+	}
+}
+
+// TestConnectHandler_AuthCallback_RejectionNamesStrategy covers the header the
+// callback sets so a client can put the message under the button that caused it.
+// A rejection with no flow behind it sets nothing rather than an empty header.
+func TestConnectHandler_AuthCallback_RejectionNamesStrategy(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+
+		wantCode     connect.Code
+		wantStrategy []string
+	}{
+		{
+			name:         "an oidc rejection names its provider",
+			err:          &authenticate.FlowRejection{Err: authenticate.ErrLoginUserNotFound, Strategy: "google"},
+			wantCode:     connect.CodeNotFound,
+			wantStrategy: []string{"google"},
+		},
+		{
+			name: "a wrapped consent rejection keeps its strategy",
+			err: &authenticate.FlowRejection{
+				Err:      fmt.Errorf("%w: %w: terms_of_service", authenticate.ErrConsentRequired, consent.ErrMissingDocuments),
+				Strategy: authenticate.MailOTPAuthMethod.String(),
+			},
+			wantCode:     connect.CodeFailedPrecondition,
+			wantStrategy: []string{authenticate.MailOTPAuthMethod.String()},
+		},
+		{
+			name:     "a bare sentinel sets no header",
+			err:      authenticate.ErrSignupUserExists,
+			wantCode: connect.CodeAlreadyExists,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			mockAuthnSrv := mocks.NewAuthnService(t)
+			mockAuthnSrv.EXPECT().FinishFlow(ctx, mock.Anything).Return(nil, tt.err)
+
+			handler := &ConnectHandler{authnService: mockAuthnSrv}
+			resp, err := handler.AuthCallback(ctx, connect.NewRequest(&frontierv1beta1.AuthCallbackRequest{
+				State: "state",
+				Code:  "code",
+			}))
+
+			assert.Nil(t, resp)
+			connectErr := err.(*connect.Error)
+			assert.Equal(t, tt.wantCode, connectErr.Code())
+			assert.NotContains(t, connectErr.Message(), "terms_of_service")
+			// Values, not Get: a second value would be comma-joined by connect-es
+			assert.Equal(t, tt.wantStrategy, connectErr.Meta().Values(consts.AuthStrategyResponseKey))
 		})
 	}
 }

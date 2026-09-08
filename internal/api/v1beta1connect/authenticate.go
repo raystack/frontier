@@ -190,7 +190,14 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
 				"strategy", request.Msg.GetStrategyName(),
 				"state", request.Msg.GetState())
-			return nil, connect.NewError(rejection.code, rejection.err)
+			connectErr := connect.NewError(rejection.code, rejection.err)
+			// The flow knows the strategy when the request does not, which is the case
+			// for OIDC. Set, not Add: connect-es joins repeated headers with commas.
+			var flowRejection *authenticate.FlowRejection
+			if errors.As(err, &flowRejection) {
+				connectErr.Meta().Set(consts.AuthStrategyResponseKey, flowRejection.Strategy)
+			}
+			return nil, connectErr
 		}
 
 		// ErrUnsupportedMethod here means the strategy and state the client sent match
