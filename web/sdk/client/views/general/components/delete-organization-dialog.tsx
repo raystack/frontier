@@ -89,8 +89,6 @@ export const DeleteOrganizationDialog = ({
     } catch (error) {
       handleConnectError(error, {
         PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        // the server names what blocks the delete; show the matching
-        // instructions instead of the raw server text
         FailedPrecondition: (err) =>
           toastManager.add({
             title: `Cannot delete this ${orgLabelLower} yet`,

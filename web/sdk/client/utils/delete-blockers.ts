@@ -1,13 +1,9 @@
 import { ConnectError } from '@connectrpc/connect';
 
-// Words the instructions are built from. The host app decides what an
-// organization is called (for example "workspace") and what its base plan
-// is called (for example "Standard Plan"), so both come from the caller.
+// Words that come from the host app: what it calls an organization
+// and what it calls its base plan.
 export interface BlockerWording {
-  // The organization noun in lower case, as used mid-sentence.
   organizationLabel: string;
-  // The display title of the plan a paid subscription must be moved to.
-  // Falls back to a plain "standard plan" when the host app set none.
   basePlanTitle?: string;
 }
 
@@ -15,12 +11,7 @@ const DEFAULT_WORDING: BlockerWording = {
   organizationLabel: 'organization'
 };
 
-// The server reports why an organization cannot be deleted as a list of
-// blockers, each with a machine-readable type. These are the types the
-// server knows today, mapped to one full sentence the user can act on.
-// The wording must stay in line with the server behavior: a paid
-// subscription must be downgraded, unpaid invoices must be paid, and a
-// token debt is cleared by buying tokens.
+// One sentence per blocker type the server can return.
 const BLOCKER_INSTRUCTIONS: Record<
   string,
   (count: number, wording: BlockerWording) => string
@@ -37,15 +28,11 @@ const BLOCKER_INSTRUCTIONS: Record<
     `Please purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
 };
 
-// Shown when the server reports a blocker kind this version does not know,
-// or when the error could not be read at all.
+// Used for blocker types this version does not know.
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
-// instructionLines turns a list of blockers into one sentence per kind of
-// blocker. Blockers of the same kind are counted so the sentence can say
-// "your 2 outstanding invoices". A kind without a known instruction becomes
-// the generic message, once.
+// Returns one sentence per blocker type. Same-type blockers are counted.
 export function instructionLines(
   blockers: { type: string }[],
   wording: BlockerWording = DEFAULT_WORDING
@@ -70,12 +57,10 @@ export function instructionLines(
   return lines;
 }
 
-// deleteBlockedDescription reads the blockers out of a failed_precondition
-// error from DeleteOrganization and returns the instructions as one string.
-// The server attaches them as a google.rpc.PreconditionFailure detail; over
-// the Connect JSON protocol that detail arrives with a ready-made JSON copy
-// in its debug field. When the error carries nothing readable, the generic
-// message is returned, so the raw server text is never shown.
+// Reads the blockers from a failed_precondition error and returns the
+// sentences as one string. The server sends them as a
+// google.rpc.PreconditionFailure detail, which Connect exposes in the
+// detail's debug field.
 export function deleteBlockedDescription(
   err: ConnectError,
   wording: BlockerWording = DEFAULT_WORDING
