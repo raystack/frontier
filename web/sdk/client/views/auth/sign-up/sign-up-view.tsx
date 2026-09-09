@@ -133,7 +133,7 @@ export const SignUpView = ({
             </Field>
           )
         )}
-        {groupError && <Field.Error match>{groupError}</Field.Error>}
+        {groupError && <Field error={groupError} />}
 
         {documents.length > 0 && (
           <AuthConsent
