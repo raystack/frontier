@@ -2,7 +2,6 @@ import { useEffect, Suspense, useContext } from 'react';
 import { Flex } from '@raystack/apsara';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { handoffAuthRejection } from '@/hooks/useAuthRejection';
 import {
   Code,
   ConnectError,
@@ -42,9 +41,11 @@ function CallbackComponent() {
       navigate('/', { replace: true });
     } else if (isError) {
       setIsAuthorized(false);
-      handoffAuthRejection(describeAuthError(error));
       const route = REJECTION_ROUTE[ConnectError.from(error).code];
-      navigate(route ?? DEFAULT_REJECTION_ROUTE, { replace: true });
+      navigate(route ?? DEFAULT_REJECTION_ROUTE, {
+        replace: true,
+        state: describeAuthError(error)
+      });
     }
   }, [isSuccess, isError, error, navigate, setIsAuthorized]);
 

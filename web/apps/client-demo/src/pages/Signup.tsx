@@ -1,12 +1,12 @@
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { useAuthRejection } from '@/hooks/useAuthRejection';
 import { Flex } from '@raystack/apsara';
-import { SignUpView } from '@raystack/frontier/client';
+import { SignUpView, type AuthRejection } from '@raystack/frontier/client';
+import { useLocation } from 'react-router-dom';
 
 export default function Signup() {
   useAuthRedirect();
 
-  const rejection = useAuthRejection();
+  const rejection = useLocation().state as AuthRejection | null;
 
   return (
     <Flex
@@ -14,7 +14,7 @@ export default function Signup() {
       align="center"
       style={{ height: '100vh', width: '100vw' }}
     >
-      <SignUpView error={rejection} />
+      <SignUpView error={rejection ?? undefined} />
     </Flex>
   );
 }
