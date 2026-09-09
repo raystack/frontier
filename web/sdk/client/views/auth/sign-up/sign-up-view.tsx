@@ -23,7 +23,7 @@ import { AuthOIDCButton } from '~/client/components/auth-oidc-button';
 import {
   describeAuthError,
   type AuthRejection
-} from '~/client/components/auth-error';
+} from '~/client/utils/auth-error';
 import { MagicLinkView } from '../magic-link/magic-link-view';
 import styles from './sign-up-view.module.css';
 

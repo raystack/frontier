@@ -20,7 +20,7 @@ import {
   type AuthContainerProps
 } from '~/client/components/auth-container';
 import { AuthHeader } from '~/client/components/auth-header';
-import { describeAuthError } from '~/client/components/auth-error';
+import { describeAuthError } from '~/client/utils/auth-error';
 import styles from './magic-link-verify-view.module.css';
 
 export type MagicLinkVerifyViewProps = ComponentPropsWithRef<'div'> &

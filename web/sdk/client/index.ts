@@ -3,8 +3,8 @@ export { ViewContainer } from './components/view-container';
 export { ViewHeader } from './components/view-header';
 export { AuthContainer } from './components/auth-container';
 export { AuthHeader } from './components/auth-header';
-export { describeAuthError } from './components/auth-error';
-export type { AuthRejection } from './components/auth-error';
+export { describeAuthError } from './utils/auth-error';
+export type { AuthRejection } from './utils/auth-error';
 
 export { SignInView } from './views/auth/sign-in';
 export { SignUpView } from './views/auth/sign-up';
