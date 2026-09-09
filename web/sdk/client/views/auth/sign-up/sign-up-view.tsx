@@ -1,18 +1,13 @@
-import { Checkbox, Field, Flex, Link, Text } from '@raystack/apsara';
+import { Field, Flex, Link, Text } from '@raystack/apsara';
 import {
   ComponentPropsWithRef,
-  Fragment,
   ReactNode,
   useCallback,
   useMemo,
   useState
 } from 'react';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import {
-  FlowIntent,
-  FrontierServiceQueries,
-  type ConsentDocument
-} from '@raystack/proton/frontier';
+import { FlowIntent, FrontierServiceQueries } from '@raystack/proton/frontier';
 import { useFrontier } from '~/client/contexts/FrontierContext';
 import {
   AuthContainer,
@@ -25,31 +20,8 @@ import {
   type AuthRejection
 } from '~/client/utils/auth-error';
 import { MagicLinkView } from '../magic-link/magic-link-view';
+import { AuthConsent, type ConsentLabel } from './auth-consent';
 import styles from './sign-up-view.module.css';
-
-export type ConsentLabel =
-  | ReactNode
-  | ((documents: ConsentDocument[]) => ReactNode);
-
-const documentLinks = (documents: ConsentDocument[]) =>
-  documents.map((document, index) => (
-    <Fragment key={document.id}>
-      {index > 0 && (index === documents.length - 1 ? ' and ' : ', ')}
-      <Link
-        href={document.url}
-        external
-        variant="primary"
-        size="micro"
-        data-test-id={`frontier-sdk-consent-document-${document.id}`}
-      >
-        {document.title}
-      </Link>
-    </Fragment>
-  ));
-
-const defaultConsentLabel = (documents: ConsentDocument[]) => (
-  <>I agree to the {documentLinks(documents)}</>
-);
 
 export type SignUpViewProps = ComponentPropsWithRef<'div'> &
   AuthContainerProps & {
@@ -94,11 +66,6 @@ export const SignUpView = ({
   );
 
   const blocked = consentPending || (documents.length > 0 && !consented);
-
-  const consentContent =
-    typeof consentLabel === 'function'
-      ? consentLabel(documents)
-      : consentLabel ?? defaultConsentLabel(documents);
 
   const dismissRejection = useCallback(() => {
     setAuthError(null);
@@ -189,23 +156,12 @@ export const SignUpView = ({
         {groupMessage && <Field error={groupMessage} />}
 
         {documents.length > 0 && (
-          <Flex
-            gap={4}
-            align="start"
-            justify="center"
-            className={styles.consent}
-            render={<label />}
-          >
-            <Checkbox
-              size="small"
-              checked={consented}
-              onCheckedChange={setConsented}
-              data-test-id="frontier-sdk-consent-checkbox"
-            />
-            <Text size="micro" variant="secondary">
-              {consentContent}
-            </Text>
-          </Flex>
+          <AuthConsent
+            documents={documents}
+            checked={consented}
+            onCheckedChange={setConsented}
+            label={consentLabel}
+          />
         )}
       </Flex>
       <Text size="small" weight="regular">
