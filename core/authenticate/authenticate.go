@@ -141,6 +141,14 @@ func (f *Flow) Intent() FlowIntent {
 	return FlowIntent(intent)
 }
 
+// reject tags a rejection with the strategy this flow came through
+func (f *Flow) reject(err error) error {
+	if f == nil || f.Method == "" {
+		return err
+	}
+	return &FlowRejection{Err: err, Strategy: f.Method}
+}
+
 // Consent reads what the user accepted from metadata, reporting whether the flow
 // carries one at all. A nil flow is allowed.
 //

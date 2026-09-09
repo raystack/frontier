@@ -67,6 +67,15 @@ var (
 	ErrConsentRequired       = errors.New("consent required for the configured documents")
 )
 
+// FlowRejection is a login, signup rejection tagged with the strategy
+type FlowRejection struct {
+	Err      error
+	Strategy string
+}
+
+func (r *FlowRejection) Error() string { return r.Err.Error() }
+func (r *FlowRejection) Unwrap() error { return r.Err }
+
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	Create(context.Context, user.User) (user.User, error)
@@ -895,7 +904,7 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 	existingUser, err := s.userService.GetByID(ctx, email)
 	if err == nil {
 		if intent == FlowIntentSignup {
-			return user.User{}, ErrSignupUserExists
+			return user.User{}, flow.reject(ErrSignupUserExists)
 		}
 		// user is already registered: no consent record, because one written outside
 		// a user creation would date an agreement made elsewhere
@@ -908,7 +917,7 @@ func (s Service) getOrCreateUser(ctx context.Context, flow *Flow, email, title s
 	// the gate that matters: every strategy ends here, the last point before an
 	// account would be created for someone trying to log in
 	if intent == FlowIntentLogin {
-		return user.User{}, ErrLoginUserNotFound
+		return user.User{}, flow.reject(ErrLoginUserNotFound)
 	}
 
 	// register a new user
@@ -978,7 +987,7 @@ func (s Service) resolveConsent(flow *Flow) ([]consent.Document, error) {
 	documents, err := s.consentService.ResolveAll(consented.AcceptedDocumentIDs)
 	if err != nil {
 		// the wrapped error names what is missing, for the log not the response
-		return nil, fmt.Errorf("%w: %w", ErrConsentRequired, err)
+		return nil, flow.reject(fmt.Errorf("%w: %w", ErrConsentRequired, err))
 	}
 	return documents, nil
 }

@@ -23,6 +23,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// authRejectionStrategy reads the one AuthStrategy detail a callback rejection
+// carries.
+func authRejectionStrategy(t *testing.T, connectErr *connect.Error) *frontierv1beta1.AuthStrategy {
+	t.Helper()
+	require.Len(t, connectErr.Details(), 1)
+	msg, err := connectErr.Details()[0].Value()
+	require.NoError(t, err)
+	strategy, ok := msg.(*frontierv1beta1.AuthStrategy)
+	require.True(t, ok, "detail is %T, want AuthStrategy", msg)
+	return strategy
+}
+
 func TestConnectHandler_AuthToken_ServiceUser(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -529,6 +541,9 @@ func TestConnectHandler_Authenticate_Rejections(t *testing.T) {
 			assert.Equal(t, tt.wantCode, connectErr.Code())
 			assert.Equal(t, tt.wantMsg, connectErr.Message())
 			assert.NotContains(t, connectErr.Message(), "terms_of_service")
+			// at flow start the client named the strategy itself, so nothing is
+			// echoed back
+			assert.Empty(t, connectErr.Details())
 		})
 	}
 }
@@ -589,6 +604,66 @@ func TestConnectHandler_AuthCallback_Rejections(t *testing.T) {
 			assert.Equal(t, tt.wantCode, connectErr.Code())
 			assert.Equal(t, tt.wantMsg, connectErr.Message())
 			assert.NotContains(t, connectErr.Message(), "terms_of_service")
+		})
+	}
+}
+
+// TestConnectHandler_AuthCallback_RejectionNamesStrategy covers the
+// AuthStrategy detail the callback attaches so a client can put the message
+// under the button that caused it. A rejection with no flow behind it carries
+// no detail.
+func TestConnectHandler_AuthCallback_RejectionNamesStrategy(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+
+		wantCode     connect.Code
+		wantStrategy string
+	}{
+		{
+			name:         "an oidc rejection names its provider",
+			err:          &authenticate.FlowRejection{Err: authenticate.ErrLoginUserNotFound, Strategy: "google"},
+			wantCode:     connect.CodeNotFound,
+			wantStrategy: "google",
+		},
+		{
+			name: "a wrapped consent rejection keeps its strategy",
+			err: &authenticate.FlowRejection{
+				Err:      fmt.Errorf("%w: %w: terms_of_service", authenticate.ErrConsentRequired, consent.ErrMissingDocuments),
+				Strategy: authenticate.MailOTPAuthMethod.String(),
+			},
+			wantCode:     connect.CodeFailedPrecondition,
+			wantStrategy: authenticate.MailOTPAuthMethod.String(),
+		},
+		{
+			name:     "a bare sentinel carries no detail",
+			err:      authenticate.ErrSignupUserExists,
+			wantCode: connect.CodeAlreadyExists,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			mockAuthnSrv := mocks.NewAuthnService(t)
+			mockAuthnSrv.EXPECT().FinishFlow(ctx, mock.Anything).Return(nil, tt.err)
+
+			handler := &ConnectHandler{authnService: mockAuthnSrv}
+			resp, err := handler.AuthCallback(ctx, connect.NewRequest(&frontierv1beta1.AuthCallbackRequest{
+				State: "state",
+				Code:  "code",
+			}))
+
+			assert.Nil(t, resp)
+			connectErr := err.(*connect.Error)
+			assert.Equal(t, tt.wantCode, connectErr.Code())
+			assert.NotContains(t, connectErr.Message(), "terms_of_service")
+			if tt.wantStrategy == "" {
+				assert.Empty(t, connectErr.Details())
+				return
+			}
+			assert.Equal(t, tt.wantStrategy, authRejectionStrategy(t, connectErr).GetName())
 		})
 	}
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Text, Link, Flex, Input } from '@raystack/apsara';
+import { Button, Text, Link, Flex, Field, Input } from '@raystack/apsara';
 import {
   ChangeEvent,
   ComponentPropsWithRef,
@@ -11,6 +11,7 @@ import {
   useRef,
   useState
 } from 'react';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { useFrontier } from '~/client/contexts/FrontierContext';
@@ -19,6 +20,8 @@ import {
   type AuthContainerProps
 } from '~/client/components/auth-container';
 import { AuthHeader } from '~/client/components/auth-header';
+import { describeAuthError } from '~/client/utils/auth-error';
+import { MAIL_OTP_STRATEGY } from '~/client/utils/constants';
 import styles from './magic-link-verify-view.module.css';
 
 export type MagicLinkVerifyViewProps = ComponentPropsWithRef<'div'> &
@@ -48,7 +51,7 @@ export const MagicLinkVerifyView = ({
   const handleOTPChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     isButtonDisabledRef.current = value.length === 0;
-    if (submitError.length > 0) setSubmitError('');
+    if (submitError) setSubmitError('');
     setOTP(value);
   };
 
@@ -66,7 +69,7 @@ export const MagicLinkVerifyView = ({
       e.preventDefault();
       try {
         await authCallback({
-          strategyName: 'mailotp',
+          strategyName: MAIL_OTP_STRATEGY,
           code: otp,
           state: stateParam
         });
@@ -74,9 +77,12 @@ export const MagicLinkVerifyView = ({
         const destination = redirectURL ?? window.location.origin;
         window.location.replace(destination);
       } catch (error) {
-        console.log(error);
         isButtonDisabledRef.current = true;
-        setSubmitError('Please enter a valid OTP');
+        setSubmitError(
+          ConnectError.from(error).code === Code.InvalidArgument
+            ? 'Please enter a valid OTP'
+            : describeAuthError(error).message
+        );
       }
     },
     [otp, stateParam, authCallback, redirectURL]
@@ -87,7 +93,7 @@ export const MagicLinkVerifyView = ({
       <Flex direction="column" gap={5}>
         <AuthHeader logo={logo} title={title} />
         {emailParam && (
-          <Text size="small">
+          <Text size="small" align="center">
             We have sent an OTP. Please check your inbox at
             <b> {emailParam}</b>
           </Text>
@@ -95,7 +101,7 @@ export const MagicLinkVerifyView = ({
       </Flex>
 
       <form onSubmit={OTPVerifyHandler} className={styles.form}>
-        <Flex direction="column" gap={2} className={styles.otpInputContainer}>
+        <Field error={submitError}>
           <Input
             data-test-id="enter-code"
             autoFocus
@@ -104,11 +110,7 @@ export const MagicLinkVerifyView = ({
             onChange={handleOTPChange}
             className={styles.textFieldCode}
           />
-
-          <Text size="small" variant="danger" className={styles.error}>
-            {submitError && String(submitError)}
-          </Text>
-        </Flex>
+        </Field>
 
         <Button
           data-test-id="continue-with-login-code"

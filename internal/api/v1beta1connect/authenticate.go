@@ -34,6 +34,21 @@ type authFlowRejection struct {
 	err error
 }
 
+// toConnectError builds a connect error with details for flow rejection
+func (r authFlowRejection) toConnectError(err error) *connect.Error {
+	connectErr := connect.NewError(r.code, r.err)
+	var flowRejection *authenticate.FlowRejection
+	if !errors.As(err, &flowRejection) {
+		return connectErr
+	}
+	strategy := &frontierv1beta1.AuthStrategy{Name: flowRejection.Strategy}
+
+	if detail, detailErr := connect.NewErrorDetail(strategy); detailErr == nil {
+		connectErr.AddDetail(detail)
+	}
+	return connectErr
+}
+
 // lookupAuthFlowRejection maps the four errors both auth RPCs have to make
 // legible. FailedPrecondition separates a consent rejection from a bad code or
 // an expired flow, and ErrInvalidMethod shares it because what is wrong is the
@@ -128,7 +143,7 @@ func (h *ConnectHandler) Authenticate(ctx context.Context, request *connect.Requ
 			errorLogger.LogServiceError(ctx, request, "Authenticate.StartFlow", err,
 				"strategy", request.Msg.GetStrategyName(),
 				"intent", intent.String())
-			return nil, connect.NewError(rejection.code, rejection.err)
+			return nil, rejection.toConnectError(err)
 		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("Authenticate: strategy=%s email=%s: %w", request.Msg.GetStrategyName(), request.Msg.GetEmail(), err))
 	}
@@ -190,7 +205,7 @@ func (h *ConnectHandler) AuthCallback(ctx context.Context, request *connect.Requ
 			errorLogger.LogServiceError(ctx, request, "AuthCallback.FinishFlow", err,
 				"strategy", request.Msg.GetStrategyName(),
 				"state", request.Msg.GetState())
-			return nil, connect.NewError(rejection.code, rejection.err)
+			return nil, rejection.toConnectError(err)
 		}
 
 		// ErrUnsupportedMethod here means the strategy and state the client sent match

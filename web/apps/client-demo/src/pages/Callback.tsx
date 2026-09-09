@@ -2,8 +2,21 @@ import { useEffect, Suspense, useContext } from 'react';
 import { Flex } from '@raystack/apsara';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { FrontierServiceQueries, useQuery } from '@raystack/frontier/hooks';
+import {
+  Code,
+  ConnectError,
+  FrontierServiceQueries,
+  useQuery
+} from '@raystack/frontier/hooks';
+import { describeAuthError } from '@raystack/frontier/client';
 import AuthContext from '@/contexts/auth';
+
+const REJECTION_ROUTE: Partial<Record<Code, string>> = {
+  [Code.AlreadyExists]: '/signup',
+  [Code.FailedPrecondition]: '/signup',
+  [Code.NotFound]: '/login'
+};
+const DEFAULT_REJECTION_ROUTE = '/login';
 
 function CallbackComponent() {
   const [searchParams] = useSearchParams();
@@ -13,27 +26,28 @@ function CallbackComponent() {
   const state = searchParams.get('state') || '';
   const code = searchParams.get('code') || '';
 
-  const { isSuccess, isError, error, isLoading } = useQuery(
+  const { isSuccess, isError, error } = useQuery(
     FrontierServiceQueries.authCallback,
     {
       state,
       code
     },
-    { enabled: !!state && !!code }
+    { enabled: !!state && !!code, retry: false }
   );
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isSuccess) {
-        navigate('/');
-        setIsAuthorized(true);
-      } else if (isError) {
-        console.error('Auth callback failed:', error);
-        setIsAuthorized(false);
-        navigate('/login', { replace: true });
-      }
+    if (isSuccess) {
+      setIsAuthorized(true);
+      navigate('/', { replace: true });
+    } else if (isError) {
+      setIsAuthorized(false);
+      const route = REJECTION_ROUTE[ConnectError.from(error).code];
+      navigate(route ?? DEFAULT_REJECTION_ROUTE, {
+        replace: true,
+        state: describeAuthError(error)
+      });
     }
-  }, [isSuccess, isError, navigate, error, isLoading, setIsAuthorized]);
+  }, [isSuccess, isError, error, navigate, setIsAuthorized]);
 
   return (
     <Flex

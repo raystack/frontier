@@ -1,24 +1,19 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  Button,
-  Text,
-  Separator,
-  Flex,
-  Input
-} from '@raystack/apsara';
+import { Button, Separator, Field, Input } from '@raystack/apsara';
 import { ComponentPropsWithRef, ReactNode, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import isEmail from 'validator/lib/isEmail';
 import { useMutation } from '@connectrpc/connect-query';
-import { FrontierServiceQueries } from '@raystack/proton/frontier';
+import { FlowIntent, FrontierServiceQueries } from '@raystack/proton/frontier';
 import { useFrontier } from '~/client/contexts/FrontierContext';
-import { HttpErrorResponse } from '~/client/utils';
 import {
   AuthContainer,
   type AuthContainerProps
 } from '~/client/components/auth-container';
 import { AuthHeader } from '~/client/components/auth-header';
+import { describeAuthError } from '~/client/utils/auth-error';
+import { MAIL_OTP_STRATEGY } from '~/client/utils/constants';
 import styles from './magic-link-view.module.css';
 
 export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
@@ -27,6 +22,10 @@ export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
     title?: string;
     open?: boolean;
     inline?: boolean;
+    intent?: FlowIntent;
+    acceptedDocumentIds?: string[];
+    disabled?: boolean;
+    onActivate?: () => void;
   };
 
 const emailSchema = yup.object({
@@ -49,6 +48,10 @@ export const MagicLinkView = ({
   title = 'Login to Raystack',
   open = false,
   inline = false,
+  intent = FlowIntent.UNSPECIFIED,
+  acceptedDocumentIds,
+  disabled = false,
+  onActivate,
   ...props
 }: MagicLinkViewProps) => {
   const { config } = useFrontier();
@@ -70,11 +73,14 @@ export const MagicLinkView = ({
 
   const magicLinkHandler = useCallback(
     async (data: FormData) => {
+      onActivate?.();
       try {
         const response = await authenticate({
-          strategyName: 'mailotp',
+          strategyName: MAIL_OTP_STRATEGY,
           email: data.email,
-          callbackUrl: config.callbackUrl
+          callbackUrl: config.callbackUrl,
+          flowIntent: intent,
+          acceptedDocumentIds
         });
 
         const searchParams = new URLSearchParams({
@@ -87,16 +93,10 @@ export const MagicLinkView = ({
           config.redirectMagicLinkVerify
         }?${searchParams.toString()}`;
       } catch (err: unknown) {
-        if (err instanceof Response && err?.status === 400) {
-          const message =
-            (err as HttpErrorResponse)?.error?.message || 'Bad Request';
-          setError('email', { message });
-        } else {
-          setError('email', { message: 'An unexpected error occurred' });
-        }
+        setError('email', { message: describeAuthError(err).message });
       }
     },
-    [authenticate, config.callbackUrl, config.redirectMagicLinkVerify, setError]
+    [authenticate, config, intent, acceptedDocumentIds, setError, onActivate]
   );
 
   const email = watch('email', '');
@@ -106,27 +106,33 @@ export const MagicLinkView = ({
       variant="outline"
       color="neutral"
       className={styles.button}
-      onClick={() => setVisible(true)}
+      onClick={() => {
+        setVisible(true);
+        onActivate?.();
+      }}
+      disabled={disabled}
       data-test-id="frontier-sdk-mail-otp-login-btn"
     >
       Continue with Email
     </Button>
   ) : (
-    <form noValidate className={styles.form} onSubmit={handleSubmit(magicLinkHandler)}>
+    <form
+      noValidate
+      className={styles.form}
+      onSubmit={handleSubmit(magicLinkHandler)}
+    >
       {!open && <Separator />}
-      <Flex direction="column" align="start" className={styles.field}>
+      <Field error={errors.email?.message}>
         <Input
           {...register('email')}
           size="large"
           placeholder="name@example.com"
+          disabled={disabled}
         />
-        <Text size="mini" variant="danger" className={styles.error}>
-          {errors.email && String(errors.email?.message)}
-        </Text>
-      </Flex>
+      </Field>
       <Button
         className={styles.button}
-        disabled={!email}
+        disabled={!email || disabled}
         type="submit"
         loading={isPending}
         loaderText="Loading..."

@@ -9,14 +9,3 @@
 .button {
   width: 100%;
 }
-
-.field {
-  width: 100%;
-  position: relative;
-  margin-bottom: var(--rs-space-5);
-}
-
-.error {
-  position: absolute;
-  top: calc(100% + 4px);
-}
