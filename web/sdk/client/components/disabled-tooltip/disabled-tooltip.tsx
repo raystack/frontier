@@ -15,19 +15,21 @@ export const DisabledTooltip = ({
 }: DisabledTooltipProps) => {
   const active = disabled && !!message;
 
+  if (!active) return children;
+
   return (
     <Tooltip>
-      <Tooltip.Trigger
-        disabled={!active}
-        render={<span className={styles.trigger} />}
-      >
+      <Tooltip.Trigger render={<span className={styles.trigger} />}>
         {children}
       </Tooltip.Trigger>
-      {active && (
-        <Tooltip.Content side="top" align="end">
-          {message}
-        </Tooltip.Content>
-      )}
+      <Tooltip.Content
+        side="right"
+        align="start"
+        sideOffset={-40}
+        alignOffset={-10}
+      >
+        {message}
+      </Tooltip.Content>
     </Tooltip>
   );
 };
