@@ -98,10 +98,11 @@ export const SignUpView = ({
     [authenticate, config, acceptedDocumentIds, clearError]
   );
 
-  const errorFor = (name: string) =>
-    authError?.strategy === name ? authError.message : undefined;
   const isUnknownError =
-    authError !== null && !strategies.some(s => s.name === authError.strategy);
+    authError !== null &&
+    !strategies.some(
+      s => s.name !== MAIL_OTP_STRATEGY && s.name === authError.strategy
+    );
 
   return (
     <AuthContainer {...props}>
@@ -119,11 +120,15 @@ export const SignUpView = ({
               intent={FlowIntent.SIGNUP}
               acceptedDocumentIds={acceptedDocumentIds}
               disabled={blocked}
-              error={errorFor(s.name)}
               onActivate={clearError}
             />
           ) : (
-            <Field key={s.name} error={errorFor(s.name)}>
+            <Field
+              key={s.name}
+              error={
+                authError?.strategy === s.name ? authError.message : undefined
+              }
+            >
               <AuthOIDCButton
                 onClick={() => clickHandler(s.name)}
                 provider={s.name}

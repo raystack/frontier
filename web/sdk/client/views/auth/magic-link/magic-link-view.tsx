@@ -25,7 +25,6 @@ export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
     intent?: FlowIntent;
     acceptedDocumentIds?: string[];
     disabled?: boolean;
-    error?: string;
     onActivate?: () => void;
   };
 
@@ -52,7 +51,6 @@ export const MagicLinkView = ({
   intent = FlowIntent.UNSPECIFIED,
   acceptedDocumentIds,
   disabled = false,
-  error,
   onActivate,
   ...props
 }: MagicLinkViewProps) => {
@@ -104,21 +102,19 @@ export const MagicLinkView = ({
   const email = watch('email', '');
 
   const formContent = !visible ? (
-    <Field error={error}>
-      <Button
-        variant="outline"
-        color="neutral"
-        className={styles.button}
-        onClick={() => {
-          setVisible(true);
-          onActivate?.();
-        }}
-        disabled={disabled}
-        data-test-id="frontier-sdk-mail-otp-login-btn"
-      >
-        Continue with Email
-      </Button>
-    </Field>
+    <Button
+      variant="outline"
+      color="neutral"
+      className={styles.button}
+      onClick={() => {
+        setVisible(true);
+        onActivate?.();
+      }}
+      disabled={disabled}
+      data-test-id="frontier-sdk-mail-otp-login-btn"
+    >
+      Continue with Email
+    </Button>
   ) : (
     <form
       noValidate
@@ -126,7 +122,7 @@ export const MagicLinkView = ({
       onSubmit={handleSubmit(magicLinkHandler)}
     >
       {!open && <Separator />}
-      <Field error={errors.email?.message ?? error}>
+      <Field error={errors.email?.message}>
         <Input
           {...register('email')}
           size="large"
