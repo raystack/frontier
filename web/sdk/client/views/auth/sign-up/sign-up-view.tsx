@@ -55,10 +55,11 @@ export const SignUpView = ({
       (a, b) => Number(a.name === 'mailotp') - Number(b.name === 'mailotp')
     );
 
-  const { data: consentData, isPending: consentPending } = useQuery(
-    FrontierServiceQueries.listConsentDocuments
+  const { data: documents = [], isPending: consentPending } = useQuery(
+    FrontierServiceQueries.listConsentDocuments,
+    {},
+    { select: data => data.documents }
   );
-  const documents = useMemo(() => consentData?.documents ?? [], [consentData]);
 
   const acceptedDocumentIds = useMemo(
     () => documents.map(document => document.id),
