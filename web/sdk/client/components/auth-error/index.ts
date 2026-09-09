@@ -1,6 +1,2 @@
-export {
-  describeAuthError,
-  authErrorMessage,
-  isAuthErrorKind
-} from './auth-error';
-export type { AuthError, AuthErrorKind } from './auth-error';
+export { describeAuthError } from './auth-error';
+export type { AuthRejection } from './auth-error';

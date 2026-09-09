@@ -21,17 +21,10 @@ export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
     title?: string;
     open?: boolean;
     inline?: boolean;
-    // intent separates a login from a signup. This view is shared by both, so
-    // the owning view decides.
     intent?: FlowIntent;
     acceptedDocumentIds?: string[];
     disabled?: boolean;
-    // A rejection the owning view attributes to this strategy. It sits under
-    // the button, or on the email field once the form is open, until the next
-    // submit supersedes it.
     error?: string;
-    // Fires when the user starts this strategy, by opening the form or
-    // submitting it, so the owning view can drop a rejection shown elsewhere.
     onActivate?: () => void;
   };
 
@@ -104,8 +97,6 @@ export const MagicLinkView = ({
           config.redirectMagicLinkVerify
         }?${searchParams.toString()}`;
       } catch (err: unknown) {
-        // Every rejection this form can draw is about the address it just
-        // sent, so it belongs on the field rather than beside it.
         setError('email', { message: describeAuthError(err).message });
       }
     },

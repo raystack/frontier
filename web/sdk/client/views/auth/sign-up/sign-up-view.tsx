@@ -21,16 +21,12 @@ import {
 import { AuthHeader } from '~/client/components/auth-header';
 import { AuthOIDCButton } from '~/client/components/auth-oidc-button';
 import {
-  authErrorMessage,
   describeAuthError,
-  isAuthErrorKind,
-  type AuthErrorKind
+  type AuthRejection
 } from '~/client/components/auth-error';
 import { MagicLinkView } from '../magic-link/magic-link-view';
 import styles from './sign-up-view.module.css';
 
-// The consent label: static copy, or a function of the documents for copy that
-// links them. The default names every document with a link to its url.
 export type ConsentLabel =
   | ReactNode
   | ((documents: ConsentDocument[]) => ReactNode);
@@ -61,22 +57,8 @@ export type SignUpViewProps = ComponentPropsWithRef<'div'> &
     title?: string;
     excludes?: string[];
     consentLabel?: ConsentLabel;
-    // A rejection that arrived at the application's callback page, for oidc and
-    // mail link, where the email is unknown before the redirect. How it travels
-    // back here is the application's business: this view only renders it.
-    error?: AuthErrorKind;
-    // The strategy that rejection came through: the callback names it on the
-    // error, and the application carries it here with the kind. A rejection
-    // with a strategy attaches to that button; without one it is a message for
-    // the whole group, since guessing a button would be a lie.
-    errorStrategy?: string;
+    error?: AuthRejection;
   };
-
-type StrategyRejection = {
-  // undefined when the rejection cannot be tied to one strategy
-  strategy?: string;
-  message: string;
-};
 
 export const SignUpView = ({
   logo,
@@ -84,16 +66,12 @@ export const SignUpView = ({
   excludes = [],
   consentLabel,
   error,
-  errorStrategy,
   ...props
 }: SignUpViewProps) => {
   const { config } = useFrontier();
   const [consented, setConsented] = useState(false);
-  const [authError, setAuthError] = useState<StrategyRejection | null>(null);
-  // The prop crossed a redirect as an unvalidated string, so an unknown value
-  // is dropped rather than rendered.
-  const callbackError = isAuthErrorKind(error) ? error : undefined;
-  // Any click here supersedes what the page arrived with.
+  const [authError, setAuthError] = useState<AuthRejection | null>(null);
+  const callbackError = error?.message ? error : undefined;
   const [showCallbackError, setShowCallbackError] = useState(true);
 
   const { data: strategiesData } = useQuery(
@@ -101,8 +79,6 @@ export const SignUpView = ({
   );
   const strategies = strategiesData?.strategies || [];
 
-  // An empty list means the deployment asks for no consent, so there is no
-  // checkbox and this is the view as it was before.
   const { data: consentData, isPending: consentPending } = useQuery(
     FrontierServiceQueries.listConsentDocuments
   );
@@ -117,10 +93,6 @@ export const SignUpView = ({
     FrontierServiceQueries.authenticate
   );
 
-  // Every sign-up control stays disabled until the documents are accepted, and
-  // while the list is in flight: until it resolves there is no way to know
-  // whether this deployment asks for consent at all, and a click before it
-  // lands would send an empty id set for a deployment that does.
   const blocked = consentPending || (documents.length > 0 && !consented);
 
   const consentContent =
@@ -128,7 +100,6 @@ export const SignUpView = ({
       ? consentLabel(documents)
       : consentLabel ?? defaultConsentLabel(documents);
 
-  // Starting any strategy supersedes whatever rejection is on screen.
   const dismissRejection = useCallback(() => {
     setAuthError(null);
     setShowCallbackError(false);
@@ -164,13 +135,8 @@ export const SignUpView = ({
     .filter(s => !excludes.includes(s.name ?? ''));
 
   const rejection =
-    authError ??
-    (showCallbackError && callbackError
-      ? { strategy: errorStrategy, message: authErrorMessage(callbackError) }
-      : undefined);
+    authError ?? (showCallbackError ? callbackError : undefined);
 
-  // A rejection whose strategy is not one of the buttons rendered here has
-  // nowhere to attach, so it reads as a message for the group instead.
   const mailRejection =
     mailotp && rejection?.strategy === 'mailotp'
       ? rejection.message
@@ -188,10 +154,6 @@ export const SignUpView = ({
         gap={5}
         style={{ height: '100%', width: '100%' }}
       >
-        {/* One Field per button, so a rejection sits under the strategy that
-            caused it. The email form and the consent checkbox stay outside:
-            the first would nest a second Field, the second would be marked
-            invalid for a rejection that is not about it. */}
         <Flex direction="column" gap={5}>
           {filteredOIDC.map((s, index) => {
             return (

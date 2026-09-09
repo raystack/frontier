@@ -6,8 +6,6 @@ import styles from './auth-oidc-button.module.css';
 
 const oidcLogoMap = new Map([['google', GoogleLogo]]);
 
-// Derived from Button rather than HTMLProps: the two disagree on `color` and
-// `size`, and this forwards the rest so a caller's data-test-id survives.
 export type AuthOIDCButtonProps = Omit<
   ComponentProps<typeof Button>,
   'variant' | 'color' | 'className' | 'leadingIcon' | 'children'

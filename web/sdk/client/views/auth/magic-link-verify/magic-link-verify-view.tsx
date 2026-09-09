@@ -11,6 +11,7 @@ import {
   useRef,
   useState
 } from 'react';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import { useFrontier } from '~/client/contexts/FrontierContext';
@@ -76,13 +77,10 @@ export const MagicLinkVerifyView = ({
         window.location.replace(destination);
       } catch (error) {
         isButtonDisabledRef.current = true;
-        // Without an intent the gates and the consent check run at user
-        // creation, so a rejection arrives here rather than at Authenticate.
-        // An InvalidArgument is the bad or expired code this view used to
-        // assume every failure was.
-        const { kind, message } = describeAuthError(error);
         setSubmitError(
-          kind === 'invalid_request' ? 'Please enter a valid OTP' : message
+          ConnectError.from(error).code === Code.InvalidArgument
+            ? 'Please enter a valid OTP'
+            : describeAuthError(error).message
         );
       }
     },
