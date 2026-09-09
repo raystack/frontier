@@ -37,18 +37,16 @@ function CallbackComponent() {
   );
 
   useEffect(() => {
-    if (!isSuccess) return;
-    setIsAuthorized(true);
-    navigate('/', { replace: true });
-  }, [isSuccess, navigate, setIsAuthorized]);
-
-  useEffect(() => {
-    if (!isError) return;
-    setIsAuthorized(false);
-    handoffAuthRejection(describeAuthError(error));
-    const route = REJECTION_ROUTE[ConnectError.from(error).code];
-    navigate(route ?? DEFAULT_REJECTION_ROUTE, { replace: true });
-  }, [isError, error, navigate, setIsAuthorized]);
+    if (isSuccess) {
+      setIsAuthorized(true);
+      navigate('/', { replace: true });
+    } else if (isError) {
+      setIsAuthorized(false);
+      handoffAuthRejection(describeAuthError(error));
+      const route = REJECTION_ROUTE[ConnectError.from(error).code];
+      navigate(route ?? DEFAULT_REJECTION_ROUTE, { replace: true });
+    }
+  }, [isSuccess, isError, error, navigate, setIsAuthorized]);
 
   return (
     <Flex
