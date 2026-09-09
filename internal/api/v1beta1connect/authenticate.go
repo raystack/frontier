@@ -42,7 +42,7 @@ func (r authFlowRejection) toConnectError(err error) *connect.Error {
 		return connectErr
 	}
 	strategy := &frontierv1beta1.AuthStrategy{Name: flowRejection.Strategy}
-	
+
 	if detail, detailErr := connect.NewErrorDetail(strategy); detailErr == nil {
 		connectErr.AddDetail(detail)
 	}

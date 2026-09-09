@@ -25,6 +25,9 @@ import { MagicLinkView } from '../magic-link/magic-link-view';
 import { AuthConsent, type ConsentLabel } from './auth-consent';
 import styles from './sign-up-view.module.css';
 
+const CONSENT_UNAVAILABLE_MESSAGE =
+  'The documents required to sign up could not be loaded. Please refresh the page.';
+
 export type SignUpViewProps = ComponentPropsWithRef<'div'> &
   AuthContainerProps & {
     logo?: ReactNode;
@@ -43,7 +46,7 @@ export const SignUpView = ({
   ...props
 }: SignUpViewProps) => {
   const { config } = useFrontier();
-  const [consented, setConsented] = useState(false);
+  const [agreedDocumentIds, setAgreedDocumentIds] = useState<string[]>([]);
   const [authError, setAuthError] = useState<AuthRejection | null>(() =>
     error?.message ? error : null
   );
@@ -56,22 +59,30 @@ export const SignUpView = ({
     excludes
   );
 
-  const { data: documents = [], isPending: consentPending } = useQuery(
+  const {
+    data: documents = [],
+    isPending: consentPending,
+    isError: consentFailed
+  } = useQuery(
     FrontierServiceQueries.listConsentDocuments,
     {},
     { select: data => data.documents }
   );
 
+  const consented =
+    documents.length === agreedDocumentIds.length &&
+    documents.every(document => agreedDocumentIds.includes(document.id));
   const acceptedDocumentIds = useMemo(
-    () => documents.map(document => document.id),
-    [documents]
+    () => (consented ? agreedDocumentIds : []),
+    [consented, agreedDocumentIds]
   );
 
   const { mutateAsync: authenticate } = useMutation(
     FrontierServiceQueries.authenticate
   );
 
-  const blocked = consentPending || (documents.length > 0 && !consented);
+  const blocked =
+    consentPending || consentFailed || (documents.length > 0 && !consented);
 
   const clearError = useCallback(() => setAuthError(null), []);
 
@@ -138,13 +149,22 @@ export const SignUpView = ({
             </Field>
           )
         )}
-        {isUnknownError && <Field error={authError.message} />}
-
+        {(consentFailed || isUnknownError) && (
+          <Field
+            error={
+              consentFailed ? CONSENT_UNAVAILABLE_MESSAGE : authError?.message
+            }
+          />
+        )}
         {documents.length > 0 && (
           <AuthConsent
             documents={documents}
             checked={consented}
-            onCheckedChange={setConsented}
+            onCheckedChange={checked =>
+              setAgreedDocumentIds(
+                checked ? documents.map(document => document.id) : []
+              )
+            }
             label={consentLabel}
           />
         )}
