@@ -27,6 +27,7 @@ import styles from './sign-up-view.module.css';
 
 const CONSENT_UNAVAILABLE_MESSAGE =
   'The documents required to sign up could not be loaded. Please refresh the page.';
+const CONSENT_REQUIRED_TOOLTIP = 'You must agree to continue';
 
 export type SignUpViewProps = ComponentPropsWithRef<'div'> &
   AuthContainerProps & {
@@ -131,6 +132,7 @@ export const SignUpView = ({
               intent={FlowIntent.SIGNUP}
               acceptedDocumentIds={acceptedDocumentIds}
               disabled={blocked}
+              disabledMessage={CONSENT_REQUIRED_TOOLTIP}
               onActivate={clearError}
             />
           ) : (
@@ -144,6 +146,7 @@ export const SignUpView = ({
                 onClick={() => clickHandler(s.name)}
                 provider={s.name}
                 disabled={blocked}
+                disabledMessage={CONSENT_REQUIRED_TOOLTIP}
                 data-test-id="frontier-sdk-signup-page-oidc-btn"
               />
             </Field>
