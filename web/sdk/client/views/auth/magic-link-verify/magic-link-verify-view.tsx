@@ -93,7 +93,7 @@ export const MagicLinkVerifyView = ({
       <Flex direction="column" gap={5}>
         <AuthHeader logo={logo} title={title} />
         {emailParam && (
-          <Text size="small">
+          <Text size="small" align="center">
             We have sent an OTP. Please check your inbox at
             <b> {emailParam}</b>
           </Text>
