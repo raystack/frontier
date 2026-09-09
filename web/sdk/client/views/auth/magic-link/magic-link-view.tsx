@@ -58,8 +58,6 @@ export const MagicLinkView = ({
 }: MagicLinkViewProps) => {
   const { config } = useFrontier();
   const [visible, setVisible] = useState<boolean>(open);
-  const [dismissed, setDismissed] = useState(false);
-  const attributedError = dismissed ? undefined : error;
 
   const { mutateAsync: authenticate, isPending } = useMutation(
     FrontierServiceQueries.authenticate
@@ -77,7 +75,6 @@ export const MagicLinkView = ({
 
   const magicLinkHandler = useCallback(
     async (data: FormData) => {
-      setDismissed(true);
       onActivate?.();
       try {
         const response = await authenticate({
@@ -107,7 +104,7 @@ export const MagicLinkView = ({
   const email = watch('email', '');
 
   const formContent = !visible ? (
-    <Field error={attributedError}>
+    <Field error={error}>
       <Button
         variant="outline"
         color="neutral"
@@ -129,7 +126,7 @@ export const MagicLinkView = ({
       onSubmit={handleSubmit(magicLinkHandler)}
     >
       {!open && <Separator />}
-      <Field error={errors.email?.message ?? attributedError}>
+      <Field error={errors.email?.message ?? error}>
         <Input
           {...register('email')}
           size="large"
