@@ -132,7 +132,6 @@ export const MagicLinkView = ({
           {...register('email')}
           size="large"
           placeholder="name@example.com"
-          disabled={disabled}
         />
       </Field>
       <DisabledTooltip disabled={disabled} message={disabledMessage}>
