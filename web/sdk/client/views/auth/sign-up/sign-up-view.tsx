@@ -49,9 +49,11 @@ export const SignUpView = ({
   const { data: strategiesData } = useQuery(
     FrontierServiceQueries.listAuthStrategies
   );
-  const strategies = (strategiesData?.strategies || []).filter(
-    s => !excludes.includes(s.name)
-  );
+  const strategies = (strategiesData?.strategies || [])
+    .filter(s => !excludes.includes(s.name))
+    .sort(
+      (a, b) => Number(a.name === 'mailotp') - Number(b.name === 'mailotp')
+    );
 
   const { data: consentData, isPending: consentPending } = useQuery(
     FrontierServiceQueries.listConsentDocuments
