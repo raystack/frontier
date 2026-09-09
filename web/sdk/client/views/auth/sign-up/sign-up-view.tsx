@@ -100,10 +100,8 @@ export const SignUpView = ({
 
   const errorFor = (name: string) =>
     authError?.strategy === name ? authError.message : undefined;
-  const groupError =
-    authError && !strategies.some(s => s.name === authError.strategy)
-      ? authError.message
-      : undefined;
+  const isUnknownError =
+    authError !== null && !strategies.some(s => s.name === authError.strategy);
 
   return (
     <AuthContainer {...props}>
@@ -135,7 +133,7 @@ export const SignUpView = ({
             </Field>
           )
         )}
-        {groupError && <Field error={groupError} />}
+        {isUnknownError && <Field error={authError.message} />}
 
         {documents.length > 0 && (
           <AuthConsent

@@ -78,10 +78,8 @@ export const SignInView = ({
 
   const errorFor = (name: string) =>
     authError?.strategy === name ? authError.message : undefined;
-  const groupError =
-    authError && !strategies.some(s => s.name === authError.strategy)
-      ? authError.message
-      : undefined;
+  const isUnknownError =
+    authError !== null && !strategies.some(s => s.name === authError.strategy);
 
   return (
     <AuthContainer {...props}>
@@ -106,7 +104,7 @@ export const SignInView = ({
             </Field>
           )
         )}
-        {groupError && <Field error={groupError} />}
+        {isUnknownError && <Field error={authError.message} />}
       </Flex>
       {footer && (
         <Text size="small" weight="regular">
