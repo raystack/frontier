@@ -34,28 +34,26 @@ export const SignInView = ({
   ...props
 }: SignInViewProps) => {
   const { config } = useFrontier();
-  const [authError, setAuthError] = useState<AuthRejection | null>(null);
-  const callbackError = error?.message ? error : undefined;
-  const [showCallbackError, setShowCallbackError] = useState(true);
+  const [authError, setAuthError] = useState<AuthRejection | null>(() =>
+    error?.message ? error : null
+  );
 
   const { data: strategiesData } = useQuery(
     FrontierServiceQueries.listAuthStrategies
   );
-  const strategies = strategiesData?.strategies || [];
+  const strategies = (strategiesData?.strategies || []).filter(
+    s => !excludes.includes(s.name)
+  );
 
   const { mutateAsync: authenticate } = useMutation(
     FrontierServiceQueries.authenticate
   );
 
-  const dismissRejection = useCallback(() => {
-    setAuthError(null);
-    setShowCallbackError(false);
-  }, []);
+  const clearError = useCallback(() => setAuthError(null), []);
 
   const clickHandler = useCallback(
-    async (name?: string) => {
-      if (!name) return;
-      dismissRejection();
+    async (name: string) => {
+      clearError();
       try {
         const response = await authenticate({
           strategyName: name,
@@ -72,60 +70,40 @@ export const SignInView = ({
         });
       }
     },
-    [authenticate, config, dismissRejection]
+    [authenticate, config, clearError]
   );
 
-  const mailotp = strategies.find(s => s.name === 'mailotp');
-  const filteredOIDC = strategies
-    .filter(s => s.name !== 'mailotp')
-    .filter(s => !excludes.includes(s.name ?? ''));
-
-  const rejection =
-    authError ?? (showCallbackError ? callbackError : undefined);
-
-  const mailRejection =
-    mailotp && rejection?.strategy === 'mailotp'
-      ? rejection.message
+  const errorFor = (name: string) =>
+    authError?.strategy === name ? authError.message : undefined;
+  const groupError =
+    authError && !strategies.some(s => s.name === authError.strategy)
+      ? authError.message
       : undefined;
-  const attached =
-    !!mailRejection ||
-    filteredOIDC.some(s => s.name && s.name === rejection?.strategy);
-  const groupMessage = rejection && !attached ? rejection.message : undefined;
 
   return (
     <AuthContainer {...props}>
       <AuthHeader logo={logo} title={title} />
       <Flex direction="column" gap={5} style={{ width: '100%' }}>
-        <Flex direction="column" gap={5}>
-          {filteredOIDC.map((s, index) => {
-            return (
-              <Field
-                key={index}
-                error={
-                  s.name && s.name === rejection?.strategy
-                    ? rejection.message
-                    : undefined
-                }
-              >
-                <AuthOIDCButton
-                  onClick={() => clickHandler(s.name)}
-                  provider={s.name || ''}
-                  data-test-id="frontier-sdk-oidc-btn"
-                />
-              </Field>
-            );
-          })}
-        </Flex>
-
-        {mailotp && (
-          <MagicLinkView
-            inline
-            intent={FlowIntent.LOGIN}
-            error={mailRejection}
-            onActivate={dismissRejection}
-          />
+        {strategies.map(s =>
+          s.name === 'mailotp' ? (
+            <MagicLinkView
+              key={s.name}
+              inline
+              intent={FlowIntent.LOGIN}
+              error={errorFor(s.name)}
+              onActivate={clearError}
+            />
+          ) : (
+            <Field key={s.name} error={errorFor(s.name)}>
+              <AuthOIDCButton
+                onClick={() => clickHandler(s.name)}
+                provider={s.name}
+                data-test-id="frontier-sdk-oidc-btn"
+              />
+            </Field>
+          )
         )}
-        {groupMessage && <Field error={groupMessage} />}
+        {groupError && <Field.Error match>{groupError}</Field.Error>}
       </Flex>
       {footer && (
         <Text size="small" weight="regular">
