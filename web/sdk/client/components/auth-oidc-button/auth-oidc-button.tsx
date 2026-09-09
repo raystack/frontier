@@ -8,7 +8,7 @@ const oidcLogoMap = new Map([['google', GoogleLogo]]);
 
 export type AuthOIDCButtonProps = Omit<
   ComponentProps<typeof Button>,
-  'variant' | 'color' | 'className' | 'leadingIcon' | 'children'
+  'variant' | 'color' | 'className' | 'leadingIcon'
 > & {
   provider: string;
 };
@@ -17,6 +17,7 @@ export const AuthOIDCButton = ({
   onClick,
   provider,
   disabled,
+  children = `Continue with ${capitalize(provider)}`,
   ...props
 }: AuthOIDCButtonProps) => (
   <Button
@@ -36,6 +37,6 @@ export const AuthOIDCButton = ({
       ) : null
     }
   >
-    Continue with {capitalize(provider)}
+    {children}
   </Button>
 );
