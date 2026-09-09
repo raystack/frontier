@@ -24,6 +24,8 @@ export type SignInViewProps = ComponentPropsWithRef<'div'> &
     title?: string;
     excludes?: string[];
     footer?: boolean;
+    /** Send no flow intent, so the server falls back to create-or-get. */
+    disableIntent?: boolean;
     error?: AuthRejection;
   };
 
@@ -32,6 +34,7 @@ export const SignInView = ({
   title = 'Login to Raystack',
   excludes = [],
   footer = true,
+  disableIntent = false,
   error,
   ...props
 }: SignInViewProps) => {
@@ -52,6 +55,8 @@ export const SignInView = ({
     FrontierServiceQueries.authenticate
   );
 
+  const intent = disableIntent ? FlowIntent.UNSPECIFIED : FlowIntent.LOGIN;
+
   const clearError = useCallback(() => setAuthError(null), []);
 
   const clickHandler = useCallback(
@@ -61,7 +66,7 @@ export const SignInView = ({
         const response = await authenticate({
           strategyName: name,
           callbackUrl: config.callbackUrl,
-          flowIntent: FlowIntent.LOGIN
+          flowIntent: intent
         });
         if (response.endpoint) {
           window.location.href = response.endpoint;
@@ -73,7 +78,7 @@ export const SignInView = ({
         });
       }
     },
-    [authenticate, config, clearError]
+    [authenticate, config, intent, clearError]
   );
 
   const isUnknownError =
@@ -91,7 +96,7 @@ export const SignInView = ({
             <MagicLinkView
               key={s.name}
               inline
-              intent={FlowIntent.LOGIN}
+              intent={intent}
               onActivate={clearError}
             />
           ) : (

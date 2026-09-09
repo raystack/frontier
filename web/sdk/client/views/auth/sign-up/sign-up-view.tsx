@@ -35,6 +35,8 @@ export type SignUpViewProps = ComponentPropsWithRef<'div'> &
     title?: string;
     excludes?: string[];
     consentLabel?: ConsentLabel;
+    /** Send no flow intent, so the server falls back to create-or-get. */
+    disableIntent?: boolean;
     error?: AuthRejection;
   };
 
@@ -43,6 +45,7 @@ export const SignUpView = ({
   title = 'Create your account',
   excludes = [],
   consentLabel,
+  disableIntent = false,
   error,
   ...props
 }: SignUpViewProps) => {
@@ -85,6 +88,8 @@ export const SignUpView = ({
   const blocked =
     consentPending || consentFailed || (documents.length > 0 && !consented);
 
+  const intent = disableIntent ? FlowIntent.UNSPECIFIED : FlowIntent.SIGNUP;
+
   const clearError = useCallback(() => setAuthError(null), []);
 
   const clickHandler = useCallback(
@@ -94,7 +99,7 @@ export const SignUpView = ({
         const response = await authenticate({
           strategyName: name,
           callbackUrl: config.callbackUrl,
-          flowIntent: FlowIntent.SIGNUP,
+          flowIntent: intent,
           acceptedDocumentIds
         });
         if (response.endpoint) {
@@ -107,7 +112,7 @@ export const SignUpView = ({
         });
       }
     },
-    [authenticate, config, acceptedDocumentIds, clearError]
+    [authenticate, config, intent, acceptedDocumentIds, clearError]
   );
 
   const isUnknownError =
@@ -129,7 +134,7 @@ export const SignUpView = ({
             <MagicLinkView
               key={s.name}
               inline
-              intent={FlowIntent.SIGNUP}
+              intent={intent}
               acceptedDocumentIds={acceptedDocumentIds}
               disabled={blocked}
               disabledMessage={CONSENT_REQUIRED_TOOLTIP}
