@@ -19,6 +19,8 @@ import {
   describeAuthError,
   type AuthRejection
 } from '~/client/utils/auth-error';
+import { visibleAuthStrategies } from '~/client/utils/auth-strategies';
+import { MAIL_OTP_STRATEGY } from '~/client/utils/constants';
 import { MagicLinkView } from '../magic-link/magic-link-view';
 import { AuthConsent, type ConsentLabel } from './auth-consent';
 import styles from './sign-up-view.module.css';
@@ -49,11 +51,10 @@ export const SignUpView = ({
   const { data: strategiesData } = useQuery(
     FrontierServiceQueries.listAuthStrategies
   );
-  const strategies = (strategiesData?.strategies || [])
-    .filter(s => !excludes.includes(s.name))
-    .sort(
-      (a, b) => Number(a.name === 'mailotp') - Number(b.name === 'mailotp')
-    );
+  const strategies = visibleAuthStrategies(
+    strategiesData?.strategies || [],
+    excludes
+  );
 
   const { data: documents = [], isPending: consentPending } = useQuery(
     FrontierServiceQueries.listConsentDocuments,
@@ -113,7 +114,7 @@ export const SignUpView = ({
         style={{ height: '100%', width: '100%' }}
       >
         {strategies.map(s =>
-          s.name === 'mailotp' ? (
+          s.name === MAIL_OTP_STRATEGY ? (
             <MagicLinkView
               key={s.name}
               inline

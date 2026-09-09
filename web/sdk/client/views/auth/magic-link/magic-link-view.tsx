@@ -13,6 +13,7 @@ import {
 } from '~/client/components/auth-container';
 import { AuthHeader } from '~/client/components/auth-header';
 import { describeAuthError } from '~/client/utils/auth-error';
+import { MAIL_OTP_STRATEGY } from '~/client/utils/constants';
 import styles from './magic-link-view.module.css';
 
 export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
@@ -80,7 +81,7 @@ export const MagicLinkView = ({
       onActivate?.();
       try {
         const response = await authenticate({
-          strategyName: 'mailotp',
+          strategyName: MAIL_OTP_STRATEGY,
           email: data.email,
           callbackUrl: config.callbackUrl,
           flowIntent: intent,

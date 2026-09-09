@@ -13,6 +13,8 @@ import {
   describeAuthError,
   type AuthRejection
 } from '~/client/utils/auth-error';
+import { visibleAuthStrategies } from '~/client/utils/auth-strategies';
+import { MAIL_OTP_STRATEGY } from '~/client/utils/constants';
 import { MagicLinkView } from '../magic-link/magic-link-view';
 import styles from './sign-in-view.module.css';
 
@@ -41,11 +43,10 @@ export const SignInView = ({
   const { data: strategiesData } = useQuery(
     FrontierServiceQueries.listAuthStrategies
   );
-  const strategies = (strategiesData?.strategies || [])
-    .filter(s => !excludes.includes(s.name))
-    .sort(
-      (a, b) => Number(a.name === 'mailotp') - Number(b.name === 'mailotp')
-    );
+  const strategies = visibleAuthStrategies(
+    strategiesData?.strategies || [],
+    excludes
+  );
 
   const { mutateAsync: authenticate } = useMutation(
     FrontierServiceQueries.authenticate
@@ -87,7 +88,7 @@ export const SignInView = ({
       <AuthHeader logo={logo} title={title} />
       <Flex direction="column" gap={5} style={{ width: '100%' }}>
         {strategies.map(s =>
-          s.name === 'mailotp' ? (
+          s.name === MAIL_OTP_STRATEGY ? (
             <MagicLinkView
               key={s.name}
               inline

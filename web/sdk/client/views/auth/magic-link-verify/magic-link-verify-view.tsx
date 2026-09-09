@@ -21,6 +21,7 @@ import {
 } from '~/client/components/auth-container';
 import { AuthHeader } from '~/client/components/auth-header';
 import { describeAuthError } from '~/client/utils/auth-error';
+import { MAIL_OTP_STRATEGY } from '~/client/utils/constants';
 import styles from './magic-link-verify-view.module.css';
 
 export type MagicLinkVerifyViewProps = ComponentPropsWithRef<'div'> &
@@ -68,7 +69,7 @@ export const MagicLinkVerifyView = ({
       e.preventDefault();
       try {
         await authCallback({
-          strategyName: 'mailotp',
+          strategyName: MAIL_OTP_STRATEGY,
           code: otp,
           state: stateParam
         });
