@@ -1,13 +1,18 @@
-import { Field, Flex, Link, Text } from '@raystack/apsara';
+import { Checkbox, Field, Flex, Link, Text } from '@raystack/apsara';
 import {
   ComponentPropsWithRef,
+  Fragment,
   ReactNode,
   useCallback,
   useMemo,
   useState
 } from 'react';
 import { useMutation, useQuery } from '@connectrpc/connect-query';
-import { FlowIntent, FrontierServiceQueries } from '@raystack/proton/frontier';
+import {
+  FlowIntent,
+  FrontierServiceQueries,
+  type ConsentDocument
+} from '@raystack/proton/frontier';
 import { useFrontier } from '~/client/contexts/FrontierContext';
 import {
   AuthContainer,
@@ -16,10 +21,6 @@ import {
 import { AuthHeader } from '~/client/components/auth-header';
 import { AuthOIDCButton } from '~/client/components/auth-oidc-button';
 import {
-  AuthConsent,
-  type ConsentLabel
-} from '~/client/components/auth-consent';
-import {
   authErrorMessage,
   describeAuthError,
   isAuthErrorKind,
@@ -27,6 +28,32 @@ import {
 } from '~/client/components/auth-error';
 import { MagicLinkView } from '../magic-link/magic-link-view';
 import styles from './sign-up-view.module.css';
+
+// The consent label: static copy, or a function of the documents for copy that
+// links them. The default names every document with a link to its url.
+export type ConsentLabel =
+  | ReactNode
+  | ((documents: ConsentDocument[]) => ReactNode);
+
+const documentLinks = (documents: ConsentDocument[]) =>
+  documents.map((document, index) => (
+    <Fragment key={document.id}>
+      {index > 0 && (index === documents.length - 1 ? ' and ' : ', ')}
+      <Link
+        href={document.url}
+        external
+        variant="primary"
+        size="micro"
+        data-test-id={`frontier-sdk-consent-document-${document.id}`}
+      >
+        {document.title}
+      </Link>
+    </Fragment>
+  ));
+
+const defaultConsentLabel = (documents: ConsentDocument[]) => (
+  <>I agree to the {documentLinks(documents)}</>
+);
 
 export type SignUpViewProps = ComponentPropsWithRef<'div'> &
   AuthContainerProps & {
@@ -95,6 +122,11 @@ export const SignUpView = ({
   // whether this deployment asks for consent at all, and a click before it
   // lands would send an empty id set for a deployment that does.
   const blocked = consentPending || (documents.length > 0 && !consented);
+
+  const consentContent =
+    typeof consentLabel === 'function'
+      ? consentLabel(documents)
+      : consentLabel ?? defaultConsentLabel(documents);
 
   // Starting any strategy supersedes whatever rejection is on screen.
   const dismissRejection = useCallback(() => {
@@ -195,12 +227,23 @@ export const SignUpView = ({
         {groupMessage && <Field error={groupMessage} />}
 
         {documents.length > 0 && (
-          <AuthConsent
-            documents={documents}
-            checked={consented}
-            onCheckedChange={setConsented}
-            label={consentLabel}
-          />
+          <Flex
+            gap={4}
+            align="start"
+            justify="center"
+            className={styles.consent}
+            render={<label />}
+          >
+            <Checkbox
+              size="small"
+              checked={consented}
+              onCheckedChange={setConsented}
+              data-test-id="frontier-sdk-consent-checkbox"
+            />
+            <Text size="micro" variant="secondary">
+              {consentContent}
+            </Text>
+          </Flex>
         )}
       </Flex>
       <Text size="small" weight="regular">
