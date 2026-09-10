@@ -22,7 +22,7 @@ const BLOCKER_INSTRUCTIONS: Record<
     } before deleting this ${organizationLabel}.`,
   UNPAID_INVOICE: (count, { organizationLabel }) =>
     count > 1
-      ? `Please pay your ${count} outstanding invoices before deleting this ${organizationLabel}.`
+      ? `Please pay your outstanding invoices before deleting this ${organizationLabel}.`
       : `Please pay your outstanding invoice before deleting this ${organizationLabel}.`,
   NEGATIVE_TOKEN_BALANCE: (_, { organizationLabel }) =>
     `Please purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
@@ -32,7 +32,7 @@ const BLOCKER_INSTRUCTIONS: Record<
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
-// Returns one sentence per blocker type. Same-type blockers are counted.
+// Returns one sentence per blocker type.
 export function instructionLines(
   blockers: { type: string }[],
   wording: BlockerWording = DEFAULT_WORDING

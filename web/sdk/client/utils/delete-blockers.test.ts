@@ -24,13 +24,13 @@ describe('instructionLines', () => {
     ]);
   });
 
-  it('counts blockers of the same kind', () => {
+  it('uses the plural when there is more than one invoice', () => {
     const lines = instructionLines(
       [{ type: 'UNPAID_INVOICE' }, { type: 'UNPAID_INVOICE' }],
       wording
     );
     expect(lines).toEqual([
-      'Please pay your 2 outstanding invoices before deleting this workspace.'
+      'Please pay your outstanding invoices before deleting this workspace.'
     ]);
   });
 
