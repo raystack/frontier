@@ -37,6 +37,8 @@ export type SignUpViewProps = ComponentPropsWithRef<'div'> &
     consentLabel?: ConsentLabel;
     /** Send no flow intent, so the server falls back to create-or-get. */
     disableIntent?: boolean;
+    /** Tooltip shown on the disabled sign-up buttons until consent is given. */
+    disabledContentMessage?: string;
     error?: AuthRejection;
   };
 
@@ -46,6 +48,7 @@ export const SignUpView = ({
   excludes = [],
   consentLabel,
   disableIntent = false,
+  disabledContentMessage = CONSENT_REQUIRED_TOOLTIP,
   error,
   ...props
 }: SignUpViewProps) => {
@@ -137,7 +140,7 @@ export const SignUpView = ({
               intent={intent}
               acceptedDocumentIds={acceptedDocumentIds}
               disabled={blocked}
-              disabledMessage={CONSENT_REQUIRED_TOOLTIP}
+              disabledMessage={disabledContentMessage}
               onActivate={clearError}
             />
           ) : (
@@ -151,7 +154,7 @@ export const SignUpView = ({
                 onClick={() => clickHandler(s.name)}
                 provider={s.name}
                 disabled={blocked}
-                disabledMessage={CONSENT_REQUIRED_TOOLTIP}
+                disabledMessage={disabledContentMessage}
                 data-test-id="frontier-sdk-signup-page-oidc-btn"
               />
             </Field>
