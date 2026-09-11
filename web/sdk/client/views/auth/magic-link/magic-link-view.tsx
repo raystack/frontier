@@ -12,6 +12,7 @@ import {
   type AuthContainerProps
 } from '~/client/components/auth-container';
 import { AuthHeader } from '~/client/components/auth-header';
+import { DisabledTooltip } from '~/client/components/disabled-tooltip';
 import { describeAuthError } from '~/client/utils/auth-error';
 import { MAIL_OTP_STRATEGY } from '~/client/utils/constants';
 import styles from './magic-link-view.module.css';
@@ -25,6 +26,7 @@ export type MagicLinkViewProps = ComponentPropsWithRef<'div'> &
     intent?: FlowIntent;
     acceptedDocumentIds?: string[];
     disabled?: boolean;
+    disabledMessage?: string;
     onActivate?: () => void;
   };
 
@@ -51,6 +53,7 @@ export const MagicLinkView = ({
   intent = FlowIntent.UNSPECIFIED,
   acceptedDocumentIds,
   disabled = false,
+  disabledMessage,
   onActivate,
   ...props
 }: MagicLinkViewProps) => {
@@ -102,19 +105,21 @@ export const MagicLinkView = ({
   const email = watch('email', '');
 
   const formContent = !visible ? (
-    <Button
-      variant="outline"
-      color="neutral"
-      className={styles.button}
-      onClick={() => {
-        setVisible(true);
-        onActivate?.();
-      }}
-      disabled={disabled}
-      data-test-id="frontier-sdk-mail-otp-login-btn"
-    >
-      Continue with Email
-    </Button>
+    <DisabledTooltip disabled={disabled} message={disabledMessage}>
+      <Button
+        variant="outline"
+        color="neutral"
+        className={styles.button}
+        onClick={() => {
+          setVisible(true);
+          onActivate?.();
+        }}
+        disabled={disabled}
+        data-test-id="frontier-sdk-mail-otp-login-btn"
+      >
+        Continue with Email
+      </Button>
+    </DisabledTooltip>
   ) : (
     <form
       noValidate
@@ -127,19 +132,20 @@ export const MagicLinkView = ({
           {...register('email')}
           size="large"
           placeholder="name@example.com"
-          disabled={disabled}
         />
       </Field>
-      <Button
-        className={styles.button}
-        disabled={!email || disabled}
-        type="submit"
-        loading={isPending}
-        loaderText="Loading..."
-        data-test-id="frontier-sdk-mail-otp-login-submit-btn"
-      >
-        Continue with Email
-      </Button>
+      <DisabledTooltip disabled={disabled} message={disabledMessage}>
+        <Button
+          className={styles.button}
+          disabled={!email || disabled}
+          type="submit"
+          loading={isPending}
+          loaderText="Loading..."
+          data-test-id="frontier-sdk-mail-otp-login-submit-btn"
+        >
+          Continue with Email
+        </Button>
+      </DisabledTooltip>
     </form>
   );
 
