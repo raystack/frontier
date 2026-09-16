@@ -59,6 +59,7 @@ type Checkout struct {
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
 	ExpireAt  *time.Time `db:"expire_at"`
+	DeletedAt *time.Time `db:"deleted_at"`
 }
 
 func (c Checkout) transform() (checkout.Checkout, error) {
