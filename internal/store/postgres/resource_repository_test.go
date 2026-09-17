@@ -389,6 +389,23 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 			}
 		})
 	}
+
+	s.Run("should move updated_at forward", func() {
+		before, err := s.repository.GetByID(s.ctx, s.resources[0].ID)
+		if err != nil {
+			s.T().Fatal(err)
+		}
+		got, err := s.repository.Update(s.ctx, resource.Resource{
+			ID:    before.ID,
+			Title: before.Title,
+		})
+		if err != nil {
+			s.T().Fatal(err)
+		}
+		if !got.UpdatedAt.After(before.UpdatedAt) {
+			s.T().Fatalf("got updated_at %s, expected it to be after %s", got.UpdatedAt, before.UpdatedAt)
+		}
+	})
 }
 
 func TestResourceRepository(t *testing.T) {

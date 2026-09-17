@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,8 +11,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/pkg/utils"
-
-	"database/sql"
 
 	goqu "github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/resource"
@@ -186,8 +185,9 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 	}
 	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
 		goqu.Record{
-			"title":    res.Title,
-			"metadata": marshaledMetadata,
+			"title":      res.Title,
+			"metadata":   marshaledMetadata,
+			"updated_at": goqu.L("now()"),
 		},
 	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
