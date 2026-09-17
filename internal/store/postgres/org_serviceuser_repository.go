@@ -51,8 +51,8 @@ func (c *ServiceUserRow) transformToAggregatedServiceUser(orgID string) svc.Aggr
 // id, a title and a created_at. rql is therefore applied to a wrapper select over the
 // base query, where only these aliased output columns are visible and unambiguous.
 const (
-	ORG_SERVICE_USER_BASE_ALIAS = "org_service_users"
-	COLUMN_PROJECTS             = "projects"
+	orgServiceUserBaseAlias = "org_service_users"
+	COLUMN_PROJECTS         = "projects"
 )
 
 var (
@@ -110,7 +110,7 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rqlQ
 }
 
 func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Query) (string, []any, utils.Page, error) {
-	query := dialect.From(r.buildBaseQuery(orgID).As(ORG_SERVICE_USER_BASE_ALIAS)).Prepared(true)
+	query := dialect.From(r.buildBaseQuery(orgID).As(orgServiceUserBaseAlias)).Prepared(true)
 
 	if rqlQuery == nil {
 		rqlQuery = &rql.Query{}

@@ -50,7 +50,6 @@ type AggregatedServiceUser struct {
 	Title     string    `rql:"name=title,type=string"`
 	Projects  []Project `rql:"name=projects,type=string"`
 	CreatedAt time.Time `rql:"name=created_at,type=datetime"`
-	UpdatedAt time.Time `rql:"name=updated_at,type=datetime"`
 }
 
 func (s Service) Search(ctx context.Context, orgID string, query *rql.Query) (OrganizationServiceUsers, error) {

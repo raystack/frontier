@@ -118,16 +118,16 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			wantErr: "bad input: group_by is not supported",
 		},
 		{
-			// updated_at is a field on the aggregate but the query never selects it, so
-			// the allowlist has to reject it rather than build SQL that cannot run
+			// state is a real serviceusers column but the query never selects it, so the
+			// allowlist has to reject it rather than build SQL that cannot run
 			name:    "filtering on a column the query does not select is rejected",
-			rql:     &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "updated_at", Operator: "gt", Value: "2026-01-01"}}},
-			wantErr: "bad input: updated_at is not supported in filters",
+			rql:     &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "state", Operator: "eq", Value: "enabled"}}},
+			wantErr: "bad input: state is not supported in filters",
 		},
 		{
 			name:    "sorting on a column the query does not select is rejected",
-			rql:     &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "updated_at", Order: "asc"}}},
-			wantErr: "bad input: updated_at is not supported in sort",
+			rql:     &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "state", Order: "asc"}}},
+			wantErr: "bad input: state is not supported in sort",
 		},
 		{
 			name:       "a limit of zero falls back to the default rather than returning everything",
