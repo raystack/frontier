@@ -92,8 +92,7 @@ func (s *ProspectRepositoryTestSuite) TearDownTest() {
 }
 
 func (s *ProspectRepositoryTestSuite) TearDownSuite() {
-	// Clean tests
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

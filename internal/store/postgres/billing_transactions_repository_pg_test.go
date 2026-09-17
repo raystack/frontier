@@ -38,7 +38,7 @@ func (s *BillingTransactionRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *BillingTransactionRepositoryTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

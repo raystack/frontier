@@ -125,8 +125,7 @@ func (s *GroupRepositoryTestSuite) SetupTest() {
 }
 
 func (s *GroupRepositoryTestSuite) TearDownSuite() {
-	// Clean tests
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

@@ -224,17 +224,12 @@ func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockerte
 	return pgClient, testPool, testResource, nil
 }
 
-func purgeDocker(pool *dockertest.Pool, resource *dockertest.Resource) error {
-	// The shared container is owned by TestMain.
-	if resource == testResource {
+func closeTestClient(client *db.Client) error {
+	if client == nil {
 		return nil
 	}
 
-	if err := pool.Purge(resource); err != nil {
-		return fmt.Errorf("could not purge resource: %w", err)
-	}
-
-	return nil
+	return client.Close()
 }
 
 func setup(ctx context.Context, logger *slog.Logger, client *db.Client, cfg db.Config) (err error) {

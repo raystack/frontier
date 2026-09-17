@@ -69,8 +69,7 @@ func (s *RelationRepositoryTestSuite) SetupTest() {
 }
 
 func (s *RelationRepositoryTestSuite) TearDownSuite() {
-	// Clean tests
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }
