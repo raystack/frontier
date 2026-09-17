@@ -21,6 +21,7 @@ type ServiceUserRow struct {
 	Title       string       `db:"title"`
 	OrgID       string       `db:"org_id"`
 	ProjectData string       `db:"project_data"`
+	Projects    string       `db:"projects"`
 	CreatedAt   sql.NullTime `db:"created_at"`
 }
 
@@ -47,11 +48,14 @@ func (c *ServiceUserRow) transformToAggregatedServiceUser(orgID string) svc.Aggr
 // the base query joins serviceusers, policies and projects, and all three carry an
 // id, a title and a created_at. rql is therefore applied to a wrapper select over the
 // base query, where only these aliased output columns are visible and unambiguous.
-const ORG_SERVICE_USER_BASE_ALIAS = "org_service_users"
+const (
+	ORG_SERVICE_USER_BASE_ALIAS = "org_service_users"
+	COLUMN_PROJECTS             = "projects"
+)
 
 var (
-	orgServiceUserRQLFilterSupportedColumns = []string{COLUMN_ID, COLUMN_TITLE, COLUMN_ORG_ID, COLUMN_CREATED_AT}
-	orgServiceUserRQLSearchSupportedColumns = []string{COLUMN_TITLE}
+	orgServiceUserRQLFilterSupportedColumns = []string{COLUMN_ID, COLUMN_TITLE, COLUMN_ORG_ID, COLUMN_CREATED_AT, COLUMN_PROJECTS}
+	orgServiceUserRQLSearchSupportedColumns = []string{COLUMN_TITLE, COLUMN_PROJECTS}
 	orgServiceUserRQLSortSupportedColumns   = []string{COLUMN_ID, COLUMN_TITLE, COLUMN_CREATED_AT}
 )
 
@@ -156,6 +160,9 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 			// two roles on one project produce two joined rows, so it is deduped, which
 			// needs jsonb because the json type has no equality operator.
 			goqu.L("COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+")) FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '[]')").As("project_data"),
+			// the admin ui renders the project titles joined by a comma and lets you
+			// filter on that column, so the same text is exposed for rql to filter on
+			goqu.L("COALESCE(STRING_AGG(DISTINCT "+TABLE_PROJECTS+"."+COLUMN_TITLE+", ', ') FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '')").As("projects"),
 		).
 		LeftJoin(
 			goqu.T(TABLE_POLICIES),

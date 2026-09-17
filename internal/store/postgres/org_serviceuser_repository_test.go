@@ -13,8 +13,8 @@ import (
 // constant makes the part each case actually exercises easy to read.
 const orgServiceUserBaseSQL = `SELECT * FROM (` +
 	`SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", ` +
-	`COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" ` +
-
+	`COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data", ` +
+	`COALESCE(STRING_AGG(DISTINCT projects.title, ', ') FILTER (WHERE projects.id IS NOT NULL), '') AS "projects" ` +
 	`FROM "serviceusers" ` +
 	`LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) ` +
 	`LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) ` +
@@ -74,10 +74,10 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			wantPage:   10,
 		},
 		{
-			name:       "search matches on title",
+			name:       "search matches on title or project titles",
 			rql:        &rql.Query{Search: "test", Limit: 10, Offset: 5},
-			wantSQL:    orgServiceUserBaseSQL + ` WHERE (CAST("title" AS TEXT) ILIKE $4) ORDER BY "title" ASC, "id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: baseParams("%test%", int64(10), int64(5)),
+			wantSQL:    orgServiceUserBaseSQL + ` WHERE ((CAST("title" AS TEXT) ILIKE $4) OR (CAST("projects" AS TEXT) ILIKE $5)) ORDER BY "title" ASC, "id" ASC LIMIT $6 OFFSET $7`,
+			wantParams: baseParams("%test%", "%test%", int64(10), int64(5)),
 			wantPage:   10,
 		},
 		{
@@ -99,6 +99,15 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "created_at", Operator: "gt", Value: "2026-01-01"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("created_at" > $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
 			wantParams: baseParams("2026-01-01", int64(10)),
+			wantPage:   10,
+		},
+		{
+			// the admin ui marks the Projects column filterable, so it has to work
+			// rather than be silently ignored or rejected
+			name:       "filter on projects, which the admin ui offers",
+			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "projects", Operator: "ilike", Value: "%Live%"}}},
+			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("projects" ILIKE $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
+			wantParams: baseParams("%Live%", int64(10)),
 			wantPage:   10,
 		},
 		{
