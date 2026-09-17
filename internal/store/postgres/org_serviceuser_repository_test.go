@@ -111,6 +111,13 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			wantPage:   10,
 		},
 		{
+			// the sort helper would order by the group_by column, which the wrapper
+			// select does not have, so postgres would fail at query time
+			name:    "group_by is rejected rather than producing broken sql",
+			rql:     &rql.Query{Limit: 10, GroupBy: []string{"title"}},
+			wantErr: "bad input: group_by is not supported",
+		},
+		{
 			// updated_at is a field on the aggregate but the query never selects it, so
 			// the allowlist has to reject it rather than build SQL that cannot run
 			name:    "filtering on a column the query does not select is rejected",

@@ -17,12 +17,14 @@ import (
 )
 
 type ServiceUserRow struct {
-	ID          string       `db:"id"`
-	Title       string       `db:"title"`
-	OrgID       string       `db:"org_id"`
-	ProjectData string       `db:"project_data"`
-	Projects    string       `db:"projects"`
-	CreatedAt   sql.NullTime `db:"created_at"`
+	ID          string `db:"id"`
+	Title       string `db:"title"`
+	OrgID       string `db:"org_id"`
+	ProjectData string `db:"project_data"`
+	// only here so the aggregated project titles, which rql filters and searches on,
+	// have somewhere to land when the wrapper select returns them
+	Projects  string       `db:"projects"`
+	CreatedAt sql.NullTime `db:"created_at"`
 }
 
 func (c *ServiceUserRow) transformToAggregatedServiceUser(orgID string) svc.AggregatedServiceUser {
@@ -112,6 +114,12 @@ func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Q
 
 	if rqlQuery == nil {
 		rqlQuery = &rql.Query{}
+	}
+
+	// the response has no group block, and the shared sort helper would otherwise
+	// order by a group_by column that the wrapper select does not have
+	if len(rqlQuery.GroupBy) > 0 {
+		return "", nil, utils.Page{}, fmt.Errorf("%w: group_by is not supported", ErrBadInput)
 	}
 
 	query, err := utils.AddRQLFiltersInQuery(query, rqlQuery, orgServiceUserRQLFilterSupportedColumns, svc.AggregatedServiceUser{})
