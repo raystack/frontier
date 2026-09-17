@@ -6,6 +6,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -21,6 +22,17 @@ var (
 	errTxn      = errors.New("error while running transaction")
 	dialect     = goqu.Dialect("postgres")
 )
+
+// live is the filter every read of a soft-deleted table adds. The column is
+// qualified with the table name or alias so it stays correct inside joins.
+func live(table string) exp.BooleanExpression {
+	return goqu.I(table + ".deleted_at").IsNull()
+}
+
+// fromLive reads only the rows that are not soft-deleted.
+func fromLive(table string) *goqu.SelectDataset {
+	return dialect.From(table).Where(live(table))
+}
 
 const (
 	TABLE_PERMISSIONS            = "permissions"

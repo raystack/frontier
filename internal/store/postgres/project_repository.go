@@ -39,7 +39,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 		return project.Project{}, project.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
+	query, params, err := fromLive(TABLE_PROJECTS).Where(goqu.ExOr{
 		"id": id,
 	}).Where(notDisabledProjectExp).ToSQL()
 	if err != nil {
@@ -74,7 +74,7 @@ func (r ProjectRepository) GetByName(ctx context.Context, name string) (project.
 		return project.Project{}, project.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.Ex{
+	query, params, err := fromLive(TABLE_PROJECTS).Where(goqu.Ex{
 		"name": name,
 	}).Where(notDisabledProjectExp).ToSQL()
 	if err != nil {
@@ -155,7 +155,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 }
 
 func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]project.Project, error) {
-	stmt := dialect.From(TABLE_PROJECTS)
+	stmt := fromLive(TABLE_PROJECTS)
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
@@ -290,7 +290,7 @@ func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project
 			"title":      prj.Title,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{"name": prj.Name}).Returning(&Project{}).ToSQL()
+		}).Where(goqu.Ex{"name": prj.Name}, live(TABLE_PROJECTS)).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", errQuery, err)
 	}

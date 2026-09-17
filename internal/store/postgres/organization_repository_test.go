@@ -566,3 +566,31 @@ func (s *OrganizationRepositoryTestSuite) TestGetByIDs() {
 func TestOrganizationRepository(t *testing.T) {
 	suite.Run(t, new(OrganizationRepositoryTestSuite))
 }
+
+func (s *OrganizationRepositoryTestSuite) TestSkipsSoftDeletedOrganizations() {
+	deleted := s.orgs[0]
+	_, err := s.client.ExecContext(s.ctx, "UPDATE organizations SET deleted_at = now() WHERE id = $1", deleted.ID)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = s.repository.GetByID(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, organization.ErrNotExist)
+
+	_, err = s.repository.GetByName(s.ctx, deleted.Name)
+	s.Assert().ErrorIs(err, organization.ErrNotExist)
+
+	byIDs, err := s.repository.GetByIDs(s.ctx, []string{deleted.ID})
+	s.Assert().NoError(err)
+	s.Assert().Empty(byIDs)
+
+	got, err := s.repository.List(s.ctx, organization.Filter{})
+	s.Assert().NoError(err)
+	s.Assert().Len(got, len(s.orgs)-1)
+	for _, o := range got {
+		s.Assert().NotEqual(deleted.ID, o.ID)
+	}
+
+	_, err = s.repository.UpdateByName(s.ctx, organization.Organization{Name: deleted.Name, Title: "changed"})
+	s.Assert().ErrorIs(err, organization.ErrNotExist)
+}

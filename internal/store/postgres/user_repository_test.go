@@ -653,7 +653,7 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 10,
 				Limit:  20,
 			},
-			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" ILIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
+			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" ILIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
 			wantParams: []any{int64(123), "%active%", "", "%john%", "%john%", "%john%", "%john%", int64(20), int64(10)},
 		},
 		{
@@ -669,7 +669,7 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 5,
 				Limit:  15,
 			},
-			wantSQL: `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE ("users"."state" = $1) ORDER BY "state" ASC, "name" ASC LIMIT $2 OFFSET $3`,
+			wantSQL: `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."state" = $1)) ORDER BY "state" ASC, "name" ASC LIMIT $2 OFFSET $3`,
 			wantParams: []any{
 				"active",
 				int64(15),
@@ -713,7 +713,7 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"state"},
 				Search:  "test",
 			},
-			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."state" = $1) AND ("CAST(users"."id AS TEXT)" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
+			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."state" = $1) AND ("CAST(users"."id AS TEXT)" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
 			wantParams: []any{"active", int64(123), "%test%", "%test%", "%test%", "%test%"},
 		},
 		{
@@ -722,7 +722,7 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"state"},
 				Search:  "pending",
 			},
-			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE ((CAST("id" AS TEXT) ILIKE $1) OR ("title" ILIKE $2) OR ("name" ILIKE $3) OR ("state" ILIKE $4)) GROUP BY "users"."state"`,
+			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ((CAST("id" AS TEXT) ILIKE $1) OR ("title" ILIKE $2) OR ("name" ILIKE $3) OR ("state" ILIKE $4))) GROUP BY "users"."state"`,
 			wantParams: []any{"%pending%", "%pending%", "%pending%", "%pending%"},
 		},
 	}
@@ -742,4 +742,38 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 			assert.Equal(t, tt.wantSQL, gotSQL)
 		})
 	}
+}
+
+func (s *UserRepositoryTestSuite) TestSkipsSoftDeletedUsers() {
+	deleted := s.users[0]
+	_, err := s.client.ExecContext(s.ctx, "UPDATE users SET deleted_at = now() WHERE id = $1", deleted.ID)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = s.repository.GetByID(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, user.ErrNotExist)
+
+	_, err = s.repository.GetByName(s.ctx, deleted.Name)
+	s.Assert().ErrorIs(err, user.ErrNotExist)
+
+	_, err = s.repository.GetByEmail(s.ctx, deleted.Email)
+	s.Assert().ErrorIs(err, user.ErrNotExist)
+
+	byIDs, err := s.repository.GetByIDs(s.ctx, []string{deleted.ID})
+	s.Assert().NoError(err)
+	s.Assert().Empty(byIDs)
+
+	got, err := s.repository.List(s.ctx, user.Filter{})
+	s.Assert().NoError(err)
+	s.Assert().Len(got, len(s.users)-1)
+	for _, u := range got {
+		s.Assert().NotEqual(deleted.ID, u.ID)
+	}
+
+	_, err = s.repository.UpdateByEmail(s.ctx, user.User{Email: deleted.Email, Title: "changed"})
+	s.Assert().ErrorIs(err, user.ErrNotExist)
+
+	_, err = s.repository.UpdateByName(s.ctx, user.User{Name: deleted.Name, Title: "changed"})
+	s.Assert().ErrorIs(err, user.ErrNotExist)
 }
