@@ -55,7 +55,7 @@ func (s *UserPATRepositoryTestSuite) SetupTest() {
 }
 
 func (s *UserPATRepositoryTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

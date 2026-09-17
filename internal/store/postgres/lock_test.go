@@ -40,8 +40,7 @@ func (s *LockTestSuite) SetupSuite() {
 func (s *LockTestSuite) SetupTest() {}
 
 func (s *LockTestSuite) TearDownSuite() {
-	// Clean tests
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

@@ -53,7 +53,7 @@ func (s *PreferenceRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *PreferenceRepositoryTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }
