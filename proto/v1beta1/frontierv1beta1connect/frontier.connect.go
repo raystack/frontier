@@ -65,6 +65,12 @@ const (
 	// FrontierServiceDeleteUserProcedure is the fully-qualified name of the FrontierService's
 	// DeleteUser RPC.
 	FrontierServiceDeleteUserProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteUser"
+	// FrontierServiceCheckCurrentUserDeleteProcedure is the fully-qualified name of the
+	// FrontierService's CheckCurrentUserDelete RPC.
+	FrontierServiceCheckCurrentUserDeleteProcedure = "/raystack.frontier.v1beta1.FrontierService/CheckCurrentUserDelete"
+	// FrontierServiceDeleteCurrentUserProcedure is the fully-qualified name of the FrontierService's
+	// DeleteCurrentUser RPC.
+	FrontierServiceDeleteCurrentUserProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteCurrentUser"
 	// FrontierServiceListOrganizationsByUserProcedure is the fully-qualified name of the
 	// FrontierService's ListOrganizationsByUser RPC.
 	FrontierServiceListOrganizationsByUserProcedure = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByUser"
@@ -284,6 +290,9 @@ const (
 	// FrontierServiceDeleteProjectProcedure is the fully-qualified name of the FrontierService's
 	// DeleteProject RPC.
 	FrontierServiceDeleteProjectProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteProject"
+	// FrontierServiceCheckProjectDeleteProcedure is the fully-qualified name of the FrontierService's
+	// CheckProjectDelete RPC.
+	FrontierServiceCheckProjectDeleteProcedure = "/raystack.frontier.v1beta1.FrontierService/CheckProjectDelete"
 	// FrontierServiceSetProjectMemberRoleProcedure is the fully-qualified name of the FrontierService's
 	// SetProjectMemberRole RPC.
 	FrontierServiceSetProjectMemberRoleProcedure = "/raystack.frontier.v1beta1.FrontierService/SetProjectMemberRole"
@@ -344,6 +353,15 @@ const (
 	// FrontierServiceDeleteProjectResourceProcedure is the fully-qualified name of the
 	// FrontierService's DeleteProjectResource RPC.
 	FrontierServiceDeleteProjectResourceProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteProjectResource"
+	// FrontierServiceCreateOrganizationResourceProcedure is the fully-qualified name of the
+	// FrontierService's CreateOrganizationResource RPC.
+	FrontierServiceCreateOrganizationResourceProcedure = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationResource"
+	// FrontierServiceUpdateOrganizationResourceProcedure is the fully-qualified name of the
+	// FrontierService's UpdateOrganizationResource RPC.
+	FrontierServiceUpdateOrganizationResourceProcedure = "/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationResource"
+	// FrontierServiceDeleteOrganizationResourceProcedure is the fully-qualified name of the
+	// FrontierService's DeleteOrganizationResource RPC.
+	FrontierServiceDeleteOrganizationResourceProcedure = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationResource"
 	// FrontierServiceCheckResourcePermissionProcedure is the fully-qualified name of the
 	// FrontierService's CheckResourcePermission RPC.
 	FrontierServiceCheckResourcePermissionProcedure = "/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission"
@@ -586,6 +604,8 @@ type FrontierServiceClient interface {
 	EnableUser(context.Context, *connect.Request[v1beta1.EnableUserRequest]) (*connect.Response[v1beta1.EnableUserResponse], error)
 	DisableUser(context.Context, *connect.Request[v1beta1.DisableUserRequest]) (*connect.Response[v1beta1.DisableUserResponse], error)
 	DeleteUser(context.Context, *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error)
+	CheckCurrentUserDelete(context.Context, *connect.Request[v1beta1.CheckCurrentUserDeleteRequest]) (*connect.Response[v1beta1.CheckCurrentUserDeleteResponse], error)
+	DeleteCurrentUser(context.Context, *connect.Request[v1beta1.DeleteCurrentUserRequest]) (*connect.Response[v1beta1.DeleteCurrentUserResponse], error)
 	ListOrganizationsByUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByUserResponse], error)
 	ListOrganizationsByCurrentUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error)
 	ListProjectsByUser(context.Context, *connect.Request[v1beta1.ListProjectsByUserRequest]) (*connect.Response[v1beta1.ListProjectsByUserResponse], error)
@@ -668,6 +688,7 @@ type FrontierServiceClient interface {
 	EnableProject(context.Context, *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error)
 	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
 	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
+	CheckProjectDelete(context.Context, *connect.Request[v1beta1.CheckProjectDeleteRequest]) (*connect.Response[v1beta1.CheckProjectDeleteResponse], error)
 	SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error)
 	RemoveProjectMember(context.Context, *connect.Request[v1beta1.RemoveProjectMemberRequest]) (*connect.Response[v1beta1.RemoveProjectMemberResponse], error)
 	// Policies
@@ -693,6 +714,9 @@ type FrontierServiceClient interface {
 	GetProjectResource(context.Context, *connect.Request[v1beta1.GetProjectResourceRequest]) (*connect.Response[v1beta1.GetProjectResourceResponse], error)
 	UpdateProjectResource(context.Context, *connect.Request[v1beta1.UpdateProjectResourceRequest]) (*connect.Response[v1beta1.UpdateProjectResourceResponse], error)
 	DeleteProjectResource(context.Context, *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error)
+	CreateOrganizationResource(context.Context, *connect.Request[v1beta1.CreateOrganizationResourceRequest]) (*connect.Response[v1beta1.CreateOrganizationResourceResponse], error)
+	UpdateOrganizationResource(context.Context, *connect.Request[v1beta1.UpdateOrganizationResourceRequest]) (*connect.Response[v1beta1.UpdateOrganizationResourceResponse], error)
+	DeleteOrganizationResource(context.Context, *connect.Request[v1beta1.DeleteOrganizationResourceRequest]) (*connect.Response[v1beta1.DeleteOrganizationResourceResponse], error)
 	// Authz
 	CheckResourcePermission(context.Context, *connect.Request[v1beta1.CheckResourcePermissionRequest]) (*connect.Response[v1beta1.CheckResourcePermissionResponse], error)
 	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
@@ -705,10 +729,7 @@ type FrontierServiceClient interface {
 	// Ping user current active session.
 	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
-	// ListConsentDocuments returns the documents a user has to accept before an
-	// account is created for them. Unauthenticated, like ListAuthStrategies, so a
-	// sign-up view can render them before the account exists. An empty list means
-	// the deployment asks for no consent.
+	// Returns the list of consent documents
 	ListConsentDocuments(context.Context, *connect.Request[v1beta1.ListConsentDocumentsRequest]) (*connect.Response[v1beta1.ListConsentDocumentsResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
@@ -869,6 +890,18 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceDeleteUserProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("DeleteUser")),
+			connect.WithClientOptions(opts...),
+		),
+		checkCurrentUserDelete: connect.NewClient[v1beta1.CheckCurrentUserDeleteRequest, v1beta1.CheckCurrentUserDeleteResponse](
+			httpClient,
+			baseURL+FrontierServiceCheckCurrentUserDeleteProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CheckCurrentUserDelete")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteCurrentUser: connect.NewClient[v1beta1.DeleteCurrentUserRequest, v1beta1.DeleteCurrentUserResponse](
+			httpClient,
+			baseURL+FrontierServiceDeleteCurrentUserProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteCurrentUser")),
 			connect.WithClientOptions(opts...),
 		),
 		listOrganizationsByUser: connect.NewClient[v1beta1.ListOrganizationsByUserRequest, v1beta1.ListOrganizationsByUserResponse](
@@ -1309,6 +1342,12 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(frontierServiceMethods.ByName("DeleteProject")),
 			connect.WithClientOptions(opts...),
 		),
+		checkProjectDelete: connect.NewClient[v1beta1.CheckProjectDeleteRequest, v1beta1.CheckProjectDeleteResponse](
+			httpClient,
+			baseURL+FrontierServiceCheckProjectDeleteProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CheckProjectDelete")),
+			connect.WithClientOptions(opts...),
+		),
 		setProjectMemberRole: connect.NewClient[v1beta1.SetProjectMemberRoleRequest, v1beta1.SetProjectMemberRoleResponse](
 			httpClient,
 			baseURL+FrontierServiceSetProjectMemberRoleProcedure,
@@ -1427,6 +1466,24 @@ func NewFrontierServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+FrontierServiceDeleteProjectResourceProcedure,
 			connect.WithSchema(frontierServiceMethods.ByName("DeleteProjectResource")),
+			connect.WithClientOptions(opts...),
+		),
+		createOrganizationResource: connect.NewClient[v1beta1.CreateOrganizationResourceRequest, v1beta1.CreateOrganizationResourceResponse](
+			httpClient,
+			baseURL+FrontierServiceCreateOrganizationResourceProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationResource")),
+			connect.WithClientOptions(opts...),
+		),
+		updateOrganizationResource: connect.NewClient[v1beta1.UpdateOrganizationResourceRequest, v1beta1.UpdateOrganizationResourceResponse](
+			httpClient,
+			baseURL+FrontierServiceUpdateOrganizationResourceProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("UpdateOrganizationResource")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteOrganizationResource: connect.NewClient[v1beta1.DeleteOrganizationResourceRequest, v1beta1.DeleteOrganizationResourceResponse](
+			httpClient,
+			baseURL+FrontierServiceDeleteOrganizationResourceProcedure,
+			connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationResource")),
 			connect.WithClientOptions(opts...),
 		),
 		checkResourcePermission: connect.NewClient[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse](
@@ -1901,6 +1958,8 @@ type frontierServiceClient struct {
 	enableUser                     *connect.Client[v1beta1.EnableUserRequest, v1beta1.EnableUserResponse]
 	disableUser                    *connect.Client[v1beta1.DisableUserRequest, v1beta1.DisableUserResponse]
 	deleteUser                     *connect.Client[v1beta1.DeleteUserRequest, v1beta1.DeleteUserResponse]
+	checkCurrentUserDelete         *connect.Client[v1beta1.CheckCurrentUserDeleteRequest, v1beta1.CheckCurrentUserDeleteResponse]
+	deleteCurrentUser              *connect.Client[v1beta1.DeleteCurrentUserRequest, v1beta1.DeleteCurrentUserResponse]
 	listOrganizationsByUser        *connect.Client[v1beta1.ListOrganizationsByUserRequest, v1beta1.ListOrganizationsByUserResponse]
 	listOrganizationsByCurrentUser *connect.Client[v1beta1.ListOrganizationsByCurrentUserRequest, v1beta1.ListOrganizationsByCurrentUserResponse]
 	listProjectsByUser             *connect.Client[v1beta1.ListProjectsByUserRequest, v1beta1.ListProjectsByUserResponse]
@@ -1974,6 +2033,7 @@ type frontierServiceClient struct {
 	enableProject                  *connect.Client[v1beta1.EnableProjectRequest, v1beta1.EnableProjectResponse]
 	disableProject                 *connect.Client[v1beta1.DisableProjectRequest, v1beta1.DisableProjectResponse]
 	deleteProject                  *connect.Client[v1beta1.DeleteProjectRequest, v1beta1.DeleteProjectResponse]
+	checkProjectDelete             *connect.Client[v1beta1.CheckProjectDeleteRequest, v1beta1.CheckProjectDeleteResponse]
 	setProjectMemberRole           *connect.Client[v1beta1.SetProjectMemberRoleRequest, v1beta1.SetProjectMemberRoleResponse]
 	removeProjectMember            *connect.Client[v1beta1.RemoveProjectMemberRequest, v1beta1.RemoveProjectMemberResponse]
 	createPolicy                   *connect.Client[v1beta1.CreatePolicyRequest, v1beta1.CreatePolicyResponse]
@@ -1994,6 +2054,9 @@ type frontierServiceClient struct {
 	getProjectResource             *connect.Client[v1beta1.GetProjectResourceRequest, v1beta1.GetProjectResourceResponse]
 	updateProjectResource          *connect.Client[v1beta1.UpdateProjectResourceRequest, v1beta1.UpdateProjectResourceResponse]
 	deleteProjectResource          *connect.Client[v1beta1.DeleteProjectResourceRequest, v1beta1.DeleteProjectResourceResponse]
+	createOrganizationResource     *connect.Client[v1beta1.CreateOrganizationResourceRequest, v1beta1.CreateOrganizationResourceResponse]
+	updateOrganizationResource     *connect.Client[v1beta1.UpdateOrganizationResourceRequest, v1beta1.UpdateOrganizationResourceResponse]
+	deleteOrganizationResource     *connect.Client[v1beta1.DeleteOrganizationResourceRequest, v1beta1.DeleteOrganizationResourceResponse]
 	checkResourcePermission        *connect.Client[v1beta1.CheckResourcePermissionRequest, v1beta1.CheckResourcePermissionResponse]
 	batchCheckPermission           *connect.Client[v1beta1.BatchCheckPermissionRequest, v1beta1.BatchCheckPermissionResponse]
 	getJWKs                        *connect.Client[v1beta1.GetJWKsRequest, v1beta1.GetJWKsResponse]
@@ -2125,6 +2188,16 @@ func (c *frontierServiceClient) DisableUser(ctx context.Context, req *connect.Re
 // DeleteUser calls raystack.frontier.v1beta1.FrontierService.DeleteUser.
 func (c *frontierServiceClient) DeleteUser(ctx context.Context, req *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error) {
 	return c.deleteUser.CallUnary(ctx, req)
+}
+
+// CheckCurrentUserDelete calls raystack.frontier.v1beta1.FrontierService.CheckCurrentUserDelete.
+func (c *frontierServiceClient) CheckCurrentUserDelete(ctx context.Context, req *connect.Request[v1beta1.CheckCurrentUserDeleteRequest]) (*connect.Response[v1beta1.CheckCurrentUserDeleteResponse], error) {
+	return c.checkCurrentUserDelete.CallUnary(ctx, req)
+}
+
+// DeleteCurrentUser calls raystack.frontier.v1beta1.FrontierService.DeleteCurrentUser.
+func (c *frontierServiceClient) DeleteCurrentUser(ctx context.Context, req *connect.Request[v1beta1.DeleteCurrentUserRequest]) (*connect.Response[v1beta1.DeleteCurrentUserResponse], error) {
+	return c.deleteCurrentUser.CallUnary(ctx, req)
 }
 
 // ListOrganizationsByUser calls raystack.frontier.v1beta1.FrontierService.ListOrganizationsByUser.
@@ -2510,6 +2583,11 @@ func (c *frontierServiceClient) DeleteProject(ctx context.Context, req *connect.
 	return c.deleteProject.CallUnary(ctx, req)
 }
 
+// CheckProjectDelete calls raystack.frontier.v1beta1.FrontierService.CheckProjectDelete.
+func (c *frontierServiceClient) CheckProjectDelete(ctx context.Context, req *connect.Request[v1beta1.CheckProjectDeleteRequest]) (*connect.Response[v1beta1.CheckProjectDeleteResponse], error) {
+	return c.checkProjectDelete.CallUnary(ctx, req)
+}
+
 // SetProjectMemberRole calls raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole.
 func (c *frontierServiceClient) SetProjectMemberRole(ctx context.Context, req *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error) {
 	return c.setProjectMemberRole.CallUnary(ctx, req)
@@ -2608,6 +2686,24 @@ func (c *frontierServiceClient) UpdateProjectResource(ctx context.Context, req *
 // DeleteProjectResource calls raystack.frontier.v1beta1.FrontierService.DeleteProjectResource.
 func (c *frontierServiceClient) DeleteProjectResource(ctx context.Context, req *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error) {
 	return c.deleteProjectResource.CallUnary(ctx, req)
+}
+
+// CreateOrganizationResource calls
+// raystack.frontier.v1beta1.FrontierService.CreateOrganizationResource.
+func (c *frontierServiceClient) CreateOrganizationResource(ctx context.Context, req *connect.Request[v1beta1.CreateOrganizationResourceRequest]) (*connect.Response[v1beta1.CreateOrganizationResourceResponse], error) {
+	return c.createOrganizationResource.CallUnary(ctx, req)
+}
+
+// UpdateOrganizationResource calls
+// raystack.frontier.v1beta1.FrontierService.UpdateOrganizationResource.
+func (c *frontierServiceClient) UpdateOrganizationResource(ctx context.Context, req *connect.Request[v1beta1.UpdateOrganizationResourceRequest]) (*connect.Response[v1beta1.UpdateOrganizationResourceResponse], error) {
+	return c.updateOrganizationResource.CallUnary(ctx, req)
+}
+
+// DeleteOrganizationResource calls
+// raystack.frontier.v1beta1.FrontierService.DeleteOrganizationResource.
+func (c *frontierServiceClient) DeleteOrganizationResource(ctx context.Context, req *connect.Request[v1beta1.DeleteOrganizationResourceRequest]) (*connect.Response[v1beta1.DeleteOrganizationResourceResponse], error) {
+	return c.deleteOrganizationResource.CallUnary(ctx, req)
 }
 
 // CheckResourcePermission calls raystack.frontier.v1beta1.FrontierService.CheckResourcePermission.
@@ -3015,6 +3111,8 @@ type FrontierServiceHandler interface {
 	EnableUser(context.Context, *connect.Request[v1beta1.EnableUserRequest]) (*connect.Response[v1beta1.EnableUserResponse], error)
 	DisableUser(context.Context, *connect.Request[v1beta1.DisableUserRequest]) (*connect.Response[v1beta1.DisableUserResponse], error)
 	DeleteUser(context.Context, *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error)
+	CheckCurrentUserDelete(context.Context, *connect.Request[v1beta1.CheckCurrentUserDeleteRequest]) (*connect.Response[v1beta1.CheckCurrentUserDeleteResponse], error)
+	DeleteCurrentUser(context.Context, *connect.Request[v1beta1.DeleteCurrentUserRequest]) (*connect.Response[v1beta1.DeleteCurrentUserResponse], error)
 	ListOrganizationsByUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByUserResponse], error)
 	ListOrganizationsByCurrentUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByCurrentUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByCurrentUserResponse], error)
 	ListProjectsByUser(context.Context, *connect.Request[v1beta1.ListProjectsByUserRequest]) (*connect.Response[v1beta1.ListProjectsByUserResponse], error)
@@ -3097,6 +3195,7 @@ type FrontierServiceHandler interface {
 	EnableProject(context.Context, *connect.Request[v1beta1.EnableProjectRequest]) (*connect.Response[v1beta1.EnableProjectResponse], error)
 	DisableProject(context.Context, *connect.Request[v1beta1.DisableProjectRequest]) (*connect.Response[v1beta1.DisableProjectResponse], error)
 	DeleteProject(context.Context, *connect.Request[v1beta1.DeleteProjectRequest]) (*connect.Response[v1beta1.DeleteProjectResponse], error)
+	CheckProjectDelete(context.Context, *connect.Request[v1beta1.CheckProjectDeleteRequest]) (*connect.Response[v1beta1.CheckProjectDeleteResponse], error)
 	SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error)
 	RemoveProjectMember(context.Context, *connect.Request[v1beta1.RemoveProjectMemberRequest]) (*connect.Response[v1beta1.RemoveProjectMemberResponse], error)
 	// Policies
@@ -3122,6 +3221,9 @@ type FrontierServiceHandler interface {
 	GetProjectResource(context.Context, *connect.Request[v1beta1.GetProjectResourceRequest]) (*connect.Response[v1beta1.GetProjectResourceResponse], error)
 	UpdateProjectResource(context.Context, *connect.Request[v1beta1.UpdateProjectResourceRequest]) (*connect.Response[v1beta1.UpdateProjectResourceResponse], error)
 	DeleteProjectResource(context.Context, *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error)
+	CreateOrganizationResource(context.Context, *connect.Request[v1beta1.CreateOrganizationResourceRequest]) (*connect.Response[v1beta1.CreateOrganizationResourceResponse], error)
+	UpdateOrganizationResource(context.Context, *connect.Request[v1beta1.UpdateOrganizationResourceRequest]) (*connect.Response[v1beta1.UpdateOrganizationResourceResponse], error)
+	DeleteOrganizationResource(context.Context, *connect.Request[v1beta1.DeleteOrganizationResourceRequest]) (*connect.Response[v1beta1.DeleteOrganizationResourceResponse], error)
 	// Authz
 	CheckResourcePermission(context.Context, *connect.Request[v1beta1.CheckResourcePermissionRequest]) (*connect.Response[v1beta1.CheckResourcePermissionResponse], error)
 	BatchCheckPermission(context.Context, *connect.Request[v1beta1.BatchCheckPermissionRequest]) (*connect.Response[v1beta1.BatchCheckPermissionResponse], error)
@@ -3134,10 +3236,7 @@ type FrontierServiceHandler interface {
 	// Ping user current active session.
 	PingUserSession(context.Context, *connect.Request[v1beta1.PingUserSessionRequest]) (*connect.Response[v1beta1.PingUserSessionResponse], error)
 	ListAuthStrategies(context.Context, *connect.Request[v1beta1.ListAuthStrategiesRequest]) (*connect.Response[v1beta1.ListAuthStrategiesResponse], error)
-	// ListConsentDocuments returns the documents a user has to accept before an
-	// account is created for them. Unauthenticated, like ListAuthStrategies, so a
-	// sign-up view can render them before the account exists. An empty list means
-	// the deployment asks for no consent.
+	// Returns the list of consent documents
 	ListConsentDocuments(context.Context, *connect.Request[v1beta1.ListConsentDocumentsRequest]) (*connect.Response[v1beta1.ListConsentDocumentsResponse], error)
 	Authenticate(context.Context, *connect.Request[v1beta1.AuthenticateRequest]) (*connect.Response[v1beta1.AuthenticateResponse], error)
 	AuthCallback(context.Context, *connect.Request[v1beta1.AuthCallbackRequest]) (*connect.Response[v1beta1.AuthCallbackResponse], error)
@@ -3294,6 +3393,18 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceDeleteUserProcedure,
 		svc.DeleteUser,
 		connect.WithSchema(frontierServiceMethods.ByName("DeleteUser")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceCheckCurrentUserDeleteHandler := connect.NewUnaryHandler(
+		FrontierServiceCheckCurrentUserDeleteProcedure,
+		svc.CheckCurrentUserDelete,
+		connect.WithSchema(frontierServiceMethods.ByName("CheckCurrentUserDelete")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceDeleteCurrentUserHandler := connect.NewUnaryHandler(
+		FrontierServiceDeleteCurrentUserProcedure,
+		svc.DeleteCurrentUser,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteCurrentUser")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceListOrganizationsByUserHandler := connect.NewUnaryHandler(
@@ -3734,6 +3845,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		connect.WithSchema(frontierServiceMethods.ByName("DeleteProject")),
 		connect.WithHandlerOptions(opts...),
 	)
+	frontierServiceCheckProjectDeleteHandler := connect.NewUnaryHandler(
+		FrontierServiceCheckProjectDeleteProcedure,
+		svc.CheckProjectDelete,
+		connect.WithSchema(frontierServiceMethods.ByName("CheckProjectDelete")),
+		connect.WithHandlerOptions(opts...),
+	)
 	frontierServiceSetProjectMemberRoleHandler := connect.NewUnaryHandler(
 		FrontierServiceSetProjectMemberRoleProcedure,
 		svc.SetProjectMemberRole,
@@ -3852,6 +3969,24 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 		FrontierServiceDeleteProjectResourceProcedure,
 		svc.DeleteProjectResource,
 		connect.WithSchema(frontierServiceMethods.ByName("DeleteProjectResource")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceCreateOrganizationResourceHandler := connect.NewUnaryHandler(
+		FrontierServiceCreateOrganizationResourceProcedure,
+		svc.CreateOrganizationResource,
+		connect.WithSchema(frontierServiceMethods.ByName("CreateOrganizationResource")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceUpdateOrganizationResourceHandler := connect.NewUnaryHandler(
+		FrontierServiceUpdateOrganizationResourceProcedure,
+		svc.UpdateOrganizationResource,
+		connect.WithSchema(frontierServiceMethods.ByName("UpdateOrganizationResource")),
+		connect.WithHandlerOptions(opts...),
+	)
+	frontierServiceDeleteOrganizationResourceHandler := connect.NewUnaryHandler(
+		FrontierServiceDeleteOrganizationResourceProcedure,
+		svc.DeleteOrganizationResource,
+		connect.WithSchema(frontierServiceMethods.ByName("DeleteOrganizationResource")),
 		connect.WithHandlerOptions(opts...),
 	)
 	frontierServiceCheckResourcePermissionHandler := connect.NewUnaryHandler(
@@ -4334,6 +4469,10 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceDisableUserHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteUserProcedure:
 			frontierServiceDeleteUserHandler.ServeHTTP(w, r)
+		case FrontierServiceCheckCurrentUserDeleteProcedure:
+			frontierServiceCheckCurrentUserDeleteHandler.ServeHTTP(w, r)
+		case FrontierServiceDeleteCurrentUserProcedure:
+			frontierServiceDeleteCurrentUserHandler.ServeHTTP(w, r)
 		case FrontierServiceListOrganizationsByUserProcedure:
 			frontierServiceListOrganizationsByUserHandler.ServeHTTP(w, r)
 		case FrontierServiceListOrganizationsByCurrentUserProcedure:
@@ -4480,6 +4619,8 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceDisableProjectHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteProjectProcedure:
 			frontierServiceDeleteProjectHandler.ServeHTTP(w, r)
+		case FrontierServiceCheckProjectDeleteProcedure:
+			frontierServiceCheckProjectDeleteHandler.ServeHTTP(w, r)
 		case FrontierServiceSetProjectMemberRoleProcedure:
 			frontierServiceSetProjectMemberRoleHandler.ServeHTTP(w, r)
 		case FrontierServiceRemoveProjectMemberProcedure:
@@ -4520,6 +4661,12 @@ func NewFrontierServiceHandler(svc FrontierServiceHandler, opts ...connect.Handl
 			frontierServiceUpdateProjectResourceHandler.ServeHTTP(w, r)
 		case FrontierServiceDeleteProjectResourceProcedure:
 			frontierServiceDeleteProjectResourceHandler.ServeHTTP(w, r)
+		case FrontierServiceCreateOrganizationResourceProcedure:
+			frontierServiceCreateOrganizationResourceHandler.ServeHTTP(w, r)
+		case FrontierServiceUpdateOrganizationResourceProcedure:
+			frontierServiceUpdateOrganizationResourceHandler.ServeHTTP(w, r)
+		case FrontierServiceDeleteOrganizationResourceProcedure:
+			frontierServiceDeleteOrganizationResourceHandler.ServeHTTP(w, r)
 		case FrontierServiceCheckResourcePermissionProcedure:
 			frontierServiceCheckResourcePermissionHandler.ServeHTTP(w, r)
 		case FrontierServiceBatchCheckPermissionProcedure:
@@ -4723,6 +4870,14 @@ func (UnimplementedFrontierServiceHandler) DisableUser(context.Context, *connect
 
 func (UnimplementedFrontierServiceHandler) DeleteUser(context.Context, *connect.Request[v1beta1.DeleteUserRequest]) (*connect.Response[v1beta1.DeleteUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteUser is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) CheckCurrentUserDelete(context.Context, *connect.Request[v1beta1.CheckCurrentUserDeleteRequest]) (*connect.Response[v1beta1.CheckCurrentUserDeleteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckCurrentUserDelete is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) DeleteCurrentUser(context.Context, *connect.Request[v1beta1.DeleteCurrentUserRequest]) (*connect.Response[v1beta1.DeleteCurrentUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteCurrentUser is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) ListOrganizationsByUser(context.Context, *connect.Request[v1beta1.ListOrganizationsByUserRequest]) (*connect.Response[v1beta1.ListOrganizationsByUserResponse], error) {
@@ -5017,6 +5172,10 @@ func (UnimplementedFrontierServiceHandler) DeleteProject(context.Context, *conne
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteProject is not implemented"))
 }
 
+func (UnimplementedFrontierServiceHandler) CheckProjectDelete(context.Context, *connect.Request[v1beta1.CheckProjectDeleteRequest]) (*connect.Response[v1beta1.CheckProjectDeleteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CheckProjectDelete is not implemented"))
+}
+
 func (UnimplementedFrontierServiceHandler) SetProjectMemberRole(context.Context, *connect.Request[v1beta1.SetProjectMemberRoleRequest]) (*connect.Response[v1beta1.SetProjectMemberRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.SetProjectMemberRole is not implemented"))
 }
@@ -5095,6 +5254,18 @@ func (UnimplementedFrontierServiceHandler) UpdateProjectResource(context.Context
 
 func (UnimplementedFrontierServiceHandler) DeleteProjectResource(context.Context, *connect.Request[v1beta1.DeleteProjectResourceRequest]) (*connect.Response[v1beta1.DeleteProjectResourceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteProjectResource is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) CreateOrganizationResource(context.Context, *connect.Request[v1beta1.CreateOrganizationResourceRequest]) (*connect.Response[v1beta1.CreateOrganizationResourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.CreateOrganizationResource is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) UpdateOrganizationResource(context.Context, *connect.Request[v1beta1.UpdateOrganizationResourceRequest]) (*connect.Response[v1beta1.UpdateOrganizationResourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.UpdateOrganizationResource is not implemented"))
+}
+
+func (UnimplementedFrontierServiceHandler) DeleteOrganizationResource(context.Context, *connect.Request[v1beta1.DeleteOrganizationResourceRequest]) (*connect.Response[v1beta1.DeleteOrganizationResourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("raystack.frontier.v1beta1.FrontierService.DeleteOrganizationResource is not implemented"))
 }
 
 func (UnimplementedFrontierServiceHandler) CheckResourcePermission(context.Context, *connect.Request[v1beta1.CheckResourcePermissionRequest]) (*connect.Response[v1beta1.CheckResourcePermissionResponse], error) {

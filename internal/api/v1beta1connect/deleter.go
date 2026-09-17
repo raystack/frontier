@@ -49,7 +49,7 @@ func (h *ConnectHandler) CheckOrganizationDelete(ctx context.Context, request *c
 		CanDelete: len(blockers) == 0,
 	}
 	for _, b := range blockers {
-		resp.Blockers = append(resp.Blockers, &frontierv1beta1.CheckOrganizationDeleteResponse_Blocker{
+		resp.Blockers = append(resp.Blockers, &frontierv1beta1.Blocker{
 			Type:        b.Type,
 			Subject:     b.Subject,
 			SubjectType: b.SubjectType,
