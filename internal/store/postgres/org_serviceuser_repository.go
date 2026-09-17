@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	svc "github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 )
 
@@ -42,6 +44,17 @@ func (c *ServiceUserRow) transformToAggregatedServiceUser(orgID string) svc.Aggr
 	}
 }
 
+// the base query joins serviceusers, policies and projects, and all three carry an
+// id, a title and a created_at. rql is therefore applied to a wrapper select over the
+// base query, where only these aliased output columns are visible and unambiguous.
+const ORG_SERVICE_USER_BASE_ALIAS = "org_service_users"
+
+var (
+	orgServiceUserRQLFilterSupportedColumns = []string{COLUMN_ID, COLUMN_TITLE, COLUMN_ORG_ID, COLUMN_CREATED_AT}
+	orgServiceUserRQLSearchSupportedColumns = []string{COLUMN_TITLE}
+	orgServiceUserRQLSortSupportedColumns   = []string{COLUMN_ID, COLUMN_TITLE, COLUMN_CREATED_AT}
+)
+
 type OrgServiceUserRepository struct {
 	dbc *db.Client
 }
@@ -52,8 +65,8 @@ func NewOrgServiceUserRepository(dbc *db.Client) *OrgServiceUserRepository {
 	}
 }
 
-func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrganizationServiceUsers, error) {
-	dataQuery, params, err := r.prepareDataQuery(orgID, rql)
+func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rqlQuery *rql.Query) (svc.OrganizationServiceUsers, error) {
+	dataQuery, params, page, err := r.prepareDataQuery(orgID, rqlQuery)
 	if err != nil {
 		return svc.OrganizationServiceUsers{}, err
 	}
@@ -84,52 +97,51 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rql 
 	return svc.OrganizationServiceUsers{
 		ServiceUsers: res,
 		Pagination: svc.Page{
-			Offset: rql.Offset,
-			Limit:  rql.Limit,
+			Offset: page.Offset,
+			Limit:  page.Limit,
 		},
 	}, nil
 }
 
-func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []any, error) {
-	query := r.buildBaseQuery(orgID)
+func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Query) (string, []any, utils.Page, error) {
+	query := dialect.From(r.buildBaseQuery(orgID).As(ORG_SERVICE_USER_BASE_ALIAS)).Prepared(true)
 
-	sorted := false
-	if rql != nil {
-		for _, filter := range rql.Filters {
-			query = r.addFilter(query, filter)
-		}
-		if rql.Search != "" {
-			query = r.addSearch(query, rql.Search)
-		}
-		if len(rql.Sort) > 0 {
-			var err error
-			query, err = r.addSort(query, rql.Sort)
-			if err != nil {
-				return "", nil, err
-			}
-			sorted = true
-		}
+	if rqlQuery == nil {
+		rqlQuery = &rql.Query{}
 	}
 
-	// the sort from the request has to be the first ordering term, so the base query
-	// keeps no order of its own and title asc is only used when nothing was asked for
-	if !sorted {
-		query = query.OrderAppend(goqu.I(TABLE_SERVICE_USERS + "." + COLUMN_TITLE).Asc())
+	query, err := utils.AddRQLFiltersInQuery(query, rqlQuery, orgServiceUserRQLFilterSupportedColumns, svc.AggregatedServiceUser{})
+	if err != nil {
+		return "", nil, utils.Page{}, fmt.Errorf("%w: %w", ErrBadInput, err)
+	}
+
+	query, err = utils.AddRQLSearchInQuery(query, rqlQuery, orgServiceUserRQLSearchSupportedColumns)
+	if err != nil {
+		return "", nil, utils.Page{}, fmt.Errorf("%w: %w", ErrBadInput, err)
+	}
+
+	for _, sortItem := range rqlQuery.Sort {
+		if !slices.Contains(orgServiceUserRQLSortSupportedColumns, sortItem.Name) {
+			return "", nil, utils.Page{}, fmt.Errorf("%w: %s is not supported in sort", ErrBadInput, sortItem.Name)
+		}
+	}
+	query, err = utils.AddRQLSortInQuery(query, rqlQuery)
+	if err != nil {
+		return "", nil, utils.Page{}, fmt.Errorf("%w: %w", ErrBadInput, err)
+	}
+
+	// the request decides the order, so title asc is only used when nothing was asked for
+	if len(rqlQuery.Sort) == 0 {
+		query = query.OrderAppend(goqu.C(COLUMN_TITLE).Asc())
 	}
 	// the last term makes the order total, so paging by offset cannot repeat or skip
 	// a row when two rows tie on the sorted column
-	query = query.OrderAppend(goqu.I(TABLE_SERVICE_USERS + "." + COLUMN_ID).Asc())
+	query = query.OrderAppend(goqu.C(COLUMN_ID).Asc())
 
-	if rql != nil {
-		if rql.Limit > 0 {
-			query = query.Limit(uint(rql.Limit))
-		}
-		if rql.Offset > 0 {
-			query = query.Offset(uint(rql.Offset))
-		}
-	}
+	query, page := utils.AddRQLPaginationInQuery(query, rqlQuery)
 
-	return query.ToSQL()
+	sql, params, err := query.ToSQL()
+	return sql, params, page, err
 }
 
 func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
@@ -164,63 +176,4 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 		GroupBy(
 			TABLE_SERVICE_USERS + "." + COLUMN_ID,
 		)
-}
-
-func (r OrgServiceUserRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) *goqu.SelectDataset {
-	var field string
-	// Map field names to their table-qualified names
-	switch filter.Name {
-	case "title":
-		field = TABLE_SERVICE_USERS + "." + COLUMN_TITLE
-	case "created_at":
-		field = TABLE_SERVICE_USERS + "." + COLUMN_CREATED_AT
-	default:
-		return query
-	}
-
-	switch filter.Operator {
-	case "empty":
-		return query.Where(goqu.Or(goqu.I(field).IsNull(), goqu.I(field).Eq("")))
-	case "notempty":
-		return query.Where(goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq("")))
-	case "like", "notlike":
-		value := "%" + filter.Value.(string) + "%"
-		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: value}})
-	default:
-		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}})
-	}
-}
-
-func (r OrgServiceUserRepository) addSearch(query *goqu.SelectDataset, search string) *goqu.SelectDataset {
-	searchPattern := "%" + search + "%"
-	searchExpressions := make([]goqu.Expression, 0)
-
-	searchExpressions = append(searchExpressions,
-		goqu.Cast(goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE), "TEXT").ILike(searchPattern),
-	)
-
-	return query.Where(goqu.Or(searchExpressions...))
-}
-
-func (r OrgServiceUserRepository) addSort(query *goqu.SelectDataset, sorts []rql.Sort) (*goqu.SelectDataset, error) {
-	validSortFields := map[string]string{
-		"title":      TABLE_SERVICE_USERS + "." + COLUMN_TITLE,
-		"created_at": TABLE_SERVICE_USERS + "." + COLUMN_CREATED_AT,
-	}
-
-	for _, sort := range sorts {
-		field, exists := validSortFields[sort.Name]
-		if !exists {
-			return nil, fmt.Errorf("invalid sort field: %s", sort.Name)
-		}
-
-		switch sort.Order {
-		case "asc":
-			query = query.OrderAppend(goqu.I(field).Asc())
-		case "desc":
-			query = query.OrderAppend(goqu.I(field).Desc())
-		}
-	}
-
-	return query, nil
 }

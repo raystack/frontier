@@ -8,367 +8,133 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// the joined and grouped part of the query never changes. rql only ever adds a WHERE,
+// an ORDER BY and pagination to the wrapper select around it, so keeping it in one
+// constant makes the part each case actually exercises easy to read.
+const orgServiceUserBaseSQL = `SELECT * FROM (` +
+	`SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", ` +
+	`COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" ` +
+	`FROM "serviceusers" ` +
+	`LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) ` +
+	`LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) ` +
+	`WHERE ("serviceusers"."org_id" = $3) ` +
+	`GROUP BY "serviceusers"."id"` +
+	`) AS "org_service_users"`
+
+// every query carries these three, in this order, before anything rql adds
+func baseParams(rest ...any) []any {
+	return append([]any{"app/serviceuser", "app/project", "org1"}, rest...)
+}
+
 func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 	tests := []struct {
 		name       string
-		orgID      string
 		rql        *rql.Query
 		wantSQL    string
 		wantParams []any
-		wantErr    bool
+		wantPage   int
+		wantErr    string
 	}{
 		{
-			name:  "basic query without filters",
-			orgID: "org1",
-			rql: &rql.Query{
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $4 OFFSET $5`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			name:       "no options falls back to title asc and the default limit",
+			rql:        &rql.Query{},
+			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "id" ASC LIMIT $4`,
+			wantParams: baseParams(int64(50)),
+			wantPage:   50,
 		},
 		{
-			name:  "query with search",
-			orgID: "org1",
-			rql: &rql.Query{
-				Search: "test",
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				"%test%",          // search pattern for title
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			name:       "nil query behaves like an empty one",
+			rql:        nil,
+			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "id" ASC LIMIT $4`,
+			wantParams: baseParams(int64(50)),
+			wantPage:   50,
 		},
 		{
-			name:  "query with title filter",
-			orgID: "org1",
-			rql: &rql.Query{
-				Filters: []rql.Filter{
-					{
-						Name:     "title",
-						Operator: "eq",
-						Value:    "test-title",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" = $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				"test-title",      // filter value
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			// the sort the caller asked for has to lead, otherwise it has no effect
+			name:       "requested sort leads the order by",
+			rql:        &rql.Query{Limit: 50, Sort: []rql.Sort{{Name: "created_at", Order: "desc"}}},
+			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "created_at" DESC, "id" ASC LIMIT $4`,
+			wantParams: baseParams(int64(50)),
+			wantPage:   50,
 		},
 		{
-			name:  "query with like filter",
-			orgID: "org1",
-			rql: &rql.Query{
-				Filters: []rql.Filter{
-					{
-						Name:     "title",
-						Operator: "like",
-						Value:    "api",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" LIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				"%api%",           // like pattern for title
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			// this used to come out as `title ASC, title DESC`, so descending never happened
+			name:       "sorting by title descending really is descending",
+			rql:        &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "title", Order: "desc"}}},
+			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" DESC, "id" ASC LIMIT $4`,
+			wantParams: baseParams(int64(10)),
+			wantPage:   10,
 		},
 		{
-			name:  "query with created_at filter",
-			orgID: "org1",
-			rql: &rql.Query{
-				Filters: []rql.Filter{
-					{
-						Name:     "created_at",
-						Operator: "gt",
-						Value:    "2023-01-01T00:00:00Z",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."created_at" > $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: []any{
-				"app/serviceuser",      // principal_type
-				"app/project",          // resource_type
-				"org1",                 // org_id
-				"2023-01-01T00:00:00Z", // created_at value
-				int64(10),              // limit
-				int64(5),               // offset
-			},
-			wantErr: false,
+			name:       "several sort terms keep their order and still end on id",
+			rql:        &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "title", Order: "asc"}, {Name: "created_at", Order: "desc"}}},
+			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "created_at" DESC, "id" ASC LIMIT $4`,
+			wantParams: baseParams(int64(10)),
+			wantPage:   10,
 		},
 		{
-			name:  "query with valid sort by title desc",
-			orgID: "org1",
-			rql: &rql.Query{
-				Sort: []rql.Sort{
-					{
-						Name:  "title",
-						Order: "desc",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" DESC, "serviceusers"."id" ASC LIMIT $4 OFFSET $5`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			name:       "search matches on title",
+			rql:        &rql.Query{Search: "test", Limit: 10, Offset: 5},
+			wantSQL:    orgServiceUserBaseSQL + ` WHERE (CAST("title" AS TEXT) ILIKE $4) ORDER BY "title" ASC, "id" ASC LIMIT $5 OFFSET $6`,
+			wantParams: baseParams("%test%", int64(10), int64(5)),
+			wantPage:   10,
 		},
 		{
-			name:  "query with valid sort by created_at asc",
-			orgID: "org1",
-			rql: &rql.Query{
-				Sort: []rql.Sort{
-					{
-						Name:  "created_at",
-						Order: "asc",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."created_at" ASC, "serviceusers"."id" ASC LIMIT $4 OFFSET $5`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			name:       "equality filter on title",
+			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "title", Operator: "eq", Value: "svc"}}},
+			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("title" = $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
+			wantParams: baseParams("svc", int64(10)),
+			wantPage:   10,
 		},
 		{
-			name:  "query with invalid sort field",
-			orgID: "org1",
-			rql: &rql.Query{
-				Sort: []rql.Sort{
-					{
-						Name:  "invalid_field",
-						Order: "desc",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL:    "",
-			wantParams: nil,
-			wantErr:    true,
+			name:       "empty filter on title",
+			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "title", Operator: "empty", Value: ""}}},
+			wantSQL:    orgServiceUserBaseSQL + ` WHERE (("title" IS NULL) OR ("title" = $4)) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
+			wantParams: baseParams("", int64(10)),
+			wantPage:   10,
 		},
 		{
-			name:  "query with empty check filter",
-			orgID: "org1",
-			rql: &rql.Query{
-				Filters: []rql.Filter{
-					{
-						Name:     "title",
-						Operator: "empty",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND (("serviceusers"."title" IS NULL) OR ("serviceusers"."title" = $4))) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				"",                // empty string for comparison
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			name:       "datetime filter on created_at",
+			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "created_at", Operator: "gt", Value: "2026-01-01"}}},
+			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("created_at" > $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
+			wantParams: baseParams("2026-01-01", int64(10)),
+			wantPage:   10,
 		},
 		{
-			name:  "query with notempty check filter",
-			orgID: "org1",
-			rql: &rql.Query{
-				Filters: []rql.Filter{
-					{
-						Name:     "title",
-						Operator: "notempty",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND (("serviceusers"."title" IS NOT NULL) AND ("serviceusers"."title" != $4))) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				"",                // empty string for comparison
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			// updated_at is a field on the aggregate but the query never selects it, so
+			// the allowlist has to reject it rather than build SQL that cannot run
+			name:    "filtering on a column the query does not select is rejected",
+			rql:     &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "updated_at", Operator: "gt", Value: "2026-01-01"}}},
+			wantErr: "bad input: updated_at is not supported in filters",
 		},
 		{
-			name:  "query with notlike filter",
-			orgID: "org1",
-			rql: &rql.Query{
-				Filters: []rql.Filter{
-					{
-						Name:     "title",
-						Operator: "notlike",
-						Value:    "test",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" NOT LIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $5 OFFSET $6`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				"%test%",          // notlike pattern for title
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
+			name:    "sorting on a column the query does not select is rejected",
+			rql:     &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "updated_at", Order: "asc"}}},
+			wantErr: "bad input: updated_at is not supported in sort",
 		},
 		{
-			name:  "query with unknown filter field (should be ignored)",
-			orgID: "org1",
-			rql: &rql.Query{
-				Filters: []rql.Filter{
-					{
-						Name:     "unknown_field",
-						Operator: "eq",
-						Value:    "value",
-					},
-				},
-				Limit:  10,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC LIMIT $4 OFFSET $5`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				int64(10),         // limit
-				int64(5),          // offset
-			},
-			wantErr: false,
-		},
-		{
-			name:  "complex query with multiple conditions",
-			orgID: "org1",
-			rql: &rql.Query{
-				Search: "test",
-				Filters: []rql.Filter{
-					{
-						Name:     "title",
-						Operator: "like",
-						Value:    "api",
-					},
-					{
-						Name:     "created_at",
-						Operator: "gt",
-						Value:    "2023-01-01T00:00:00Z",
-					},
-				},
-				Sort: []rql.Sort{
-					{
-						Name:  "created_at",
-						Order: "desc",
-					},
-				},
-				Limit:  20,
-				Offset: 5,
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."title" LIKE $4) AND ("serviceusers"."created_at" > $5) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $6)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."created_at" DESC, "serviceusers"."id" ASC LIMIT $7 OFFSET $8`,
-			wantParams: []any{
-				"app/serviceuser",      // principal_type
-				"app/project",          // resource_type
-				"org1",                 // org_id
-				"%api%",                // like pattern for title
-				"2023-01-01T00:00:00Z", // created_at value
-				"%test%",               // search pattern for title
-				int64(20),              // limit
-				int64(5),               // offset
-			},
-			wantErr: false,
-		},
-		{
-			name:  "query with no limit or offset",
-			orgID: "org1",
-			rql: &rql.Query{
-				Search: "test",
-			},
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE (("serviceusers"."org_id" = $3) AND (CAST("serviceusers"."title" AS TEXT) ILIKE $4)) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-				"%test%",          // search pattern for title
-			},
-			wantErr: false,
-		},
-		{
-			name:    "query with nil rql",
-			orgID:   "org1",
-			rql:     nil,
-			wantSQL: `SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data" FROM "serviceusers" LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) WHERE ("serviceusers"."org_id" = $3) GROUP BY "serviceusers"."id" ORDER BY "serviceusers"."title" ASC, "serviceusers"."id" ASC`,
-			wantParams: []any{
-				"app/serviceuser", // principal_type
-				"app/project",     // resource_type
-				"org1",            // org_id
-			},
-			wantErr: false,
+			name:       "a limit of zero falls back to the default rather than returning everything",
+			rql:        &rql.Query{Limit: 0, Offset: 20},
+			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "id" ASC LIMIT $4 OFFSET $5`,
+			wantParams: baseParams(int64(50), int64(20)),
+			wantPage:   50,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &OrgServiceUserRepository{}
-			gotSQL, gotParams, err := r.prepareDataQuery(tt.orgID, tt.rql)
+			gotSQL, gotParams, gotPage, err := r.prepareDataQuery("org1", tt.rql)
 
-			if tt.wantErr {
-				assert.Error(t, err)
+			if tt.wantErr != "" {
+				assert.EqualError(t, err, tt.wantErr)
 				return
 			}
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantSQL, gotSQL)
 			assert.Equal(t, tt.wantParams, gotParams)
+			assert.Equal(t, tt.wantPage, gotPage.Limit)
 		})
 	}
 }
