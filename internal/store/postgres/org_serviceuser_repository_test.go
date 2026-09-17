@@ -3,6 +3,7 @@ package postgres
 import (
 	"testing"
 
+	svc "github.com/raystack/frontier/core/aggregates/orgserviceuser"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
 )
@@ -368,6 +369,46 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantSQL, gotSQL)
 			assert.Equal(t, tt.wantParams, gotParams)
+		})
+	}
+}
+
+func TestServiceUserRow_transformToAggregatedServiceUser(t *testing.T) {
+	tests := []struct {
+		name         string
+		row          ServiceUserRow
+		wantProjects []svc.Project
+	}{
+		{
+			name: "service user with no project policy",
+			row: ServiceUserRow{
+				ID:          "su1",
+				Title:       "no project service user",
+				ProjectData: "[]",
+			},
+			wantProjects: []svc.Project{},
+		},
+		{
+			name: "service user with projects",
+			row: ServiceUserRow{
+				ID:          "su2",
+				Title:       "service user with projects",
+				ProjectData: `[{"id":"p1","title":"Project One","name":"project-one"}]`,
+			},
+			wantProjects: []svc.Project{
+				{ID: "p1", Title: "Project One", Name: "project-one"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.row.transformToAggregatedServiceUser("org1")
+
+			assert.Equal(t, tt.row.ID, got.ID)
+			assert.Equal(t, tt.row.Title, got.Title)
+			assert.Equal(t, "org1", got.OrgID)
+			assert.Equal(t, tt.wantProjects, got.Projects)
 		})
 	}
 }
