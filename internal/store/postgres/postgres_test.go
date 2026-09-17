@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync/atomic"
+	"testing"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,7 +45,16 @@ const (
 	pg_dbname     = "test_db"
 )
 
-func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
+var (
+	testPool      *dockertest.Pool
+	testResource  *dockertest.Resource
+	testPort      string
+	testDBCounter uint64
+)
+
+func TestMain(m *testing.M) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
 	opts := &dockertest.RunOptions{
 		Repository: "postgres",
 		Tag:        "13", // Upgraded from 12 to 13 for gen_random_uuid() support
@@ -54,32 +65,35 @@ func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockerte
 		},
 	}
 
-	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
-	pool, err := dockertest.NewPool("")
+	var err error
+
+	testPool, err = dockertest.NewPool("")
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not create dockertest pool: %w", err)
+		fmt.Fprintf(os.Stderr, "could not create dockertest pool: %v\n", err)
+		os.Exit(1)
 	}
 
-	// pulls an image, creates a container based on it and runs it
-	resource, err := pool.RunWithOptions(opts, func(config *docker.HostConfig) {
-		// set AutoRemove to true so that stopped container goes away by itself
+	testPool.MaxWait = 60 * time.Second
+
+	testResource, err = testPool.RunWithOptions(opts, func(config *docker.HostConfig) {
 		config.AutoRemove = true
 		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
 	})
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not start resource: %w", err)
+		fmt.Fprintf(os.Stderr, "could not start postgres resource: %v\n", err)
+		os.Exit(1)
 	}
 
-	pg_port := resource.GetPort("5432/tcp")
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("cannot parse external port of container to int: %w", err)
+	testPort = testResource.GetPort("5432/tcp")
+
+	var logWaiter interface {
+		Close() error
+		Wait() error
 	}
 
-	// attach terminal logger to container if exists
-	// for debugging purpose
 	if logger.Enabled(context.Background(), slog.LevelDebug) {
-		logWaiter, err := pool.Client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
-			Container:    resource.Container.ID,
+		logWaiter, err = testPool.Client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
+			Container:    testResource.Container.ID,
 			OutputStream: os.Stderr,
 			ErrorStream:  os.Stderr,
 			Stderr:       true,
@@ -88,60 +102,137 @@ func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockerte
 		})
 		if err != nil {
 			logger.Error("could not connect to postgres container log output", "error", err)
-			return nil, nil, nil, err
 		}
-		defer func() {
-			err = logWaiter.Close()
-			if err != nil {
-				logger.Error("could not close container log", "error", err)
-			}
-
-			err = logWaiter.Wait()
-			if err != nil {
-				logger.Error("could not wait for container log to close", "error", err)
-			}
-		}()
 	}
-
-	// Tell docker to hard kill the container in 120 seconds
-	if err := resource.Expire(120); err != nil {
-		return nil, nil, nil, err
-	}
-
-	// exponential backoff-retry, because the application in the container might not be ready to accept connections yet
-	pool.MaxWait = 60 * time.Second
 
 	pgConfig := db.Config{
 		Driver:          "pgx",
-		URL:             fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", pg_uname, pg_passwd, pg_port, pg_dbname),
+		URL:             fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", pg_uname, pg_passwd, testPort, pg_dbname),
 		MaxIdleConns:    10,
 		MaxOpenConns:    10,
 		ConnMaxLifeTime: time.Second * 60,
 		MaxQueryTimeout: time.Millisecond * 1000,
 	}
+
 	var pgClient *db.Client
-	if err = pool.Retry(func() error {
+
+	if err := testPool.Retry(func() error {
+		var err error
 		pgClient, err = db.New(pgConfig)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}); err != nil {
-		return nil, nil, nil, fmt.Errorf("could not connect to docker: %w", err)
+		fmt.Fprintf(os.Stderr, "could not connect to postgres: %v\n", err)
+		_ = testPool.Purge(testResource)
+		os.Exit(1)
 	}
 
-	err = setup(context.Background(), logger, pgClient, pgConfig)
-	if err != nil {
-		logger.Error("failed to setup and migrate DB", "error", err)
-		return nil, nil, nil, err
+	if err := setup(context.Background(), logger, pgClient, pgConfig); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to setup and migrate DB: %v\n", err)
+		_ = pgClient.Close()
+		_ = testPool.Purge(testResource)
+		os.Exit(1)
 	}
-	return pgClient, pool, resource, nil
+
+	if err := pgClient.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to close template DB connection: %v\n", err)
+		_ = testPool.Purge(testResource)
+		os.Exit(1)
+	}
+
+	code := m.Run()
+
+	if logWaiter != nil {
+		if err := logWaiter.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "could not close container log: %v\n", err)
+			code = 1
+		}
+		if err := logWaiter.Wait(); err != nil {
+			fmt.Fprintf(os.Stderr, "could not wait for container log to close: %v\n", err)
+			code = 1
+		}
+	}
+
+	if err := testPool.Purge(testResource); err != nil {
+		fmt.Fprintf(os.Stderr, "could not purge postgres resource: %v\n", err)
+		code = 1
+	}
+
+	os.Exit(code)
+}
+
+func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
+	if testPool == nil || testResource == nil || testPort == "" {
+		return nil, nil, nil, fmt.Errorf("shared postgres test container is not initialized")
+	}
+
+	dbName := fmt.Sprintf(
+		"test_db_%d",
+		atomic.AddUint64(&testDBCounter, 1),
+	)
+
+	adminConfig := db.Config{
+		Driver: "pgx",
+		URL: fmt.Sprintf(
+			"postgres://%s:%s@localhost:%s/postgres?sslmode=disable",
+			pg_uname,
+			pg_passwd,
+			testPort,
+		),
+		MaxIdleConns:    1,
+		MaxOpenConns:    1,
+		ConnMaxLifeTime: time.Second * 60,
+		MaxQueryTimeout: time.Millisecond * 1000,
+	}
+
+	adminClient, err := db.New(adminConfig)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("could not connect to postgres: %w", err)
+	}
+	defer adminClient.Close()
+
+	query := fmt.Sprintf("CREATE DATABASE %s TEMPLATE %s", dbName, pg_dbname)
+	if _, err := adminClient.ExecContext(context.Background(), query); err != nil {
+		return nil, nil, nil, fmt.Errorf("could not create test database %s: %w", dbName, err)
+	}
+
+	pgConfig := db.Config{
+		Driver: "pgx",
+		URL: fmt.Sprintf(
+			"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
+			pg_uname,
+			pg_passwd,
+			testPort,
+			dbName,
+		),
+		MaxIdleConns:    10,
+		MaxOpenConns:    10,
+		ConnMaxLifeTime: time.Second * 60,
+		MaxQueryTimeout: time.Millisecond * 1000,
+	}
+
+	var pgClient *db.Client
+
+	if err := testPool.Retry(func() error {
+		var err error
+		pgClient, err = db.New(pgConfig)
+		return err
+	}); err != nil {
+		return nil, nil, nil, fmt.Errorf("could not connect to test database %s: %w", dbName, err)
+	}
+
+	return pgClient, testPool, testResource, nil
 }
 
 func purgeDocker(pool *dockertest.Pool, resource *dockertest.Resource) error {
+	// The shared container is owned by TestMain.
+	if resource == testResource {
+		return nil
+	}
+
 	if err := pool.Purge(resource); err != nil {
 		return fmt.Errorf("could not purge resource: %w", err)
 	}
+
 	return nil
 }
 
