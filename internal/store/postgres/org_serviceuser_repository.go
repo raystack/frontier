@@ -93,6 +93,7 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rql 
 func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []any, error) {
 	query := r.buildBaseQuery(orgID)
 
+	sorted := false
 	if rql != nil {
 		for _, filter := range rql.Filters {
 			query = r.addFilter(query, filter)
@@ -106,7 +107,20 @@ func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rql *rql.Query)
 			if err != nil {
 				return "", nil, err
 			}
+			sorted = true
 		}
+	}
+
+	// the sort from the request has to be the first ordering term, so the base query
+	// keeps no order of its own and title asc is only used when nothing was asked for
+	if !sorted {
+		query = query.OrderAppend(goqu.I(TABLE_SERVICE_USERS + "." + COLUMN_TITLE).Asc())
+	}
+	// the last term makes the order total, so paging by offset cannot repeat or skip
+	// a row when two rows tie on the sorted column
+	query = query.OrderAppend(goqu.I(TABLE_SERVICE_USERS + "." + COLUMN_ID).Asc())
+
+	if rql != nil {
 		if rql.Limit > 0 {
 			query = query.Limit(uint(rql.Limit))
 		}
@@ -149,8 +163,7 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 		}).
 		GroupBy(
 			TABLE_SERVICE_USERS + "." + COLUMN_ID,
-		).
-		Order(goqu.I(TABLE_SERVICE_USERS + "." + COLUMN_TITLE).Asc())
+		)
 }
 
 func (r OrgServiceUserRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) *goqu.SelectDataset {
