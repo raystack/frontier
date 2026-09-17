@@ -125,9 +125,11 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE).As("title"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ORG_ID).As("org_id"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_CREATED_AT).As("created_at"),
-			goqu.L("JSON_AGG(JSON_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+"))").As("project_data"),
+			// a service user without any project policy still has to show up, so the
+			// aggregate skips the null rows the left join produces and falls back to []
+			goqu.L("COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+")) FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '[]')").As("project_data"),
 		).
-		InnerJoin(
+		LeftJoin(
 			goqu.T(TABLE_POLICIES),
 			goqu.On(
 				goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID)),
@@ -135,9 +137,12 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 				goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq(schema.ProjectNamespace),
 			),
 		).
-		InnerJoin(
+		LeftJoin(
 			goqu.T(TABLE_PROJECTS),
-			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(goqu.I(TABLE_PROJECTS+"."+COLUMN_ID))),
+			goqu.On(
+				goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(goqu.I(TABLE_PROJECTS+"."+COLUMN_ID)),
+				goqu.I(TABLE_PROJECTS+"."+COLUMN_DELETED_AT).IsNull(),
+			),
 		).
 		Where(goqu.Ex{
 			TABLE_SERVICE_USERS + "." + COLUMN_ORG_ID: orgID,
