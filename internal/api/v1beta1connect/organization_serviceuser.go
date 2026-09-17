@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,10 +20,16 @@ func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, req
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
 	}
 
+	// without this a bad filter value, say a datetime that cannot be parsed, reaches
+	// postgres and comes back as an internal error instead of a bad request
+	if err := rql.ValidateQuery(rqlQuery, orgserviceuser.AggregatedServiceUser{}); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
+	}
+
 	serviceUsersData, err := h.orgServiceUserService.Search(ctx, request.Msg.GetId(), rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationServiceUsers.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}
