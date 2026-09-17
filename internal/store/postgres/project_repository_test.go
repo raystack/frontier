@@ -493,4 +493,17 @@ func (s *ProjectRepositoryTestSuite) TestSkipsSoftDeletedProjects() {
 
 	_, err = s.repository.UpdateByName(s.ctx, project.Project{Name: deleted.Name, Title: "changed"})
 	s.Assert().ErrorIs(err, project.ErrNotExist)
+
+	byID := deleted
+	byID.Title = "changed"
+	_, err = s.repository.UpdateByID(s.ctx, byID)
+	s.Assert().ErrorIs(err, project.ErrNotExist)
+
+	// SetState runs a plain exec and does not report a miss, so check the row instead.
+	err = s.repository.SetState(s.ctx, deleted.ID, project.Disabled)
+	s.Assert().NoError(err)
+	var state string
+	err = s.client.QueryRowxContext(s.ctx, "SELECT state FROM projects WHERE id = $1", deleted.ID).Scan(&state)
+	s.Assert().NoError(err)
+	s.Assert().Equal(project.Enabled.String(), state)
 }

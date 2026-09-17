@@ -404,6 +404,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			goqu.Ex{
 				"id": usr.ID,
 			},
+			live(TABLE_USERS),
 		).Returning(&User{}).ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", errQuery, err)
@@ -532,6 +533,7 @@ func (r UserRepository) SetState(ctx context.Context, id string, state user.Stat
 		goqu.Ex{
 			"id": id,
 		},
+		live(TABLE_USERS),
 	).Returning(&User{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)

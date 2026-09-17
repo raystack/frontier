@@ -593,4 +593,12 @@ func (s *OrganizationRepositoryTestSuite) TestSkipsSoftDeletedOrganizations() {
 
 	_, err = s.repository.UpdateByName(s.ctx, organization.Organization{Name: deleted.Name, Title: "changed"})
 	s.Assert().ErrorIs(err, organization.ErrNotExist)
+
+	byID := deleted
+	byID.Title = "changed"
+	_, err = s.repository.UpdateByID(s.ctx, byID)
+	s.Assert().ErrorIs(err, organization.ErrNotExist)
+
+	err = s.repository.SetState(s.ctx, deleted.ID, organization.Disabled)
+	s.Assert().ErrorIs(err, organization.ErrNotExist)
 }

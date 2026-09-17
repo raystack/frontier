@@ -245,7 +245,7 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 			"title":      prj.Title,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{"id": prj.ID}).Returning(&Project{}).ToSQL()
+		}).Where(goqu.Ex{"id": prj.ID}, live(TABLE_PROJECTS)).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
@@ -328,6 +328,7 @@ func (r ProjectRepository) SetState(ctx context.Context, id string, state projec
 		goqu.Ex{
 			"id": id,
 		},
+		live(TABLE_PROJECTS),
 	).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)

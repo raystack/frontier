@@ -776,4 +776,12 @@ func (s *UserRepositoryTestSuite) TestSkipsSoftDeletedUsers() {
 
 	_, err = s.repository.UpdateByName(s.ctx, user.User{Name: deleted.Name, Title: "changed"})
 	s.Assert().ErrorIs(err, user.ErrNotExist)
+
+	byID := deleted
+	byID.Title = "changed"
+	_, err = s.repository.UpdateByID(s.ctx, byID)
+	s.Assert().ErrorIs(err, user.ErrNotExist)
+
+	err = s.repository.SetState(s.ctx, deleted.ID, user.Disabled)
+	s.Assert().ErrorIs(err, user.ErrNotExist)
 }

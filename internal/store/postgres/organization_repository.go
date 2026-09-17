@@ -341,7 +341,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": org.ID,
-	}).Returning(&Organization{}).ToSQL()
+	}, live(TABLE_ORGANIZATIONS)).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
@@ -464,6 +464,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 		goqu.Ex{
 			"id": id,
 		},
+		live(TABLE_ORGANIZATIONS),
 	).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", errQuery, err)
