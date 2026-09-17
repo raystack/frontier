@@ -152,8 +152,10 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ORG_ID).As("org_id"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_CREATED_AT).As("created_at"),
 			// a service user without any project policy still has to show up, so the
-			// aggregate skips the null rows the left join produces and falls back to []
-			goqu.L("COALESCE(JSON_AGG(JSON_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+")) FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '[]')").As("project_data"),
+			// aggregate skips the null rows the left join produces and falls back to [].
+			// two roles on one project produce two joined rows, so it is deduped, which
+			// needs jsonb because the json type has no equality operator.
+			goqu.L("COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+")) FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '[]')").As("project_data"),
 		).
 		LeftJoin(
 			goqu.T(TABLE_POLICIES),
