@@ -6,10 +6,12 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,12 +21,30 @@ func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, req
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
 	}
 
-	serviceUsersData, err := h.orgServiceUserService.Search(ctx, request.Msg.GetId(), rqlQuery)
+	// without this a bad filter value, say a datetime that cannot be parsed, reaches
+	// postgres and comes back as an internal error instead of a bad request
+	if err := rql.ValidateQuery(rqlQuery, orgserviceuser.AggregatedServiceUser{}); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
+	}
+
+	// the store filters on org_id, a uuid column, so a name would reach postgres as a
+	// cast error. resolving first also matches ListOrganizationServiceUsers, which
+	// accepts a name or an id. GetRaw rather than Get, because an admin still needs to
+	// look inside a disabled organization.
+	org, err := h.orgService.GetRaw(ctx, request.Msg.GetId())
+	if err != nil {
+		if errors.Is(err, organization.ErrNotExist) || errors.Is(err, organization.ErrInvalidUUID) {
+			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationServiceUsers.GetRaw: org_id=%s: %w", request.Msg.GetId(), err))
+	}
+
+	serviceUsersData, err := h.orgServiceUserService.Search(ctx, org.ID, rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationServiceUsers.Search: org_id=%s: %w", request.Msg.GetId(), err))
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationServiceUsers.Search: org_id=%s: %w", org.ID, err))
 	}
 
 	var orgServiceUsers []*frontierv1beta1.SearchOrganizationServiceUsersResponse_OrganizationServiceUser

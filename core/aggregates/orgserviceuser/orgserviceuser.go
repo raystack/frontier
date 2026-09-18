@@ -42,13 +42,14 @@ type Project struct {
 	Name  string `json:"name"`
 }
 
+// salt resolves an rql field by the `name` tag and reads its type from the `type` tag.
+// a `column` tag is ignored, which left created_at and org_id unresolvable.
 type AggregatedServiceUser struct {
-	ID        string    `rql:"filter,sort,column=id"`
-	OrgID     string    `rql:"filter,sort,column=org_id"`
-	Title     string    `rql:"filter,sort,column=title"`
-	Projects  []Project `rql:"filter,sort,column=projects"`
-	CreatedAt time.Time `rql:"filter,sort,column=created_at"`
-	UpdatedAt time.Time `rql:"filter,sort,column=updated_at"`
+	ID        string    `rql:"name=id,type=string"`
+	OrgID     string    `rql:"name=org_id,type=string"`
+	Title     string    `rql:"name=title,type=string"`
+	Projects  []Project `rql:"name=projects,type=string"`
+	CreatedAt time.Time `rql:"name=created_at,type=datetime"`
 }
 
 func (s Service) Search(ctx context.Context, orgID string, query *rql.Query) (OrganizationServiceUsers, error) {
