@@ -7,6 +7,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/aggregates/orgserviceuser"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/internal/store/postgres"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -29,6 +30,8 @@ func TestSearchOrganizationServiceUsers(t *testing.T) {
 		name string
 		// nil means the service must not be reached at all
 		setup    func(*mocks.OrgServiceUserService)
+		orgSetup func(*mocks.OrganizationService)
+		id       string
 		query    *frontierv1beta1.RQLRequest
 		wantCode connect.Code
 		wantMsg  string
@@ -88,6 +91,28 @@ func TestSearchOrganizationServiceUsers(t *testing.T) {
 			wantMsg:  "group_by is not supported",
 		},
 		{
+			// the store filters on a uuid column, so a name has to be resolved first
+			// rather than reaching postgres as a cast error
+			name: "org addressed by name is resolved to its id",
+			id:   "compare-org",
+			orgSetup: func(o *mocks.OrganizationService) {
+				o.EXPECT().GetRaw(mock.Anything, "compare-org").Return(organization.Organization{ID: orgID}, nil)
+			},
+			setup: func(s *mocks.OrgServiceUserService) {
+				s.EXPECT().Search(mock.Anything, orgID, mock.Anything).Return(orgserviceuser.OrganizationServiceUsers{}, nil)
+			},
+			query:   &frontierv1beta1.RQLRequest{Limit: 50},
+			wantLen: 0,
+		},
+		{
+			name: "org that does not exist is not found",
+			orgSetup: func(o *mocks.OrganizationService) {
+				o.EXPECT().GetRaw(mock.Anything, mock.Anything).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			query:    &frontierv1beta1.RQLRequest{Limit: 50},
+			wantCode: connect.CodeNotFound,
+		},
+		{
 			name: "any other store failure is internal",
 			setup: func(s *mocks.OrgServiceUserService) {
 				s.EXPECT().Search(mock.Anything, orgID, mock.Anything).Return(
@@ -104,10 +129,20 @@ func TestSearchOrganizationServiceUsers(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(svc)
 			}
-			handler := &ConnectHandler{orgServiceUserService: svc}
+			orgSvc := mocks.NewOrganizationService(t)
+			if tt.orgSetup != nil {
+				tt.orgSetup(orgSvc)
+			} else if tt.setup != nil {
+				orgSvc.EXPECT().GetRaw(mock.Anything, mock.Anything).Return(organization.Organization{ID: orgID}, nil)
+			}
+			handler := &ConnectHandler{orgServiceUserService: svc, orgService: orgSvc}
 
+			id := tt.id
+			if id == "" {
+				id = orgID
+			}
 			resp, err := handler.SearchOrganizationServiceUsers(context.Background(),
-				connect.NewRequest(&frontierv1beta1.SearchOrganizationServiceUsersRequest{Id: orgID, Query: tt.query}))
+				connect.NewRequest(&frontierv1beta1.SearchOrganizationServiceUsersRequest{Id: id, Query: tt.query}))
 
 			if tt.wantMsg == "" && tt.wantCode == 0 {
 				assert.NoError(t, err)
