@@ -224,6 +224,29 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestRejectsUnsupportedInput() {
 	s.ErrorIs(err, postgres.ErrBadInput)
 }
 
+// the admin ui pages by reading limit and offset back off the response, so Search
+// has to report what it actually applied rather than echo the request
+func (s *OrgServiceUserRepositoryPGTestSuite) TestPaginationMetadata() {
+	res, err := s.repository.Search(s.ctx, s.orgID, &rql.Query{})
+	s.Require().NoError(err)
+	s.Equal(50, res.Pagination.Limit, "a request with no limit reports the default that was applied")
+	s.Equal(0, res.Pagination.Offset)
+	s.Len(res.ServiceUsers, 5)
+
+	res, err = s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 2, Offset: 2})
+	s.Require().NoError(err)
+	s.Equal(2, res.Pagination.Limit)
+	s.Equal(2, res.Pagination.Offset)
+	s.Len(res.ServiceUsers, 2)
+
+	// the last page is short, and the reported limit stays the requested one
+	res, err = s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 2, Offset: 4})
+	s.Require().NoError(err)
+	s.Equal(2, res.Pagination.Limit)
+	s.Equal(4, res.Pagination.Offset)
+	s.Len(res.ServiceUsers, 1)
+}
+
 func TestOrgServiceUserRepositoryPG(t *testing.T) {
 	suite.Run(t, new(OrgServiceUserRepositoryPGTestSuite))
 }

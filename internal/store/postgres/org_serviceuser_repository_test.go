@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	svc "github.com/raystack/frontier/core/aggregates/orgserviceuser"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +34,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 		rql        *rql.Query
 		wantSQL    string
 		wantParams []any
-		wantPage   int
+		wantPage   utils.Page
 		wantErr    string
 	}{
 		{
@@ -41,14 +42,14 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			rql:        &rql.Query{},
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "id" ASC LIMIT $4`,
 			wantParams: baseParams(int64(50)),
-			wantPage:   50,
+			wantPage:   utils.Page{Limit: 50, Offset: 0},
 		},
 		{
 			name:       "nil query behaves like an empty one",
 			rql:        nil,
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "id" ASC LIMIT $4`,
 			wantParams: baseParams(int64(50)),
-			wantPage:   50,
+			wantPage:   utils.Page{Limit: 50, Offset: 0},
 		},
 		{
 			// the sort the caller asked for has to lead, otherwise it has no effect
@@ -56,7 +57,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			rql:        &rql.Query{Limit: 50, Sort: []rql.Sort{{Name: "created_at", Order: "desc"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "created_at" DESC, "id" ASC LIMIT $4`,
 			wantParams: baseParams(int64(50)),
-			wantPage:   50,
+			wantPage:   utils.Page{Limit: 50, Offset: 0},
 		},
 		{
 			// this used to come out as `title ASC, title DESC`, so descending never happened
@@ -64,42 +65,42 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			rql:        &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "title", Order: "desc"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" DESC, "id" ASC LIMIT $4`,
 			wantParams: baseParams(int64(10)),
-			wantPage:   10,
+			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
 			name:       "several sort terms keep their order and still end on id",
 			rql:        &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "title", Order: "asc"}, {Name: "created_at", Order: "desc"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "created_at" DESC, "id" ASC LIMIT $4`,
 			wantParams: baseParams(int64(10)),
-			wantPage:   10,
+			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
 			name:       "search matches on title or project titles",
 			rql:        &rql.Query{Search: "test", Limit: 10, Offset: 5},
 			wantSQL:    orgServiceUserBaseSQL + ` WHERE ((CAST("title" AS TEXT) ILIKE $4) OR (CAST("projects" AS TEXT) ILIKE $5)) ORDER BY "title" ASC, "id" ASC LIMIT $6 OFFSET $7`,
 			wantParams: baseParams("%test%", "%test%", int64(10), int64(5)),
-			wantPage:   10,
+			wantPage:   utils.Page{Limit: 10, Offset: 5},
 		},
 		{
 			name:       "equality filter on title",
 			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "title", Operator: "eq", Value: "svc"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("title" = $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
 			wantParams: baseParams("svc", int64(10)),
-			wantPage:   10,
+			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
 			name:       "empty filter on title",
 			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "title", Operator: "empty", Value: ""}}},
 			wantSQL:    orgServiceUserBaseSQL + ` WHERE (("title" IS NULL) OR ("title" = $4)) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
 			wantParams: baseParams("", int64(10)),
-			wantPage:   10,
+			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
 			name:       "datetime filter on created_at",
 			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "created_at", Operator: "gt", Value: "2026-01-01"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("created_at" > $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
 			wantParams: baseParams("2026-01-01", int64(10)),
-			wantPage:   10,
+			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
 			// the admin ui marks the Projects column filterable, so it has to work
@@ -108,7 +109,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "projects", Operator: "ilike", Value: "%Live%"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("projects" ILIKE $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
 			wantParams: baseParams("%Live%", int64(10)),
-			wantPage:   10,
+			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
 			// the sort helper would order by the group_by column, which the wrapper
@@ -134,7 +135,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			rql:        &rql.Query{Limit: 0, Offset: 20},
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" ASC, "id" ASC LIMIT $4 OFFSET $5`,
 			wantParams: baseParams(int64(50), int64(20)),
-			wantPage:   50,
+			wantPage:   utils.Page{Limit: 50, Offset: 20},
 		},
 	}
 
@@ -151,7 +152,7 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantSQL, gotSQL)
 			assert.Equal(t, tt.wantParams, gotParams)
-			assert.Equal(t, tt.wantPage, gotPage.Limit)
+			assert.Equal(t, tt.wantPage, gotPage)
 		})
 	}
 }
