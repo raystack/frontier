@@ -59,7 +59,7 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 }
 
 func (r RelationRepository) List(ctx context.Context, flt relation.Filter) ([]relation.Relation, error) {
-	stmt := dialect.Select(&relationCols{}).From(TABLE_RELATIONS)
+	stmt := fromLive(TABLE_RELATIONS).Select(&relationCols{})
 	if flt.Subject.ID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"subject_id":             flt.Subject.ID,
@@ -101,7 +101,7 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 		return relation.Relation{}, relation.ErrInvalidID
 	}
 
-	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).
+	query, params, err := fromLive(TABLE_RELATIONS).Select(&relationCols{}).
 		Where(goqu.Ex{
 			"id": id,
 		}).ToSQL()
@@ -166,7 +166,7 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 
 func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
 	var fetchedRelations []Relation
-	stmt := dialect.Select(&relationCols{}).From(TABLE_RELATIONS)
+	stmt := fromLive(TABLE_RELATIONS).Select(&relationCols{})
 	if rel.Object.ID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"object_id": rel.Object.ID,
@@ -230,7 +230,7 @@ func (r RelationRepository) ListByFields(ctx context.Context, rel relation.Relat
 	if len(rel.Object.ID) != 0 {
 		exprs = append(exprs, goqu.Ex{"object_id": rel.Object.ID})
 	}
-	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(exprs...).ToSQL()
+	query, params, err := fromLive(TABLE_RELATIONS).Select(&relationCols{}).Where(exprs...).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", errQuery, err)
 	}

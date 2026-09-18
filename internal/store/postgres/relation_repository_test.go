@@ -323,3 +323,26 @@ func (s *RelationRepositoryTestSuite) TestDeleteByID() {
 func TestRelationRepository(t *testing.T) {
 	suite.Run(t, new(RelationRepositoryTestSuite))
 }
+
+func (s *RelationRepositoryTestSuite) TestSkipsSoftDeletedRelations() {
+	deleted := s.relations[0]
+	_, err := s.client.ExecContext(s.ctx, "UPDATE relations SET deleted_at = now() WHERE id = $1", deleted.ID)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = s.repository.Get(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, relation.ErrNotExist)
+
+	got, err := s.repository.List(s.ctx, relation.Filter{Subject: deleted.Subject, Object: deleted.Object})
+	s.Assert().NoError(err)
+	for _, r := range got {
+		s.Assert().NotEqual(deleted.ID, r.ID)
+	}
+
+	byFields, err := s.repository.GetByFields(s.ctx, deleted)
+	s.Assert().NoError(err)
+	for _, r := range byFields {
+		s.Assert().NotEqual(deleted.ID, r.ID)
+	}
+}
