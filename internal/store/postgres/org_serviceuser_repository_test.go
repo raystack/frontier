@@ -17,9 +17,9 @@ const orgServiceUserBaseSQL = `SELECT * FROM (` +
 	`COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data", ` +
 	`COALESCE(STRING_AGG(DISTINCT projects.title, ', ') FILTER (WHERE projects.id IS NOT NULL), '') AS "projects" ` +
 	`FROM "serviceusers" ` +
-	`LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2)) ` +
+	`LEFT JOIN "policies" ON (("serviceusers"."id" = "policies"."principal_id") AND ("policies"."principal_type" = $1) AND ("policies"."resource_type" = $2) AND ("policies"."deleted_at" IS NULL)) ` +
 	`LEFT JOIN "projects" ON (("policies"."resource_id" = "projects"."id") AND ("projects"."deleted_at" IS NULL)) ` +
-	`WHERE ("serviceusers"."org_id" = $3) ` +
+	`WHERE (("serviceusers"."org_id" = $3) AND ("serviceusers"."deleted_at" IS NULL)) ` +
 	`GROUP BY "serviceusers"."id"` +
 	`) AS "org_service_users"`
 

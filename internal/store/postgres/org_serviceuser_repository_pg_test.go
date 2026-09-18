@@ -247,6 +247,34 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestPaginationMetadata() {
 	s.Len(res.ServiceUsers, 1)
 }
 
+// every table in the query carries a deleted_at, so a soft-deleted row in any of
+// them has to drop out rather than surface through the admin search
+func (s *OrgServiceUserRepositoryPGTestSuite) TestSoftDeletedRowsAreSkipped() {
+	s.Equal(
+		[]string{"a-with-project", "b-org-policy-only", "c-no-policy", "d-deleted-project", "e-two-roles"},
+		s.titles(&rql.Query{Limit: 50}),
+	)
+
+	// a soft-deleted service user disappears entirely
+	s.exec(`UPDATE serviceusers SET deleted_at = now() WHERE title = 'c-no-policy'`)
+	s.Equal(
+		[]string{"a-with-project", "b-org-policy-only", "d-deleted-project", "e-two-roles"},
+		s.titles(&rql.Query{Limit: 50}),
+	)
+
+	// a soft-deleted policy keeps the service user but drops the project it granted
+	s.exec(`UPDATE policies SET deleted_at = now()
+	        WHERE principal_id = (SELECT id FROM serviceusers WHERE title = 'a-with-project')`)
+	res, err := s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 50})
+	s.Require().NoError(err)
+	for _, su := range res.ServiceUsers {
+		if su.Title == "a-with-project" {
+			s.Empty(su.Projects, "a project granted by a soft-deleted policy must not be listed")
+		}
+	}
+	s.Contains(s.titles(&rql.Query{Limit: 50}), "a-with-project")
+}
+
 func TestOrgServiceUserRepositoryPG(t *testing.T) {
 	suite.Run(t, new(OrgServiceUserRepositoryPGTestSuite))
 }

@@ -156,6 +156,9 @@ func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Q
 	return sql, params, page, err
 }
 
+// every table joined here is soft-deletable, so each one is filtered to live rows.
+// the organization itself is filtered by the handler, which resolves it through a
+// read that already skips soft-deleted rows.
 func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 	return dialect.From(TABLE_SERVICE_USERS).Prepared(true).
 		Select(
@@ -178,18 +181,20 @@ func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDatas
 				goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID)),
 				goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_TYPE).Eq(schema.ServiceUserPrincipal),
 				goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq(schema.ProjectNamespace),
+				live(TABLE_POLICIES),
 			),
 		).
 		LeftJoin(
 			goqu.T(TABLE_PROJECTS),
 			goqu.On(
 				goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(goqu.I(TABLE_PROJECTS+"."+COLUMN_ID)),
-				goqu.I(TABLE_PROJECTS+"."+COLUMN_DELETED_AT).IsNull(),
+				live(TABLE_PROJECTS),
 			),
 		).
-		Where(goqu.Ex{
-			TABLE_SERVICE_USERS + "." + COLUMN_ORG_ID: orgID,
-		}).
+		Where(
+			goqu.Ex{TABLE_SERVICE_USERS + "." + COLUMN_ORG_ID: orgID},
+			live(TABLE_SERVICE_USERS),
+		).
 		GroupBy(
 			TABLE_SERVICE_USERS + "." + COLUMN_ID,
 		)
