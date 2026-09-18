@@ -39,7 +39,7 @@ func (r PolicyRepository) buildListQuery() *goqu.SelectDataset {
 		"p.principal_type",
 		"p.role_id",
 		"p.grant_relation",
-	).From(goqu.T(TABLE_POLICIES).As("p"))
+	).From(goqu.T(TABLE_POLICIES).As("p")).Where(live("p"))
 }
 
 func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, error) {
@@ -181,7 +181,7 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 
 func (r PolicyRepository) Count(ctx context.Context, flt policy.Filter) (int64, error) {
 	var count int64
-	stmt := dialect.Select(goqu.COUNT(goqu.Star()).As("count")).From(goqu.T(TABLE_POLICIES).As("p"))
+	stmt := dialect.Select(goqu.COUNT(goqu.Star()).As("count")).From(goqu.T(TABLE_POLICIES).As("p")).Where(live("p"))
 	stmt = applyListFilter(stmt, flt)
 
 	query, params, err := stmt.ToSQL()
@@ -292,7 +292,7 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 			"updated_at":     goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": toUpdate.ID,
-	}).Returning("id", "updated_at").ToSQL()
+	}, live(TABLE_POLICIES)).Returning("id", "updated_at").ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", errQuery, err)
 	}
@@ -461,7 +461,7 @@ func (r PolicyRepository) GroupMemberCount(ctx context.Context, groupIDs []strin
 	if len(groupIDs) == 0 {
 		return nil, policy.ErrInvalidID
 	}
-	stmt := dialect.From("policies").
+	stmt := fromLive(TABLE_POLICIES).
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.GroupNamespace,
@@ -498,7 +498,7 @@ func (r PolicyRepository) ProjectMemberCount(ctx context.Context, projectIDs []s
 	if len(projectIDs) == 0 {
 		return nil, policy.ErrInvalidID
 	}
-	stmt := dialect.From("policies").
+	stmt := fromLive(TABLE_POLICIES).
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.ProjectNamespace,
@@ -534,7 +534,7 @@ func (r PolicyRepository) OrgMemberCount(ctx context.Context, id string) (policy
 	if len(id) == 0 {
 		return policy.MemberCount{}, policy.ErrInvalidID
 	}
-	stmt := dialect.From("policies").
+	stmt := fromLive(TABLE_POLICIES).
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.OrganizationNamespace,
@@ -600,7 +600,7 @@ func (r PolicyRepository) buildPolicyAuditRecord(ctx context.Context, tx *sqlx.T
 // getPolicyByConstraint fetches a policy by unique constraint fields
 // Returns the policy and true if found, empty policy and false if not found
 func (r PolicyRepository) getPolicyByConstraint(ctx context.Context, pol policy.Policy) (Policy, bool) {
-	query, params, _ := dialect.From(TABLE_POLICIES).
+	query, params, _ := fromLive(TABLE_POLICIES).
 		Select("id", "resource_type", "resource_id", "principal_id", "principal_type", "role_id").
 		Where(goqu.Ex{
 			"role_id":        pol.RoleID,
@@ -625,19 +625,19 @@ func (r PolicyRepository) getResourceInfo(ctx context.Context, tx *sqlx.Tx, reso
 	switch resourceType {
 	case schema.OrganizationNamespace:
 		orgID = resourceID
-		orgQuery, orgParams, _ := dialect.From(TABLE_ORGANIZATIONS).
+		orgQuery, orgParams, _ := fromLive(TABLE_ORGANIZATIONS).
 			Select("title").
 			Where(goqu.Ex{"id": resourceID}).
 			ToSQL()
 		_ = tx.QueryRowContext(ctx, orgQuery, orgParams...).Scan(&resourceName)
 	case schema.ProjectNamespace:
-		projQuery, projParams, _ := dialect.From(TABLE_PROJECTS).
+		projQuery, projParams, _ := fromLive(TABLE_PROJECTS).
 			Select("org_id", "title").
 			Where(goqu.Ex{"id": resourceID}).
 			ToSQL()
 		_ = tx.QueryRowContext(ctx, projQuery, projParams...).Scan(&orgID, &resourceName)
 	case schema.GroupNamespace:
-		grpQuery, grpParams, _ := dialect.From(TABLE_GROUPS).
+		grpQuery, grpParams, _ := fromLive(TABLE_GROUPS).
 			Select("org_id", "title").
 			Where(goqu.Ex{"id": resourceID}).
 			ToSQL()

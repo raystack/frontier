@@ -535,3 +535,34 @@ func (s *PolicyRepositoryTestSuite) TestOrgMemberCount() {
 		})
 	}
 }
+
+func (s *PolicyRepositoryTestSuite) TestSkipsSoftDeletedPolicies() {
+	deleted := s.policies[0]
+	flt := policy.Filter{PrincipalID: s.userID}
+	before, err := s.repository.List(s.ctx, flt)
+	s.Require().NoError(err)
+	countBefore, err := s.repository.Count(s.ctx, flt)
+	s.Require().NoError(err)
+
+	_, err = s.client.ExecContext(s.ctx, "UPDATE policies SET deleted_at = now() WHERE id = $1", deleted.ID)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = s.repository.Get(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, policy.ErrNotExist)
+
+	got, err := s.repository.List(s.ctx, flt)
+	s.Assert().NoError(err)
+	s.Assert().Len(got, len(before)-1)
+	for _, p := range got {
+		s.Assert().NotEqual(deleted.ID, p.ID)
+	}
+
+	count, err := s.repository.Count(s.ctx, flt)
+	s.Assert().NoError(err)
+	s.Assert().Equal(countBefore-1, count)
+
+	_, err = s.repository.Update(s.ctx, deleted)
+	s.Assert().ErrorIs(err, policy.ErrNotExist)
+}

@@ -411,3 +411,28 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 func TestResourceRepository(t *testing.T) {
 	suite.Run(t, new(ResourceRepositoryTestSuite))
 }
+
+func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
+	deleted := s.resources[0]
+	_, err := s.client.ExecContext(s.ctx, "UPDATE resources SET deleted_at = now() WHERE id = $1", deleted.ID)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = s.repository.GetByID(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+
+	_, err = s.repository.GetByURN(s.ctx, deleted.URN)
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+
+	got, err := s.repository.List(s.ctx, resource.Filter{ProjectID: deleted.ProjectID})
+	s.Assert().NoError(err)
+	for _, r := range got {
+		s.Assert().NotEqual(deleted.ID, r.ID)
+	}
+
+	updated := deleted
+	updated.Title = "changed"
+	_, err = s.repository.Update(s.ctx, updated)
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+}
