@@ -81,13 +81,12 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 	}
 	product.Name = strings.ToLower(product.Name)
 
-	_, err := s.stripeClient.Products.New(&stripe.ProductParams{
+	providerParams := &stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		ID:          &product.ProviderID,
-		Name:        &product.Title,
-		Description: &product.Description,
+		ID:   &product.ProviderID,
+		Name: &product.Title,
 		Metadata: map[string]string{
 			"name":          product.Name,
 			"credit_amount": fmt.Sprintf("%d", product.Config.CreditAmount),
@@ -95,7 +94,13 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 			"product_id":    product.ID,
 			"managed_by":    "frontier",
 		},
-	})
+	}
+
+	if product.Description != "" {
+		providerParams.Description = &product.Description
+	}
+
+	_, err := s.stripeClient.Products.New(providerParams)
 	if err != nil {
 		return Product{}, fmt.Errorf("failed to create product at billing provider: %w", billingerrors.TranslateStripeError(err))
 	}
