@@ -196,6 +196,7 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 		ProjectID:     parentProject.ID,
 		NamespaceID:   namespaceID,
 		Name:          request.Msg.GetBody().GetName(),
+		Title:         request.Msg.GetBody().GetTitle(),
 		PrincipalID:   principalID,
 		PrincipalType: principalType,
 		Metadata:      metaDataMap,

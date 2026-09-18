@@ -706,6 +706,52 @@ func TestConnectHandler_UpdateProjectResource(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name: "should pass the title from the request body to the resource service",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+					Organization: organization.Organization{
+						ID: "test-org-id",
+					},
+				}, nil)
+				titledResource := testResource
+				titledResource.Title = "a resource title"
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
+					ID:            testResourceID,
+					Name:          testResource.Name,
+					Title:         "a resource title",
+					ProjectID:     testResource.ProjectID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalID:   testResource.PrincipalID,
+					PrincipalType: testResource.PrincipalType,
+				}).Return(titledResource, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateProjectResourceRequest{
+				Id:        testResourceID,
+				ProjectId: testResource.ProjectID,
+				Body: &frontierv1beta1.ResourceRequestBody{
+					Name:      testResource.Name,
+					Title:     "a resource title",
+					Namespace: testResource.NamespaceID,
+					Principal: testUserID,
+				},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.UpdateProjectResourceResponse{
+				Resource: &frontierv1beta1.Resource{
+					Id:        testResource.ID,
+					Name:      testResource.Name,
+					Title:     "a resource title",
+					Urn:       testResource.URN,
+					ProjectId: testProjectID,
+					Namespace: testNSID,
+					Principal: schema.JoinNamespaceAndResourceID(testResource.PrincipalType, testResource.PrincipalID),
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			}),
+			wantErr: nil,
+		},
+		{
 			name: "should handle metadata correctly",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
