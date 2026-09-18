@@ -41,7 +41,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
+	query, params, err := fromLive(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 	if err != nil {
@@ -76,7 +76,7 @@ func (r OrganizationRepository) GetByIDs(ctx context.Context, ids []string) ([]o
 		return nil, organization.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
+	query, params, err := fromLive(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"id": goqu.Op{"in": ids},
 	}).Where(notDisabledOrgExp).ToSQL()
 	if err != nil {
@@ -114,7 +114,7 @@ func (r OrganizationRepository) GetByName(ctx context.Context, name string) (org
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
+	query, params, err := fromLive(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"name": name,
 	}).ToSQL()
 	if err != nil {
@@ -216,7 +216,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 }
 
 func (r OrganizationRepository) List(ctx context.Context, flt organization.Filter) ([]organization.Organization, error) {
-	stmt := dialect.From(TABLE_ORGANIZATIONS)
+	stmt := fromLive(TABLE_ORGANIZATIONS)
 	if flt.State == "" {
 		stmt = stmt.Where(notDisabledOrgExp)
 	} else {
@@ -326,7 +326,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	}
 
 	// Query to fetch org title before update
-	getQuery, getParams, err := dialect.From(TABLE_ORGANIZATIONS).
+	getQuery, getParams, err := fromLive(TABLE_ORGANIZATIONS).
 		Select("title").
 		Where(goqu.Ex{"id": org.ID}).ToSQL()
 	if err != nil {
@@ -341,7 +341,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": org.ID,
-	}).Returning(&Organization{}).ToSQL()
+	}, live(TABLE_ORGANIZATIONS)).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
@@ -397,7 +397,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 	}
 
 	// Query to fetch org data before update
-	getQuery, getParams, err := dialect.From(TABLE_ORGANIZATIONS).
+	getQuery, getParams, err := fromLive(TABLE_ORGANIZATIONS).
 		Select("title").
 		Where(goqu.Ex{"name": org.Name}).ToSQL()
 	if err != nil {
@@ -413,7 +413,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		}).Where(
 		goqu.Ex{
 			"name": org.Name,
-		}).Returning(&Organization{}).ToSQL()
+		}, live(TABLE_ORGANIZATIONS)).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
@@ -464,6 +464,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 		goqu.Ex{
 			"id": id,
 		},
+		live(TABLE_ORGANIZATIONS),
 	).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", errQuery, err)

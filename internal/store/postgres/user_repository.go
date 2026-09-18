@@ -47,7 +47,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	}
 
 	var fetchedUser User
-	userQuery, params, err := dialect.From(TABLE_USERS).
+	userQuery, params, err := fromLive(TABLE_USERS).
 		Where(goqu.Ex{
 			"id": id,
 		}).Where(notDisabledUserExp).ToSQL()
@@ -85,7 +85,7 @@ func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, 
 	}
 
 	var fetchedUser User
-	query, params, err := dialect.From(TABLE_USERS).
+	query, params, err := fromLive(TABLE_USERS).
 		Where(goqu.Ex{
 			"name": strings.ToLower(name),
 		}).ToSQL()
@@ -247,7 +247,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	}
 	offset := (flt.Page - 1) * flt.Limit
 
-	sqlStmt := dialect.From(TABLE_USERS).
+	sqlStmt := fromLive(TABLE_USERS).
 		Select("users.id", "name", "email", "title", "avatar", "users.created_at", "users.updated_at")
 
 	if len(flt.Keyword) != 0 {
@@ -297,7 +297,7 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 	}
 	var fetchedUsers []User
 
-	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "title", "avatar", "state").Where(
+	query, params, err := fromLive(TABLE_USERS).Select("id", "name", "email", "title", "avatar", "state").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
 		}).Where(notDisabledUserExp).ToSQL()
@@ -352,6 +352,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 			goqu.Ex{
 				"email": strings.ToLower(usr.Email),
 			},
+			live(TABLE_USERS),
 		).Returning(&User{}).ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", errQuery, err)
@@ -403,6 +404,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 			goqu.Ex{
 				"id": usr.ID,
 			},
+			live(TABLE_USERS),
 		).Returning(&User{}).ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", errQuery, err)
@@ -460,6 +462,7 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 		goqu.Ex{
 			"name": strings.ToLower(usr.Name),
 		},
+		live(TABLE_USERS),
 	).Returning(&User{}).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", errQuery, err)
@@ -496,7 +499,7 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	}
 
 	var fetchedUser User
-	query, params, err := dialect.From(TABLE_USERS).Where(
+	query, params, err := fromLive(TABLE_USERS).Where(
 		goqu.Ex{
 			"email": strings.ToLower(email),
 		}).Where(notDisabledUserExp).ToSQL()
@@ -530,6 +533,7 @@ func (r UserRepository) SetState(ctx context.Context, id string, state user.Stat
 		goqu.Ex{
 			"id": id,
 		},
+		live(TABLE_USERS),
 	).Returning(&User{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
@@ -698,7 +702,7 @@ func (r UserRepository) PrepareDataQuery(input *rql.Query) (string, []any, error
 }
 
 func (r UserRepository) buildBaseQuery() *goqu.SelectDataset {
-	return dialect.From(TABLE_USERS).Prepared(true).Select(
+	return fromLive(TABLE_USERS).Prepared(true).Select(
 		goqu.I(COLUMN_ID),
 		goqu.I(COLUMN_NAME),
 		goqu.I(COLUMN_EMAIL),
@@ -772,7 +776,7 @@ func (r UserRepository) addSort(query *goqu.SelectDataset, input *rql.Query) (*g
 
 func (r UserRepository) PrepareGroupByQuery(input *rql.Query) (string, []any, error) {
 	// Start with base query that includes COUNT and group by field
-	query := dialect.From(TABLE_USERS).Prepared(true).
+	query := fromLive(TABLE_USERS).Prepared(true).
 		Select(
 			goqu.COUNT("*").As("count"),
 			goqu.I(TABLE_USERS+"."+input.GroupBy[0]).As("values"),

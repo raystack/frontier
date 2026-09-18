@@ -470,3 +470,35 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByName() {
 func TestProjectRepository(t *testing.T) {
 	suite.Run(t, new(ProjectRepositoryTestSuite))
 }
+
+func (s *ProjectRepositoryTestSuite) TestSkipsSoftDeletedProjects() {
+	deleted := s.projects[0]
+	_, err := s.client.ExecContext(s.ctx, "UPDATE projects SET deleted_at = now() WHERE id = $1", deleted.ID)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = s.repository.GetByID(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, project.ErrNotExist)
+
+	_, err = s.repository.GetByName(s.ctx, deleted.Name)
+	s.Assert().ErrorIs(err, project.ErrNotExist)
+
+	got, err := s.repository.List(s.ctx, project.Filter{OrgID: deleted.Organization.ID})
+	s.Assert().NoError(err)
+	s.Assert().NotEmpty(got)
+	for _, p := range got {
+		s.Assert().NotEqual(deleted.ID, p.ID)
+	}
+
+	_, err = s.repository.UpdateByName(s.ctx, project.Project{Name: deleted.Name, Title: "changed"})
+	s.Assert().ErrorIs(err, project.ErrNotExist)
+
+	byID := deleted
+	byID.Title = "changed"
+	_, err = s.repository.UpdateByID(s.ctx, byID)
+	s.Assert().ErrorIs(err, project.ErrNotExist)
+
+	err = s.repository.SetState(s.ctx, deleted.ID, project.Disabled)
+	s.Assert().ErrorIs(err, project.ErrNotExist)
+}
