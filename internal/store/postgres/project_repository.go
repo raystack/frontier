@@ -11,7 +11,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
-	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -329,21 +328,19 @@ func (r ProjectRepository) SetState(ctx context.Context, id string, state projec
 			"id": id,
 		},
 		live(TABLE_PROJECTS),
-	).ToSQL()
+	).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
+	var projectModel Project
 	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "SetState", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&projectModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return project.ErrNotExist
 		default:
 			return err
 		}
