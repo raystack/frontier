@@ -103,7 +103,11 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
 	var fetchedResources []Resource
 
-	sqlStatement := fromLive(TABLE_RESOURCES).Order(goqu.C("created_at").Asc())
+	sqlStatement := fromLive(TABLE_RESOURCES)
+	if flt.IncludeDeleted {
+		sqlStatement = dialect.From(TABLE_RESOURCES)
+	}
+	sqlStatement = sqlStatement.Order(goqu.C("created_at").Asc())
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
