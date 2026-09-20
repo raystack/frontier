@@ -606,6 +606,39 @@ func TestDelete(t *testing.T) {
 	})
 }
 
+func TestPurge(t *testing.T) {
+	t.Run("removes relations then the row", func(t *testing.T) {
+		repo, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
+
+		relationSvc.EXPECT().Delete(mock.Anything, relation.Relation{
+			Object: relation.Object{ID: "r1", Namespace: "resource/item"},
+		}).Return(nil)
+		repo.EXPECT().Purge(mock.Anything, "r1").Return(nil)
+
+		err := svc.Purge(context.Background(), "resource/item", "r1")
+		assert.NoError(t, err)
+	})
+
+	t.Run("ignores relation not exist error", func(t *testing.T) {
+		repo, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
+
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(relation.ErrNotExist)
+		repo.EXPECT().Purge(mock.Anything, "r1").Return(nil)
+
+		err := svc.Purge(context.Background(), "resource/item", "r1")
+		assert.NoError(t, err)
+	})
+
+	t.Run("returns relation delete error", func(t *testing.T) {
+		_, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
+
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(errors.New("spicedb down"))
+
+		err := svc.Purge(context.Background(), "resource/item", "r1")
+		assert.ErrorContains(t, err, "spicedb down")
+	})
+}
+
 func TestAddProjectToResource(t *testing.T) {
 	t.Run("creates project relation", func(t *testing.T) {
 		_, relationSvc, _, _, _, _, _, _, svc := newTestService(t)

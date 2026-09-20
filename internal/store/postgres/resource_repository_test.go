@@ -494,6 +494,21 @@ func (s *ResourceRepositoryTestSuite) TestDelete() {
 	s.Assert().ErrorIs(err, resource.ErrNotExist)
 }
 
+func (s *ResourceRepositoryTestSuite) TestPurge() {
+	target := s.resources[0]
+
+	err := s.repository.Purge(s.ctx, target.ID)
+	s.Require().NoError(err)
+
+	var rows int
+	err = s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM resources WHERE id = $1", target.ID).Scan(&rows)
+	s.Require().NoError(err)
+	s.Assert().Equal(0, rows)
+
+	err = s.repository.Purge(s.ctx, utils.NewString())
+	s.Assert().NoError(err)
+}
+
 func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
 	deleted := s.resources[0]
 	_, err := s.client.ExecContext(s.ctx, "UPDATE resources SET deleted_at = now() WHERE id = $1", deleted.ID)

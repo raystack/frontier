@@ -474,6 +474,21 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	return nil
 }
 
+// Purge removes the resource and its SpiceDB tuples for good. Only the project
+// delete cascade uses it. The API delete is Delete, which keeps the row.
+// TODO(fix): remove once project delete is soft and the cascade uses Delete
+func (s Service) Purge(ctx context.Context, namespaceID, id string) error {
+	if err := s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        id,
+			Namespace: namespaceID,
+		},
+	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
+		return err
+	}
+	return s.repository.Purge(ctx, id)
+}
+
 // RemovePrincipalAccess deletes every resource-level policy the principal holds
 // on resources owned by the given projects.
 func (s Service) RemovePrincipalAccess(ctx context.Context, principalID, principalType string, projectIDs []string) error {
