@@ -299,6 +299,53 @@ func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, resource.
 	return _c
 }
 
+// Purge provides a mock function with given fields: ctx, id
+func (_m *Repository) Purge(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Purge")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_Purge_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Purge'
+type Repository_Purge_Call struct {
+	*mock.Call
+}
+
+// Purge is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *Repository_Expecter) Purge(ctx interface{}, id interface{}) *Repository_Purge_Call {
+	return &Repository_Purge_Call{Call: _e.mock.On("Purge", ctx, id)}
+}
+
+func (_c *Repository_Purge_Call) Run(run func(ctx context.Context, id string)) *Repository_Purge_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_Purge_Call) Return(_a0 error) *Repository_Purge_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_Purge_Call) RunAndReturn(run func(context.Context, string) error) *Repository_Purge_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: ctx, _a1
 func (_m *Repository) Update(ctx context.Context, _a1 resource.Resource) (resource.Resource, error) {
 	ret := _m.Called(ctx, _a1)

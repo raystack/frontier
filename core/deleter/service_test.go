@@ -111,7 +111,7 @@ func TestDeleteProject(t *testing.T) {
 
 		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
 			Return([]resource.Resource{{ID: "res-1", NamespaceID: "ns-1", Name: "r1"}}, nil)
-		m.resSvc.EXPECT().Delete(mock.Anything, "ns-1", "res-1").Return(nil)
+		m.resSvc.EXPECT().Purge(mock.Anything, "ns-1", "res-1").Return(nil)
 
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
