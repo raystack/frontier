@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/user"
 	patmodels "github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgauditrecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -531,35 +532,77 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("deletes relations then resource", func(t *testing.T) {
-		repo, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
+	ctx := context.Background()
+	proj := project.Project{
+		ID:           uuid.New().String(),
+		Title:        "Project One",
+		Organization: organization.Organization{ID: uuid.New().String(), Title: "Org One"},
+	}
+	res := resource.Resource{ID: "r1", Name: "res-1", Title: "Resource One", NamespaceID: "resource/item", ProjectID: proj.ID}
 
+	t.Run("deletes relations then the row, and writes the audit record", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
+
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
 		relationSvc.EXPECT().Delete(mock.Anything, relation.Relation{
 			Object: relation.Object{ID: "r1", Namespace: "resource/item"},
 		}).Return(nil)
 		repo.EXPECT().Delete(mock.Anything, "r1").Return(nil)
+		auditRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(rec auditmodels.AuditRecord) bool {
+			return rec.Event == pkgauditrecord.ResourceDeletedEvent &&
+				rec.Target != nil && rec.Target.ID == "r1" && rec.Target.Name == "Resource One" &&
+				rec.Resource.ID == proj.ID && rec.OrgID == proj.Organization.ID
+		})).Return(auditmodels.AuditRecord{}, nil)
 
-		err := svc.Delete(context.Background(), "resource/item", "r1")
+		err := svc.Delete(ctx, "resource/item", "r1")
 		assert.NoError(t, err)
 	})
 
-	t.Run("ignores relation not exist error", func(t *testing.T) {
-		repo, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
+	t.Run("returns not found when the resource does not exist", func(t *testing.T) {
+		repo, _, _, _, _, _, _, _, svc := newTestService(t)
 
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(resource.Resource{}, resource.ErrNotExist)
+
+		err := svc.Delete(ctx, "resource/item", "r1")
+		assert.ErrorIs(t, err, resource.ErrNotExist)
+	})
+
+	t.Run("ignores relation not exist error", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
+
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(relation.ErrNotExist)
 		repo.EXPECT().Delete(mock.Anything, "r1").Return(nil)
+		auditRepo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.AuditRecord")).
+			Return(auditmodels.AuditRecord{}, nil)
 
-		err := svc.Delete(context.Background(), "resource/item", "r1")
+		err := svc.Delete(ctx, "resource/item", "r1")
 		assert.NoError(t, err)
 	})
 
 	t.Run("returns relation delete error", func(t *testing.T) {
-		_, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
+		repo, relationSvc, _, projectSvc, _, _, _, _, svc := newTestService(t)
 
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(errors.New("spicedb down"))
 
-		err := svc.Delete(context.Background(), "resource/item", "r1")
+		err := svc.Delete(ctx, "resource/item", "r1")
 		assert.ErrorContains(t, err, "spicedb down")
+	})
+
+	t.Run("writes no audit record when the row delete fails", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, _, _, svc := newTestService(t)
+
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		repo.EXPECT().Delete(mock.Anything, "r1").Return(errors.New("db down"))
+
+		err := svc.Delete(ctx, "resource/item", "r1")
+		assert.ErrorContains(t, err, "db down")
 	})
 }
 

@@ -67,7 +67,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			"principal_type": principalType,
 			"metadata":       marshaledMetadata,
 		}).OnConflict(
-		goqu.DoUpdate("urn", goqu.Record{
+		goqu.DoUpdate(liveConflictTarget("urn"), goqu.Record{
 			"name":           res.Name,
 			"title":          res.Title,
 			"project_id":     res.ProjectID,
@@ -245,20 +245,23 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 }
 
 func (r ResourceRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_RESOURCES).Where(
+	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
+		goqu.Record{
+			"deleted_at": goqu.L("now()"),
+		},
+	).Where(
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+		live(TABLE_RESOURCES),
+	).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
+	var resourceModel Resource
 	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
