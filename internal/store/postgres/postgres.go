@@ -34,6 +34,14 @@ func fromLive(table string) *goqu.SelectDataset {
 	return dialect.From(table).Where(live(table))
 }
 
+// liveConflictTarget is the ON CONFLICT target for a unique index that covers
+// only live rows. Postgres uses such an index only when the target repeats the
+// index's WHERE clause. goqu writes the target as is inside one pair of
+// parentheses, so the column list is closed early and the clause follows it.
+func liveConflictTarget(columns string) string {
+	return columns + ") WHERE (deleted_at IS NULL"
+}
+
 const (
 	TABLE_PERMISSIONS            = "permissions"
 	TABLE_GROUPS                 = "groups"

@@ -449,6 +449,15 @@ func (s Service) batchCheckWithScopeFilter(ctx context.Context, relations []rela
 }
 
 func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
+	res, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	resourceProject, err := s.projectService.Get(ctx, res.ProjectID)
+	if err != nil {
+		return fmt.Errorf("failed to get project: %w", err)
+	}
+
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        id,
@@ -457,7 +466,12 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	}); err != nil && !errors.Is(err, relation.ErrNotExist) {
 		return err
 	}
-	return s.repository.Delete(ctx, id)
+	if err := s.repository.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	s.createAuditRecord(ctx, pkgauditrecord.ResourceDeletedEvent, res, resourceProject)
+	return nil
 }
 
 // RemovePrincipalAccess deletes every resource-level policy the principal holds

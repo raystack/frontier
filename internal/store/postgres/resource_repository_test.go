@@ -291,6 +291,71 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 			}
 		})
 	}
+
+	s.Run("should update the live resource that already has the urn", func() {
+		existing := s.resources[0]
+		got, err := s.repository.Create(s.ctx, resource.Resource{
+			URN:           existing.URN,
+			Name:          "renamed",
+			ProjectID:     existing.ProjectID,
+			NamespaceID:   existing.NamespaceID,
+			PrincipalID:   existing.PrincipalID,
+			PrincipalType: existing.PrincipalType,
+		})
+		if err != nil {
+			s.T().Fatal(err)
+		}
+		if got.ID != existing.ID || got.Name != "renamed" {
+			s.T().Fatalf("got %+v, expected row %s renamed in place", got, existing.ID)
+		}
+	})
+
+	s.Run("should create a new row when the urn belongs to a soft-deleted resource", func() {
+		deleted := s.resources[1]
+		if _, err := s.client.ExecContext(s.ctx, "UPDATE resources SET deleted_at = now() WHERE id = $1", deleted.ID); err != nil {
+			s.T().Fatal(err)
+		}
+		got, err := s.repository.Create(s.ctx, resource.Resource{
+			URN:           deleted.URN,
+			Name:          deleted.Name,
+			ProjectID:     deleted.ProjectID,
+			NamespaceID:   deleted.NamespaceID,
+			PrincipalID:   deleted.PrincipalID,
+			PrincipalType: deleted.PrincipalType,
+		})
+		if err != nil {
+			s.T().Fatal(err)
+		}
+		if got.ID == deleted.ID {
+			s.T().Fatalf("got the deleted row %s back, expected a new row", deleted.ID)
+		}
+		var rows int
+		if err := s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM resources WHERE urn = $1", deleted.URN).Scan(&rows); err != nil {
+			s.T().Fatal(err)
+		}
+		if rows != 2 {
+			s.T().Fatalf("got %d rows with urn %s, expected the deleted row and the new one", rows, deleted.URN)
+		}
+	})
+
+	s.Run("should return conflict when the id belongs to a soft-deleted resource", func() {
+		deleted := s.resources[2]
+		if _, err := s.client.ExecContext(s.ctx, "UPDATE resources SET deleted_at = now() WHERE id = $1", deleted.ID); err != nil {
+			s.T().Fatal(err)
+		}
+		_, err := s.repository.Create(s.ctx, resource.Resource{
+			ID:            deleted.ID,
+			URN:           "another-urn",
+			Name:          deleted.Name,
+			ProjectID:     deleted.ProjectID,
+			NamespaceID:   deleted.NamespaceID,
+			PrincipalID:   deleted.PrincipalID,
+			PrincipalType: deleted.PrincipalType,
+		})
+		if !errors.Is(err, resource.ErrConflict) {
+			s.T().Fatalf("got error %v, expected %v", err, resource.ErrConflict)
+		}
+	})
 }
 
 func (s *ResourceRepositoryTestSuite) TestList() {
@@ -406,6 +471,49 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 			s.T().Fatalf("got updated_at %s, expected it to be after %s", got.UpdatedAt, before.UpdatedAt)
 		}
 	})
+}
+
+func (s *ResourceRepositoryTestSuite) TestDelete() {
+	target := s.resources[0]
+
+	err := s.repository.Delete(s.ctx, target.ID)
+	s.Require().NoError(err)
+
+	var deleted bool
+	err = s.client.QueryRowxContext(s.ctx, "SELECT deleted_at IS NOT NULL FROM resources WHERE id = $1", target.ID).Scan(&deleted)
+	s.Require().NoError(err)
+	s.Assert().True(deleted)
+
+	_, err = s.repository.GetByID(s.ctx, target.ID)
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+
+	err = s.repository.Delete(s.ctx, target.ID)
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+
+	err = s.repository.Delete(s.ctx, utils.NewString())
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+}
+
+func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
+	deleted := s.resources[0]
+	_, err := s.client.ExecContext(s.ctx, "UPDATE resources SET deleted_at = now() WHERE id = $1", deleted.ID)
+	s.Require().NoError(err)
+
+	_, err = s.repository.GetByID(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+
+	_, err = s.repository.GetByURN(s.ctx, deleted.URN)
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
+
+	got, err := s.repository.List(s.ctx, resource.Filter{})
+	s.Assert().NoError(err)
+	s.Assert().Len(got, len(s.resources)-1)
+	for _, r := range got {
+		s.Assert().NotEqual(deleted.ID, r.ID)
+	}
+
+	_, err = s.repository.Update(s.ctx, resource.Resource{ID: deleted.ID, Title: "changed"})
+	s.Assert().ErrorIs(err, resource.ErrNotExist)
 }
 
 func TestResourceRepository(t *testing.T) {
