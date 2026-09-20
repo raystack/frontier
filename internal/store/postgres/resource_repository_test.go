@@ -527,6 +527,10 @@ func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
 		s.Assert().NotEqual(deleted.ID, r.ID)
 	}
 
+	all, err := s.repository.List(s.ctx, resource.Filter{IncludeDeleted: true})
+	s.Assert().NoError(err)
+	s.Assert().Len(all, len(s.resources))
+
 	_, err = s.repository.Update(s.ctx, resource.Resource{ID: deleted.ID, Title: "changed"})
 	s.Assert().ErrorIs(err, resource.ErrNotExist)
 }

@@ -109,7 +109,7 @@ func TestDeleteProject(t *testing.T) {
 		m.polSvc.EXPECT().Delete(mock.Anything, "pol-1").Return(nil)
 		m.polSvc.EXPECT().Delete(mock.Anything, "pol-2").Return(nil)
 
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
 			Return([]resource.Resource{{ID: "res-1", NamespaceID: "ns-1", Name: "r1"}}, nil)
 		m.resSvc.EXPECT().Purge(mock.Anything, "ns-1", "res-1").Return(nil)
 
@@ -145,7 +145,7 @@ func TestDeleteProject(t *testing.T) {
 
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
@@ -200,7 +200,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-1", Name: "p1"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 

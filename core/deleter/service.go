@@ -213,16 +213,17 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 		}
 	}
 
-	// delete all related resources
+	// the project row below is removed for good, and a resource row cannot
+	// outlive the project it points to, so every resource row of the project,
+	// already deleted ones included, is purged rather than soft-deleted
+	// TODO(fix): switch to the soft delete of live rows once project delete is soft
 	resources, err := d.resService.List(ctx, resource.Filter{
-		ProjectID: id,
+		ProjectID:      id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return err
 	}
-	// the project row below is removed for good, and a resource row cannot
-	// outlive the project it points to, so the resources are purged, not soft-deleted
-	// TODO(fix): switch to the soft delete once project delete is soft
 	for _, r := range resources {
 		if err = d.resService.Purge(ctx, r.NamespaceID, r.ID); err != nil {
 			return fmt.Errorf("failed to delete project while deleting a resource[%s]: %w", r.Name, err)
