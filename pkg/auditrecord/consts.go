@@ -75,6 +75,7 @@ const (
 
 	// Resource Events
 	ResourceCreatedEvent Event = "resource.created"
+	ResourceDeletedEvent Event = "resource.deleted"
 
 	// User Events
 	UserConsentGrantedEvent Event = "user.consent_granted"

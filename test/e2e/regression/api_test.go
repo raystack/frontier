@@ -2201,6 +2201,74 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		s.Assert().NoError(err)
 		s.Assert().False(checkCreatePermResp.Msg.GetStatus())
 	})
+	s.Run("4. deleting a resource hides it and frees its urn", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org 4",
+				Name:  "org-resource-4",
+			},
+		}))
+		s.Require().NoError(err)
+
+		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "org-4-proj-1",
+				OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			},
+		}))
+		s.Require().NoError(err)
+		projectID := createProjResp.Msg.GetProject().GetId()
+
+		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectID,
+			Body: &frontierv1beta1.ResourceRequestBody{
+				Name:      "res-1",
+				Namespace: computeOrderNamespace,
+			},
+		}))
+		s.Require().NoError(err)
+		resourceID := createResourceResp.Msg.GetResource().GetId()
+
+		_, err = s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+			ProjectId: projectID,
+			Id:        resourceID,
+		}))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.GetProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+			ProjectId: projectID,
+			Id:        resourceID,
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		listResp, err := s.testBench.Client.ListProjectResources(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListProjectResourcesRequest{
+			ProjectId: projectID,
+		}))
+		s.Require().NoError(err)
+		s.Assert().Empty(listResp.Msg.GetResources())
+
+		_, err = s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+			ProjectId: projectID,
+			Id:        resourceID,
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		recreateResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectID,
+			Body: &frontierv1beta1.ResourceRequestBody{
+				Name:      "res-1",
+				Namespace: computeOrderNamespace,
+			},
+		}))
+		s.Require().NoError(err)
+		s.Assert().NotEqual(resourceID, recreateResp.Msg.GetResource().GetId())
+
+		// the org now holds a live resource and a deleted one; both go with it
+		_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{
+			Id: createOrgResp.Msg.GetOrganization().GetId(),
+		}))
+		s.Require().NoError(err)
+	})
 }
 
 func (s *APIRegressionTestSuite) TestPolicyAPI() {

@@ -67,7 +67,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			"principal_type": principalType,
 			"metadata":       marshaledMetadata,
 		}).OnConflict(
-		goqu.DoUpdate("urn", goqu.Record{
+		goqu.DoUpdate(liveConflictTarget("urn"), goqu.Record{
 			"name":           res.Name,
 			"title":          res.Title,
 			"project_id":     res.ProjectID,
@@ -90,6 +90,8 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidDetail)
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidUUID)
+		case errors.Is(err, ErrDuplicateKey):
+			return resource.Resource{}, resource.ErrConflict
 		default:
 			return resource.Resource{}, err
 		}
@@ -101,7 +103,11 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
 	var fetchedResources []Resource
 
-	sqlStatement := dialect.From(TABLE_RESOURCES)
+	sqlStatement := fromLive(TABLE_RESOURCES)
+	if flt.IncludeDeleted {
+		sqlStatement = dialect.From(TABLE_RESOURCES)
+	}
+	sqlStatement = sqlStatement.Order(goqu.C("created_at").Asc())
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
@@ -149,7 +155,7 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_RESOURCES).Where(goqu.Ex{
+	query, params, err := fromLive(TABLE_RESOURCES).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 	if err != nil {
@@ -189,7 +195,7 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		},
-	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
+	).Where(goqu.Ex{"id": res.ID}, live(TABLE_RESOURCES)).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
@@ -221,7 +227,7 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 
-	query, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(
+	query, params, err := fromLive(TABLE_RESOURCES).Select(&ResourceCols{}).Where(
 		goqu.Ex{
 			"urn": urn,
 		}).ToSQL()
@@ -243,6 +249,39 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 }
 
 func (r ResourceRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
+		goqu.Record{
+			"deleted_at": goqu.L("now()"),
+		},
+	).Where(
+		goqu.Ex{
+			"id": id,
+		},
+		live(TABLE_RESOURCES),
+	).Returning(&ResourceCols{}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", errQuery, err)
+	}
+
+	var resourceModel Resource
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Delete", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return resource.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
+// Purge removes the row for good. The project delete cascade uses it, since a
+// resource row cannot outlive its project row.
+// TODO(fix): remove once project delete is soft
+func (r ResourceRepository) Purge(ctx context.Context, id string) error {
 	query, params, err := dialect.Delete(TABLE_RESOURCES).Where(
 		goqu.Ex{
 			"id": id,
@@ -252,19 +291,11 @@ func (r ResourceRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Purge", func(ctx context.Context) error {
+		_, err := r.dbc.DB.ExecContext(ctx, query, params...)
+		return err
 	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return resource.ErrNotExist
-		default:
-			return err
-		}
+		return checkPostgresError(err)
 	}
 	return nil
 }

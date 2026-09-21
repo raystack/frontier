@@ -34,6 +34,15 @@ func fromLive(table string) *goqu.SelectDataset {
 	return dialect.From(table).Where(live(table))
 }
 
+// liveConflictTarget builds the ON CONFLICT target for a unique index that
+// covers only live rows. For example "urn" renders as
+// ON CONFLICT (urn) WHERE (deleted_at IS NULL). Postgres uses such an index only
+// when the clause names its condition. goqu wraps the target in parentheses as
+// is, which is why the string ends open.
+func liveConflictTarget(columns string) string {
+	return columns + ") WHERE (deleted_at IS NULL"
+}
+
 const (
 	TABLE_PERMISSIONS            = "permissions"
 	TABLE_GROUPS                 = "groups"
