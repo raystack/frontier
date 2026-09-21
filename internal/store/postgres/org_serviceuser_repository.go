@@ -44,8 +44,8 @@ func (c *ServiceUserRow) transformToAggregatedServiceUser(orgID string) svc.Aggr
 }
 
 const (
-	orgServiceUserBaseAlias = "org_service_users"
-	COLUMN_PROJECTS         = "projects"
+	COLUMN_PROJECT_DATA = "project_data"
+	COLUMN_PROJECTS     = "projects"
 )
 
 var (
@@ -103,7 +103,7 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rqlQ
 }
 
 func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Query) (string, []any, utils.Page, error) {
-	query := dialect.From(r.buildBaseQuery(orgID).As(orgServiceUserBaseAlias)).Prepared(true)
+	query := dialect.From(r.buildBaseQuery(orgID).As("org_service_users")).Prepared(true)
 
 	if rqlQuery == nil {
 		rqlQuery = &rql.Query{}
@@ -147,12 +147,12 @@ func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Q
 func (r OrgServiceUserRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 	return dialect.From(TABLE_SERVICE_USERS).Prepared(true).
 		Select(
-			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ID).As("id"),
-			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE).As("title"),
-			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ORG_ID).As("org_id"),
-			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_CREATED_AT).As("created_at"),
-			goqu.L("COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+")) FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '[]')").As("project_data"),
-			goqu.L("COALESCE(STRING_AGG(DISTINCT "+TABLE_PROJECTS+"."+COLUMN_TITLE+", ', ') FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '')").As("projects"),
+			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ID).As(COLUMN_ID),
+			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE).As(COLUMN_TITLE),
+			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ORG_ID).As(COLUMN_ORG_ID),
+			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_CREATED_AT).As(COLUMN_CREATED_AT),
+			goqu.L("COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', "+TABLE_PROJECTS+"."+COLUMN_ID+", 'title', "+TABLE_PROJECTS+"."+COLUMN_TITLE+", 'name', "+TABLE_PROJECTS+"."+COLUMN_NAME+")) FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '[]')").As(COLUMN_PROJECT_DATA),
+			goqu.L("COALESCE(STRING_AGG(DISTINCT "+TABLE_PROJECTS+"."+COLUMN_TITLE+", ', ') FILTER (WHERE "+TABLE_PROJECTS+"."+COLUMN_ID+" IS NOT NULL), '')").As(COLUMN_PROJECTS),
 		).
 		LeftJoin(
 			goqu.T(TABLE_POLICIES),
