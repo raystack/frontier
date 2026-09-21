@@ -90,6 +90,8 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidDetail)
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidUUID)
+		case errors.Is(err, ErrDuplicateKey):
+			return resource.Resource{}, resource.ErrConflict
 		default:
 			return resource.Resource{}, err
 		}

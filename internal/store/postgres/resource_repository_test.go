@@ -435,4 +435,16 @@ func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
 	updated.Title = "changed"
 	_, err = s.repository.Update(s.ctx, updated)
 	s.Assert().ErrorIs(err, resource.ErrNotExist)
+
+	// the id of a deleted row is still taken; a create that reuses it with a new URN must conflict
+	_, err = s.repository.Create(s.ctx, resource.Resource{
+		ID:            deleted.ID,
+		URN:           "urn-reusing-a-deleted-id",
+		Name:          "reused-id",
+		ProjectID:     deleted.ProjectID,
+		NamespaceID:   deleted.NamespaceID,
+		PrincipalID:   deleted.PrincipalID,
+		PrincipalType: deleted.PrincipalType,
+	})
+	s.Assert().ErrorIs(err, resource.ErrConflict)
 }
