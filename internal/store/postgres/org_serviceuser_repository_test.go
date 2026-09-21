@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const orgServiceUserBaseSQL = `SELECT * FROM (` +
+const orgServiceUserBaseSQL = `SELECT "id", "title", "org_id", "created_at", "project_data" FROM (` +
 	`SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", ` +
 	`COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data", ` +
 	`COALESCE(STRING_AGG(DISTINCT projects.title, ', ') FILTER (WHERE projects.id IS NOT NULL), '') AS "projects" ` +

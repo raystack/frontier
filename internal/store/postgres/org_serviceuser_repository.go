@@ -21,7 +21,6 @@ type ServiceUserRow struct {
 	Title       string       `db:"title"`
 	OrgID       string       `db:"org_id"`
 	ProjectData string       `db:"project_data"`
-	Projects    string       `db:"projects"`
 	CreatedAt   sql.NullTime `db:"created_at"`
 }
 
@@ -103,7 +102,8 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rqlQ
 }
 
 func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Query) (string, []any, utils.Page, error) {
-	query := dialect.From(r.buildBaseQuery(orgID).As("org_service_users")).Prepared(true)
+	query := dialect.From(r.buildBaseQuery(orgID).As("org_service_users")).Prepared(true).
+		Select(COLUMN_ID, COLUMN_TITLE, COLUMN_ORG_ID, COLUMN_CREATED_AT, COLUMN_PROJECT_DATA)
 
 	if rqlQuery == nil {
 		rqlQuery = &rql.Query{}
