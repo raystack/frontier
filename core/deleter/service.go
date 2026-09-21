@@ -213,10 +213,9 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 		}
 	}
 
-	// the project row below is removed for good, and a resource row cannot
-	// outlive the project it points to, so every resource row of the project,
-	// already deleted ones included, is purged rather than soft-deleted
-	// TODO(fix): switch to the soft delete of live rows once project delete is soft
+	// the project row is removed for good below, so every resource row of the
+	// project, deleted ones included, has to go with it
+	// TODO(fix): soft-delete the live resources instead once project delete is soft
 	resources, err := d.resService.List(ctx, resource.Filter{
 		ProjectID:      id,
 		IncludeDeleted: true,
