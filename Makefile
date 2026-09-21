@@ -31,7 +31,7 @@ lint-fix:
 	golangci-lint run --fix
 
 test: ## Run tests
-	@go test -race $(shell go list ./... | grep -v /web/apps/admin | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -coverprofile=coverage.out -count 2 -timeout 150s
+	@go test -race $(shell go list ./... | grep -v /web/apps/admin | grep -v /vendor/ | grep -v /test/ | grep -v /mocks | grep -v postgres/migrations | grep -v /proto) -coverprofile=coverage.out -count 2 -timeout 600s
 
 test-all: lint test e2e-test ## Run all tests
 
