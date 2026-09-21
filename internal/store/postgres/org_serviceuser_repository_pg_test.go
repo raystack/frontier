@@ -53,7 +53,6 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TearDownSuite() {
 }
 
 func (s *OrgServiceUserRepositoryPGTestSuite) SetupTest() {
-	// policies.resource_type and principal_type are foreign keys onto namespaces
 	s.exec(`INSERT INTO namespaces (name) VALUES ('app/project'), ('app/organization'), ('app/serviceuser')
 		ON CONFLICT (name) DO NOTHING`)
 
@@ -76,7 +75,6 @@ func (s *OrgServiceUserRepositoryPGTestSuite) SetupTest() {
 	s.policy("su-role-one", "su-proj-live", "app/project", "a-with-project")
 	s.orgPolicy("su-role-one", "b-org-policy-only")
 	s.policy("su-role-one", "su-proj-gone", "app/project", "d-deleted-project")
-	// the same project twice, via two different roles
 	s.policy("su-role-one", "su-proj-live", "app/project", "e-two-roles")
 	s.policy("su-role-two", "su-proj-live", "app/project", "e-two-roles")
 }
@@ -130,7 +128,6 @@ func (s *OrgServiceUserRepositoryPGTestSuite) titles(q *rql.Query) []string {
 	return out
 }
 
-// the original bug: a service user with no policy on a project was dropped entirely
 func (s *OrgServiceUserRepositoryPGTestSuite) TestReturnsEveryServiceUserInTheOrg() {
 	s.Equal(
 		[]string{"a-with-project", "b-org-policy-only", "c-no-policy", "d-deleted-project", "e-two-roles"},
@@ -154,9 +151,7 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestProjectsPerServiceUser() {
 	s.Equal([]string{"su-proj-live"}, got["a-with-project"])
 	s.Empty(got["b-org-policy-only"])
 	s.Empty(got["c-no-policy"])
-	// the project is soft deleted, so it must not come back
 	s.Empty(got["d-deleted-project"])
-	// two roles on one project still means one project
 	s.Equal([]string{"su-proj-live"}, got["e-two-roles"])
 }
 
@@ -182,7 +177,6 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestFilterOnCreatedAt() {
 	)
 }
 
-// the admin ui offers this filter on its Projects column
 func (s *OrgServiceUserRepositoryPGTestSuite) TestFilterOnProjects() {
 	s.Equal(
 		[]string{"a-with-project", "e-two-roles"},
@@ -203,8 +197,6 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestSearchCoversTitleAndProjects()
 	s.Equal([]string{"a-with-project", "e-two-roles"}, s.titles(&rql.Query{Limit: 50, Search: "Live"}))
 }
 
-// limit and offset count service users, not the rows the joins produce, and the
-// order is total so pages cannot overlap
 func (s *OrgServiceUserRepositoryPGTestSuite) TestPagesDoNotOverlap() {
 	sort := []rql.Sort{{Name: "title", Order: "asc"}}
 	first := s.titles(&rql.Query{Limit: 2, Offset: 0, Sort: sort})
@@ -224,8 +216,6 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestRejectsUnsupportedInput() {
 	s.ErrorIs(err, postgres.ErrBadInput)
 }
 
-// the admin ui pages by reading limit and offset back off the response, so Search
-// has to report what it actually applied rather than echo the request
 func (s *OrgServiceUserRepositoryPGTestSuite) TestPaginationMetadata() {
 	res, err := s.repository.Search(s.ctx, s.orgID, &rql.Query{})
 	s.Require().NoError(err)
@@ -239,7 +229,6 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestPaginationMetadata() {
 	s.Equal(2, res.Pagination.Offset)
 	s.Len(res.ServiceUsers, 2)
 
-	// the last page is short, and the reported limit stays the requested one
 	res, err = s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 2, Offset: 4})
 	s.Require().NoError(err)
 	s.Equal(2, res.Pagination.Limit)
@@ -247,22 +236,18 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TestPaginationMetadata() {
 	s.Len(res.ServiceUsers, 1)
 }
 
-// every table in the query carries a deleted_at, so a soft-deleted row in any of
-// them has to drop out rather than surface through the admin search
 func (s *OrgServiceUserRepositoryPGTestSuite) TestSoftDeletedRowsAreSkipped() {
 	s.Equal(
 		[]string{"a-with-project", "b-org-policy-only", "c-no-policy", "d-deleted-project", "e-two-roles"},
 		s.titles(&rql.Query{Limit: 50}),
 	)
 
-	// a soft-deleted service user disappears entirely
 	s.exec(`UPDATE serviceusers SET deleted_at = now() WHERE title = 'c-no-policy'`)
 	s.Equal(
 		[]string{"a-with-project", "b-org-policy-only", "d-deleted-project", "e-two-roles"},
 		s.titles(&rql.Query{Limit: 50}),
 	)
 
-	// a soft-deleted policy keeps the service user but drops the project it granted
 	s.exec(`UPDATE policies SET deleted_at = now()
 	        WHERE principal_id = (SELECT id FROM serviceusers WHERE title = 'a-with-project')`)
 	res, err := s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 50})

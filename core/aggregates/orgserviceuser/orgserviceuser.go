@@ -42,8 +42,6 @@ type Project struct {
 	Name  string `json:"name"`
 }
 
-// salt resolves an rql field by the `name` tag and reads its type from the `type` tag.
-// a `column` tag is ignored, which left created_at and org_id unresolvable.
 type AggregatedServiceUser struct {
 	ID        string    `rql:"name=id,type=string"`
 	OrgID     string    `rql:"name=org_id,type=string"`

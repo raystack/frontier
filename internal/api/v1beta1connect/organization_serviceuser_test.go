@@ -27,8 +27,7 @@ func TestSearchOrganizationServiceUsers(t *testing.T) {
 	}
 
 	tests := []struct {
-		name string
-		// nil means the service must not be reached at all
+		name     string
 		setup    func(*mocks.OrgServiceUserService)
 		orgSetup func(*mocks.OrganizationService)
 		id       string
@@ -52,8 +51,6 @@ func TestSearchOrganizationServiceUsers(t *testing.T) {
 			wantLen: 2,
 		},
 		{
-			// a datetime the proto carries as a string but rql cannot parse. this must
-			// be caught before the query is built, not surface as an internal error
 			name:     "unparsable created_at is rejected before reaching the service",
 			query:    &frontierv1beta1.RQLRequest{Limit: 50, Filters: []*frontierv1beta1.RQLFilter{stringFilter("created_at", "gt", "yesterday-ish")}},
 			wantCode: connect.CodeInvalidArgument,
@@ -78,8 +75,6 @@ func TestSearchOrganizationServiceUsers(t *testing.T) {
 			wantMsg:  "failed to validate rql query",
 		},
 		{
-			// the store rejects input the proto layer cannot judge, such as a column
-			// the query does not select. that has to stay a bad request
 			name: "bad input from the store maps to invalid argument and keeps the reason",
 			setup: func(s *mocks.OrgServiceUserService) {
 				s.EXPECT().Search(mock.Anything, orgID, mock.Anything).Return(
@@ -91,8 +86,6 @@ func TestSearchOrganizationServiceUsers(t *testing.T) {
 			wantMsg:  "group_by is not supported",
 		},
 		{
-			// the store filters on a uuid column, so a name has to be resolved first
-			// rather than reaching postgres as a cast error
 			name: "org addressed by name is resolved to its id",
 			id:   "compare-org",
 			orgSetup: func(o *mocks.OrganizationService) {

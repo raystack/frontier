@@ -21,16 +21,10 @@ func (h *ConnectHandler) SearchOrganizationServiceUsers(ctx context.Context, req
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to read rql query: %v", err))
 	}
 
-	// without this a bad filter value, say a datetime that cannot be parsed, reaches
-	// postgres and comes back as an internal error instead of a bad request
 	if err := rql.ValidateQuery(rqlQuery, orgserviceuser.AggregatedServiceUser{}); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("failed to validate rql query: %v", err))
 	}
 
-	// the store filters on org_id, a uuid column, so a name would reach postgres as a
-	// cast error. resolving first also matches ListOrganizationServiceUsers, which
-	// accepts a name or an id. GetRaw rather than Get, because an admin still needs to
-	// look inside a disabled organization.
 	org, err := h.orgService.GetRaw(ctx, request.Msg.GetId())
 	if err != nil {
 		if errors.Is(err, organization.ErrNotExist) || errors.Is(err, organization.ErrInvalidUUID) {

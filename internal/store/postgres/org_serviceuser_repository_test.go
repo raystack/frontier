@@ -9,9 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// the joined and grouped part of the query never changes. rql only ever adds a WHERE,
-// an ORDER BY and pagination to the wrapper select around it, so keeping it in one
-// constant makes the part each case actually exercises easy to read.
 const orgServiceUserBaseSQL = `SELECT * FROM (` +
 	`SELECT "serviceusers"."id" AS "id", "serviceusers"."title" AS "title", "serviceusers"."org_id" AS "org_id", "serviceusers"."created_at" AS "created_at", ` +
 	`COALESCE(JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT('id', projects.id, 'title', projects.title, 'name', projects.name)) FILTER (WHERE projects.id IS NOT NULL), '[]') AS "project_data", ` +
@@ -23,7 +20,6 @@ const orgServiceUserBaseSQL = `SELECT * FROM (` +
 	`GROUP BY "serviceusers"."id"` +
 	`) AS "org_service_users"`
 
-// every query carries these three, in this order, before anything rql adds
 func baseParams(rest ...any) []any {
 	return append([]any{"app/serviceuser", "app/project", "org1"}, rest...)
 }
@@ -52,7 +48,6 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			wantPage:   utils.Page{Limit: 50, Offset: 0},
 		},
 		{
-			// the sort the caller asked for has to lead, otherwise it has no effect
 			name:       "requested sort leads the order by",
 			rql:        &rql.Query{Limit: 50, Sort: []rql.Sort{{Name: "created_at", Order: "desc"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "created_at" DESC, "id" ASC LIMIT $4`,
@@ -60,7 +55,6 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			wantPage:   utils.Page{Limit: 50, Offset: 0},
 		},
 		{
-			// this used to come out as `title ASC, title DESC`, so descending never happened
 			name:       "sorting by title descending really is descending",
 			rql:        &rql.Query{Limit: 10, Sort: []rql.Sort{{Name: "title", Order: "desc"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` ORDER BY "title" DESC, "id" ASC LIMIT $4`,
@@ -103,8 +97,6 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
-			// the admin ui marks the Projects column filterable, so it has to work
-			// rather than be silently ignored or rejected
 			name:       "filter on projects, which the admin ui offers",
 			rql:        &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "projects", Operator: "ilike", Value: "%Live%"}}},
 			wantSQL:    orgServiceUserBaseSQL + ` WHERE ("projects" ILIKE $4) ORDER BY "title" ASC, "id" ASC LIMIT $5`,
@@ -112,15 +104,11 @@ func TestOrgServiceUserRepository_prepareDataQuery(t *testing.T) {
 			wantPage:   utils.Page{Limit: 10, Offset: 0},
 		},
 		{
-			// the sort helper would order by the group_by column, which the wrapper
-			// select does not have, so postgres would fail at query time
 			name:    "group_by is rejected rather than producing broken sql",
 			rql:     &rql.Query{Limit: 10, GroupBy: []string{"title"}},
 			wantErr: "bad input: group_by is not supported",
 		},
 		{
-			// state is a real serviceusers column but the query never selects it, so the
-			// allowlist has to reject it rather than build SQL that cannot run
 			name:    "filtering on a column the query does not select is rejected",
 			rql:     &rql.Query{Limit: 10, Filters: []rql.Filter{{Name: "state", Operator: "eq", Value: "enabled"}}},
 			wantErr: "bad input: state is not supported in filters",
