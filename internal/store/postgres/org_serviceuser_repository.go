@@ -133,7 +133,7 @@ func (r OrgServiceUserRepository) prepareDataQuery(orgID string, rqlQuery *rql.Q
 		return "", nil, utils.Page{}, fmt.Errorf("%w: %w", ErrBadInput, err)
 	}
 
-	// the fallback sorts on the service user title, not on the aggregated project titles
+	// the fallback sorts on the service user title
 	if len(rqlQuery.Sort) == 0 {
 		query = query.OrderAppend(goqu.C(COLUMN_TITLE).Asc())
 	}
