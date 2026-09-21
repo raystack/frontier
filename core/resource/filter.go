@@ -5,7 +5,7 @@ type Filter struct {
 	UserID        string
 	ServiceUserID string
 	NamespaceID   string
-	// IncludeDeleted also returns rows that have deleted_at set.
-	// TODO(fix): remove once the project delete cascade no longer purges resources
+	// IncludeDeleted also returns soft-deleted rows.
+	// TODO(fix): remove once the project delete cascade no longer purges
 	IncludeDeleted bool
 }

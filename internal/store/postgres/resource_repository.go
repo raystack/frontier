@@ -278,9 +278,9 @@ func (r ResourceRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// Purge removes the row for good. The project delete cascade needs it, because
-// the project row cannot be deleted while a resource row still points at it.
-// TODO(fix): remove once project delete is soft and the cascade uses Delete
+// Purge removes the row for good. The project delete cascade uses it, since a
+// resource row cannot outlive its project row.
+// TODO(fix): remove once project delete is soft
 func (r ResourceRepository) Purge(ctx context.Context, id string) error {
 	query, params, err := dialect.Delete(TABLE_RESOURCES).Where(
 		goqu.Ex{
