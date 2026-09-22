@@ -56,7 +56,7 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 		})
 	}
 
-	query, params, err := stmt.From(goqu.T(TABLE_SERVICEUSERCREDENTIALS).As("s")).ToSQL()
+	query, params, err := stmt.From(goqu.T(TABLE_SERVICEUSERCREDENTIALS).As("s")).Where(live("s")).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
@@ -140,6 +140,7 @@ func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (se
 		goqu.I("s.updated_at"),
 	).Where(
 		goqu.Ex{"s.id": id},
+		live("s"),
 	).From(goqu.T(TABLE_SERVICEUSERCREDENTIALS).As("s")).ToSQL()
 	if err != nil {
 		return serviceuser.Credential{}, fmt.Errorf("%w: %w", errQuery, err)

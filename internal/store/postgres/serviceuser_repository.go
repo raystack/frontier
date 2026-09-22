@@ -62,7 +62,7 @@ func (s ServiceUserRepository) List(ctx context.Context, flt serviceuser.Filter)
 		})
 	}
 
-	query, params, err := stmt.From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
+	query, params, err := stmt.From(goqu.T(TABLE_SERVICEUSER).As("s")).Where(live("s")).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
@@ -167,6 +167,7 @@ func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceu
 		goqu.I("s.updated_at"),
 	).Where(
 		goqu.Ex{"s.id": id},
+		live("s"),
 	).From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
 	if err != nil {
 		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", errQuery, err)
@@ -201,6 +202,7 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 		goqu.I("s.updated_at"),
 	).Where(
 		goqu.Ex{"s.id": goqu.Op{"in": ids}},
+		live("s"),
 	).From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", errQuery, err)
@@ -238,6 +240,7 @@ func (s ServiceUserRepository) ListMissingOrgPolicy(ctx context.Context) ([]boot
 			goqu.I("p.principal_type").Eq(schema.ServiceUserPrincipal),
 			goqu.I("p.resource_id").Eq(goqu.I("su.org_id")),
 			goqu.I("p.resource_type").Eq(schema.OrganizationNamespace),
+			live("p"),
 		)
 
 	query, params, err := dialect.From(goqu.T(TABLE_SERVICEUSER).As("su")).
@@ -247,6 +250,7 @@ func (s ServiceUserRepository) ListMissingOrgPolicy(ctx context.Context) ([]boot
 		).
 		Where(
 			goqu.I("su.org_id").IsNotNull(),
+			live("su"),
 			goqu.L("NOT EXISTS ?", policiesSubquery),
 		).ToSQL()
 	if err != nil {

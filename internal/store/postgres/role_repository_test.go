@@ -429,3 +429,31 @@ func (s *RoleRepositoryTestSuite) TestGetByName() {
 func TestRoleRepository(t *testing.T) {
 	suite.Run(t, new(RoleRepositoryTestSuite))
 }
+
+func (s *RoleRepositoryTestSuite) TestSkipsSoftDeletedRoles() {
+	deleted := s.roles[0]
+	flt := role.Filter{OrgID: s.orgID}
+	before, err := s.repository.List(s.ctx, flt)
+	s.Require().NoError(err)
+
+	_, err = s.client.ExecContext(s.ctx, "UPDATE roles SET deleted_at = now() WHERE id = $1", deleted.ID)
+	s.Require().NoError(err)
+
+	_, err = s.repository.Get(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, role.ErrNotExist)
+
+	_, err = s.repository.GetByName(s.ctx, deleted.OrgID, deleted.Name)
+	s.Assert().ErrorIs(err, role.ErrNotExist)
+
+	got, err := s.repository.List(s.ctx, flt)
+	s.Assert().NoError(err)
+	s.Assert().Len(got, len(before)-1)
+	for _, r := range got {
+		s.Assert().NotEqual(deleted.ID, r.ID)
+	}
+
+	updated := deleted
+	updated.Title = "changed"
+	_, err = s.repository.Update(s.ctx, updated)
+	s.Assert().ErrorIs(err, role.ErrNotExist)
+}

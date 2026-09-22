@@ -38,7 +38,7 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 		return group.Group{}, group.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_GROUPS).Where(
+	query, params, err := fromLive(TABLE_GROUPS).Where(
 		goqu.Ex{
 			"id": id,
 		}).Where(notDisabledGroupExp).ToSQL()
@@ -75,7 +75,7 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string, flt gr
 	}
 	var fetchedGroups []Group
 
-	sqlStatement := dialect.From(TABLE_GROUPS)
+	sqlStatement := fromLive(TABLE_GROUPS)
 	if flt.OrganizationID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
 	}
@@ -174,7 +174,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 }
 
 func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Group, error) {
-	sqlStatement := dialect.From(TABLE_GROUPS)
+	sqlStatement := fromLive(TABLE_GROUPS)
 	if flt.OrganizationID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
 	}
@@ -241,7 +241,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.ExOr{
 		"id": grp.ID,
-	}).Returning(&Group{}).ToSQL()
+	}, live(TABLE_GROUPS)).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
@@ -279,6 +279,7 @@ func (r GroupRepository) SetState(ctx context.Context, id string, state group.St
 		goqu.Ex{
 			"id": id,
 		},
+		live(TABLE_GROUPS),
 	).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %w", errQuery, err)

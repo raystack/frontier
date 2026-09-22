@@ -633,3 +633,35 @@ func (s *GroupRepositoryTestSuite) TestDelete() {
 func TestGroupRepository(t *testing.T) {
 	suite.Run(t, new(GroupRepositoryTestSuite))
 }
+
+func (s *GroupRepositoryTestSuite) TestSkipsSoftDeletedGroups() {
+	deleted := s.groups[0]
+	flt := group.Filter{OrganizationID: deleted.OrganizationID}
+	before, err := s.repository.List(s.ctx, flt)
+	s.Require().NoError(err)
+
+	_, err = s.client.ExecContext(s.ctx, "UPDATE groups SET deleted_at = now() WHERE id = $1", deleted.ID)
+	s.Require().NoError(err)
+
+	_, err = s.repository.GetByID(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, group.ErrNotExist)
+
+	byIDs, err := s.repository.GetByIDs(s.ctx, []string{deleted.ID}, group.Filter{})
+	s.Assert().NoError(err)
+	s.Assert().Empty(byIDs)
+
+	got, err := s.repository.List(s.ctx, flt)
+	s.Assert().NoError(err)
+	s.Assert().Len(got, len(before)-1)
+	for _, g := range got {
+		s.Assert().NotEqual(deleted.ID, g.ID)
+	}
+
+	updated := deleted
+	updated.Title = "changed"
+	_, err = s.repository.UpdateByID(s.ctx, updated)
+	s.Assert().ErrorIs(err, group.ErrNotExist)
+
+	err = s.repository.SetState(s.ctx, deleted.ID, group.Disabled)
+	s.Assert().ErrorIs(err, group.ErrNotExist)
+}

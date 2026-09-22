@@ -59,7 +59,7 @@ func (s *DomainRepository) Create(ctx context.Context, toCreate domain.Domain) (
 }
 
 func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error) {
-	stmt := dialect.Select().From(TABLE_DOMAINS)
+	stmt := fromLive(TABLE_DOMAINS)
 	if flt.OrgID != "" && flt.State != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
@@ -99,7 +99,7 @@ func (s *DomainRepository) List(ctx context.Context, flt domain.Filter) ([]domai
 }
 
 func (s *DomainRepository) Get(ctx context.Context, id string) (domain.Domain, error) {
-	query, params, err := dialect.From(TABLE_DOMAINS).Where(goqu.Ex{
+	query, params, err := fromLive(TABLE_DOMAINS).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 
@@ -154,7 +154,7 @@ func (s *DomainRepository) Update(ctx context.Context, toUpdate domain.Domain) (
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"id": toUpdate.ID,
-	}).Returning(&Domain{}).ToSQL()
+	}, live(TABLE_DOMAINS)).Returning(&Domain{}).ToSQL()
 	if err != nil {
 		return domain.Domain{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
