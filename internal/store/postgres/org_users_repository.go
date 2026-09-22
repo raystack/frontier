@@ -169,6 +169,7 @@ func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (st
 }
 
 func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
+	roleID := goqu.I(TABLE_ROLES + "." + COLUMN_ID)
 	querySelects := []any{
 		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID).As(COLUMN_ORG_ID),
 		goqu.I(TABLE_USERS + "." + COLUMN_ID).As(COLUMN_ID),
@@ -178,9 +179,9 @@ func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		goqu.I(TABLE_USERS + "." + COLUMN_STATE).As(COLUMN_STATE),
 		goqu.I(TABLE_USERS + "." + COLUMN_AVATAR).As(COLUMN_AVATAR),
 		goqu.MIN(goqu.I(TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT)).As(COLUMN_ORG_JOINED_DATE),
-		goqu.L("ARRAY_AGG(?)", goqu.I(TABLE_ROLES+"."+COLUMN_NAME)).As(COLUMN_ROLE_NAMES),
-		goqu.L("ARRAY_AGG(COALESCE(?, ''))", goqu.I(TABLE_ROLES+"."+COLUMN_TITLE)).As(COLUMN_ROLE_TITLES),
-		goqu.L("ARRAY_AGG(?)", goqu.I(TABLE_ROLES+"."+COLUMN_ID).Cast("TEXT")).As(COLUMN_ROLE_IDS),
+		goqu.L("ARRAY_AGG(?) FILTER (WHERE ? IS NOT NULL)", goqu.I(TABLE_ROLES+"."+COLUMN_NAME), roleID).As(COLUMN_ROLE_NAMES),
+		goqu.L("ARRAY_AGG(COALESCE(?, '')) FILTER (WHERE ? IS NOT NULL)", goqu.I(TABLE_ROLES+"."+COLUMN_TITLE), roleID).As(COLUMN_ROLE_TITLES),
+		goqu.L("ARRAY_AGG(?) FILTER (WHERE ? IS NOT NULL)", roleID.Cast("TEXT"), roleID).As(COLUMN_ROLE_IDS),
 	}
 
 	baseConditions := []goqu.Expression{
