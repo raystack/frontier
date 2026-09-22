@@ -72,41 +72,51 @@ func (s *OrgUsersRepositoryPGTestSuite) SetupTest() {
 }
 
 func (s *OrgUsersRepositoryPGTestSuite) TearDownTest() {
-	for _, table := range []string{"policies", "roles", "users", "organizations", "namespaces"} {
-		s.exec(fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table))
+	queries := []string{}
+	for _, table := range []string{postgres.TABLE_POLICIES, postgres.TABLE_ROLES, postgres.TABLE_USERS,
+		postgres.TABLE_ORGANIZATIONS, postgres.TABLE_NAMESPACES} {
+		queries = append(queries, fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table))
+	}
+	if err := execQueries(s.ctx, s.client, queries); err != nil {
+		s.T().Fatal(err)
 	}
 }
 
 func (s *OrgUsersRepositoryPGTestSuite) exec(query string, args ...any) {
 	s.T().Helper()
-	if _, err := s.client.DB.ExecContext(s.ctx, query, args...); err != nil {
-		s.T().Fatalf("%s: %v", query, err)
-	}
+	execSQL(s.T(), s.ctx, s.client, query, args...)
 }
 
 func (s *OrgUsersRepositoryPGTestSuite) scalar(query string, args ...any) string {
 	s.T().Helper()
-	var out string
-	if err := s.client.DB.QueryRowxContext(s.ctx, query, args...).Scan(&out); err != nil {
-		s.T().Fatalf("%s: %v", query, err)
-	}
-	return out
+	return scalarSQL(s.T(), s.ctx, s.client, query, args...)
+}
+
+func (s *OrgUsersRepositoryPGTestSuite) roleID(name string) string {
+	s.T().Helper()
+	return s.scalar(`SELECT id FROM roles WHERE name = $1`, name)
+}
+
+func (s *OrgUsersRepositoryPGTestSuite) userID(name string) string {
+	s.T().Helper()
+	return s.scalar(`SELECT id FROM users WHERE name = $1`, name)
 }
 
 func (s *OrgUsersRepositoryPGTestSuite) policy(role, userName string) {
 	s.T().Helper()
 	s.exec(`INSERT INTO policies (role_id, resource_id, resource_type, principal_id, principal_type)
-		VALUES ((SELECT id FROM roles WHERE name = $1), $2, 'app/organization',
-		        (SELECT id FROM users WHERE name = $3), 'app/user')`,
-		role, s.orgID, userName)
+		VALUES ($1, $2, 'app/organization', $3, 'app/user')`,
+		s.roleID(role), s.orgID, s.userID(userName))
 }
 
 func (s *OrgUsersRepositoryPGTestSuite) softDeletePolicy(role, userName string) {
 	s.T().Helper()
-	s.exec(`UPDATE policies SET deleted_at = now()
-		WHERE role_id = (SELECT id FROM roles WHERE name = $1)
-		  AND principal_id = (SELECT id FROM users WHERE name = $2)`,
-		role, userName)
+	res := execSQL(s.T(), s.ctx, s.client, `UPDATE policies SET deleted_at = now()
+		WHERE role_id = $1 AND principal_id = $2 AND resource_id = $3`,
+		s.roleID(role), s.userID(userName), s.orgID)
+	n, err := res.RowsAffected()
+	s.Require().NoError(err)
+	s.Require().EqualValues(1, n, "soft delete of %s for %s", role, userName)
 }
 
 func (s *OrgUsersRepositoryPGTestSuite) names(filters ...rql.Filter) []string {

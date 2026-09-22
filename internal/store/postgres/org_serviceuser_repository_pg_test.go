@@ -87,18 +87,12 @@ func (s *OrgServiceUserRepositoryPGTestSuite) TearDownTest() {
 
 func (s *OrgServiceUserRepositoryPGTestSuite) exec(query string, args ...any) {
 	s.T().Helper()
-	if _, err := s.client.DB.ExecContext(s.ctx, query, args...); err != nil {
-		s.T().Fatalf("%s: %v", query, err)
-	}
+	execSQL(s.T(), s.ctx, s.client, query, args...)
 }
 
 func (s *OrgServiceUserRepositoryPGTestSuite) scalar(query string, args ...any) string {
 	s.T().Helper()
-	var out string
-	if err := s.client.DB.QueryRowxContext(s.ctx, query, args...).Scan(&out); err != nil {
-		s.T().Fatalf("%s: %v", query, err)
-	}
-	return out
+	return scalarSQL(s.T(), s.ctx, s.client, query, args...)
 }
 
 func (s *OrgServiceUserRepositoryPGTestSuite) policy(role, project, resourceType, serviceUser string) {
