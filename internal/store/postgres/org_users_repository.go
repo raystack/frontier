@@ -125,6 +125,10 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 	})
 
 	if err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, ErrInvalidTextRepresentation) {
+			return svc.OrgUsers{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		}
 		return svc.OrgUsers{}, err
 	}
 

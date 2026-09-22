@@ -86,6 +86,9 @@ func (h *ConnectHandler) ExportOrganizationUsers(ctx context.Context, request *c
 		if errors.Is(err, orgusers.ErrNoContent) {
 			return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no data to export: %v", err))
 		}
+		if errors.Is(err, postgres.ErrBadInput) {
+			return connect.NewError(connect.CodeInvalidArgument, err)
+		}
 		return connect.NewError(connect.CodeInternal, fmt.Errorf("ExportOrganizationUsers.Export: org_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return streamBytesInChunks(orgUsersDataBytes, contentType, stream)
