@@ -90,6 +90,8 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidDetail)
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidUUID)
+		case errors.Is(err, ErrDuplicateKey):
+			return resource.Resource{}, resource.ErrConflict
 		default:
 			return resource.Resource{}, err
 		}
@@ -101,7 +103,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
 	var fetchedResources []Resource
 
-	sqlStatement := dialect.From(TABLE_RESOURCES)
+	sqlStatement := fromLive(TABLE_RESOURCES)
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
@@ -149,7 +151,7 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 		return resource.Resource{}, resource.ErrInvalidID
 	}
 
-	query, params, err := dialect.From(TABLE_RESOURCES).Where(goqu.Ex{
+	query, params, err := fromLive(TABLE_RESOURCES).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 	if err != nil {
@@ -189,7 +191,7 @@ func (r ResourceRepository) Update(ctx context.Context, res resource.Resource) (
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		},
-	).Where(goqu.Ex{"id": res.ID}).Returning(&ResourceCols{}).ToSQL()
+	).Where(goqu.Ex{"id": res.ID}, live(TABLE_RESOURCES)).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
@@ -221,7 +223,7 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
 
-	query, params, err := dialect.Select(&ResourceCols{}).From(TABLE_RESOURCES).Where(
+	query, params, err := fromLive(TABLE_RESOURCES).Select(&ResourceCols{}).Where(
 		goqu.Ex{
 			"urn": urn,
 		}).ToSQL()
