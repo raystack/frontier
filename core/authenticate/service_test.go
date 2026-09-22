@@ -1983,3 +1983,21 @@ func TestService_PassthroughHeader_Consent(t *testing.T) {
 	assert.Equal(t, newUser.ID, got.ID)
 	assert.Equal(t, schema.UserPrincipal, got.Type)
 }
+
+func TestService_GetPrincipal_JWTGrantMissingServiceUserIsUnauthenticated(t *testing.T) {
+	grantToken := "grant-token-for-a-deleted-service-user"
+
+	mockFlow, mockUserService, mockTokenService, mockSessionService, mockServiceUserService := createMocks(t)
+	mockServiceUserService.EXPECT().GetByJWT(mock.Anything, grantToken).
+		Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+
+	svc := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+		mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
+
+	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{
+		consts.UserTokenGatewayKey: {grantToken},
+	})
+
+	_, err := svc.GetPrincipal(ctx, authenticate.JWTGrantClientAssertion)
+	assert.ErrorIs(t, err, frontiererrors.ErrUnauthenticated)
+}

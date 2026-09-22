@@ -228,6 +228,9 @@ func authenticateWithJWTGrant(ctx context.Context, s *Service) (Principal, error
 	case errors.Is(err, serviceuser.ErrInvalidCred):
 		s.log.DebugContext(ctx, "service user grant failed verification", "err", err)
 		return Principal{}, errors.ErrUnauthenticated
+	case errors.Is(err, serviceuser.ErrNotExist):
+		s.log.DebugContext(ctx, "service user grant names a service user that does not exist", "err", err)
+		return Principal{}, errors.ErrUnauthenticated
 	default:
 		return Principal{}, err
 	}

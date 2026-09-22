@@ -112,6 +112,9 @@ func (s *DomainRepository) Get(ctx context.Context, id string) (domain.Domain, e
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&domainModel)
 	}); err != nil {
 		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Domain{}, domain.ErrNotExist
+		}
 		return domain.Domain{}, fmt.Errorf("%w: %s", errDB, err)
 	}
 

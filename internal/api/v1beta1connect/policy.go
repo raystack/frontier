@@ -55,6 +55,8 @@ func (h *ConnectHandler) CreatePolicy(ctx context.Context, request *connect.Requ
 		switch {
 		case errors.Is(err, role.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInvalidRoleID)
+		case errors.Is(err, role.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrRoleNotFound)
 		case errors.Is(err, policy.ErrInvalidDetail):
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
