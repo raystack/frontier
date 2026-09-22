@@ -136,6 +136,7 @@ func applyListFilter(stmt *goqu.SelectDataset, flt policy.Filter) *goqu.SelectDa
 				goqu.T(TABLE_ROLES).As("r"),
 				goqu.On(goqu.I("r.id").Eq(goqu.I("p.role_id"))),
 			).
+			Where(live("r")).
 			Where(goqu.Func(
 				"jsonb_exists_any",
 				goqu.I("r.permissions"),
@@ -397,6 +398,7 @@ func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string,
 				WHERE resource_id = $2
 				AND resource_type = $3
 				AND role_id = $4
+				AND deleted_at IS NULL
 				ORDER BY id
 				FOR UPDATE
 			)
@@ -625,19 +627,19 @@ func (r PolicyRepository) getResourceInfo(ctx context.Context, tx *sqlx.Tx, reso
 	switch resourceType {
 	case schema.OrganizationNamespace:
 		orgID = resourceID
-		orgQuery, orgParams, _ := fromLive(TABLE_ORGANIZATIONS).
+		orgQuery, orgParams, _ := dialect.From(TABLE_ORGANIZATIONS).
 			Select("title").
 			Where(goqu.Ex{"id": resourceID}).
 			ToSQL()
 		_ = tx.QueryRowContext(ctx, orgQuery, orgParams...).Scan(&resourceName)
 	case schema.ProjectNamespace:
-		projQuery, projParams, _ := fromLive(TABLE_PROJECTS).
+		projQuery, projParams, _ := dialect.From(TABLE_PROJECTS).
 			Select("org_id", "title").
 			Where(goqu.Ex{"id": resourceID}).
 			ToSQL()
 		_ = tx.QueryRowContext(ctx, projQuery, projParams...).Scan(&orgID, &resourceName)
 	case schema.GroupNamespace:
-		grpQuery, grpParams, _ := fromLive(TABLE_GROUPS).
+		grpQuery, grpParams, _ := dialect.From(TABLE_GROUPS).
 			Select("org_id", "title").
 			Where(goqu.Ex{"id": resourceID}).
 			ToSQL()
