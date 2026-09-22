@@ -187,11 +187,11 @@ func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID).Eq(orgID),
 		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_TYPE).Eq("app/organization"),
 		goqu.I(TABLE_POLICIES + "." + COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
-		goqu.I(TABLE_USERS + "." + COLUMN_DELETED_AT).IsNull(),
-		goqu.I(TABLE_ROLES + "." + COLUMN_DELETED_AT).IsNull(),
+		live(TABLE_USERS),
+		live(TABLE_ROLES),
 	}
 
-	return dialect.From(TABLE_POLICIES).Prepared(true).
+	return fromLive(TABLE_POLICIES).Prepared(true).
 		Join(
 			goqu.T(TABLE_USERS),
 			goqu.On(goqu.I(TABLE_USERS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID))),
@@ -294,7 +294,7 @@ func (r OrgUsersRepository) getRoleColumnName(filterName string) string {
 }
 
 func (r OrgUsersRepository) buildRoleExistsSubquery(orgID string, columnName string, value any) *goqu.SelectDataset {
-	return dialect.From(TABLE_POLICIES).Prepared(true).
+	return fromLive(TABLE_POLICIES).Prepared(true).
 		Join(
 			goqu.T(TABLE_ROLES),
 			goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
@@ -304,13 +304,14 @@ func (r OrgUsersRepository) buildRoleExistsSubquery(orgID string, columnName str
 			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(orgID),
 			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq("app/organization"),
 			goqu.I(TABLE_ROLES+"."+columnName).Eq(value),
+			live(TABLE_ROLES),
 		).
 		Select(goqu.L("1")).
 		Limit(1)
 }
 
 func (r OrgUsersRepository) buildHasAnyRoleSubquery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_POLICIES).Prepared(true).
+	return fromLive(TABLE_POLICIES).Prepared(true).
 		Join(
 			goqu.T(TABLE_ROLES),
 			goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
@@ -319,6 +320,7 @@ func (r OrgUsersRepository) buildHasAnyRoleSubquery(orgID string) *goqu.SelectDa
 			goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
 			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(orgID),
 			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq("app/organization"),
+			live(TABLE_ROLES),
 		).
 		Select(goqu.L("1")).
 		Limit(1)
