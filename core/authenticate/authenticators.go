@@ -154,6 +154,9 @@ func authenticateWithAccessToken(ctx context.Context, s *Service) (Principal, er
 			currentUser, err := s.serviceUserService.Get(ctx, userID)
 			if err != nil {
 				s.log.DebugContext(ctx, "failed to get service user", "err", err)
+				if errors.Is(err, serviceuser.ErrNotExist) {
+					return Principal{}, errors.ErrUnauthenticated
+				}
 				return Principal{}, err
 			}
 			return Principal{

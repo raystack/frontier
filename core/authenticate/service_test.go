@@ -2001,3 +2001,29 @@ func TestService_GetPrincipal_JWTGrantMissingServiceUserIsUnauthenticated(t *tes
 	_, err := svc.GetPrincipal(ctx, authenticate.JWTGrantClientAssertion)
 	assert.ErrorIs(t, err, frontiererrors.ErrUnauthenticated)
 }
+
+func TestService_GetPrincipal_AccessTokenMissingServiceUserIsUnauthenticated(t *testing.T) {
+	serviceUserID := uuid.New()
+	testKey, err := utils.CreateJWKWithKID("test-id")
+	require.NoError(t, err)
+	tokenBytes, err := utils.BuildToken(testKey, "test", serviceUserID.String(), time.Hour, map[string]string{
+		token.GeneratedClaimKey: token.GeneratedClaimValue,
+	})
+	require.NoError(t, err)
+
+	mockFlow, mockUserService, mockTokenService, mockSessionService, mockServiceUserService := createMocks(t)
+	mockTokenService.EXPECT().Parse(mock.Anything, tokenBytes).
+		Return(serviceUserID.String(), map[string]any{token.SubTypeClaimsKey: schema.ServiceUserPrincipal}, nil)
+	mockServiceUserService.EXPECT().Get(mock.Anything, serviceUserID.String()).
+		Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+
+	svc := authenticate.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), authenticate.Config{},
+		mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil, nil, nil)
+
+	ctx := metadata.NewIncomingContext(context.Background(), map[string][]string{
+		consts.UserTokenGatewayKey: {string(tokenBytes)},
+	})
+
+	_, err = svc.GetPrincipal(ctx, authenticate.AccessTokenClientAssertion)
+	assert.ErrorIs(t, err, frontiererrors.ErrUnauthenticated)
+}
