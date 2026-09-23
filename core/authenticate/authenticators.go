@@ -154,6 +154,9 @@ func authenticateWithAccessToken(ctx context.Context, s *Service) (Principal, er
 			currentUser, err := s.serviceUserService.Get(ctx, userID)
 			if err != nil {
 				s.log.DebugContext(ctx, "failed to get service user", "err", err)
+				if errors.Is(err, serviceuser.ErrNotExist) {
+					return Principal{}, errors.ErrUnauthenticated
+				}
 				return Principal{}, err
 			}
 			return Principal{
@@ -227,6 +230,9 @@ func authenticateWithJWTGrant(ctx context.Context, s *Service) (Principal, error
 		return Principal{}, errSkip
 	case errors.Is(err, serviceuser.ErrInvalidCred):
 		s.log.DebugContext(ctx, "service user grant failed verification", "err", err)
+		return Principal{}, errors.ErrUnauthenticated
+	case errors.Is(err, serviceuser.ErrNotExist):
+		s.log.DebugContext(ctx, "service user grant names a service user that does not exist", "err", err)
 		return Principal{}, errors.ErrUnauthenticated
 	default:
 		return Principal{}, err

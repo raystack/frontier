@@ -92,6 +92,29 @@ func TestConnectHandler_CreatePolicy(t *testing.T) {
 			errCode: connect.CodeInvalidArgument,
 		},
 		{
+			name: "should return not found error when the role does not exist",
+			setup: func(ps *mocks.PolicyService) {
+				ps.On("Create", mock.Anything, policy.Policy{
+					RoleID:        "missing-role",
+					ResourceID:    testResourceID,
+					ResourceType:  "app/project",
+					PrincipalID:   testUserID,
+					PrincipalType: "app/user",
+					Metadata:      metadata.Metadata(nil),
+				}).Return(policy.Policy{}, role.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+				Body: &frontierv1beta1.PolicyRequestBody{
+					RoleId:    "missing-role",
+					Resource:  "project:" + testResourceID,
+					Principal: "user:" + testUserID,
+				},
+			}),
+			want:    nil,
+			wantErr: role.ErrNotExist,
+			errCode: connect.CodeNotFound,
+		},
+		{
 			name: "should return invalid argument error when policy details are invalid",
 			setup: func(ps *mocks.PolicyService) {
 				ps.On("Create", mock.Anything, policy.Policy{
