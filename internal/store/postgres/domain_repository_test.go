@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/internal/store/postgres"
@@ -58,7 +59,10 @@ func (s *DomainRepositoryTestSuite) TestSkipsSoftDeletedDomains() {
 	s.Require().NoError(err)
 
 	_, err = s.repository.Get(s.ctx, deleted.ID)
-	s.Assert().Error(err)
+	s.Assert().ErrorIs(err, domain.ErrNotExist)
+
+	_, err = s.repository.Get(s.ctx, uuid.NewString())
+	s.Assert().ErrorIs(err, domain.ErrNotExist)
 
 	got, err := s.repository.List(s.ctx, domain.Filter{OrgID: s.orgID})
 	s.Assert().NoError(err)
