@@ -44,7 +44,7 @@ func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.Select
 		goqu.I("r.metadata"),
 		goqu.I("r.created_at"),
 		goqu.I("r.updated_at"),
-	).From(goqu.T(TABLE_ROLES).As("r"))
+	).From(goqu.T(TABLE_ROLES).As("r")).Where(live("r"))
 	return roleSelectStatement
 }
 
@@ -231,6 +231,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 			"updated_at":  goqu.L("now()"),
 		}).Where(
 		goqu.Ex{"id": rl.ID},
+		live(TABLE_ROLES),
 	).Returning(&Role{}).ToSQL()
 	if err != nil {
 		return role.Role{}, fmt.Errorf("%w: %s", errQuery, err)
@@ -296,6 +297,7 @@ func (r RoleRepository) RemovePermissionFromRoles(ctx context.Context, slug stri
 		},
 	).Where(
 		goqu.L("permissions @> ?::jsonb", fmt.Sprintf("[%q]", slug)),
+		live(TABLE_ROLES),
 	).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
