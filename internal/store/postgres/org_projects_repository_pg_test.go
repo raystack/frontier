@@ -141,12 +141,13 @@ func (s *OrgProjectsRepositoryPGTestSuite) TestSkipsSoftDeletedProjectsAndPolici
 }
 
 func (s *OrgProjectsRepositoryPGTestSuite) TestMembersComeOnlyFromLiveRows() {
-	for _, p := range s.search() {
-		if p.Name == "op-d-mixed" {
-			s.EqualValues(1, p.MemberCount)
-			s.Equal([]string{s.userID("op-u-live")}, p.UserIDs)
-		}
-	}
+	res, err := s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 50, Filters: []rql.Filter{
+		{Name: "name", Operator: "eq", Value: "op-d-mixed"},
+	}})
+	s.Require().NoError(err)
+	s.Require().Len(res.Projects, 1)
+	s.EqualValues(1, res.Projects[0].MemberCount)
+	s.Equal([]string{s.userID("op-u-live")}, res.Projects[0].UserIDs)
 }
 
 func TestOrgProjectsRepositoryPG(t *testing.T) {
