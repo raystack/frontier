@@ -12,7 +12,6 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/user"
@@ -26,8 +25,6 @@ type InvitationRespositoryTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.InvitationRepository
 	users      []user.User
 	groups     []group.Group

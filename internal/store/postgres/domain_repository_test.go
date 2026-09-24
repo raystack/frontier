@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
@@ -18,8 +17,6 @@ type DomainRepositoryTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.DomainRepository
 	orgID      string
 }
