@@ -159,6 +159,22 @@ func (s *OrgUsersRepositoryPGTestSuite) TestRoleFiltersIgnoreSoftDeletedRows() {
 	s.Equal([]string{"ou-a-live", "ou-d-mixed"}, s.names(roleFilter("neq", "ou-role-gone")))
 }
 
+func (s *OrgUsersRepositoryPGTestSuite) TestPolicyWithoutRoleListsTheMemberWithNoRoles() {
+	s.exec(`INSERT INTO policies (role_id, resource_id, resource_type, principal_id, principal_type)
+		VALUES (NULL, $1, 'app/organization', $2, 'app/user')`, s.orgID, s.userID("ou-c-deleted-policy"))
+
+	res, err := s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 50, Sort: []rql.Sort{{Name: "name", Order: "asc"}}})
+	s.Require().NoError(err)
+	s.Equal([]string{"ou-a-live", "ou-c-deleted-policy", "ou-d-mixed"}, s.names())
+	for _, u := range res.Users {
+		if u.Name == "ou-c-deleted-policy" {
+			s.Empty(u.RoleNames)
+			s.Empty(u.RoleTitles)
+			s.Empty(u.RoleIDs)
+		}
+	}
+}
+
 func TestOrgUsersRepositoryPG(t *testing.T) {
 	suite.Run(t, new(OrgUsersRepositoryPGTestSuite))
 }
