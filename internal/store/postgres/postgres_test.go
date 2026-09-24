@@ -40,10 +40,9 @@ import (
 )
 
 const (
-	logLevelDebug = "debug"
-	pg_uname      = "test_user"
-	pg_passwd     = "test_pass"
-	pg_dbname     = "test_db"
+	pg_uname  = "test_user"
+	pg_passwd = "test_pass"
+	pg_dbname = "test_db"
 )
 
 var (
@@ -87,25 +86,6 @@ func TestMain(m *testing.M) {
 
 	testPort = testResource.GetPort("5432/tcp")
 
-	var logWaiter interface {
-		Close() error
-		Wait() error
-	}
-
-	if logger.Enabled(context.Background(), slog.LevelDebug) {
-		logWaiter, err = testPool.Client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
-			Container:    testResource.Container.ID,
-			OutputStream: os.Stderr,
-			ErrorStream:  os.Stderr,
-			Stderr:       true,
-			Stdout:       true,
-			Stream:       true,
-		})
-		if err != nil {
-			logger.Error("could not connect to postgres container log output", "error", err)
-		}
-	}
-
 	pgConfig := db.Config{
 		Driver:          "pgx",
 		URL:             fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", pg_uname, pg_passwd, testPort, pg_dbname),
@@ -142,17 +122,6 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 
-	if logWaiter != nil {
-		if err := logWaiter.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "could not close container log: %v\n", err)
-			code = 1
-		}
-		if err := logWaiter.Wait(); err != nil {
-			fmt.Fprintf(os.Stderr, "could not wait for container log to close: %v\n", err)
-			code = 1
-		}
-	}
-
 	if err := testPool.Purge(testResource); err != nil {
 		fmt.Fprintf(os.Stderr, "could not purge postgres resource: %v\n", err)
 		code = 1
@@ -161,9 +130,9 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
+func newTestClient() (*db.Client, error) {
 	if testPool == nil || testResource == nil || testPort == "" {
-		return nil, nil, nil, fmt.Errorf("shared postgres test container is not initialized")
+		return nil, fmt.Errorf("shared postgres test container is not initialized")
 	}
 
 	dbName := fmt.Sprintf(
@@ -187,13 +156,13 @@ func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockerte
 
 	adminClient, err := db.New(adminConfig)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not connect to postgres: %w", err)
+		return nil, fmt.Errorf("could not connect to postgres: %w", err)
 	}
 	defer adminClient.Close()
 
 	query := fmt.Sprintf("CREATE DATABASE %s TEMPLATE %s", dbName, pg_dbname)
 	if _, err := adminClient.ExecContext(context.Background(), query); err != nil {
-		return nil, nil, nil, fmt.Errorf("could not create test database %s: %w", dbName, err)
+		return nil, fmt.Errorf("could not create test database %s: %w", dbName, err)
 	}
 
 	pgConfig := db.Config{
@@ -218,10 +187,10 @@ func newTestClient(logger *slog.Logger) (*db.Client, *dockertest.Pool, *dockerte
 		pgClient, err = db.New(pgConfig)
 		return err
 	}); err != nil {
-		return nil, nil, nil, fmt.Errorf("could not connect to test database %s: %w", dbName, err)
+		return nil, fmt.Errorf("could not connect to test database %s: %w", dbName, err)
 	}
 
-	return pgClient, testPool, testResource, nil
+	return pgClient, nil
 }
 
 func closeTestClient(client *db.Client) error {

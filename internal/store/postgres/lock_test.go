@@ -4,10 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"io"
-	"log/slog"
-
-	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/raystack/frontier/pkg/db"
@@ -15,10 +11,8 @@ import (
 
 type LockTestSuite struct {
 	suite.Suite
-	ctx      context.Context
-	client   *db.Client
-	pool     *dockertest.Pool
-	resource *dockertest.Resource
+	ctx    context.Context
+	client *db.Client
 }
 
 func TestLocks(t *testing.T) {
@@ -28,8 +22,7 @@ func TestLocks(t *testing.T) {
 func (s *LockTestSuite) SetupSuite() {
 	var err error
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}

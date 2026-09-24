@@ -28,7 +28,7 @@ func (s *DomainRepositoryTestSuite) SetupSuite() {
 	var err error
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -44,7 +44,7 @@ func (s *DomainRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *DomainRepositoryTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

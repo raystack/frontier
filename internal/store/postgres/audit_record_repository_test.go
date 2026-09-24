@@ -10,11 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"io"
-	"log/slog"
-
 	"github.com/google/uuid"
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/internal/store/postgres"
 	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
@@ -34,8 +30,6 @@ type AuditRecordRepositoryTestSuite struct {
 	suite.Suite
 	ctx          context.Context
 	client       *db.Client
-	pool         *dockertest.Pool
-	resource     *dockertest.Resource
 	repository   *postgres.AuditRecordRepository
 	auditRecords []auditrecord.AuditRecord
 }
@@ -43,8 +37,7 @@ type AuditRecordRepositoryTestSuite struct {
 func (s *AuditRecordRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}

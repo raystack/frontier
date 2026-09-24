@@ -10,12 +10,8 @@ import (
 
 	"github.com/raystack/frontier/pkg/utils"
 
-	"io"
-	"log/slog"
-
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
@@ -29,8 +25,6 @@ type ResourceRepositoryTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.ResourceRepository
 	resources  []resource.Resource
 	projects   []project.Project
@@ -42,8 +36,7 @@ type ResourceRepositoryTestSuite struct {
 func (s *ResourceRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}

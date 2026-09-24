@@ -10,13 +10,9 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"io"
-	"log/slog"
-
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/raystack/frontier/core/policy"
@@ -28,8 +24,6 @@ type PolicyRepositoryTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.PolicyRepository
 	policies   []policy.Policy
 	userID     string
@@ -40,8 +34,7 @@ type PolicyRepositoryTestSuite struct {
 func (s *PolicyRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}

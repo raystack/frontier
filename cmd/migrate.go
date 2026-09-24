@@ -55,6 +55,9 @@ func RunRollback(logger *slog.Logger, config db.Config) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_, _ = m.Close()
+	}()
 
 	err = m.Steps(-1)
 	if err != nil && err != migrate.ErrNoChange {

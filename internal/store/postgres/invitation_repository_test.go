@@ -39,7 +39,7 @@ func (s *InvitationRespositoryTestSuite) SetupSuite() {
 	var err error
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
