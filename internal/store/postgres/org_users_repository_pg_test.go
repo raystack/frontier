@@ -175,6 +175,16 @@ func (s *OrgUsersRepositoryPGTestSuite) TestPolicyWithoutRoleListsTheMemberWithN
 	}
 }
 
+func (s *OrgUsersRepositoryPGTestSuite) TestValueThatIsNotAUUIDIsBadInput() {
+	_, err := s.repository.Search(s.ctx, s.orgID, &rql.Query{Limit: 50, Filters: []rql.Filter{
+		{Name: "role_ids", Operator: "eq", Value: "not-a-uuid"},
+	}})
+	s.ErrorIs(err, postgres.ErrBadInput)
+
+	_, err = s.repository.Search(s.ctx, "not-a-uuid", &rql.Query{Limit: 50})
+	s.ErrorIs(err, postgres.ErrBadInput)
+}
+
 func TestOrgUsersRepositoryPG(t *testing.T) {
 	suite.Run(t, new(OrgUsersRepositoryPGTestSuite))
 }
