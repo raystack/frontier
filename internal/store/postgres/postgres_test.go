@@ -2,9 +2,11 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/google/uuid"
@@ -168,6 +170,24 @@ func execQueries(ctx context.Context, client *db.Client, queries []string) error
 		}
 	}
 	return nil
+}
+
+func execSQL(t *testing.T, ctx context.Context, client *db.Client, query string, args ...any) sql.Result {
+	t.Helper()
+	res, err := client.DB.ExecContext(ctx, query, args...)
+	if err != nil {
+		t.Fatalf("%s: %v", query, err)
+	}
+	return res
+}
+
+func scalarSQL(t *testing.T, ctx context.Context, client *db.Client, query string, args ...any) string {
+	t.Helper()
+	var out string
+	if err := client.DB.QueryRowxContext(ctx, query, args...).Scan(&out); err != nil {
+		t.Fatalf("%s: %v", query, err)
+	}
+	return out
 }
 
 func bootstrapPermissions(client *db.Client) ([]permission.Permission, error) {
