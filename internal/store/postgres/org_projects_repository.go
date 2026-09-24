@@ -134,7 +134,7 @@ func (r OrgProjectsRepository) prepareDataQuery(orgID string, rqlQuery *rql.Quer
 }
 
 func (r OrgProjectsRepository) baseQuery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_POLICIES).Prepared(true).
+	return fromLive(TABLE_POLICIES).Prepared(true).
 		Select(
 			goqu.I(TABLE_PROJECTS+"."+COLUMN_ID),
 			goqu.I(TABLE_PROJECTS+"."+COLUMN_NAME),
@@ -153,10 +153,14 @@ func (r OrgProjectsRepository) baseQuery(orgID string) *goqu.SelectDataset {
 			goqu.T(TABLE_USERS),
 			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID))),
 		).
-		Where(goqu.Ex{
-			TABLE_PROJECTS + "." + COLUMN_ORG_ID: orgID,
-			COLUMN_PRINCIPAL_TYPE:                PRINCIPAL_TYPE_USER,
-		})
+		Where(
+			goqu.Ex{
+				TABLE_PROJECTS + "." + COLUMN_ORG_ID: orgID,
+				COLUMN_PRINCIPAL_TYPE:                PRINCIPAL_TYPE_USER,
+			},
+			live(TABLE_PROJECTS),
+			live(TABLE_USERS),
+		)
 }
 
 func (r OrgProjectsRepository) applySearch(rqlQuery *rql.Query, stmt *goqu.SelectDataset) *goqu.SelectDataset {
