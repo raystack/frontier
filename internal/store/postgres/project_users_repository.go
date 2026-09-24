@@ -108,7 +108,7 @@ func (r ProjectUsersRepository) prepareDataQuery(projectID string, rql *rql.Quer
 }
 
 func (r ProjectUsersRepository) buildBaseQuery(projectID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_POLICIES).Prepared(true).
+	return fromLive(TABLE_POLICIES).Prepared(true).
 		Select(
 			goqu.I(TABLE_USERS+"."+COLUMN_ID),
 			goqu.I(TABLE_USERS+"."+COLUMN_NAME),
@@ -130,11 +130,20 @@ func (r ProjectUsersRepository) buildBaseQuery(projectID string) *goqu.SelectDat
 			goqu.T(TABLE_ROLES),
 			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID).Eq(goqu.I(TABLE_ROLES+"."+COLUMN_ID))),
 		).
-		Where(goqu.Ex{
-			TABLE_POLICIES + "." + COLUMN_RESOURCE_ID:    projectID,
-			TABLE_POLICIES + "." + COLUMN_RESOURCE_TYPE:  RESOURCE_TYPE_PROJECT,
-			TABLE_POLICIES + "." + COLUMN_PRINCIPAL_TYPE: PRINCIPAL_TYPE_USER,
-		}).
+		InnerJoin(
+			goqu.T(TABLE_PROJECTS),
+			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(goqu.I(TABLE_PROJECTS+"."+COLUMN_ID))),
+		).
+		Where(
+			goqu.Ex{
+				TABLE_POLICIES + "." + COLUMN_RESOURCE_ID:    projectID,
+				TABLE_POLICIES + "." + COLUMN_RESOURCE_TYPE:  RESOURCE_TYPE_PROJECT,
+				TABLE_POLICIES + "." + COLUMN_PRINCIPAL_TYPE: PRINCIPAL_TYPE_USER,
+			},
+			live(TABLE_USERS),
+			live(TABLE_ROLES),
+			live(TABLE_PROJECTS),
+		).
 		GroupBy(
 			TABLE_USERS+"."+COLUMN_ID,
 			TABLE_USERS+"."+COLUMN_NAME,
