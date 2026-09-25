@@ -83,7 +83,7 @@ func (r OrgServiceUserCredentialsRepository) Search(ctx context.Context, orgID s
 }
 
 func (r OrgServiceUserCredentialsRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_SERVICE_USER_CREDENTIALS).Prepared(true).
+	return fromLive(TABLE_SERVICE_USER_CREDENTIALS).Prepared(true).
 		Select(
 			goqu.I(TABLE_SERVICE_USER_CREDENTIALS+"."+COLUMN_TITLE).As("credential_title"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE).As("serviceuser_title"),
@@ -94,9 +94,17 @@ func (r OrgServiceUserCredentialsRepository) buildBaseQuery(orgID string) *goqu.
 			goqu.T(TABLE_SERVICE_USERS),
 			goqu.On(goqu.I(TABLE_SERVICE_USER_CREDENTIALS+"."+COLUMN_SERVICEUSER_ID).Eq(goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ID))),
 		).
-		Where(goqu.Ex{
-			TABLE_SERVICE_USERS + "." + COLUMN_ORG_ID: orgID,
-		})
+		InnerJoin(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_ORG_ID).Eq(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID))),
+		).
+		Where(
+			goqu.Ex{
+				TABLE_SERVICE_USERS + "." + COLUMN_ORG_ID: orgID,
+			},
+			live(TABLE_SERVICE_USERS),
+			live(TABLE_ORGANIZATIONS),
+		)
 }
 
 func (r OrgServiceUserCredentialsRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []any, error) {
