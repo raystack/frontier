@@ -2,12 +2,15 @@ package checkout
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"testing"
 
+	"github.com/raystack/frontier/billing/credit"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/stretchr/testify/require"
@@ -80,4 +83,59 @@ func TestService_Apply_RejectsInactivePlan(t *testing.T) {
 	_, _, err := s.Apply(context.Background(), Checkout{CustomerID: "cust-1", PlanID: "plan-1"})
 
 	require.ErrorIs(t, err, plan.ErrPlanInactive)
+}
+
+type fakeProductSvc struct {
+	ProductService
+	p product.Product
+}
+
+func (f fakeProductSvc) GetByID(_ context.Context, _ string) (product.Product, error) {
+	return f.p, nil
+}
+
+type fakeCreditSvc struct {
+	CreditService
+	added []credit.Credit
+}
+
+func (f *fakeCreditSvc) Add(_ context.Context, cred credit.Credit) error {
+	f.added = append(f.added, cred)
+	return nil
+}
+
+// Checkout metadata is stored as JSON, so by the time a synced checkout reaches
+// ensureCreditsForProduct the Stripe amount total reads back as a float64. The
+// credit description must still print it as a whole number, not %!d(float64=...).
+func TestService_EnsureCreditsForProduct_DescribesAmountReadBackFromJSON(t *testing.T) {
+	stored, err := json.Marshal(map[string]any{
+		AmountTotalMetadataKey: int64(1000),
+		CurrencyMetadataKey:    "usd",
+	})
+	require.NoError(t, err)
+	var md map[string]any
+	require.NoError(t, json.Unmarshal(stored, &md))
+
+	credits := &fakeCreditSvc{}
+	s := &Service{
+		log: slog.New(slog.NewTextHandler(io.Discard, nil)),
+		productService: fakeProductSvc{p: product.Product{
+			ID:       "prod-1",
+			Title:    "Tokens",
+			Behavior: product.CreditBehavior,
+			Config:   product.BehaviorConfig{CreditAmount: 10},
+		}},
+		creditService: credits,
+	}
+
+	err = s.ensureCreditsForProduct(context.Background(), Checkout{
+		ID:         "ch-1",
+		CustomerID: "cust-1",
+		ProductID:  "prod-1",
+		Metadata:   md,
+	})
+
+	require.NoError(t, err)
+	require.Len(t, credits.added, 1)
+	require.Equal(t, "addition of 10 credits for Tokens at 1000[usd]", credits.added[0].Description)
 }

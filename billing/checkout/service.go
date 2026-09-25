@@ -642,7 +642,7 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 	description := fmt.Sprintf("addition of %d credits for %s", creditAmount, chProduct.Title)
 	if price, pok := ch.Metadata[AmountTotalMetadataKey]; pok {
 		if currency, cok := ch.Metadata[CurrencyMetadataKey].(string); cok {
-			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", creditAmount, chProduct.Title, price, currency)
+			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", creditAmount, chProduct.Title, cast.ToInt64(price), currency)
 		}
 	}
 	initiatorID := ""
