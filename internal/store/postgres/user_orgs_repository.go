@@ -148,13 +148,12 @@ func (r UserOrgsRepository) Search(ctx context.Context, principalID string, rql 
 // can this principal access". Do not "fix" one to match the other without a
 // product decision.
 func (r UserOrgsRepository) buildBaseQuery(principalID string) (string, []any, error) {
-	projectCountSubquery := dialect.From(TABLE_PROJECTS).
+	projectCountSubquery := fromLive(TABLE_PROJECTS).
 		Select(
 			goqu.I(COLUMN_ORG_ID),
 			goqu.COUNT(COLUMN_ID).As(COLUMN_PROJECT_COUNT),
 		).
 		Where(
-			goqu.I(COLUMN_DELETED_AT).IsNull(),
 			goqu.I(COLUMN_STATE).Eq(STATE_ENABLED),
 		).
 		GroupBy(COLUMN_ORG_ID).
@@ -176,9 +175,12 @@ func (r UserOrgsRepository) buildBaseQuery(principalID string) (string, []any, e
 	baseConditions := []goqu.Expression{
 		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_TYPE).Eq(RESOURCE_TYPE_ORGANIZATION),
 		goqu.I(TABLE_POLICIES + "." + COLUMN_PRINCIPAL_ID).Eq(principalID),
+		live(TABLE_ROLES),
+		live(TABLE_ORGANIZATIONS),
+		live(TABLE_USERS),
 	}
 
-	return dialect.From(TABLE_POLICIES).Prepared(true).
+	return fromLive(TABLE_POLICIES).Prepared(true).
 		Join(
 			goqu.T(TABLE_ROLES),
 			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID).Eq(goqu.I(TABLE_ROLES+"."+COLUMN_ID))),
