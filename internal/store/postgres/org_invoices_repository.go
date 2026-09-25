@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
@@ -123,7 +124,13 @@ func (r OrgInvoicesRepository) Search(ctx context.Context, orgID string, rql *rq
 	})
 
 	if err != nil {
-		return svc.OrganizationInvoices{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.OrganizationInvoices{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.OrganizationInvoices{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedInvoice, 0)

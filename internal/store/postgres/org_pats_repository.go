@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -118,7 +119,13 @@ func (r OrgPATsRepository) Search(ctx context.Context, orgID string, rqlQuery *r
 		})
 	})
 	if err != nil {
-		return svc.OrganizationPATs{}, fmt.Errorf("querying org PATs: %w", err)
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.OrganizationPATs{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.OrganizationPATs{}, fmt.Errorf("querying org PATs: %w", err)
+		}
 	}
 
 	return svc.OrganizationPATs{
