@@ -5,12 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/robfig/cron/v3"
 	"github.com/stripe/stripe-go/v79"
+	"golang.org/x/text/currency"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 
 	"github.com/raystack/frontier/billing"
 	billingerrors "github.com/raystack/frontier/billing/errors"
@@ -641,8 +645,8 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 
 	description := fmt.Sprintf("addition of %d credits for %s", creditAmount, chProduct.Title)
 	if price, pok := ch.Metadata[AmountTotalMetadataKey]; pok {
-		if currency, cok := ch.Metadata[CurrencyMetadataKey].(string); cok {
-			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", creditAmount, chProduct.Title, cast.ToInt64(price), currency)
+		if cur, cok := ch.Metadata[CurrencyMetadataKey].(string); cok {
+			description = fmt.Sprintf("addition of %d credits for %s at %s", creditAmount, chProduct.Title, formatAmount(cast.ToInt64(price), cur))
 		}
 	}
 	initiatorID := ""
@@ -664,6 +668,19 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 		return err
 	}
 	return nil
+}
+
+// formatAmount renders an amount in the currency's minor unit (as Stripe
+// reports it) with its symbol and decimals, e.g. 1000 usd as $10.00
+func formatAmount(minor int64, cur string) string {
+	unit, err := currency.ParseISO(strings.ToUpper(cur))
+	if err != nil {
+		return fmt.Sprintf("%d[%s]", minor, cur)
+	}
+	scale, _ := currency.Standard.Rounding(unit)
+	amount := float64(minor) / math.Pow10(scale)
+	s := message.NewPrinter(language.English).Sprint(currency.NarrowSymbol(unit.Amount(amount)))
+	return strings.Replace(s, " ", "", 1)
 }
 
 func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (string, error) {
