@@ -150,7 +150,7 @@ func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goq
 			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(userID),
 			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq(TYPE_PROJECT),
 			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_PRINCIPAL_TYPE).Eq(TYPE_USER),
-			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_DELETED_AT).IsNull(),
+			live(TABLE_ALIAS_SUB_POLICIES),
 		))
 
 	return dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_PROJECT)).Prepared(true).
@@ -169,7 +169,7 @@ func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goq
 			goqu.On(goqu.And(
 				goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_ID).Eq(goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_RESOURCE_ID)),
 				goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq(TYPE_PROJECT),
-				goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_DELETED_AT).IsNull(),
+				live(TABLE_ALIAS_POLICIES),
 			)),
 		).
 		Join(

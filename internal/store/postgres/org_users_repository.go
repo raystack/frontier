@@ -31,8 +31,7 @@ const (
 
 const (
 	// Users Table Columns
-	COLUMN_EMAIL      = "email"
-	COLUMN_DELETED_AT = "deleted_at"
+	COLUMN_EMAIL = "email"
 
 	// Policies Table Columns
 	COLUMN_RESOURCE_ID       = "resource_id"
