@@ -23,7 +23,7 @@ func TestOrgServiceUserCredentialsRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") WHERE ("serviceusers"."org_id" = $1) LIMIT $2 OFFSET $3`,
+			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") INNER JOIN "organizations" ON ("serviceusers"."org_id" = "organizations"."id") WHERE (("serviceuser_credentials"."deleted_at" IS NULL) AND ("serviceusers"."org_id" = $1) AND ("serviceusers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL)) LIMIT $2 OFFSET $3`,
 			wantParams: []any{
 				"org1",    // org_id
 				int64(10), // limit
@@ -39,7 +39,7 @@ func TestOrgServiceUserCredentialsRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") WHERE (("serviceusers"."org_id" = $1) AND ((CAST("serviceuser_credentials"."title" AS TEXT) ILIKE $2) OR (CAST("serviceusers"."title" AS TEXT) ILIKE $3))) LIMIT $4 OFFSET $5`,
+			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") INNER JOIN "organizations" ON ("serviceusers"."org_id" = "organizations"."id") WHERE (("serviceuser_credentials"."deleted_at" IS NULL) AND ("serviceusers"."org_id" = $1) AND ("serviceusers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND ((CAST("serviceuser_credentials"."title" AS TEXT) ILIKE $2) OR (CAST("serviceusers"."title" AS TEXT) ILIKE $3))) LIMIT $4 OFFSET $5`,
 			wantParams: []any{
 				"org1",    // org_id
 				"%test%",  // search pattern for title
@@ -63,7 +63,7 @@ func TestOrgServiceUserCredentialsRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") WHERE (("serviceusers"."org_id" = $1) AND ("serviceuser_credentials"."title" = $2)) LIMIT $3 OFFSET $4`,
+			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") INNER JOIN "organizations" ON ("serviceusers"."org_id" = "organizations"."id") WHERE (("serviceuser_credentials"."deleted_at" IS NULL) AND ("serviceusers"."org_id" = $1) AND ("serviceusers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND ("serviceuser_credentials"."title" = $2)) LIMIT $3 OFFSET $4`,
 			wantParams: []any{
 				"org1",       // org_id
 				"test-title", // filter value
@@ -85,7 +85,7 @@ func TestOrgServiceUserCredentialsRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") WHERE ("serviceusers"."org_id" = $1) ORDER BY "serviceuser_credentials"."title" DESC LIMIT $2 OFFSET $3`,
+			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") INNER JOIN "organizations" ON ("serviceusers"."org_id" = "organizations"."id") WHERE (("serviceuser_credentials"."deleted_at" IS NULL) AND ("serviceusers"."org_id" = $1) AND ("serviceusers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL)) ORDER BY "serviceuser_credentials"."title" DESC LIMIT $2 OFFSET $3`,
 			wantParams: []any{
 				"org1",    // org_id
 				int64(10), // limit
@@ -123,7 +123,7 @@ func TestOrgServiceUserCredentialsRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") WHERE (("serviceusers"."org_id" = $1) AND (("serviceuser_credentials"."title" IS NULL) OR ("serviceuser_credentials"."title" = $2))) LIMIT $3 OFFSET $4`,
+			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") INNER JOIN "organizations" ON ("serviceusers"."org_id" = "organizations"."id") WHERE (("serviceuser_credentials"."deleted_at" IS NULL) AND ("serviceusers"."org_id" = $1) AND ("serviceusers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND (("serviceuser_credentials"."title" IS NULL) OR ("serviceuser_credentials"."title" = $2))) LIMIT $3 OFFSET $4`,
 			wantParams: []any{
 				"org1",    // org_id
 				"",        // empty string for comparison
@@ -158,7 +158,7 @@ func TestOrgServiceUserCredentialsRepository_prepareDataQuery(t *testing.T) {
 				Limit:  20,
 				Offset: 5,
 			},
-			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") WHERE (("serviceusers"."org_id" = $1) AND ("serviceuser_credentials"."title" LIKE $2) AND ("serviceuser_credentials"."created_at" > $3) AND ((CAST("serviceuser_credentials"."title" AS TEXT) ILIKE $4) OR (CAST("serviceusers"."title" AS TEXT) ILIKE $5))) ORDER BY "serviceuser_credentials"."created_at" DESC LIMIT $6 OFFSET $7`,
+			wantSQL: `SELECT "serviceuser_credentials"."title" AS "credential_title", "serviceusers"."title" AS "serviceuser_title", "serviceuser_credentials"."created_at" AS "credential_created_at", "serviceusers"."org_id" AS "org_id" FROM "serviceuser_credentials" INNER JOIN "serviceusers" ON ("serviceuser_credentials"."serviceuser_id" = "serviceusers"."id") INNER JOIN "organizations" ON ("serviceusers"."org_id" = "organizations"."id") WHERE (("serviceuser_credentials"."deleted_at" IS NULL) AND ("serviceusers"."org_id" = $1) AND ("serviceusers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND ("serviceuser_credentials"."title" LIKE $2) AND ("serviceuser_credentials"."created_at" > $3) AND ((CAST("serviceuser_credentials"."title" AS TEXT) ILIKE $4) OR (CAST("serviceusers"."title" AS TEXT) ILIKE $5))) ORDER BY "serviceuser_credentials"."created_at" DESC LIMIT $6 OFFSET $7`,
 			wantParams: []any{
 				"org1",                 // org_id
 				"%api%",                // like pattern for title
