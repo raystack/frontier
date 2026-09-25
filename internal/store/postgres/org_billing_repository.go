@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -170,7 +171,13 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 	})
 
 	if err != nil {
-		return svc.OrgBilling{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.OrgBilling{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.OrgBilling{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedOrganization, 0)

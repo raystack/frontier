@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
@@ -115,7 +116,13 @@ func (r UserOrgsRepository) Search(ctx context.Context, principalID string, rql 
 	})
 
 	if err != nil {
-		return svc.UserOrgs{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.UserOrgs{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.UserOrgs{}, err
+		}
 	}
 
 	// Transform the results
