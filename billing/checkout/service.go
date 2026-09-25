@@ -13,8 +13,6 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/stripe/stripe-go/v79"
 	"golang.org/x/text/currency"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 
 	"github.com/raystack/frontier/billing"
 	billingerrors "github.com/raystack/frontier/billing/errors"
@@ -670,17 +668,15 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 	return nil
 }
 
-// formatAmount renders an amount in the currency's minor unit (as Stripe
-// reports it) with its symbol and decimals, e.g. 1000 usd as $10.00
+// formatAmount renders a Stripe amount, given in the currency's minor unit,
+// in its major unit, e.g. 1000 usd as 10.00 USD
 func formatAmount(minor int64, cur string) string {
 	unit, err := currency.ParseISO(strings.ToUpper(cur))
 	if err != nil {
 		return fmt.Sprintf("%d[%s]", minor, cur)
 	}
 	scale, _ := currency.Standard.Rounding(unit)
-	amount := float64(minor) / math.Pow10(scale)
-	s := message.NewPrinter(language.English).Sprint(currency.NarrowSymbol(unit.Amount(amount)))
-	return strings.Replace(s, " ", "", 1)
+	return fmt.Sprintf("%.*f %s", scale, float64(minor)/math.Pow10(scale), unit)
 }
 
 func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (string, error) {
