@@ -4,13 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io"
-	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/raystack/frontier/core/consent"
@@ -23,8 +20,6 @@ type UserConsentRepositoryTestSuite struct {
 	suite.Suite
 	ctx            context.Context
 	client         *db.Client
-	pool           *dockertest.Pool
-	resource       *dockertest.Resource
 	repository     *postgres.UserConsentRepository
 	userRepository *postgres.UserRepository
 }
@@ -32,8 +27,7 @@ type UserConsentRepositoryTestSuite struct {
 func (s *UserConsentRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -44,7 +38,7 @@ func (s *UserConsentRepositoryTestSuite) SetupSuite() {
 }
 
 func (s *UserConsentRepositoryTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }
