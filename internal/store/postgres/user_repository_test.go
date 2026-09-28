@@ -15,6 +15,7 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/store/postgres"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/rql"
@@ -70,8 +71,19 @@ func (s *UserRepositoryTestSuite) TearDownTest() {
 func (s *UserRepositoryTestSuite) cleanup() error {
 	queries := []string{
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_AUDITRECORDS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
+}
+
+// assertAudited checks exactly one audit record of event exists for the user, written by actorID
+func (s *UserRepositoryTestSuite) assertAudited(event, userID, actorID string) {
+	var n int
+	err := s.client.QueryRowxContext(s.ctx, fmt.Sprintf(
+		"SELECT count(*) FROM %s WHERE event = $1 AND target_id = $2 AND actor_id = $3", postgres.TABLE_AUDITRECORDS),
+		event, userID, actorID).Scan(&n)
+	s.Require().NoError(err)
+	s.Equal(1, n, "audit records for %s on %s", event, userID)
 }
 
 func (s *UserRepositoryTestSuite) TestGetByID() {
@@ -218,6 +230,10 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			}
 			if tc.ExpectedEmail != "" && (got.Email != tc.ExpectedEmail) {
 				s.T().Fatalf("got result %+v, expected was %+v", got.ID, tc.ExpectedEmail)
+			}
+			if tc.ErrString == "" {
+				// no caller in the context, so the user is their own actor
+				s.assertAudited(pkgAuditRecord.UserCreatedEvent.String(), got.ID, got.ID)
 			}
 		})
 	}
@@ -490,6 +506,9 @@ func (s *UserRepositoryTestSuite) TestDelete() {
 				if err != tc.Err {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
 				}
+			}
+			if tc.Err == nil {
+				s.assertAudited(pkgAuditRecord.UserDeletedEvent.String(), tc.User, uuid.Nil.String())
 			}
 		})
 	}

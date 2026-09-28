@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
@@ -14,10 +15,14 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/consent"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 type UserRepository struct {
@@ -186,6 +191,18 @@ func (r UserRepository) createWithTx(ctx context.Context, tx *sqlx.Tx, usr user.
 		}
 	}
 
+	record := buildUserAuditRecord(ctx, auditrecord.UserCreatedEvent, userModel, userModel.CreatedAt)
+	// signup runs unauthenticated, so with no caller the user created themselves
+	if record.ActorType == auditrecord.SystemActor {
+		record.ActorID, _ = uuid.Parse(userModel.ID)
+		record.ActorType = schema.UserPrincipal
+		record.ActorName = userModel.Name
+		record.ActorTitle = userModel.Title.String
+	}
+	if err := InsertAuditRecordInTx(ctx, tx, record); err != nil {
+		return user.User{}, err
+	}
+
 	transformedUser, err := userModel.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
@@ -193,47 +210,28 @@ func (r UserRepository) createWithTx(ctx context.Context, tx *sqlx.Tx, usr user.
 	return transformedUser, nil
 }
 
+func buildUserAuditRecord(ctx context.Context, event auditrecord.Event, u User, occurredAt time.Time) AuditRecord {
+	return BuildAuditRecord(ctx, event,
+		AuditResource{ID: schema.PlatformID, Type: auditrecord.PlatformType, Name: schema.PlatformID},
+		&AuditTarget{ID: u.ID, Type: auditrecord.UserType, Name: u.Name, Metadata: metadata.Metadata{"email": u.Email}},
+		schema.PlatformOrgID.String(), nil, occurredAt)
+}
+
 func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, error) {
-	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
+	var created user.User
+	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) (err error) {
+		created, err = r.createWithTx(ctx, tx, usr)
+		return err
+	})
+	switch {
+	case errors.Is(err, user.ErrConflict):
+		return user.User{}, user.ErrConflict
+	case errors.Is(err, user.ErrInvalidDetails):
 		return user.User{}, user.ErrInvalidDetails
-	}
-
-	createQuery, params, err := buildUserInsertQuery(usr)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", errQuery, err)
-	}
-
-	tx, err := r.dbc.BeginTxx(ctx, nil)
-	if err != nil {
+	case err != nil:
 		return user.User{}, err
 	}
-
-	var userModel User
-	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Create", func(ctx context.Context) error {
-		return tx.QueryRowxContext(ctx, createQuery, params...).
-			StructScan(&userModel)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, ErrDuplicateKey):
-			return user.User{}, user.ErrConflict
-		default:
-			if err := tx.Rollback(); err != nil {
-				return user.User{}, err
-			}
-			return user.User{}, err
-		}
-	}
-
-	if err = tx.Commit(); err != nil {
-		return user.User{}, err
-	}
-
-	transformedUser, err := userModel.transformToUser()
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
-	}
-	return transformedUser, nil
+	return created, nil
 }
 
 func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User, error) {
@@ -564,9 +562,14 @@ func (r UserRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
-	var userModel User
-	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Delete", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var userModel User
+		if err := r.dbc.WithTimeout(ctx, TABLE_USERS, "Delete", func(ctx context.Context) error {
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+		}); err != nil {
+			return err
+		}
+		return InsertAuditRecordInTx(ctx, tx, buildUserAuditRecord(ctx, auditrecord.UserDeletedEvent, userModel, time.Now().UTC()))
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
