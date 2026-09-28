@@ -42,6 +42,10 @@ const (
 	OrganizationMemberRoleChangedEvent  Event = "organization.role_changed"
 	OrganizationInvitationAcceptedEvent Event = "organization.accepted"
 
+	// Project Events
+	ProjectCreatedEvent Event = "project.created"
+	ProjectDeletedEvent Event = "project.deleted"
+
 	// Project Member Events
 	ProjectMemberRoleChangedEvent Event = "project.member_role_changed"
 	ProjectMemberRemovedEvent     Event = "project.member_removed"

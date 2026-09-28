@@ -19,6 +19,7 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/store/postgres"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
@@ -117,8 +118,19 @@ func (s *ProjectRepositoryTestSuite) cleanup() error {
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_RELATIONS),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ROLES),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_NAMESPACES),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_AUDITRECORDS),
 	}
 	return execQueries(context.TODO(), s.client, queries)
+}
+
+// auditCount counts audit records of event on the project, filed under its org
+func (s *ProjectRepositoryTestSuite) auditCount(event pkgAuditRecord.Event, projectID string) int {
+	var n int
+	err := s.client.QueryRowxContext(s.ctx, fmt.Sprintf(
+		"SELECT count(*) FROM %s WHERE event = $1 AND target_id = $2 AND resource_type = $3", postgres.TABLE_AUDITRECORDS),
+		event.String(), projectID, pkgAuditRecord.OrganizationType.String()).Scan(&n)
+	s.Require().NoError(err)
+	return n
 }
 
 func (s *ProjectRepositoryTestSuite) TestGetByID() {
@@ -297,8 +309,23 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 			if !cmp.Equal(got, tc.ExpectedProject, cmpopts.IgnoreFields(project.Project{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedProject)
 			}
+			if tc.ErrString == "" {
+				s.Equal(1, s.auditCount(pkgAuditRecord.ProjectCreatedEvent, got.ID))
+			}
 		})
 	}
+}
+
+func (s *ProjectRepositoryTestSuite) TestDelete() {
+	s.Run("should delete a project and audit it", func() {
+		s.Require().NoError(s.repository.Delete(s.ctx, s.projects[1].ID))
+		s.Equal(1, s.auditCount(pkgAuditRecord.ProjectDeletedEvent, s.projects[1].ID))
+	})
+	s.Run("should skip a project that does not exist without auditing", func() {
+		id := uuid.NewString()
+		s.Require().NoError(s.repository.Delete(s.ctx, id))
+		s.Equal(0, s.auditCount(pkgAuditRecord.ProjectDeletedEvent, id))
+	})
 }
 
 func (s *ProjectRepositoryTestSuite) TestList() {
