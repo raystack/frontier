@@ -162,7 +162,7 @@ func (r OrgInvoicesRepository) prepareDataQuery(orgID string, rql *rql.Query) (s
 }
 
 func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []any, error) {
-	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
+	query := fromLive(TABLE_BILLING_INVOICES).Prepared(true).
 		Select(
 			goqu.COUNT("*").As("count"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_STATE).As("values"),
@@ -171,9 +171,17 @@ func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query)
 			goqu.T(TABLE_BILLING_CUSTOMERS),
 			goqu.On(goqu.I(TABLE_BILLING_INVOICES+".customer_id").Eq(goqu.I(TABLE_BILLING_CUSTOMERS+".id"))),
 		).
-		Where(goqu.Ex{
-			TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
-		})
+		InnerJoin(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ORG_ID).Eq(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID))),
+		).
+		Where(
+			goqu.Ex{
+				TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
+			},
+			live(TABLE_BILLING_CUSTOMERS),
+			live(TABLE_ORGANIZATIONS),
+		)
 
 	// Apply the same filters as the main query
 	for _, filter := range rql.Filters {
@@ -192,7 +200,7 @@ func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query)
 }
 
 func (r OrgInvoicesRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
+	return fromLive(TABLE_BILLING_INVOICES).Prepared(true).
 		Select(
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_ID).As("invoice_id"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_AMOUNT).As("invoice_amount"),
@@ -206,9 +214,17 @@ func (r OrgInvoicesRepository) buildBaseQuery(orgID string) *goqu.SelectDataset 
 			goqu.T(TABLE_BILLING_CUSTOMERS),
 			goqu.On(goqu.I(TABLE_BILLING_INVOICES+".customer_id").Eq(goqu.I(TABLE_BILLING_CUSTOMERS+".id"))),
 		).
-		Where(goqu.Ex{
-			TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
-		})
+		InnerJoin(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ORG_ID).Eq(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID))),
+		).
+		Where(
+			goqu.Ex{
+				TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
+			},
+			live(TABLE_BILLING_CUSTOMERS),
+			live(TABLE_ORGANIZATIONS),
+		)
 }
 
 func (r OrgInvoicesRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) *goqu.SelectDataset {
