@@ -153,6 +153,10 @@ func (r OrgProjectsRepository) baseQuery(orgID string) *goqu.SelectDataset {
 			goqu.T(TABLE_USERS),
 			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID))),
 		).
+		InnerJoin(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_PROJECTS+"."+COLUMN_ORG_ID).Eq(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID))),
+		).
 		Where(
 			goqu.Ex{
 				TABLE_PROJECTS + "." + COLUMN_ORG_ID: orgID,
@@ -160,6 +164,7 @@ func (r OrgProjectsRepository) baseQuery(orgID string) *goqu.SelectDataset {
 			},
 			live(TABLE_PROJECTS),
 			live(TABLE_USERS),
+			live(TABLE_ORGANIZATIONS),
 		)
 }
 
