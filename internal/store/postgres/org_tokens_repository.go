@@ -125,8 +125,14 @@ func (r OrgTokensRepository) prepareDataQuery(orgID string, rql *rql.Query) (str
 }
 
 func (r OrgTokensRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
+	transactionUserID := goqu.I(TABLE_BILLING_TRANSACTIONS + "." + COLUMN_USER_ID)
 	liveUserOfTransactionUserID := goqu.On(
-		goqu.L("CASE WHEN \"billing_transactions\".\"user_id\" IS NOT NULL AND \"billing_transactions\".\"user_id\" != '' THEN CAST(\"billing_transactions\".\"user_id\" AS uuid) = \"users\".\"id\" ELSE false END"),
+		goqu.Case().
+			When(
+				goqu.And(transactionUserID.IsNotNull(), transactionUserID.Neq("")),
+				goqu.Cast(transactionUserID, "uuid").Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
+			).
+			Else(false),
 		live(TABLE_USERS),
 	)
 
