@@ -259,7 +259,7 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &invoiceModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", errDB, err)
+		return nil, fmt.Errorf("%w: %w", errDB, err)
 	}
 
 	invoices := make([]invoice.Invoice, 0, len(invoiceModels))
@@ -352,7 +352,14 @@ func (r BillingInvoiceRepository) Search(ctx context.Context, rqlQuery *rql.Quer
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Search", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &invoiceModels, dataQuery, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", errDB, err)
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			// this repository's handler matches the billing sentinel, not the postgres one
+			return nil, fmt.Errorf("%w: value is not a valid uuid", invoice.ErrBadInput)
+		default:
+			return nil, fmt.Errorf("%w: %w", errDB, err)
+		}
 	}
 
 	// Transform results

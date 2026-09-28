@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/ory/dockertest"
+	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/rql"
@@ -85,7 +86,14 @@ func (s *SearchInvalidUUIDTestSuite) TestEverySearchReportsBadInput() {
 			_, err := postgres.NewUserProjectsRepository(s.client).Search(s.ctx, bad, bad, query())
 			return err
 		},
-		// this one takes no id, so the bad value arrives through its id filter
+		// these two take no id, so the bad value arrives through a filter
+		"billing invoices": func() error {
+			_, err := postgres.NewBillingInvoiceRepository(s.client).Search(s.ctx, &rql.Query{
+				Limit:   10,
+				Filters: []rql.Filter{{Name: "id", Operator: "eq", Value: bad}},
+			})
+			return err
+		},
 		"org billing": func() error {
 			_, err := postgres.NewOrgBillingRepository(s.client).Search(s.ctx, &rql.Query{
 				Limit:   10,
@@ -97,7 +105,13 @@ func (s *SearchInvalidUUIDTestSuite) TestEverySearchReportsBadInput() {
 
 	for name, search := range searches {
 		s.Run(name, func() {
-			s.ErrorIs(search(), postgres.ErrBadInput)
+			// every search answers the postgres sentinel except the billing
+			// invoice one, whose handler matches the billing package's own
+			want := postgres.ErrBadInput
+			if name == "billing invoices" {
+				want = invoice.ErrBadInput
+			}
+			s.ErrorIs(search(), want)
 		})
 	}
 }
