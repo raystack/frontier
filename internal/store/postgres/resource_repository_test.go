@@ -501,32 +501,6 @@ func (s *ResourceRepositoryTestSuite) TestPurge() {
 	s.Assert().NoError(err)
 }
 
-func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
-	deleted := s.resources[0]
-	_, err := s.client.ExecContext(s.ctx, "UPDATE resources SET deleted_at = now() WHERE id = $1", deleted.ID)
-	s.Require().NoError(err)
-
-	_, err = s.repository.GetByID(s.ctx, deleted.ID)
-	s.Assert().ErrorIs(err, resource.ErrNotExist)
-
-	_, err = s.repository.GetByURN(s.ctx, deleted.URN)
-	s.Assert().ErrorIs(err, resource.ErrNotExist)
-
-	got, err := s.repository.List(s.ctx, resource.Filter{})
-	s.Assert().NoError(err)
-	s.Assert().Len(got, len(s.resources)-1)
-	for _, r := range got {
-		s.Assert().NotEqual(deleted.ID, r.ID)
-	}
-
-	all, err := s.repository.List(s.ctx, resource.Filter{IncludeDeleted: true})
-	s.Assert().NoError(err)
-	s.Assert().Len(all, len(s.resources))
-
-	_, err = s.repository.Update(s.ctx, resource.Resource{ID: deleted.ID, Title: "changed"})
-	s.Assert().ErrorIs(err, resource.ErrNotExist)
-}
-
 func TestResourceRepository(t *testing.T) {
 	suite.Run(t, new(ResourceRepositoryTestSuite))
 }
@@ -553,6 +527,10 @@ func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
 	for _, r := range got {
 		s.Assert().NotEqual(deleted.ID, r.ID)
 	}
+
+	all, err := s.repository.List(s.ctx, resource.Filter{IncludeDeleted: true})
+	s.Assert().NoError(err)
+	s.Assert().Len(all, len(before))
 
 	updated := deleted
 	updated.Title = "changed"
