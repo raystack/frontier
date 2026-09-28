@@ -196,7 +196,10 @@ func (r UserRepository) createWithTx(ctx context.Context, tx *sqlx.Tx, usr user.
 	if record.ActorType == auditrecord.SystemActor {
 		record.ActorID, _ = uuid.Parse(userModel.ID)
 		record.ActorType = schema.UserPrincipal
-		record.ActorName = userModel.Name
+		record.ActorName = userModel.Title.String
+		if record.ActorName == "" {
+			record.ActorName = userModel.Email
+		}
 		record.ActorTitle = userModel.Title.String
 	}
 	if err := InsertAuditRecordInTx(ctx, tx, record); err != nil {
