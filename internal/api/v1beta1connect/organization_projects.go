@@ -31,7 +31,7 @@ func (h *ConnectHandler) SearchOrganizationProjects(ctx context.Context, request
 	orgProjectsData, err := h.orgProjectsService.Search(ctx, request.Msg.GetId(), rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationProjects.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}

@@ -15,13 +15,9 @@ import (
 
 	"github.com/raystack/frontier/billing/customer"
 
-	"io"
-	"log/slog"
-
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -32,8 +28,6 @@ type BillingCustomerRepositoryTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.BillingCustomerRepository
 	orgIDs     []string
 }
@@ -41,8 +35,7 @@ type BillingCustomerRepositoryTestSuite struct {
 func (s *BillingCustomerRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -63,8 +56,7 @@ func (s *BillingCustomerRepositoryTestSuite) SetupTest() {
 }
 
 func (s *BillingCustomerRepositoryTestSuite) TearDownSuite() {
-	// Clean tests
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

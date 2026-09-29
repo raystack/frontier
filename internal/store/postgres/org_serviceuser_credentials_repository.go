@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
@@ -65,7 +66,13 @@ func (r OrgServiceUserCredentialsRepository) Search(ctx context.Context, orgID s
 	})
 
 	if err != nil {
-		return svc.OrganizationServiceUserCredentials{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.OrganizationServiceUserCredentials{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.OrganizationServiceUserCredentials{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedServiceUserCredential, 0)

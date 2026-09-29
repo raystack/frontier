@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"fmt"
 	"strings"
@@ -97,7 +98,13 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 	})
 
 	if err != nil {
-		return svc.OrgProjects{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.OrgProjects{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.OrgProjects{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedProject, 0)
@@ -153,6 +160,10 @@ func (r OrgProjectsRepository) baseQuery(orgID string) *goqu.SelectDataset {
 			goqu.T(TABLE_USERS),
 			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID))),
 		).
+		InnerJoin(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_PROJECTS+"."+COLUMN_ORG_ID).Eq(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID))),
+		).
 		Where(
 			goqu.Ex{
 				TABLE_PROJECTS + "." + COLUMN_ORG_ID: orgID,
@@ -160,6 +171,7 @@ func (r OrgProjectsRepository) baseQuery(orgID string) *goqu.SelectDataset {
 			},
 			live(TABLE_PROJECTS),
 			live(TABLE_USERS),
+			live(TABLE_ORGANIZATIONS),
 		)
 }
 

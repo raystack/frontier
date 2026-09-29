@@ -7,6 +7,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
+	"github.com/raystack/frontier/internal/store/postgres"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -28,6 +29,9 @@ func (h *ConnectHandler) SearchOrganizations(ctx context.Context, request *conne
 
 	orgBillingData, err := h.orgBillingService.Search(ctx, rqlQuery)
 	if err != nil {
+		if errors.Is(err, postgres.ErrBadInput) {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizations.Search: %w", err))
 	}
 
