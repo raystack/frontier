@@ -123,9 +123,9 @@ func (s *DomainRepository) Get(ctx context.Context, id string) (domain.Domain, e
 }
 
 func (s *DomainRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_DOMAINS).Where(goqu.Ex{
+	query, params, err := softDelete(TABLE_DOMAINS).Where(goqu.Ex{
 		"id": id,
-	}).Returning(&Domain{}).ToSQL()
+	}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
@@ -183,7 +183,7 @@ func (s *DomainRepository) DeleteExpiredDomainRequests(ctx context.Context) erro
 	query, params, err := dialect.Delete(TABLE_DOMAINS).Where(goqu.Ex{
 		"created_at": goqu.Op{"lte": s.Now().Add(-domain.DefaultTokenExpiry)},
 		"state":      domain.Pending,
-	}).ToSQL()
+	}, live(TABLE_DOMAINS)).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
