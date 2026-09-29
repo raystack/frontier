@@ -193,6 +193,7 @@ func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		goqu.I(TABLE_POLICIES + "." + COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
 		live(TABLE_USERS),
 		live(TABLE_ROLES),
+		live(TABLE_ORGANIZATIONS),
 	}
 
 	return fromLive(TABLE_POLICIES).Prepared(true).
@@ -203,6 +204,10 @@ func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		LeftJoin(
 			goqu.T(TABLE_ROLES),
 			goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
+		).
+		Join(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID))),
 		).
 		Where(baseConditions...).
 		Select(querySelects...).
