@@ -3,11 +3,8 @@ package postgres_test
 import (
 	"context"
 	"fmt"
-	"io"
-	"log/slog"
 	"testing"
 
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/aggregates/orgtokens"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
@@ -19,16 +16,13 @@ type OrgTokensRepositoryPGTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.OrgTokensRepository
 	orgID      string
 }
 
 func (s *OrgTokensRepositoryPGTestSuite) SetupSuite() {
 	var err error
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -37,7 +31,7 @@ func (s *OrgTokensRepositoryPGTestSuite) SetupSuite() {
 }
 
 func (s *OrgTokensRepositoryPGTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }
