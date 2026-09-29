@@ -3,11 +3,8 @@ package postgres_test
 import (
 	"context"
 	"fmt"
-	"io"
-	"log/slog"
 	"testing"
 
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/rql"
@@ -19,16 +16,13 @@ import (
 // seeded with the same shape under a live organization and a deleted one.
 type SearchLiveOrgTestSuite struct {
 	suite.Suite
-	ctx      context.Context
-	client   *db.Client
-	pool     *dockertest.Pool
-	resource *dockertest.Resource
+	ctx    context.Context
+	client *db.Client
 }
 
 func (s *SearchLiveOrgTestSuite) SetupSuite() {
 	var err error
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -36,7 +30,7 @@ func (s *SearchLiveOrgTestSuite) SetupSuite() {
 }
 
 func (s *SearchLiveOrgTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }
