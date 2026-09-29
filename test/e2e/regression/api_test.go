@@ -2756,6 +2756,84 @@ func (s *APIRegressionTestSuite) TestOrganizationDomainsAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getDomainResp)
 	})
+	s.Run("2. deleting a domain hides it, frees its name and writes an audit record", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org 2",
+				Name:  "org-domains-2",
+			},
+		}))
+		s.Require().NoError(err)
+		orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+		createDomainResp, err := s.testBench.Client.CreateOrganizationDomain(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationDomainRequest{
+			OrgId:  orgID,
+			Domain: "org-domains-2.raystack.io",
+		}))
+		s.Require().NoError(err)
+		domainID := createDomainResp.Msg.GetDomain().GetId()
+
+		_, err = s.testBench.Client.DeleteOrganizationDomain(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
+			OrgId: orgID,
+			Id:    domainID,
+		}))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.GetOrganizationDomain(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
+			OrgId: orgID,
+			Id:    domainID,
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		listDomainResp, err := s.testBench.Client.ListOrganizationDomains(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationDomainsRequest{
+			OrgId: orgID,
+		}))
+		s.Require().NoError(err)
+		s.Assert().Empty(listDomainResp.Msg.GetDomains())
+
+		_, err = s.testBench.Client.DeleteOrganizationDomain(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationDomainRequest{
+			OrgId: orgID,
+			Id:    domainID,
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		recreateDomainResp, err := s.testBench.Client.CreateOrganizationDomain(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationDomainRequest{
+			OrgId:  orgID,
+			Domain: "org-domains-2.raystack.io",
+		}))
+		s.Require().NoError(err)
+		s.Assert().NotEqual(domainID, recreateDomainResp.Msg.GetDomain().GetId())
+
+		currentUserResp, err := s.testBench.Client.GetCurrentUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().NoError(err)
+
+		recordsResp, err := s.testBench.AdminClient.ListAuditRecords(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+			Query: &frontierv1beta1.RQLRequest{
+				Filters: []*frontierv1beta1.RQLFilter{{
+					Name:     "target_id",
+					Operator: "eq",
+					Value:    &frontierv1beta1.RQLFilter_StringValue{StringValue: domainID},
+				}},
+			},
+		}))
+		s.Require().NoError(err)
+		s.Require().Len(recordsResp.Msg.GetAuditRecords(), 1)
+		record := recordsResp.Msg.GetAuditRecords()[0]
+		s.Assert().Equal("domain.deleted", record.GetEvent())
+		s.Assert().Equal(currentUserResp.Msg.GetUser().GetId(), record.GetActor().GetId())
+		s.Assert().Equal(orgID, record.GetResource().GetId())
+		s.Assert().Equal("organization", record.GetResource().GetType())
+		s.Assert().Equal("domain", record.GetTarget().GetType())
+		s.Assert().Equal("org-domains-2.raystack.io", record.GetTarget().GetName())
+		s.Assert().Equal(orgID, record.GetOrgId())
+		s.Assert().Equal("org 2", record.GetOrgName())
+
+		// the org now holds a live domain and a deleted one; both go with it
+		_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{
+			Id: orgID,
+		}))
+		s.Require().NoError(err)
+	})
 }
 
 func (s *APIRegressionTestSuite) TestWebhookAPI() {
