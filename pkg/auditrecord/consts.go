@@ -42,6 +42,9 @@ const (
 	OrganizationMemberRoleChangedEvent  Event = "organization.role_changed"
 	OrganizationInvitationAcceptedEvent Event = "organization.accepted"
 
+	// Domain Events
+	DomainDeletedEvent Event = "domain.deleted"
+
 	// Project Member Events
 	ProjectMemberRoleChangedEvent Event = "project.member_role_changed"
 	ProjectMemberRemovedEvent     Event = "project.member_removed"
@@ -107,6 +110,7 @@ const (
 	PATType                 EntityType = "pat"
 	ConsentType             EntityType = "consent"
 	PlatformType            EntityType = "platform"
+	DomainType              EntityType = "domain"
 )
 
 // String returns the string representation of the event
