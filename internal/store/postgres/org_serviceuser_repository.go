@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -83,7 +84,13 @@ func (r OrgServiceUserRepository) Search(ctx context.Context, orgID string, rqlQ
 	})
 
 	if err != nil {
-		return svc.OrganizationServiceUsers{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.OrganizationServiceUsers{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.OrganizationServiceUsers{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedServiceUser, 0)

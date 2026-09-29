@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -77,7 +78,13 @@ func (r OrgTokensRepository) Search(ctx context.Context, orgID string, rql *rql.
 	})
 
 	if err != nil {
-		return svc.OrganizationTokens{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.OrganizationTokens{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.OrganizationTokens{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedToken, 0)

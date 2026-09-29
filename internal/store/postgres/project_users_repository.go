@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -81,7 +83,13 @@ func (r ProjectUsersRepository) Search(ctx context.Context, projectID string, rq
 	})
 
 	if err != nil {
-		return svc.ProjectUsers{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.ProjectUsers{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.ProjectUsers{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedUser, 0)

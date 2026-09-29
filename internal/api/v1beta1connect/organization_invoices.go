@@ -30,7 +30,7 @@ func (h *ConnectHandler) SearchOrganizationInvoices(ctx context.Context, request
 	invoicesData, err := h.orgInvoicesService.Search(ctx, request.Msg.GetId(), rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrInternalServerError)
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
 		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("SearchOrganizationInvoices.Search: org_id=%s: %w", request.Msg.GetId(), err))
 	}

@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
@@ -19,6 +20,7 @@ const (
 	TABLE_ALIAS_SUB_PROJECT  = "p2"
 	TABLE_ALIAS_POLICIES     = "pol"
 	TABLE_ALIAS_SUB_POLICIES = "pol2"
+	TABLE_ALIAS_SUB_ORG      = "o2"
 	TABLE_ALIAS_USERS        = "u"
 
 	// Resource and Principal types
@@ -97,7 +99,13 @@ func (r UserProjectsRepository) Search(ctx context.Context, userID string, orgID
 	})
 
 	if err != nil {
-		return svc.UserProjects{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return svc.UserProjects{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return svc.UserProjects{}, err
+		}
 	}
 
 	res := make([]svc.AggregatedProject, 0)
@@ -145,6 +153,10 @@ func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goq
 			goqu.T(TABLE_POLICIES).As(TABLE_ALIAS_SUB_POLICIES),
 			goqu.On(goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ID).Eq(goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_RESOURCE_ID))),
 		).
+		Join(
+			goqu.T(TABLE_ORGANIZATIONS).As(TABLE_ALIAS_SUB_ORG),
+			goqu.On(goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ORG_ID).Eq(goqu.I(TABLE_ALIAS_SUB_ORG+"."+COLUMN_ID))),
+		).
 		Where(goqu.And(
 			goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ORG_ID).Eq(orgID),
 			live(TABLE_ALIAS_SUB_PROJECT),
@@ -152,6 +164,7 @@ func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goq
 			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq(TYPE_PROJECT),
 			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_PRINCIPAL_TYPE).Eq(TYPE_USER),
 			live(TABLE_ALIAS_SUB_POLICIES),
+			live(TABLE_ALIAS_SUB_ORG),
 		))
 
 	return dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_PROJECT)).Prepared(true).

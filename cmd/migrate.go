@@ -23,6 +23,10 @@ func RunMigrations(logger *slog.Logger, config db.Config) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_, _ = m.Close()
+	}()
+
 	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
 		return err
 	}
@@ -33,6 +37,8 @@ func RunMigrations(logger *slog.Logger, config db.Config) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to db")
 	}
+	defer dbc.Close()
+
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository, logger, 0)
 	if err = metaschemaService.MigrateDefault(context.Background()); err != nil {
@@ -49,6 +55,9 @@ func RunRollback(logger *slog.Logger, config db.Config) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_, _ = m.Close()
+	}()
 
 	err = m.Steps(-1)
 	if err != nil && err != migrate.ErrNoChange {
