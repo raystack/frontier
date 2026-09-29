@@ -124,9 +124,19 @@ func (r OrgTokensRepository) prepareDataQuery(orgID string, rql *rql.Query) (str
 	return query.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
 }
 
-// we need to cast the user_id to text since it's stored as text in billing_transactions but the users.id is uuid.
 func (r OrgTokensRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_BILLING_TRANSACTIONS).Prepared(true).
+	transactionUserID := goqu.I(TABLE_BILLING_TRANSACTIONS + "." + COLUMN_USER_ID)
+	liveUserOfTransactionUserID := goqu.On(
+		goqu.Case().
+			When(
+				goqu.And(transactionUserID.IsNotNull(), transactionUserID.Neq("")),
+				goqu.Cast(transactionUserID, "uuid").Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
+			).
+			Else(false),
+		live(TABLE_USERS),
+	)
+
+	return fromLive(TABLE_BILLING_TRANSACTIONS).Prepared(true).
 		Select(
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_AMOUNT).As("token_amount"),
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_TYPE).As("token_type"),
@@ -142,13 +152,18 @@ func (r OrgTokensRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 			goqu.T(TABLE_BILLING_CUSTOMERS),
 			goqu.On(goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_ACCOUNT_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+".id"))),
 		).
-		LeftJoin(
-			goqu.T(TABLE_USERS),
-			goqu.On(goqu.L("CASE WHEN \"billing_transactions\".\"user_id\" IS NOT NULL AND \"billing_transactions\".\"user_id\" != '' THEN CAST(\"billing_transactions\".\"user_id\" AS uuid) = \"users\".\"id\" ELSE false END")),
+		InnerJoin(
+			goqu.T(TABLE_ORGANIZATIONS),
+			goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ORG_ID).Eq(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID))),
 		).
-		Where(goqu.Ex{
-			TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
-		})
+		LeftJoin(goqu.T(TABLE_USERS), liveUserOfTransactionUserID).
+		Where(
+			goqu.Ex{
+				TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
+			},
+			live(TABLE_BILLING_CUSTOMERS),
+			live(TABLE_ORGANIZATIONS),
+		)
 }
 
 func (r OrgTokensRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) (*goqu.SelectDataset, error) {
