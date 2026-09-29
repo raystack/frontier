@@ -6,11 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"io"
-	"log/slog"
-
 	"github.com/google/uuid"
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
@@ -24,8 +20,6 @@ type UserPATRepositoryTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.UserPATRepository
 	users      []user.User
 	orgs       []organization.Organization
@@ -33,8 +27,7 @@ type UserPATRepositoryTestSuite struct {
 
 func (s *UserPATRepositoryTestSuite) SetupSuite() {
 	var err error
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -55,7 +48,7 @@ func (s *UserPATRepositoryTestSuite) SetupTest() {
 }
 
 func (s *UserPATRepositoryTestSuite) TearDownSuite() {
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }

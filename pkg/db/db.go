@@ -34,6 +34,7 @@ func New(cfg Config) (*Client, error) {
 	}
 
 	if err = d.Ping(); err != nil {
+		_ = d.Close()
 		return nil, err
 	}
 

@@ -6,13 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	"io"
-	"log/slog"
-
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
@@ -26,8 +22,6 @@ type UserRepositoryTestSuite struct {
 	suite.Suite
 	ctx        context.Context
 	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
 	repository *postgres.UserRepository
 	users      []user.User
 }
@@ -35,8 +29,7 @@ type UserRepositoryTestSuite struct {
 func (s *UserRepositoryTestSuite) SetupSuite() {
 	var err error
 
-	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	s.client, s.pool, s.resource, err = newTestClient(logger)
+	s.client, err = newTestClient()
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -55,8 +48,7 @@ func (s *UserRepositoryTestSuite) SetupTest() {
 }
 
 func (s *UserRepositoryTestSuite) TearDownSuite() {
-	// Clean tests
-	if err := purgeDocker(s.pool, s.resource); err != nil {
+	if err := closeTestClient(s.client); err != nil {
 		s.T().Fatal(err)
 	}
 }
