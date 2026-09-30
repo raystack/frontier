@@ -25,7 +25,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 20,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") LIMIT $1 OFFSET $2`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL)) LIMIT $1 OFFSET $2`,
 			wantParams: []any{int64(10), int64(20)},
 			wantErr:    false,
 		},
@@ -42,7 +42,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 50,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE ("billing_invoices"."amount" >= $1) LIMIT $2 OFFSET $3`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND ("billing_invoices"."amount" >= $1)) LIMIT $2 OFFSET $3`,
 			wantParams: []any{int64(1000), int64(10), int64(50)},
 			wantErr:    false,
 		},
@@ -60,7 +60,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 30,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."state" = $1) AND ((CAST("billing_invoices"."state" AS TEXT) ILIKE $2) OR (CAST("billing_invoices"."currency" AS TEXT) ILIKE $3) OR (CAST("billing_invoices"."amount" AS TEXT) ILIKE $4) OR (CAST("organizations"."name" AS TEXT) ILIKE $5) OR (CAST("organizations"."title" AS TEXT) ILIKE $6))) LIMIT $7 OFFSET $8`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND ("billing_invoices"."state" = $1) AND ((CAST("billing_invoices"."state" AS TEXT) ILIKE $2) OR (CAST("billing_invoices"."currency" AS TEXT) ILIKE $3) OR (CAST("billing_invoices"."amount" AS TEXT) ILIKE $4) OR (CAST("organizations"."name" AS TEXT) ILIKE $5) OR (CAST("organizations"."title" AS TEXT) ILIKE $6))) LIMIT $7 OFFSET $8`,
 			wantParams: []any{"paid", "%test%", "%test%", "%test%", "%test%", "%test%", int64(10), int64(30)},
 			wantErr:    false,
 		},
@@ -76,7 +76,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 40,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") ORDER BY "billing_invoices"."state" DESC LIMIT $1 OFFSET $2`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL)) ORDER BY "billing_invoices"."state" DESC LIMIT $1 OFFSET $2`,
 			wantParams: []any{int64(10), int64(40)},
 			wantErr:    false,
 		},
@@ -92,7 +92,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 40,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") ORDER BY "organizations"."name" ASC LIMIT $1 OFFSET $2`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL)) ORDER BY "organizations"."name" ASC LIMIT $1 OFFSET $2`,
 			wantParams: []any{int64(10), int64(40)},
 			wantErr:    false,
 		},
@@ -124,7 +124,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 1,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."state" IS NULL) OR ("billing_invoices"."state" = $1)) LIMIT $2 OFFSET $3`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND (("billing_invoices"."state" IS NULL) OR ("billing_invoices"."state" = $1))) LIMIT $2 OFFSET $3`,
 			wantParams: []any{"", int64(10), int64(1)},
 			wantErr:    false,
 		},
@@ -140,7 +140,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 1,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."state" IS NOT NULL) AND ("billing_invoices"."state" != $1)) LIMIT $2 OFFSET $3`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND (("billing_invoices"."state" IS NOT NULL) AND ("billing_invoices"."state" != $1))) LIMIT $2 OFFSET $3`,
 			wantParams: []any{"", int64(10), int64(1)},
 			wantErr:    false,
 		},
@@ -157,7 +157,7 @@ func TestBillingInvoiceRepository_prepareDataQuery(t *testing.T) {
 				Limit:  10,
 				Offset: 1,
 			},
-			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE ("billing_invoices"."state" LIKE $1) LIMIT $2 OFFSET $3`,
+			wantSQL:    `SELECT "billing_invoices"."id" AS "id", "billing_invoices"."amount" AS "amount", "billing_invoices"."currency" AS "currency", "billing_invoices"."state" AS "state", "billing_invoices"."hosted_url" AS "hosted_url", "billing_invoices"."created_at" AS "created_at", "organizations"."id" AS "org_id", "organizations"."name" AS "org_name", "organizations"."title" AS "org_title" FROM "billing_invoices" INNER JOIN "billing_customers" ON ("billing_invoices"."customer_id" = "billing_customers"."id") INNER JOIN "organizations" ON ("billing_customers"."org_id" = "organizations"."id") WHERE (("billing_invoices"."deleted_at" IS NULL) AND ("billing_customers"."deleted_at" IS NULL) AND ("organizations"."deleted_at" IS NULL) AND ("billing_invoices"."state" LIKE $1)) LIMIT $2 OFFSET $3`,
 			wantParams: []any{"%paid%", int64(10), int64(1)},
 			wantErr:    false,
 		},
@@ -270,7 +270,7 @@ func TestProjectRepository_ListTotalCount_PreparedSQLForwardsParams(t *testing.T
 
 // Mirror of billing_invoice_repository.go::List totalCount path.
 func TestBillingInvoiceRepository_ListTotalCount_PreparedSQLForwardsParams(t *testing.T) {
-	stmt := dialect.Select().From(TABLE_BILLING_INVOICES).Prepared(true).Where(goqu.Ex{"customer_id": "cust-1"})
+	stmt := fromLive(TABLE_BILLING_INVOICES).Prepared(true).Where(goqu.Ex{"customer_id": "cust-1"})
 	stmt = stmt.Where(goqu.Ex{"amount": goqu.Op{"gt": 0}})
 	stmt = stmt.Where(goqu.Ex{"state": "paid"})
 
@@ -279,5 +279,6 @@ func TestBillingInvoiceRepository_ListTotalCount_PreparedSQLForwardsParams(t *te
 	require.NoError(t, err)
 
 	assert.True(t, strings.Contains(sql, "$1"), "SQL must use $N placeholders, got: %s", sql)
+	assert.Contains(t, sql, `"billing_invoices"."deleted_at" IS NULL`)
 	assert.Equal(t, []any{"cust-1", int64(0), "paid"}, params)
 }
