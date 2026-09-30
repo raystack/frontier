@@ -37,3 +37,34 @@ func TestSoftDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestLiveConflictTarget(t *testing.T) {
+	tests := []struct {
+		name    string
+		columns string
+		wantSQL string
+	}{
+		{
+			name:    "one column",
+			columns: "urn",
+			wantSQL: `INSERT INTO "resources" ("urn") VALUES ($1) ON CONFLICT (urn) WHERE (deleted_at IS NULL) DO UPDATE SET "name"=$2`,
+		},
+		{
+			name:    "two columns",
+			columns: "org_id, name",
+			wantSQL: `INSERT INTO "resources" ("urn") VALUES ($1) ON CONFLICT (org_id, name) WHERE (deleted_at IS NULL) DO UPDATE SET "name"=$2`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotSQL, gotParams, err := dialect.Insert(TABLE_RESOURCES).
+				Rows(goqu.Record{"urn": "frn:proj:ns:res"}).
+				OnConflict(goqu.DoUpdate(liveConflictTarget(tt.columns), goqu.Record{"name": "renamed"})).
+				Prepared(true).ToSQL()
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantSQL, gotSQL)
+			assert.Equal(t, []any{"frn:proj:ns:res", "renamed"}, gotParams)
+		})
+	}
+}

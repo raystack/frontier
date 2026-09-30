@@ -67,7 +67,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			"principal_type": principalType,
 			"metadata":       marshaledMetadata,
 		}).OnConflict(
-		goqu.DoUpdate("urn", goqu.Record{
+		goqu.DoUpdate(liveConflictTarget("urn"), goqu.Record{
 			"name":           res.Name,
 			"title":          res.Title,
 			"project_id":     res.ProjectID,
@@ -104,6 +104,10 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	var fetchedResources []Resource
 
 	sqlStatement := fromLive(TABLE_RESOURCES)
+	if flt.IncludeDeleted {
+		sqlStatement = dialect.From(TABLE_RESOURCES)
+	}
+	sqlStatement = sqlStatement.Order(goqu.C("created_at").Asc())
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
@@ -245,6 +249,34 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 }
 
 func (r ResourceRepository) Delete(ctx context.Context, id string) error {
+	query, params, err := softDelete(TABLE_RESOURCES).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).Returning(&ResourceCols{}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", errQuery, err)
+	}
+
+	var resourceModel Resource
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Delete", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return resource.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
+// Purge removes the row for good. The project delete cascade uses it, since a
+// resource row cannot outlive its project row.
+// TODO(fix): remove once project delete is soft
+func (r ResourceRepository) Purge(ctx context.Context, id string) error {
 	query, params, err := dialect.Delete(TABLE_RESOURCES).Where(
 		goqu.Ex{
 			"id": id,
@@ -254,19 +286,11 @@ func (r ResourceRepository) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Purge", func(ctx context.Context) error {
+		_, err := r.dbc.DB.ExecContext(ctx, query, params...)
+		return err
 	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return resource.ErrNotExist
-		default:
-			return err
-		}
+		return checkPostgresError(err)
 	}
 	return nil
 }

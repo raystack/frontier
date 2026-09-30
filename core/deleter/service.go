@@ -68,7 +68,7 @@ type PolicyService interface {
 
 type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
-	Delete(ctx context.Context, namespaceID, id string) error
+	Purge(ctx context.Context, namespaceID, id string) error
 }
 
 type GroupService interface {
@@ -213,15 +213,18 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 		}
 	}
 
-	// delete all related resources
+	// the project row is removed for good below, so every resource row of the
+	// project, deleted ones included, has to go with it
+	// TODO(fix): soft-delete the live resources instead once project delete is soft
 	resources, err := d.resService.List(ctx, resource.Filter{
-		ProjectID: id,
+		ProjectID:      id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return err
 	}
 	for _, r := range resources {
-		if err = d.resService.Delete(ctx, r.NamespaceID, r.ID); err != nil {
+		if err = d.resService.Purge(ctx, r.NamespaceID, r.ID); err != nil {
 			return fmt.Errorf("failed to delete project while deleting a resource[%s]: %w", r.Name, err)
 		}
 	}
