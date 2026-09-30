@@ -212,7 +212,7 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 }
 
 func (r BillingCheckoutRepository) GetByID(ctx context.Context, id string) (checkout.Checkout, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -236,7 +236,7 @@ func (r BillingCheckoutRepository) GetByID(ctx context.Context, id string) (chec
 }
 
 func (r BillingCheckoutRepository) GetByName(ctx context.Context, name string) (checkout.Checkout, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
 		"name": name,
 	})
 	query, params, err := stmt.ToSQL()
@@ -323,7 +323,7 @@ func (r BillingCheckoutRepository) DeleteByCustomerID(ctx context.Context, custo
 }
 
 func (r BillingCheckoutRepository) List(ctx context.Context, flt checkout.Filter) ([]checkout.Checkout, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CHECKOUTS).Order(goqu.I("created_at").Desc())
+	stmt := fromLive(TABLE_BILLING_CHECKOUTS).Order(goqu.I("created_at").Desc())
 	if flt.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": flt.CustomerID,
