@@ -241,7 +241,7 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 }
 
 func (r BillingSubscriptionRepository) GetByID(ctx context.Context, id string) (subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -265,7 +265,7 @@ func (r BillingSubscriptionRepository) GetByID(ctx context.Context, id string) (
 }
 
 func (r BillingSubscriptionRepository) GetByName(ctx context.Context, name string) (subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
 		"name": name,
 	})
 	query, params, err := stmt.ToSQL()
@@ -289,7 +289,7 @@ func (r BillingSubscriptionRepository) GetByName(ctx context.Context, name strin
 }
 
 func (r BillingSubscriptionRepository) GetByProviderID(ctx context.Context, id string) (subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
 		"provider_id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -429,7 +429,7 @@ func (r BillingSubscriptionRepository) toSubscriptionChanges(toUpdate subscripti
 }
 
 func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Order(goqu.I("created_at").Desc())
+	stmt := fromLive(TABLE_BILLING_SUBSCRIPTIONS).Order(goqu.I("created_at").Desc())
 	if filter.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": filter.CustomerID,
