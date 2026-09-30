@@ -190,6 +190,68 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 			}
 		})
 	}
+
+	s.Run("should create a new row when the name belongs to a soft-deleted role", func() {
+		deleted := s.roles[3]
+		if _, err := s.client.ExecContext(s.ctx, "UPDATE roles SET deleted_at = now() WHERE id = $1", deleted.ID); err != nil {
+			s.T().Fatal(err)
+		}
+
+		got, err := s.repository.Upsert(s.ctx, role.Role{
+			Name:        deleted.Name,
+			Title:       "Test Title",
+			Permissions: []string{"user"},
+			OrgID:       s.orgID,
+			Metadata:    metadata.Metadata{},
+		})
+		s.Assert().NoError(err)
+		if got.ID == deleted.ID {
+			s.T().Fatalf("got the deleted row %s back, expected a new row", deleted.ID)
+		}
+
+		var rows int
+		if err := s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM roles WHERE org_id = $1 AND name = $2", s.orgID, deleted.Name).Scan(&rows); err != nil {
+			s.T().Fatal(err)
+		}
+		if rows != 2 {
+			s.T().Fatalf("got %d rows named %s, expected the deleted row and the new one", rows, deleted.Name)
+		}
+	})
+
+	s.Run("should return conflict when the id belongs to a soft-deleted role", func() {
+		deleted := s.roles[4]
+		if _, err := s.client.ExecContext(s.ctx, "UPDATE roles SET deleted_at = now() WHERE id = $1", deleted.ID); err != nil {
+			s.T().Fatal(err)
+		}
+
+		_, err := s.repository.Upsert(s.ctx, role.Role{
+			ID:       deleted.ID,
+			Name:     "role with a reused id",
+			OrgID:    s.orgID,
+			Metadata: metadata.Metadata{},
+		})
+		s.Assert().ErrorIs(err, role.ErrConflict)
+	})
+
+	s.Run("should update the live role and move updated_at when the name is taken", func() {
+		before, err := s.repository.Get(s.ctx, s.roles[2].ID)
+		if err != nil {
+			s.T().Fatal(err)
+		}
+
+		got, err := s.repository.Upsert(s.ctx, role.Role{
+			Name:        before.Name,
+			Title:       "changed",
+			Permissions: before.Permissions,
+			Scopes:      before.Scopes,
+			OrgID:       s.orgID,
+			Metadata:    metadata.Metadata{},
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(before.ID, got.ID)
+		s.Assert().Equal("changed", got.Title)
+		s.Assert().True(got.UpdatedAt.After(before.UpdatedAt))
+	})
 }
 
 func (s *RoleRepositoryTestSuite) TestList() {
