@@ -249,15 +249,10 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 }
 
 func (r ResourceRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Update(TABLE_RESOURCES).Set(
-		goqu.Record{
-			"deleted_at": goqu.L("now()"),
-		},
-	).Where(
+	query, params, err := softDelete(TABLE_RESOURCES).Where(
 		goqu.Ex{
 			"id": id,
 		},
-		live(TABLE_RESOURCES),
 	).Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
