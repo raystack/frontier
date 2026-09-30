@@ -503,7 +503,7 @@ func buildAPIDependencies(
 	userProjectsService := userprojects.NewService(userProjectsRepository)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
-	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService)
+	domainService := domain.NewService(logger, domainRepository, userService, organizationService, membershipService, auditRecordRepository)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository, logger, cfg.App.Metaschema.RefreshInterval)
