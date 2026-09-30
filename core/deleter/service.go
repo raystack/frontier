@@ -407,6 +407,11 @@ func (d Service) deleteCustomers(ctx context.Context, id string, customers []cus
 		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
 		}
+		// TODO(fix): this delete is due to become a soft delete. An invoice will
+		// only be allowed to carry deleted_at once its customer already does,
+		// and the customer below is deleted last, so this order gets rejected.
+		// Delete the customer first, or run the whole loop in one transaction
+		// with a deferred check.
 		if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
 		}
