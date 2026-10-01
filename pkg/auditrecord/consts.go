@@ -81,6 +81,8 @@ const (
 	ResourceDeletedEvent Event = "resource.deleted"
 
 	// User Events
+	UserCreatedEvent        Event = "user.created"
+	UserDeletedEvent        Event = "user.deleted"
 	UserConsentGrantedEvent Event = "user.consent_granted"
 
 	// PAT Events
