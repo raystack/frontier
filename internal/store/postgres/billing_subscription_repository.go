@@ -241,7 +241,7 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 }
 
 func (r BillingSubscriptionRepository) GetByID(ctx context.Context, id string) (subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -264,32 +264,8 @@ func (r BillingSubscriptionRepository) GetByID(ctx context.Context, id string) (
 	return subscriptionModel.transform()
 }
 
-func (r BillingSubscriptionRepository) GetByName(ctx context.Context, name string) (subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
-		"name": name,
-	})
-	query, params, err := stmt.ToSQL()
-	if err != nil {
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", errParse, err)
-	}
-
-	var subscriptionModel Subscription
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "GetByName", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&subscriptionModel)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return subscription.Subscription{}, subscription.ErrNotFound
-		}
-		return subscription.Subscription{}, fmt.Errorf("%w: %s", errDB, err)
-	}
-
-	return subscriptionModel.transform()
-}
-
 func (r BillingSubscriptionRepository) GetByProviderID(ctx context.Context, id string) (subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
 		"provider_id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -429,7 +405,7 @@ func (r BillingSubscriptionRepository) toSubscriptionChanges(toUpdate subscripti
 }
 
 func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Order(goqu.I("created_at").Desc())
+	stmt := fromLive(TABLE_BILLING_SUBSCRIPTIONS).Order(goqu.I("created_at").Desc())
 	if filter.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": filter.CustomerID,

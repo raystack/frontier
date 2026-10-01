@@ -403,6 +403,11 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 // here.
 func (d Service) deleteCustomers(ctx context.Context, id string, customers []customer.Customer, amounts map[string]accountTokens) error {
 	for _, c := range customers {
+		// TODO(fix): the subscription and checkout reads here skip rows with
+		// deleted_at. Once these deletes turn soft, a row left behind with
+		// deleted_at set is invisible to this loop. A subscription then blocks the
+		// customer delete on its foreign key, and a checkout is removed without
+		// its audit record below. Make these deletes soft in the same change.
 		// cancels active subscriptions on the billing provider and removes local records
 		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
