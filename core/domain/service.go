@@ -11,8 +11,10 @@ import (
 	"strings"
 	"time"
 
+	auditmodels "github.com/raystack/frontier/core/auditrecord/models"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
+	pkgauditrecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"log/slog"
@@ -29,6 +31,7 @@ type UserService interface {
 
 type OrgService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
+	GetRaw(ctx context.Context, id string) (organization.Organization, error)
 }
 
 type MembershipService interface {
@@ -36,13 +39,18 @@ type MembershipService interface {
 	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
 }
 
+type AuditRecordRepository interface {
+	Create(ctx context.Context, auditRecord auditmodels.AuditRecord) (auditmodels.AuditRecord, error)
+}
+
 type Service struct {
-	repository        Repository
-	userService       UserService
-	orgService        OrgService
-	membershipService MembershipService
-	cron              *cron.Cron
-	log               *slog.Logger
+	repository            Repository
+	userService           UserService
+	orgService            OrgService
+	membershipService     MembershipService
+	auditRecordRepository AuditRecordRepository
+	cron                  *cron.Cron
+	log                   *slog.Logger
 }
 
 const (
@@ -52,14 +60,15 @@ const (
 	refreshTime        = "0 0 * * *"        // Once a day at midnight (UTC)
 )
 
-func NewService(logger *slog.Logger, repository Repository, userService UserService, orgService OrgService, membershipService MembershipService) *Service {
+func NewService(logger *slog.Logger, repository Repository, userService UserService, orgService OrgService, membershipService MembershipService, auditRecordRepository AuditRecordRepository) *Service {
 	return &Service{
-		repository:        repository,
-		userService:       userService,
-		orgService:        orgService,
-		membershipService: membershipService,
-		cron:              cron.New(),
-		log:               logger,
+		repository:            repository,
+		userService:           userService,
+		orgService:            orgService,
+		membershipService:     membershipService,
+		auditRecordRepository: auditRecordRepository,
+		cron:                  cron.New(),
+		log:                   logger,
 	}
 }
 
@@ -73,9 +82,44 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Domain, error) {
 	return s.repository.List(ctx, flt)
 }
 
-// Remove an organization's whitelisted domain from the database
+// Delete marks an organization's whitelisted domain as deleted and writes an audit record
 func (s Service) Delete(ctx context.Context, id string) error {
-	return s.repository.Delete(ctx, id)
+	dmn, err := s.repository.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	org, err := s.orgService.GetRaw(ctx, dmn.OrgID)
+	if err != nil {
+		return err
+	}
+	if err = s.repository.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	s.createAuditRecord(ctx, pkgauditrecord.DomainDeletedEvent, dmn, org)
+	return nil
+}
+
+func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Event, dmn Domain, org organization.Organization) {
+	if _, err := s.auditRecordRepository.Create(ctx, auditmodels.AuditRecord{
+		Event: event,
+		Resource: auditmodels.Resource{
+			ID:   org.ID,
+			Type: pkgauditrecord.OrganizationType,
+			Name: org.Title,
+		},
+		Target: &auditmodels.Target{
+			ID:   dmn.ID,
+			Type: pkgauditrecord.DomainType,
+			Name: dmn.Name,
+		},
+		OrgID:      org.ID,
+		OrgName:    org.Title,
+		OccurredAt: time.Now(),
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to create domain audit record",
+			"event", event, "org_id", org.ID, "domain_id", dmn.ID, "domain_name", dmn.Name, "err", err)
+	}
 }
 
 // Creates a record for the domain in the database and returns the TXT record that needs to be added to the DNS for the domain verification

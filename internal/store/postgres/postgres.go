@@ -29,9 +29,22 @@ func live(table string) exp.BooleanExpression {
 	return goqu.I(table + ".deleted_at").IsNull()
 }
 
+// softDelete marks rows as deleted instead of removing them. It skips rows
+// that are already deleted, so the first delete time is kept.
+func softDelete(table string) *goqu.UpdateDataset {
+	return dialect.Update(table).Set(goqu.Record{"deleted_at": goqu.L("now()")}).Where(live(table))
+}
+
 // fromLive reads only the rows that are not soft-deleted.
 func fromLive(table string) *goqu.SelectDataset {
 	return dialect.From(table).Where(live(table))
+}
+
+// liveConflictTarget is the ON CONFLICT target for a unique index over live
+// rows. Postgres matches such an index only when the target repeats its WHERE
+// clause. goqu wraps the target in parentheses as is, so the string ends open.
+func liveConflictTarget(columns string) string {
+	return columns + ") WHERE (deleted_at IS NULL"
 }
 
 const (

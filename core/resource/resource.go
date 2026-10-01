@@ -17,6 +17,7 @@ type Repository interface {
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, resource Resource) (Resource, error)
 	Delete(ctx context.Context, id string) error
+	Purge(ctx context.Context, id string) error
 }
 
 type Resource struct {

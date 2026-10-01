@@ -132,12 +132,13 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 			"state":       rl.State,
 			"metadata":    marshaledMetadata,
 			"scopes":      pq.Array(rl.Scopes),
-		}).OnConflict(goqu.DoUpdate("org_id, name", goqu.Record{
+		}).OnConflict(goqu.DoUpdate(liveConflictTarget("org_id, name"), goqu.Record{
 		"title":       rl.Title,
 		"permissions": marshaledPermissions,
 		"state":       rl.State,
 		"metadata":    marshaledMetadata,
 		"scopes":      pq.Array(rl.Scopes),
+		"updated_at":  goqu.L("now()"),
 	})).Returning(&Role{}).ToSQL()
 	if err != nil {
 		return role.Role{}, fmt.Errorf("%w: %s", errQuery, err)

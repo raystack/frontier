@@ -192,7 +192,7 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 }
 
 func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (customer.Customer, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CUSTOMERS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_CUSTOMERS).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -216,7 +216,7 @@ func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (cust
 }
 
 func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter) ([]customer.Customer, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CUSTOMERS).Order(goqu.I("created_at").Desc())
+	stmt := fromLive(TABLE_BILLING_CUSTOMERS).Order(goqu.I("created_at").Desc())
 
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
@@ -407,7 +407,7 @@ func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, cust
 }
 
 func (r BillingCustomerRepository) GetDetailsByID(ctx context.Context, customerID string) (customer.Details, error) {
-	stmt := dialect.Select("credit_min", "due_in_days").From(TABLE_BILLING_CUSTOMERS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_CUSTOMERS).Select("credit_min", "due_in_days").Where(goqu.Ex{
 		"id": customerID,
 	})
 	query, params, err := stmt.ToSQL()

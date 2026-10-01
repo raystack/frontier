@@ -246,7 +246,7 @@ func (r BillingTransactionRepository) GetByID(ctx context.Context, id string) (c
 	if strings.TrimSpace(id) == "" {
 		return credit.Transaction{}, credit.ErrInvalidID
 	}
-	stmt := dialect.Select().From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -324,7 +324,7 @@ func (r BillingTransactionRepository) DeleteByAccountID(ctx context.Context, acc
 }
 
 func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Filter) ([]credit.Transaction, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_TRANSACTIONS).Order(goqu.I("created_at").Desc())
+	stmt := fromLive(TABLE_BILLING_TRANSACTIONS).Order(goqu.I("created_at").Desc())
 	if filter.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"account_id": filter.CustomerID,
@@ -370,7 +370,7 @@ func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Fi
 
 func (r BillingTransactionRepository) getDebitBalance(ctx context.Context, tx *sqlx.Tx, accountID string,
 	start *time.Time, end *time.Time) (*int64, error) {
-	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_TRANSACTIONS).Select(goqu.SUM("amount")).Where(goqu.Ex{
 		"account_id": accountID,
 		"type":       credit.DebitType,
 	})
@@ -400,7 +400,7 @@ func (r BillingTransactionRepository) getDebitBalance(ctx context.Context, tx *s
 
 func (r BillingTransactionRepository) getCreditBalance(ctx context.Context, tx *sqlx.Tx, accountID string,
 	start *time.Time, end *time.Time) (*int64, error) {
-	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_TRANSACTIONS).Select(goqu.SUM("amount")).Where(goqu.Ex{
 		"account_id": accountID,
 		"type":       credit.CreditType,
 	})
@@ -515,7 +515,7 @@ func (r BillingTransactionRepository) GetBalanceForRange(ctx context.Context, ac
 
 func (r BillingTransactionRepository) getCreditBalanceExcludingSource(ctx context.Context, tx *sqlx.Tx, accountID string,
 	start *time.Time, end *time.Time, excludeSource string) (*int64, error) {
-	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_TRANSACTIONS).Select(goqu.SUM("amount")).Where(goqu.Ex{
 		"account_id": accountID,
 		"type":       credit.CreditType,
 	}).Where(goqu.C("source").Neq(excludeSource))
