@@ -299,16 +299,16 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
-	// Delete the row first. The policies.role_id foreign key rejects this while
-	// any policy still references the role, surfaced as ErrRoleInUse — so a role that
-	// is still in use is left fully intact (no SpiceDB tuples are touched below).
+	// Mark the row deleted first. The repository refuses with ErrRoleInUse while
+	// any live policy still references the role, so a role that is still in use
+	// is left fully intact (no SpiceDB tuples are touched below).
 	// This is intentionally a guard, not a cascade: removing a role would revoke
 	// access for everyone granted it, so the caller must drop those policies first.
 	if err := s.repository.Delete(ctx, roleToDelete.ID); err != nil {
 		return err
 	}
 
-	// row is gone → remove the role's permission tuples (app/role:<id>#<perm>@...)
+	// row is marked deleted → remove the role's permission tuples (app/role:<id>#<perm>@...)
 	return s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        roleToDelete.ID,
 		Namespace: schema.RoleNamespace,

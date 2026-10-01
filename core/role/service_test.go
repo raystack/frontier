@@ -79,7 +79,7 @@ func Test_Delete(t *testing.T) {
 
 		mockID := uuid.New().String()
 		mockRepository.On("Get", mock.Anything, mockID).Return(role.Role{ID: "role-1"}, nil).Once()
-		// the policies.role_id FK rejects the row delete -> ErrRoleInUse
+		// a live policy still references the role -> ErrRoleInUse
 		mockRepository.On("Delete", mock.Anything, "role-1").Return(role.ErrRoleInUse).Once()
 
 		svc := role.NewService(mockRepository, mockRelationSvc, mockPermissionSvc, mockAuditRecordRepo, nil)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -422,6 +423,71 @@ func (s *RoleRepositoryTestSuite) TestDelete() {
 			}
 		})
 	}
+
+	s.Run("should keep the row and mark it deleted", func() {
+		target := s.roles[1]
+		s.Require().NoError(s.repository.Delete(s.ctx, target.ID))
+
+		var deleted bool
+		err := s.client.QueryRowxContext(s.ctx, "SELECT deleted_at IS NOT NULL FROM roles WHERE id = $1", target.ID).Scan(&deleted)
+		s.Require().NoError(err)
+		s.Assert().True(deleted)
+	})
+
+	s.Run("should return not found when the role is already deleted", func() {
+		target := s.roles[2]
+		_, err := s.client.ExecContext(s.ctx, "UPDATE roles SET deleted_at = now() WHERE id = $1", target.ID)
+		s.Require().NoError(err)
+
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, target.ID), role.ErrNotExist)
+	})
+
+	s.Run("should return in use and keep the role when a live policy uses it", func() {
+		target := s.roles[3]
+		_, err := bootstrapPolicy(s.client, s.orgID, target, uuid.NewString())
+		s.Require().NoError(err)
+
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, target.ID), role.ErrRoleInUse)
+		_, err = s.repository.Get(s.ctx, target.ID)
+		s.Assert().NoError(err)
+	})
+
+	s.Run("should delete the role when only deleted policies use it", func() {
+		target := s.roles[4]
+		_, err := bootstrapPolicy(s.client, s.orgID, target, uuid.NewString())
+		s.Require().NoError(err)
+		_, err = s.client.ExecContext(s.ctx, "UPDATE policies SET deleted_at = now() WHERE role_id = $1", target.ID)
+		s.Require().NoError(err)
+
+		s.Assert().NoError(s.repository.Delete(s.ctx, target.ID))
+	})
+
+	s.Run("should wait for a policy insert that has not committed and return in use", func() {
+		target, err := s.repository.Upsert(s.ctx, role.Role{
+			Name:     "role with a running policy insert",
+			OrgID:    s.orgID,
+			Metadata: metadata.Metadata{},
+		})
+		s.Require().NoError(err)
+		tx, err := s.client.BeginTxx(s.ctx, nil)
+		s.Require().NoError(err)
+		defer tx.Rollback() // nolint
+		_, err = tx.ExecContext(s.ctx, "INSERT INTO policies (role_id, resource_id, resource_type, principal_id, principal_type) VALUES ($1, $2, 'ns1', $3, 'app/user')",
+			target.ID, s.orgID, uuid.NewString())
+		s.Require().NoError(err)
+
+		done := make(chan error, 1)
+		go func() { done <- s.repository.Delete(s.ctx, target.ID) }()
+
+		s.Require().Eventually(func() bool {
+			var waiting int
+			err := s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock'").Scan(&waiting)
+			return err == nil && waiting == 1
+		}, time.Second, 10*time.Millisecond, "the delete did not wait for the policy insert")
+
+		s.Require().NoError(tx.Commit())
+		s.Assert().ErrorIs(<-done, role.ErrRoleInUse)
+	})
 }
 
 func (s *RoleRepositoryTestSuite) TestGetByName() {
