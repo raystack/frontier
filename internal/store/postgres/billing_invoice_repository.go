@@ -185,7 +185,7 @@ func (r BillingInvoiceRepository) Create(ctx context.Context, toCreate invoice.I
 }
 
 func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoice.Invoice, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_INVOICES).Where(goqu.Ex{
+	stmt := fromLive(TABLE_BILLING_INVOICES).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
@@ -209,7 +209,7 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 }
 
 func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) ([]invoice.Invoice, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_INVOICES)
+	stmt := fromLive(TABLE_BILLING_INVOICES)
 	if flt.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": flt.CustomerID,
@@ -396,7 +396,7 @@ func (r BillingInvoiceRepository) prepareDataQuery(rqlQuery *rql.Query) (string,
 }
 
 func (r BillingInvoiceRepository) buildBaseQuery() *goqu.SelectDataset {
-	return dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
+	return fromLive(TABLE_BILLING_INVOICES).Prepared(true).
 		InnerJoin(
 			goqu.T(TABLE_BILLING_CUSTOMERS),
 			goqu.On(goqu.I(TABLE_BILLING_INVOICES+".customer_id").Eq(goqu.I(TABLE_BILLING_CUSTOMERS+".id"))),
@@ -405,6 +405,7 @@ func (r BillingInvoiceRepository) buildBaseQuery() *goqu.SelectDataset {
 			goqu.T(TABLE_ORGANIZATIONS),
 			goqu.On(goqu.I(TABLE_BILLING_CUSTOMERS+".org_id").Eq(goqu.I(TABLE_ORGANIZATIONS+".id"))),
 		).
+		Where(live(TABLE_BILLING_CUSTOMERS), live(TABLE_ORGANIZATIONS)).
 		Select(
 			goqu.I(TABLE_BILLING_INVOICES+".id").As("id"),
 			goqu.I(TABLE_BILLING_INVOICES+".amount").As("amount"),
