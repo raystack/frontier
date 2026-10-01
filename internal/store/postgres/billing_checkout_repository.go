@@ -235,30 +235,6 @@ func (r BillingCheckoutRepository) GetByID(ctx context.Context, id string) (chec
 	return checkoutModel.transform()
 }
 
-func (r BillingCheckoutRepository) GetByName(ctx context.Context, name string) (checkout.Checkout, error) {
-	stmt := fromLive(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
-		"name": name,
-	})
-	query, params, err := stmt.ToSQL()
-	if err != nil {
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", errParse, err)
-	}
-
-	var checkoutModel Checkout
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CHECKOUTS, "GetByName", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&checkoutModel)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return checkout.Checkout{}, checkout.ErrNotFound
-		}
-		return checkout.Checkout{}, fmt.Errorf("%w: %s", errDB, err)
-	}
-
-	return checkoutModel.transform()
-}
-
 func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate checkout.Checkout) (checkout.Checkout, error) {
 	if strings.TrimSpace(toUpdate.ID) == "" {
 		return checkout.Checkout{}, checkout.ErrInvalidID
