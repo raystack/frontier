@@ -3092,6 +3092,39 @@ func (s *APIRegressionTestSuite) TestOrganizationRoleDeleteInUse() {
 
 	// after a successful delete, no role->permission tuples should linger
 	s.Assert().False(roleHasPermTuples())
+
+	// the deleted role is hidden from reads and cannot be deleted twice
+	_, err = s.testBench.Client.GetOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRoleRequest{
+		OrgId: orgID,
+		Id:    roleID,
+	}))
+	s.Require().Error(err)
+	s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	_, err = s.testBench.Client.DeleteOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRoleRequest{
+		OrgId: orgID,
+		Id:    roleID,
+	}))
+	s.Require().Error(err)
+	s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+	// the name is free again and lands on a new row
+	recreateResp, err := s.testBench.Client.CreateOrganizationRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRoleRequest{
+		OrgId: orgID,
+		Body: &frontierv1beta1.RoleRequestBody{
+			Title:       "in use role",
+			Name:        "in_use_role",
+			Scopes:      []string{"app/organization"},
+			Permissions: []string{"app.organization.grouplist"},
+		},
+	}))
+	s.Require().NoError(err)
+	s.Assert().NotEqual(roleID, recreateResp.Msg.GetRole().GetId())
+
+	// the org now holds a live role and a deleted one; the delete still goes through
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{
+		Id: orgID,
+	}))
+	s.Require().NoError(err)
 }
 
 func TestEndToEndAPIRegressionTestSuite(t *testing.T) {
