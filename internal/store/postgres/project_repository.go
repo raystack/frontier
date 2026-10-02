@@ -7,11 +7,15 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 type ProjectRepository struct {
@@ -22,6 +26,28 @@ func NewProjectRepository(dbc *db.Client) *ProjectRepository {
 	return &ProjectRepository{
 		dbc: dbc,
 	}
+}
+
+// projectWithOrgName is a written project row plus its org's title, for the audit record
+type projectWithOrgName struct {
+	Project
+	OrgName sql.NullString `db:"org_name"`
+}
+
+// projectReturning returns the written project row with its org's title
+func projectReturning() []any {
+	return []any{
+		goqu.I(TABLE_PROJECTS + ".*"),
+		dialect.From(TABLE_ORGANIZATIONS).Select("title").
+			Where(goqu.Ex{"id": goqu.I(TABLE_PROJECTS + ".org_id")}).As("org_name"),
+	}
+}
+
+func buildProjectAuditRecord(ctx context.Context, event auditrecord.Event, p projectWithOrgName, occurredAt time.Time) AuditRecord {
+	return BuildAuditRecord(ctx, event,
+		AuditResource{ID: p.OrgID, Type: auditrecord.OrganizationType, Name: p.OrgName.String},
+		&AuditTarget{ID: p.ID, Type: auditrecord.ProjectType, Name: p.Title.String, Metadata: metadata.Metadata{"name": p.Name}},
+		p.OrgID, nil, occurredAt)
 }
 
 var notDisabledProjectExp = goqu.Or(
@@ -123,14 +149,19 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 	if prj.State != "" {
 		insertRow["state"] = prj.State
 	}
-	query, params, err := dialect.Insert(TABLE_PROJECTS).Rows(insertRow).Returning(&Project{}).ToSQL()
+	query, params, err := dialect.Insert(TABLE_PROJECTS).Rows(insertRow).Returning(projectReturning()...).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	var projectModel Project
-	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&projectModel)
+	var result projectWithOrgName
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		if err := r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Upsert", func(ctx context.Context) error {
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&result)
+		}); err != nil {
+			return err
+		}
+		return InsertAuditRecordInTx(ctx, tx, buildProjectAuditRecord(ctx, auditrecord.ProjectCreatedEvent, result, result.CreatedAt))
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -145,7 +176,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 		}
 	}
 
-	transformedProj, err := projectModel.transformToProject()
+	transformedProj, err := result.transformToProject()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %w", errParse, err)
 	}
@@ -353,16 +384,24 @@ func (r ProjectRepository) Delete(ctx context.Context, id string) error {
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(projectReturning()...).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
-	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var result projectWithOrgName
+		err := r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Delete", func(ctx context.Context) error {
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&result)
+		})
+		if errors.Is(err, sql.ErrNoRows) {
+			// already gone: nothing deleted, nothing to audit
+			return nil
+		}
+		if err != nil {
 			return err
 		}
-		return nil
+		return InsertAuditRecordInTx(ctx, tx, buildProjectAuditRecord(ctx, auditrecord.ProjectDeletedEvent, result, time.Now().UTC()))
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
