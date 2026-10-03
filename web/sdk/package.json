@@ -104,7 +104,7 @@
     "@raystack/proton": "0.1.0-a9c52ee5b8a499de1e1ea042046b93c26f65de60",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-router": "^1.168.3",
-    "axios": "^1.9.0",
+    "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
