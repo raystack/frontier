@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,9 +15,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"database/sql"
-
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/jmoiron/sqlx"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/pkg/db"
@@ -259,27 +260,62 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 }
 
 func (r RoleRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_ROLES).Where(
-		goqu.Ex{
-			"id": id,
-		},
-	).Returning(&Role{}).ToSQL()
+	lockQuery, lockParams, err := fromLive(TABLE_ROLES).
+		Select("id").
+		Where(goqu.Ex{"id": id}).
+		ForUpdate(exp.Wait).
+		ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", errQuery, err)
 	}
 
-	var roleModel Role
-	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Delete", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&roleModel)
+	livePolicy := fromLive(TABLE_POLICIES).
+		Select(goqu.L("1")).
+		Where(goqu.I(TABLE_POLICIES + ".role_id").Eq(goqu.I(TABLE_ROLES + ".id")))
+
+	deleteQuery, deleteParams, err := softDelete(TABLE_ROLES).Where(
+		goqu.Ex{"id": id},
+		goqu.L("NOT EXISTS ?", livePolicy),
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", errQuery, err)
+	}
+
+	// One transaction, two statements. The first locks the live role row the
+	// way a hard DELETE would. The second marks it deleted, unless a live
+	// policy still points at it.
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		return r.dbc.WithTimeout(ctx, TABLE_ROLES, "Delete", func(ctx context.Context) error {
+			// Lock the role row first. A policy insert holds a lock on the role
+			// row until it commits, so this waits for it and the check below sees that policy.
+			var lockedID string
+			if err := tx.QueryRowContext(ctx, lockQuery, lockParams...).Scan(&lockedID); err != nil {
+				return err
+			}
+
+			result, err := tx.ExecContext(ctx, deleteQuery, deleteParams...)
+			if err != nil {
+				return err
+			}
+			deleted, err := result.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if deleted == 0 {
+				return role.ErrRoleInUse
+			}
+			return nil
+		})
 	}); err != nil {
+		// WithTxn wraps every error it rolled back on as "rollback: ...". Here
+		// the rollback is the normal path, so return the plain sentinel.
+		if errors.Is(err, role.ErrRoleInUse) {
+			return role.ErrRoleInUse
+		}
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return role.ErrNotExist
-		case errors.Is(err, ErrForeignKeyViolation):
-			// policies.role_id references roles(id) with no ON DELETE rule, so a
-			// role still bound to any policy cannot be deleted.
-			return role.ErrRoleInUse
 		default:
 			return err
 		}
