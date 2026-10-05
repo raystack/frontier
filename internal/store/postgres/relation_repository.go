@@ -131,7 +131,7 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 	if strings.TrimSpace(id) == "" {
 		return relation.ErrInvalidID
 	}
-	query, params, err := dialect.Delete(TABLE_RELATIONS).Where(goqu.Ex{
+	query, params, err := softDelete(TABLE_RELATIONS).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 	if err != nil {

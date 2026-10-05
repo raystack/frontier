@@ -389,6 +389,36 @@ func (s *PolicyRepositoryTestSuite) TestDelete() {
 			}
 		})
 	}
+
+	newPolicy := func() policy.Policy {
+		created, err := s.repository.Upsert(s.ctx, policy.Policy{
+			RoleID:        s.roles[0].ID,
+			ResourceID:    uuid.NewString(),
+			ResourceType:  "ns1",
+			PrincipalID:   s.userID,
+			PrincipalType: schema.UserPrincipal,
+		})
+		s.Require().NoError(err)
+		return created
+	}
+	kept := newPolicy()
+
+	s.Run("should keep the row and mark it deleted", func() {
+		s.Assert().NoError(s.repository.Delete(s.ctx, kept.ID))
+
+		var markedDeleted bool
+		if err := s.client.QueryRowxContext(s.ctx, "SELECT deleted_at IS NOT NULL FROM policies WHERE id = $1", kept.ID).Scan(&markedDeleted); err != nil {
+			s.T().Fatal(err)
+		}
+		s.Assert().True(markedDeleted)
+
+		_, err := s.repository.Get(s.ctx, kept.ID)
+		s.Assert().ErrorIs(err, policy.ErrNotExist)
+	})
+
+	s.Run("should return not found when the policy is already deleted", func() {
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, kept.ID), policy.ErrNotExist)
+	})
 }
 
 func TestPolicyRepository(t *testing.T) {
@@ -635,4 +665,43 @@ func (s *PolicyRepositoryTestSuite) TestDeleteWithMinRoleGuardCountsLiveHoldersO
 
 	_, err = s.repository.Get(s.ctx, second.ID)
 	s.Assert().NoError(err)
+}
+
+func (s *PolicyRepositoryTestSuite) TestDeleteWithMinRoleGuardKeepsTheRow() {
+	guardRole := s.roles[0].ID
+	resourceID := uuid.NewString()
+	newHolder := func() policy.Policy {
+		created, err := s.repository.Upsert(s.ctx, policy.Policy{
+			RoleID:        guardRole,
+			ResourceID:    resourceID,
+			ResourceType:  schema.OrganizationNamespace,
+			PrincipalID:   uuid.NewString(),
+			PrincipalType: schema.UserPrincipal,
+		})
+		s.Require().NoError(err)
+		return created
+	}
+	first, second := newHolder(), newHolder()
+
+	s.Run("should keep the row and mark it deleted", func() {
+		s.Assert().NoError(s.repository.DeleteWithMinRoleGuard(s.ctx, first.ID, guardRole))
+
+		var markedDeleted bool
+		if err := s.client.QueryRowxContext(s.ctx, "SELECT deleted_at IS NOT NULL FROM policies WHERE id = $1", first.ID).Scan(&markedDeleted); err != nil {
+			s.T().Fatal(err)
+		}
+		s.Assert().True(markedDeleted)
+
+		_, err := s.repository.Get(s.ctx, first.ID)
+		s.Assert().ErrorIs(err, policy.ErrNotExist)
+
+		_, err = s.repository.Get(s.ctx, second.ID)
+		s.Assert().NoError(err)
+	})
+
+	s.Run("should return not found instead of the guard error when the policy is already deleted", func() {
+		err := s.repository.DeleteWithMinRoleGuard(s.ctx, first.ID, guardRole)
+		s.Assert().ErrorIs(err, policy.ErrNotExist)
+		s.Assert().NotErrorIs(err, policy.ErrLastRoleGuard)
+	})
 }

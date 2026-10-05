@@ -347,6 +347,29 @@ func (s *RelationRepositoryTestSuite) TestDeleteByID() {
 			}
 		})
 	}
+
+	kept := s.relations[1]
+
+	s.Run("should keep the row and mark it deleted", func() {
+		s.Assert().NoError(s.repository.DeleteByID(s.ctx, kept.ID))
+
+		var markedDeleted bool
+		if err := s.client.QueryRowxContext(s.ctx, "SELECT deleted_at IS NOT NULL FROM relations WHERE id = $1", kept.ID).Scan(&markedDeleted); err != nil {
+			s.T().Fatal(err)
+		}
+		s.Assert().True(markedDeleted)
+
+		_, err := s.repository.Get(s.ctx, kept.ID)
+		s.Assert().ErrorIs(err, relation.ErrNotExist)
+
+		byFields, err := s.repository.GetByFields(s.ctx, kept)
+		s.Assert().NoError(err)
+		s.Assert().Empty(byFields)
+	})
+
+	s.Run("should return not found when the relation is already deleted", func() {
+		s.Assert().ErrorIs(s.repository.DeleteByID(s.ctx, kept.ID), relation.ErrNotExist)
+	})
 }
 
 func TestRelationRepository(t *testing.T) {

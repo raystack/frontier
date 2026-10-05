@@ -347,14 +347,23 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 
 	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_POLICIES, "Delete", func(ctx context.Context) error {
-			deleteQuery, deleteParams, err := dialect.Delete(TABLE_POLICIES).
+			deleteQuery, deleteParams, err := softDelete(TABLE_POLICIES).
 				Where(goqu.Ex{"id": id}).
 				ToSQL()
 			if err != nil {
 				return fmt.Errorf("%w: %w", errQuery, err)
 			}
-			if _, err := tx.ExecContext(ctx, deleteQuery, deleteParams...); err != nil {
+			result, err := tx.ExecContext(ctx, deleteQuery, deleteParams...)
+			if err != nil {
 				return err
+			}
+			deleted, err := result.RowsAffected()
+			if err != nil {
+				return err
+			}
+			if deleted == 0 {
+				// the row went away after the Get above, so there is nothing to audit
+				return sql.ErrNoRows
 			}
 
 			policyDB := Policy{
@@ -380,7 +389,7 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// DeleteWithMinRoleGuard atomically deletes a policy only if at least one other
+// DeleteWithMinRoleGuard atomically marks a policy deleted only if at least one other
 // policy with the same guarded role remains for the resource. Uses SELECT FOR UPDATE
 // to serialize concurrent deletions under READ COMMITTED isolation, preventing the
 // TOCTOU race where two concurrent requests both pass a count check then both delete.
@@ -402,7 +411,7 @@ func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string,
 				ORDER BY id
 				FOR UPDATE
 			)
-			DELETE FROM ` + TABLE_POLICIES + ` WHERE id = $1 AND (
+			UPDATE ` + TABLE_POLICIES + ` SET deleted_at = now() WHERE id = $1 AND deleted_at IS NULL AND (
 				(SELECT role_id FROM ` + TABLE_POLICIES + ` WHERE id = $1) != $4
 				OR (SELECT COUNT(*) FROM locked WHERE id != $1) > 0
 			)`
@@ -422,7 +431,7 @@ func (r PolicyRepository) DeleteWithMinRoleGuard(ctx context.Context, id string,
 			if rowsAffected == 0 {
 				var existingID string
 				err := tx.QueryRowContext(ctx,
-					`SELECT id FROM `+TABLE_POLICIES+` WHERE id = $1`, id,
+					`SELECT id FROM `+TABLE_POLICIES+` WHERE id = $1 AND deleted_at IS NULL`, id,
 				).Scan(&existingID)
 				if errors.Is(err, sql.ErrNoRows) {
 					return sql.ErrNoRows
