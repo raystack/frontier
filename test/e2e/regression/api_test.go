@@ -1727,6 +1727,31 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Equal(false, checkAfterDeletePermission.Msg.GetStatus())
+
+		// the deleted policy cannot be deleted twice
+		_, err = s.testBench.Client.DeletePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeletePolicyRequest{
+			Id: createPolicyResp.Msg.GetPolicy().GetId(),
+		}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		// the same grant can be made again and lands on a new policy
+		recreatePolicyResp, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleOrganizationOwner,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.Msg.GetUser().GetId()),
+			},
+		}))
+		s.Require().NoError(err)
+		s.Assert().NotEqual(createPolicyResp.Msg.GetPolicy().GetId(), recreatePolicyResp.Msg.GetPolicy().GetId())
+
+		checkAfterRecreatePermission, err := s.testBench.Client.CheckResourcePermission(ctxOrgUserAuth, connect.NewRequest(&frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Msg.GetOrganization().GetId()),
+			Permission: schema.DeletePermission,
+		}))
+		s.Assert().NoError(err)
+		s.Assert().Equal(true, checkAfterRecreatePermission.Msg.GetStatus())
 	})
 }
 
