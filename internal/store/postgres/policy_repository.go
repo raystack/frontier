@@ -219,7 +219,7 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 			"principal_type": pol.PrincipalType,
 			"grant_relation": pol.GrantRelation,
 			"metadata":       marshaledMetadata,
-		}).OnConflict(goqu.DoUpdate("role_id, resource_id, resource_type, principal_id, principal_type", goqu.Record{
+		}).OnConflict(goqu.DoUpdate(liveConflictTarget("role_id, resource_id, resource_type, principal_id, principal_type"), goqu.Record{
 		"grant_relation": pol.GrantRelation,
 		"metadata":       marshaledMetadata,
 		"updated_at":     goqu.L("now()"),

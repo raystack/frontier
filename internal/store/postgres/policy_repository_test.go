@@ -18,6 +18,7 @@ import (
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/metadata"
 )
 
 type PolicyRepositoryTestSuite struct {
@@ -203,6 +204,53 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 			}
 		})
 	}
+
+	s.Run("should create a new row when the same policy was soft-deleted", func() {
+		pol := policy.Policy{
+			RoleID:        s.roles[0].ID,
+			ResourceID:    uuid.NewString(),
+			ResourceType:  "ns1",
+			PrincipalID:   s.userID,
+			PrincipalType: schema.UserPrincipal,
+		}
+		first, err := s.repository.Upsert(s.ctx, pol)
+		s.Require().NoError(err)
+		if _, err := s.client.ExecContext(s.ctx, "UPDATE policies SET deleted_at = now() WHERE id = $1", first.ID); err != nil {
+			s.T().Fatal(err)
+		}
+
+		second, err := s.repository.Upsert(s.ctx, pol)
+		s.Assert().NoError(err)
+		s.Assert().NotEqual(first.ID, second.ID)
+
+		var firstStillDeleted bool
+		if err := s.client.QueryRowxContext(s.ctx, "SELECT deleted_at IS NOT NULL FROM policies WHERE id = $1", first.ID).Scan(&firstStillDeleted); err != nil {
+			s.T().Fatal(err)
+		}
+		s.Assert().True(firstStillDeleted)
+
+		_, err = s.repository.Get(s.ctx, second.ID)
+		s.Assert().NoError(err)
+	})
+
+	s.Run("should update the live policy in place when the same policy exists", func() {
+		pol := policy.Policy{
+			RoleID:        s.roles[0].ID,
+			ResourceID:    uuid.NewString(),
+			ResourceType:  "ns1",
+			PrincipalID:   s.userID,
+			PrincipalType: schema.UserPrincipal,
+		}
+		before, err := s.repository.Upsert(s.ctx, pol)
+		s.Require().NoError(err)
+
+		pol.Metadata = metadata.Metadata{"team": "maps"}
+		got, err := s.repository.Upsert(s.ctx, pol)
+		s.Assert().NoError(err)
+		s.Assert().Equal(before.ID, got.ID)
+		s.Assert().Equal(metadata.Metadata{"team": "maps"}, got.Metadata)
+		s.Assert().True(got.UpdatedAt.After(before.UpdatedAt))
+	})
 }
 
 func (s *PolicyRepositoryTestSuite) TestList() {

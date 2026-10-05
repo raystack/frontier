@@ -35,7 +35,7 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 			"created_at":               goqu.L("now()"),
 			"updated_at":               goqu.L("now()"),
 		}).OnConflict(
-		goqu.DoUpdate("subject_namespace_name, subject_id, object_namespace_name, object_id, relation_name", goqu.Record{
+		goqu.DoUpdate(liveConflictTarget("subject_namespace_name, subject_id, object_namespace_name, object_id, relation_name"), goqu.Record{
 			"subject_namespace_name": relationToCreate.Subject.Namespace,
 		})).Returning(&relationCols{}).ToSQL()
 	if err != nil {

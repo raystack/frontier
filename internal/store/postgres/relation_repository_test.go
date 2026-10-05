@@ -207,6 +207,43 @@ func (s *RelationRepositoryTestSuite) TestUpsert() {
 			}
 		})
 	}
+
+	s.Run("should create a new row when the same relation was soft-deleted", func() {
+		rel := relation.Relation{
+			Subject:      relation.Subject{ID: uuid.NewString(), Namespace: "ns1"},
+			Object:       relation.Object{ID: uuid.NewString(), Namespace: "ns1"},
+			RelationName: "relation1",
+		}
+		first, err := s.repository.Upsert(s.ctx, rel)
+		s.Require().NoError(err)
+		if _, err := s.client.ExecContext(s.ctx, "UPDATE relations SET deleted_at = now() WHERE id = $1", first.ID); err != nil {
+			s.T().Fatal(err)
+		}
+
+		second, err := s.repository.Upsert(s.ctx, rel)
+		s.Assert().NoError(err)
+		s.Assert().NotEqual(first.ID, second.ID)
+
+		var firstStillDeleted bool
+		if err := s.client.QueryRowxContext(s.ctx, "SELECT deleted_at IS NOT NULL FROM relations WHERE id = $1", first.ID).Scan(&firstStillDeleted); err != nil {
+			s.T().Fatal(err)
+		}
+		s.Assert().True(firstStillDeleted)
+	})
+
+	s.Run("should return the live relation when the same relation exists", func() {
+		rel := relation.Relation{
+			Subject:      relation.Subject{ID: uuid.NewString(), Namespace: "ns1"},
+			Object:       relation.Object{ID: uuid.NewString(), Namespace: "ns1"},
+			RelationName: "relation1",
+		}
+		first, err := s.repository.Upsert(s.ctx, rel)
+		s.Require().NoError(err)
+
+		second, err := s.repository.Upsert(s.ctx, rel)
+		s.Assert().NoError(err)
+		s.Assert().Equal(first.ID, second.ID)
+	})
 }
 
 func (s *RelationRepositoryTestSuite) TestList() {
