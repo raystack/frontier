@@ -217,6 +217,8 @@ func (r OrgPATsRepository) buildDataQuery(orgID string, rqlQuery *rql.Query) (st
 			goqu.On(
 				goqu.I("pol.principal_id").Eq(goqu.I("p.id")),
 				goqu.I("pol.principal_type").Eq(schema.PATPrincipal),
+				// kept in the join so a PAT with no live policy still lists, with empty policy columns
+				live("pol"),
 			),
 		)
 
