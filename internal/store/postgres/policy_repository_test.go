@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/raystack/frontier/core/role"
 
@@ -250,6 +251,88 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		s.Assert().Equal(before.ID, got.ID)
 		s.Assert().Equal(metadata.Metadata{"team": "maps"}, got.Metadata)
 		s.Assert().True(got.UpdatedAt.After(before.UpdatedAt))
+	})
+
+	newRole := func(name string) role.Role {
+		created, err := postgres.NewRoleRepository(s.client).Upsert(s.ctx, role.Role{
+			Name:     name,
+			OrgID:    s.orgID,
+			Metadata: metadata.Metadata{},
+		})
+		s.Require().NoError(err)
+		return created
+	}
+
+	s.Run("should return not found when the role is soft-deleted", func() {
+		deleted := newRole("soft-deleted role for a policy create")
+		_, err := s.client.ExecContext(s.ctx, "UPDATE roles SET deleted_at = now() WHERE id = $1", deleted.ID)
+		s.Require().NoError(err)
+
+		_, err = s.repository.Upsert(s.ctx, policy.Policy{
+			RoleID:        deleted.ID,
+			ResourceID:    uuid.NewString(),
+			ResourceType:  "ns1",
+			PrincipalID:   uuid.NewString(),
+			PrincipalType: schema.UserPrincipal,
+		})
+		s.Assert().ErrorIs(err, role.ErrNotExist)
+
+		var created int
+		err = s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM policies WHERE role_id = $1", deleted.ID).Scan(&created)
+		s.Require().NoError(err)
+		s.Assert().Equal(0, created)
+	})
+
+	s.Run("should wait for a role delete that has not committed and then return not found", func() {
+		target := newRole("role with a running delete")
+		tx, err := s.client.BeginTxx(s.ctx, nil)
+		s.Require().NoError(err)
+		defer tx.Rollback() // nolint
+		var lockedID string
+		err = tx.QueryRowContext(s.ctx, "SELECT id FROM roles WHERE id = $1 AND deleted_at IS NULL FOR UPDATE", target.ID).Scan(&lockedID)
+		s.Require().NoError(err)
+		_, err = tx.ExecContext(s.ctx, "UPDATE roles SET deleted_at = now() WHERE id = $1", target.ID)
+		s.Require().NoError(err)
+
+		done := make(chan error, 1)
+		go func() {
+			_, err := s.repository.Upsert(s.ctx, policy.Policy{
+				RoleID:        target.ID,
+				ResourceID:    uuid.NewString(),
+				ResourceType:  "ns1",
+				PrincipalID:   uuid.NewString(),
+				PrincipalType: schema.UserPrincipal,
+			})
+			done <- err
+		}()
+
+		s.Require().Eventually(func() bool {
+			var waiting int
+			err := s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock'").Scan(&waiting)
+			return err == nil && waiting == 1
+		}, time.Second, 10*time.Millisecond, "the create did not wait for the role delete")
+
+		s.Require().NoError(tx.Commit())
+		s.Assert().ErrorIs(<-done, role.ErrNotExist)
+	})
+
+	s.Run("should not wait for another policy create on the same role", func() {
+		target := newRole("role with two policy creates")
+		tx, err := s.client.BeginTxx(s.ctx, nil)
+		s.Require().NoError(err)
+		defer tx.Rollback() // nolint
+		_, err = tx.ExecContext(s.ctx, "INSERT INTO policies (role_id, resource_id, resource_type, principal_id, principal_type) VALUES ($1, $2, 'ns1', $3, 'app/user')",
+			target.ID, s.orgID, uuid.NewString())
+		s.Require().NoError(err)
+
+		_, err = s.repository.Upsert(s.ctx, policy.Policy{
+			RoleID:        target.ID,
+			ResourceID:    s.orgID,
+			ResourceType:  "ns1",
+			PrincipalID:   uuid.NewString(),
+			PrincipalType: schema.UserPrincipal,
+		})
+		s.Assert().NoError(err)
 	})
 }
 
