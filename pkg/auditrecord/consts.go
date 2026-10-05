@@ -45,6 +45,10 @@ const (
 	// Domain Events
 	DomainDeletedEvent Event = "domain.deleted"
 
+	// Project Events
+	ProjectCreatedEvent Event = "project.created"
+	ProjectDeletedEvent Event = "project.deleted"
+
 	// Project Member Events
 	ProjectMemberRoleChangedEvent Event = "project.member_role_changed"
 	ProjectMemberRemovedEvent     Event = "project.member_removed"
