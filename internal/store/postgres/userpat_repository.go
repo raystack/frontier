@@ -437,6 +437,28 @@ func (r UserPATRepository) ListByUser(ctx context.Context, userID string) ([]mod
 	return pats, nil
 }
 
+func (r UserPATRepository) ListByOrg(ctx context.Context, orgID string) ([]models.PAT, error) {
+	query, params, err := fromLive(TABLE_USER_PATS).Where(goqu.Ex{"org_id": orgID}).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errQuery, err)
+	}
+	var rows []UserPAT
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListByOrg", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &rows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %w", errDB, err)
+	}
+	pats := make([]models.PAT, 0, len(rows))
+	for _, m := range rows {
+		pat, err := m.transform()
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, pat)
+	}
+	return pats, nil
+}
+
 func (r UserPATRepository) SetAlertSentMetadata(ctx context.Context, id string, key string) error {
 	now := time.Now().UTC().Format(time.RFC3339)
 	query, params, err := dialect.Update(TABLE_USER_PATS).
