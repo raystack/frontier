@@ -1079,7 +1079,14 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserDeleteLeavesNoPolicy() 
 		OrgId: orgID,
 	}))
 	s.Require().Error(err)
+	// PermissionDenied comes from the authorization check that runs before the handler.
+	// The deleted service user has no relations left, so that check fails; the handler would return NotFound.
 	s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{
+		Id: orgID,
+	}))
+	s.Require().NoError(err)
 }
 
 func TestEndToEndServiceUsersRegressionTestSuite(t *testing.T) {
