@@ -1184,6 +1184,23 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().True(checkUserStatus.Msg.GetStatus())
 
 		deletedGroupID := createGroupResp.Msg.GetGroup().GetId()
+		groupPolicyProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "group-delete-probe-proj",
+				Title: "group delete probe project",
+				OrgId: myOrg.GetId(),
+			},
+		}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleProjectViewer,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, groupPolicyProjResp.Msg.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.GroupPrincipal, deletedGroupID),
+			},
+		}))
+		s.Require().NoError(err)
+		s.Require().NotEmpty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, deletedGroupID))
 		policiesOnGroupBeforeDelete := livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{GroupId: deletedGroupID})
 		s.Require().NotEmpty(policiesOnGroupBeforeDelete)
 
