@@ -33,6 +33,7 @@ import (
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
 	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -55,6 +56,18 @@ func requireAddOrgMembersSuccess(t require.TestingT, resp *connect.Response[fron
 			"failed to add org member user_id=%s role_id=%s: %s",
 			result.GetUserId(), result.GetRoleId(), result.GetError())
 	}
+}
+
+func livePoliciesNaming(t require.TestingT, ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, principalID string) []*frontierv1beta1.Policy {
+	resp, err := cl.ListPolicies(ctx, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{UserId: principalID}))
+	require.NoError(t, err)
+	return resp.Msg.GetPolicies()
+}
+
+func livePoliciesMatching(t require.TestingT, ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, req *frontierv1beta1.ListPoliciesRequest) []*frontierv1beta1.Policy {
+	resp, err := cl.ListPolicies(ctx, connect.NewRequest(req))
+	require.NoError(t, err)
+	return resp.Msg.GetPolicies()
 }
 
 type APIRegressionTestSuite struct {
@@ -1407,11 +1420,15 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listUserGroups.Msg.GetGroups()))
 
+		deletedUserID := createUserResp.Msg.GetUser().GetId()
+		s.Require().NotEmpty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, deletedUserID))
+
 		// delete user
 		_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{
 			Id: createUserResp.Msg.GetUser().GetId(),
 		}))
 		s.Assert().NoError(err)
+		s.Assert().Empty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, deletedUserID))
 
 		// check its existence
 		getUserResp, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetUserRequest{
