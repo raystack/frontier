@@ -234,14 +234,14 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 				Name:  "org-acme-3",
 			},
 		}))
-		s.Assert().NoError(err)
+		s.Require().NoError(err)
 
 		createUserResponse, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 			Title: "acme 3 member 1",
 			Email: "acme-member-1@raystack.org",
 			Name:  "acme_3_member_1",
 		}}))
-		s.Assert().NoError(err)
+		s.Require().NoError(err)
 
 		// attach user to org
 		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
@@ -259,7 +259,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 				OrgId: createOrgResp.Msg.GetOrganization().GetId(),
 			},
 		}))
-		s.Assert().NoError(err)
+		s.Require().NoError(err)
 
 		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
 			ProjectId: createProjResp.Msg.GetProject().GetId(),
@@ -1187,7 +1187,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 			},
 		}))
 		s.Require().NoError(err)
-		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+		groupPolicyResp, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    schema.RoleProjectViewer,
 				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, groupPolicyProjResp.Msg.GetProject().GetId()),
@@ -1205,8 +1205,12 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: deletedGroupID}))
+		policyIDsBeforeDelete := []string{groupPolicyResp.Msg.GetPolicy().GetId()}
 		for _, policyOnGroup := range policiesOnGroupBeforeDelete {
-			_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyOnGroup.GetId()}))
+			policyIDsBeforeDelete = append(policyIDsBeforeDelete, policyOnGroup.GetId())
+		}
+		for _, policyID := range policyIDsBeforeDelete {
+			_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyID}))
 			s.Require().Error(err)
 			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
 		}
@@ -1219,6 +1223,11 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		}))
 		s.Assert().NoError(err)
 		s.Assert().False(checkUserStatus.Msg.GetStatus())
+
+		_, err = s.testBench.Client.DeleteProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+			Id: groupPolicyProjResp.Msg.GetProject().GetId(),
+		}))
+		s.Require().NoError(err)
 	})
 	s.Run("12. a disabled group is hidden from reads but can still be enabled", func() {
 		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
