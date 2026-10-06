@@ -59,9 +59,7 @@ func requireAddOrgMembersSuccess(t require.TestingT, resp *connect.Response[fron
 }
 
 func livePoliciesNaming(t require.TestingT, ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, principalID string) []*frontierv1beta1.Policy {
-	resp, err := cl.ListPolicies(ctx, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{UserId: principalID}))
-	require.NoError(t, err)
-	return resp.Msg.GetPolicies()
+	return livePoliciesMatching(t, ctx, cl, &frontierv1beta1.ListPoliciesRequest{UserId: principalID})
 }
 
 func livePoliciesMatching(t require.TestingT, ctx context.Context, cl frontierv1beta1connect.FrontierServiceClient, req *frontierv1beta1.ListPoliciesRequest) []*frontierv1beta1.Policy {
@@ -303,6 +301,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().Empty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, orgMemberID))
 		for _, policyBeforeDelete := range append(policiesOnOrgBeforeDelete, policiesOnProjectBeforeDelete...) {
 			_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyBeforeDelete.GetId()}))
+			s.Require().Error(err)
 			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
 		}
 
@@ -1212,6 +1211,7 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().Empty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, deletedGroupID))
 		for _, policyOnGroup := range policiesOnGroupBeforeDelete {
 			_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyOnGroup.GetId()}))
+			s.Require().Error(err)
 			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
 		}
 
