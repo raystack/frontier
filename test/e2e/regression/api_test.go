@@ -286,11 +286,25 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 			return u.GetId()
 		}), createUserResponse.Msg.GetUser().GetId())
 
+		deletedOrgID := createOrgResp.Msg.GetOrganization().GetId()
+		deletedProjectID := createProjResp.Msg.GetProject().GetId()
+		orgMemberID := createUserResponse.Msg.GetUser().GetId()
+		policiesOnOrgBeforeDelete := livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{OrgId: deletedOrgID})
+		policiesOnProjectBeforeDelete := livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{ProjectId: deletedProjectID})
+		s.Require().NotEmpty(policiesOnOrgBeforeDelete)
+		s.Require().NotEmpty(policiesOnProjectBeforeDelete)
+		s.Require().NotEmpty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, orgMemberID))
+
 		// delete org and all its items
 		_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{
 			Id: createOrgResp.Msg.GetOrganization().GetId(),
 		}))
 		s.Assert().NoError(err)
+		s.Assert().Empty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, orgMemberID))
+		for _, policyBeforeDelete := range append(policiesOnOrgBeforeDelete, policiesOnProjectBeforeDelete...) {
+			_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyBeforeDelete.GetId()}))
+			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		}
 
 		// check org
 		_, err = s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{
