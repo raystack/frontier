@@ -1065,7 +1065,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserDeleteLeavesNoPolicy() 
 	}))
 	s.Require().NoError(err)
 
-	s.Require().Len(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, serviceUserID), 2)
+	s.Require().Len(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: serviceUserID}), 2)
 
 	_, err = s.testBench.Client.DeleteServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
 		Id:    serviceUserID,
@@ -1073,7 +1073,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserDeleteLeavesNoPolicy() 
 	}))
 	s.Require().NoError(err)
 
-	s.Assert().Empty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, serviceUserID))
+	s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: serviceUserID}))
 	_, err = s.testBench.Client.GetServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetServiceUserRequest{
 		Id:    serviceUserID,
 		OrgId: orgID,
