@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -135,6 +136,12 @@ func TestOrgPATsRepository_buildDataQuery(t *testing.T) {
 			assert.Contains(t, sql, "created_by_title")
 			assert.Contains(t, sql, "pol")
 			assert.NotEmpty(t, params)
+
+			// the live filter sits in the policies join, not in a WHERE clause
+			_, policiesJoin, found := strings.Cut(sql, `LEFT JOIN "policies" AS "pol" ON`)
+			assert.True(t, found)
+			assert.Contains(t, policiesJoin, `"pol"."deleted_at" IS NULL`)
+			assert.NotContains(t, policiesJoin, "WHERE")
 		})
 	}
 }

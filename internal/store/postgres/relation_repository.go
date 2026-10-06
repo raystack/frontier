@@ -35,7 +35,7 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 			"created_at":               goqu.L("now()"),
 			"updated_at":               goqu.L("now()"),
 		}).OnConflict(
-		goqu.DoUpdate("subject_namespace_name, subject_id, object_namespace_name, object_id, relation_name", goqu.Record{
+		goqu.DoUpdate(liveConflictTarget("subject_namespace_name, subject_id, object_namespace_name, object_id, relation_name"), goqu.Record{
 			"subject_namespace_name": relationToCreate.Subject.Namespace,
 		})).Returning(&relationCols{}).ToSQL()
 	if err != nil {
@@ -131,7 +131,7 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 	if strings.TrimSpace(id) == "" {
 		return relation.ErrInvalidID
 	}
-	query, params, err := dialect.Delete(TABLE_RELATIONS).Where(goqu.Ex{
+	query, params, err := softDelete(TABLE_RELATIONS).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 	if err != nil {
