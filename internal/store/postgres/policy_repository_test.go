@@ -2,7 +2,6 @@ package postgres_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -173,18 +172,24 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 			},
 		},
 		{
-			Description: "should return error if role id does not exist",
+			Description: "should return not found if the role does not exist",
 			PolicyToCreate: policy.Policy{
-				RoleID:       "role2-random",
-				ResourceType: "ns1",
+				RoleID:        uuid.NewString(),
+				ResourceID:    uuid.NewString(),
+				ResourceType:  "ns1",
+				PrincipalID:   s.userID,
+				PrincipalType: schema.UserPrincipal,
 			},
-			Err: policy.ErrInvalidDetail,
+			Err: role.ErrNotExist,
 		},
 		{
 			Description: "should return error if namespace id does not exist",
 			PolicyToCreate: policy.Policy{
-				RoleID:       s.roles[0].ID,
-				ResourceType: "ns1-random",
+				RoleID:        s.roles[0].ID,
+				ResourceID:    uuid.NewString(),
+				ResourceType:  "ns1-random",
+				PrincipalID:   s.userID,
+				PrincipalType: schema.UserPrincipal,
 			},
 			Err: policy.ErrInvalidDetail,
 		},
@@ -194,9 +199,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Upsert(s.ctx, tc.PolicyToCreate)
 			if tc.Err != nil {
-				if errors.Is(tc.Err, err) {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err.Error())
-				}
+				s.Assert().ErrorIs(err, tc.Err)
 			} else {
 				s.Assert().NoError(err)
 				if got.ID == "" {
