@@ -1169,11 +1169,20 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NoError(err)
 		s.Assert().True(checkUserStatus.Msg.GetStatus())
 
+		deletedGroupID := createGroupResp.Msg.GetGroup().GetId()
+		policiesOnGroupBeforeDelete := livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{GroupId: deletedGroupID})
+		s.Require().NotEmpty(policiesOnGroupBeforeDelete)
+
 		// delete group
 		_, err = s.testBench.Client.DeleteGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{
 			Id: createGroupResp.Msg.GetGroup().GetId(),
 		}))
 		s.Assert().NoError(err)
+		s.Assert().Empty(livePoliciesNaming(s.T(), ctxOrgAdminAuth, s.testBench.Client, deletedGroupID))
+		for _, policyOnGroup := range policiesOnGroupBeforeDelete {
+			_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyOnGroup.GetId()}))
+			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		}
 
 		// check if the new user still has access to group
 		checkUserStatus, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
