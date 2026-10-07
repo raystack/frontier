@@ -254,8 +254,7 @@ func (s Service) GetKey(ctx context.Context, credID string) (Credential, error) 
 
 func (s Service) DeleteKey(ctx context.Context, credID string) error {
 	// Never let a credential/key/token of the config-bootstrapped bootstrap SA be
-	// deleted via the API — it is server-managed (rotated at boot). Boot rotation
-	// deletes via the repository directly, so it is unaffected by this guard.
+	// deleted via the API — it is server-managed (rotated at boot).
 	if cred, err := s.credRepo.Get(ctx, credID); err == nil && cred.ServiceUserID == schema.BootstrapServiceUserID {
 		s.log.WarnContext(ctx, "refused deleting a credential of the bootstrap superuser service account",
 			"serviceuser_id", cred.ServiceUserID, "credential_id", credID)
