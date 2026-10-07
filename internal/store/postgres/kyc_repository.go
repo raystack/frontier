@@ -216,7 +216,7 @@ func (r OrgKycRepository) List(ctx context.Context) ([]kyc.KYC, error) {
 	orgKycs := goqu.T(TABLE_ORGANIZATIONS_KYC)
 
 	// Build query with join condition and COALESCE expressions
-	query, params, err := dialect.From(orgs).
+	query, params, err := fromLive(TABLE_ORGANIZATIONS).
 		LeftJoin(orgKycs, goqu.On(orgs.Col(COLUMN_ID).Eq(orgKycs.Col(COLUMN_ORG_ID)))).
 		Select(
 			orgs.Col(COLUMN_ID),
