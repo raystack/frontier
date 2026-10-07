@@ -1035,6 +1035,60 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 	})
 }
 
+func (s *ServiceUsersRegressionTestSuite) TestServiceUserDeleteLeavesNoPolicy() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Name: "org-sv-user-delete"},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	createProjectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{Name: "project-sv-user-delete", OrgId: orgID},
+	}))
+	s.Require().NoError(err)
+	projectID := createProjectResp.Msg.GetProject().GetId()
+
+	createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+		OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+	serviceUserID := createServiceUserResp.Msg.GetServiceuser().GetId()
+
+	_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+		Body: &frontierv1beta1.PolicyRequestBody{
+			RoleId:    schema.RoleProjectViewer,
+			Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID),
+			Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, serviceUserID),
+		},
+	}))
+	s.Require().NoError(err)
+
+	s.Require().Len(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: serviceUserID}), 2)
+
+	_, err = s.testBench.Client.DeleteServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+		Id:    serviceUserID,
+		OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+
+	s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: serviceUserID}))
+	_, err = s.testBench.Client.GetServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetServiceUserRequest{
+		Id:    serviceUserID,
+		OrgId: orgID,
+	}))
+	s.Require().Error(err)
+	// PermissionDenied comes from the authorization check that runs before the handler.
+	// The deleted service user has no relations left, so that check fails; the handler would return NotFound.
+	s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{
+		Id: orgID,
+	}))
+	s.Require().NoError(err)
+}
+
 func TestEndToEndServiceUsersRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(ServiceUsersRegressionTestSuite))
 }
