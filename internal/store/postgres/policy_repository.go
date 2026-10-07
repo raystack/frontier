@@ -279,13 +279,10 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
-		// WithTxn wraps every error it rolled back on as "rollback: ...". Here
-		// the rollback is the normal path, so return the plain sentinel.
-		if errors.Is(err, role.ErrNotExist) {
-			return policy.Policy{}, role.ErrNotExist
-		}
 		err = checkPostgresError(err)
 		switch {
+		case errors.Is(err, role.ErrNotExist):
+			return policy.Policy{}, role.ErrNotExist
 		case errors.Is(err, ErrForeignKeyViolation):
 			return policy.Policy{}, fmt.Errorf("%w: %w", policy.ErrInvalidDetail, err)
 		default:
