@@ -309,7 +309,7 @@ func getSubQuery() *goqu.SelectDataset {
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
 
-	rankedSubscriptions := dialect.From(TABLE_ORGANIZATIONS).
+	rankedSubscriptions := fromLive(TABLE_ORGANIZATIONS).
 		Select(subquerySelects...).
 		LeftJoin(
 			goqu.T(TABLE_BILLING_CUSTOMERS),
