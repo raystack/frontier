@@ -2,12 +2,16 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/internal/store/postgres"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
@@ -160,6 +164,61 @@ func (s *ServiceUserRepositoryTestSuite) TestUpdateBootstrapSecretHash() {
 		s.Assert().ErrorIs(err, serviceuser.ErrCredNotExist)
 		s.Assert().Equal("old", storedHash(cred.ID))
 	})
+}
+
+func (s *ServiceUserRepositoryTestSuite) TestDeleteKeepsTheRow() {
+	su, err := s.repository.Create(s.ctx, serviceuser.ServiceUser{OrgID: s.orgID, Title: "to delete"})
+	s.Require().NoError(err)
+
+	s.Require().NoError(s.repository.Delete(s.ctx, su.ID))
+
+	_, err = s.repository.GetByID(s.ctx, su.ID)
+	s.Assert().ErrorIs(err, serviceuser.ErrNotExist)
+
+	var deletedAt sql.NullTime
+	s.Require().NoError(s.client.GetContext(s.ctx, &deletedAt, "SELECT deleted_at FROM serviceusers WHERE id = $1", su.ID))
+	s.Require().True(deletedAt.Valid)
+
+	var occurredAt time.Time
+	s.Require().NoError(s.client.GetContext(s.ctx, &occurredAt,
+		"SELECT occurred_at FROM audit_records WHERE event = $1 AND target_id = $2",
+		pkgAuditRecord.ServiceUserDeletedEvent.String(), su.ID))
+	s.Assert().WithinDuration(deletedAt.Time, occurredAt, time.Second)
+
+	s.Assert().ErrorIs(s.repository.Delete(s.ctx, su.ID), serviceuser.ErrNotExist)
+}
+
+func (s *ServiceUserRepositoryTestSuite) TestCredentialDeleteKeepsTheRow() {
+	owner, err := s.repository.Create(s.ctx, serviceuser.ServiceUser{OrgID: s.orgID, Title: "owner"})
+	s.Require().NoError(err)
+	cred, err := s.credentialRepository.Create(s.ctx, serviceuser.Credential{
+		ServiceUserID: owner.ID, Type: serviceuser.ClientSecretCredentialType, SecretHash: "h", Title: "to delete",
+	})
+	s.Require().NoError(err)
+
+	s.Require().NoError(s.credentialRepository.Delete(s.ctx, cred.ID))
+
+	_, err = s.credentialRepository.Get(s.ctx, cred.ID)
+	s.Assert().ErrorIs(err, serviceuser.ErrCredNotExist)
+
+	var deletedAt sql.NullTime
+	s.Require().NoError(s.client.GetContext(s.ctx, &deletedAt, "SELECT deleted_at FROM serviceuser_credentials WHERE id = $1", cred.ID))
+	s.Assert().True(deletedAt.Valid)
+
+	s.Assert().ErrorIs(s.credentialRepository.Delete(s.ctx, cred.ID), serviceuser.ErrCredNotExist)
+}
+
+func (s *ServiceUserRepositoryTestSuite) TestOrgDeleteCountsLiveServiceUsersOnly() {
+	orgRepository := postgres.NewOrganizationRepository(s.client)
+	org, err := orgRepository.Create(s.ctx, organization.Organization{Name: "org-with-a-deleted-service-user", Title: "org"})
+	s.Require().NoError(err)
+	su, err := s.repository.Create(s.ctx, serviceuser.ServiceUser{OrgID: org.ID, Title: "blocks the delete while live"})
+	s.Require().NoError(err)
+
+	s.Assert().ErrorIs(orgRepository.Delete(s.ctx, org.ID), postgres.ErrForeignKeyViolation)
+
+	s.Require().NoError(s.repository.Delete(s.ctx, su.ID))
+	s.Assert().NoError(orgRepository.Delete(s.ctx, org.ID))
 }
 
 func TestServiceUserRepository(t *testing.T) {
