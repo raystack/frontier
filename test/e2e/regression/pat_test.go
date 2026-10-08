@@ -155,6 +155,16 @@ func (s *PATRegressionTestSuite) checkPermission(ctx context.Context, namespace,
 	return resp.Msg.GetStatus()
 }
 
+func (s *PATRegressionTestSuite) patHasPermissionInSpiceDB(ctx context.Context, patID, namespace, id, permission string) bool {
+	resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctx, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+		Resource:   schema.JoinNamespaceAndResourceID(namespace, id),
+		Permission: permission,
+		Subject:    schema.JoinNamespaceAndResourceID(schema.PATPrincipal, patID),
+	}))
+	s.Require().NoError(err)
+	return resp.Msg.GetStatus()
+}
+
 func (s *PATRegressionTestSuite) TestPATScope_OrgViewer_ProjectViewer() {
 	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	orgID, proj1ID, proj2ID := s.createOrgAndProjects(ctxAdmin, "org-pat-ov-pv", "pat-ov-pv-p1", "pat-ov-pv-p2")
@@ -781,6 +791,8 @@ func (s *PATRegressionTestSuite) TestPATOfDeletedOrgStopsAuthenticating() {
 	})
 	patCtx := getPATCtx(patToken)
 	s.Require().True(s.checkPermission(patCtx, schema.OrganizationNamespace, orgID, schema.GetPermission))
+	s.Require().True(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.OrganizationNamespace, orgID, schema.GetPermission))
+	s.Require().True(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.ProjectNamespace, proj1ID, schema.GetPermission))
 
 	policiesResp, err := s.testBench.Client.ListPolicies(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{UserId: patID}))
 	s.Require().NoError(err)
@@ -813,19 +825,9 @@ func (s *PATRegressionTestSuite) TestPATOfDeletedOrgStopsAuthenticating() {
 		}
 	})
 
-	s.Run("no relation is left for the token", func() {
-		for _, policyBeforeDelete := range patPoliciesBeforeDelete {
-			resp, err := s.testBench.AdminClient.ListRelations(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{
-				Object: schema.JoinNamespaceAndResourceID(schema.RoleBindingNamespace, policyBeforeDelete.GetId()),
-			}))
-			s.Require().NoError(err)
-			s.Assert().Empty(resp.Msg.GetRelations())
-		}
-		resp, err := s.testBench.AdminClient.ListRelations(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{
-			Subject: schema.JoinNamespaceAndResourceID(schema.PATPrincipal, patID),
-		}))
-		s.Require().NoError(err)
-		s.Assert().Empty(resp.Msg.GetRelations())
+	s.Run("the token has no access left in SpiceDB", func() {
+		s.Assert().False(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.OrganizationNamespace, orgID, schema.GetPermission))
+		s.Assert().False(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.ProjectNamespace, proj1ID, schema.GetPermission))
 	})
 }
 
