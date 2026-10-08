@@ -135,6 +135,15 @@ func (s *Service) RemoveAllPATPolicies(ctx context.Context, patID string) error 
 	return err
 }
 
+// RemovePrincipalPolicies deletes every policy held by a principal.
+func (s *Service) RemovePrincipalPolicies(ctx context.Context, principalID, principalType string) error {
+	_, err := s.removePoliciesByFilter(ctx, policy.Filter{
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+	})
+	return err
+}
+
 // removePoliciesByFilter lists policies matching the filter and deletes them.
 func (s *Service) removePoliciesByFilter(ctx context.Context, filter policy.Filter) (int, error) {
 	policies, err := s.policyService.List(ctx, filter)
