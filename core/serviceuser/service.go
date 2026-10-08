@@ -49,7 +49,7 @@ type RelationService interface {
 
 type MembershipService interface {
 	AddOrganizationMember(ctx context.Context, orgID, principalID, principalType, roleID string) error
-	RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
+	RemovePrincipalPolicies(ctx context.Context, principalID, principalType string) error
 	ListPrincipalIDsByResource(ctx context.Context, resourceID, resourceType, principalType string) ([]string, error)
 }
 
@@ -142,14 +142,18 @@ func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, er
 	return s.repo.GetByIDs(ctx, serviceUserIDs)
 }
 
+// Delete removes the policies first and the row last, so a hidden service user
+// never keeps a live policy. A failure at any step leaves the row live, and the
+// delete can be run again.
 func (s Service) Delete(ctx context.Context, id string) error {
-	// fetch SU to get org ID for membership cleanup
-	su, err := s.repo.GetByID(ctx, id)
-	if err != nil {
+	if _, err := s.repo.GetByID(ctx, id); err != nil {
 		return err
 	}
 
-	// delete all of its credentials
+	if err := s.membershipService.RemovePrincipalPolicies(ctx, id, schema.ServiceUserPrincipal); err != nil {
+		return fmt.Errorf("remove policies: %w", err)
+	}
+
 	creds, err := s.credRepo.List(ctx, Filter{
 		ServiceUserID: id,
 	})
@@ -157,24 +161,13 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	for _, cred := range creds {
-		if err := s.credRepo.Delete(ctx, cred.ID); err != nil {
+		if err := s.credRepo.Delete(ctx, cred.ID); err != nil && !errors.Is(err, ErrCredNotExist) {
 			return err
 		}
 	}
 
-	// remove org membership (policies at org/project/group level + org relations)
-	// best-effort: log and continue on failure — leaving a half-deleted SU is worse than a leaked policy
-	if err := s.membershipService.RemoveOrganizationMember(ctx, su.OrgID, id, schema.ServiceUserPrincipal); err != nil {
-		s.log.ErrorContext(ctx, "failed to remove org membership during serviceuser delete, policies may be leaked",
-			"serviceuser_id", id,
-			"org_id", su.OrgID,
-			"error", err,
-		)
-	}
-
-	// SU may appear as Subject (e.g. platform sudo) or as Object (e.g. the
-	// serviceuser#org identity link). Sweep both sides so deletion is symmetric
-	// with creation regardless of whether the membership cascade ran above.
+	// The service user is the subject of its membership relations and the
+	// object of its org identity link.
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Subject: relation.Subject{
 			ID:        id,
@@ -196,8 +189,8 @@ func (s Service) Delete(ctx context.Context, id string) error {
 }
 
 func (s Service) ListKeys(ctx context.Context, serviceUserID string) ([]Credential, error) {
-	if serviceUserID == "" {
-		return nil, ErrInvalidID
+	if _, err := s.Get(ctx, serviceUserID); err != nil {
+		return nil, err
 	}
 	return s.credRepo.List(ctx, Filter{
 		ServiceUserID: serviceUserID,
@@ -207,6 +200,9 @@ func (s Service) ListKeys(ctx context.Context, serviceUserID string) ([]Credenti
 
 // CreateKey creates a key pair for the service user
 func (s Service) CreateKey(ctx context.Context, credential Credential) (Credential, error) {
+	if _, err := s.Get(ctx, credential.ServiceUserID); err != nil {
+		return Credential{}, err
+	}
 	credential.ID = uuid.New().String()
 
 	// generate public/private key pair
@@ -265,6 +261,9 @@ func (s Service) DeleteKey(ctx context.Context, credID string) error {
 
 // CreateSecret creates a secret for the service user
 func (s Service) CreateSecret(ctx context.Context, credential Credential) (Secret, error) {
+	if _, err := s.Get(ctx, credential.ServiceUserID); err != nil {
+		return Secret{}, err
+	}
 	// generate a random secret
 	secretBytes := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, secretBytes); err != nil {
@@ -295,8 +294,8 @@ func (s Service) DeleteSecret(ctx context.Context, credID string) error {
 }
 
 func (s Service) ListSecret(ctx context.Context, serviceUserID string) ([]Credential, error) {
-	if serviceUserID == "" {
-		return nil, ErrInvalidID
+	if _, err := s.Get(ctx, serviceUserID); err != nil {
+		return nil, err
 	}
 	return s.credRepo.List(ctx, Filter{
 		ServiceUserID: serviceUserID,
@@ -306,6 +305,9 @@ func (s Service) ListSecret(ctx context.Context, serviceUserID string) ([]Creden
 
 // CreateToken creates an opaque token for the service user
 func (s Service) CreateToken(ctx context.Context, credential Credential) (Token, error) {
+	if _, err := s.Get(ctx, credential.ServiceUserID); err != nil {
+		return Token{}, err
+	}
 	// generate a random secret
 	secretBytes := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, secretBytes); err != nil {

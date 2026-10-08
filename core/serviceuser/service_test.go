@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"slices"
 	"testing"
 	"time"
 
@@ -151,7 +152,8 @@ func TestService_UnSudo(t *testing.T) {
 func TestService_Delete(t *testing.T) {
 	ctx := context.Background()
 	const suID = "su-id"
-	const orgID = "org-id"
+	su := serviceuser.ServiceUser{ID: suID, OrgID: "org-id"}
+	credFilter := serviceuser.Filter{ServiceUserID: suID}
 
 	subjectFilter := relation.Relation{
 		Subject: relation.Subject{ID: suID, Namespace: schema.ServiceUserPrincipal},
@@ -160,66 +162,103 @@ func TestService_Delete(t *testing.T) {
 		Object: relation.Object{ID: suID, Namespace: schema.ServiceUserPrincipal},
 	}
 
+	t.Run("removes policies, then credentials, then relations, then the row", func(t *testing.T) {
+		svc, repo, cred, rel, mem, _ := newTestService(t)
+		var steps []string
+		step := func(name string) func(mock.Arguments) {
+			return func(mock.Arguments) { steps = append(steps, name) }
+		}
+		repo.On("GetByID", ctx, suID).Return(su, nil)
+		mem.On("RemovePrincipalPolicies", ctx, suID, schema.ServiceUserPrincipal).Run(step("policies")).Return(nil)
+		cred.On("List", ctx, credFilter).Return([]serviceuser.Credential{{ID: "c1"}, {ID: "c2"}}, nil)
+		cred.On("Delete", ctx, "c1").Run(step("credential c1")).Return(nil)
+		cred.On("Delete", ctx, "c2").Run(step("credential c2")).Return(nil)
+		rel.On("Delete", ctx, subjectFilter).Run(step("relations as subject")).Return(nil)
+		rel.On("Delete", ctx, objectFilter).Run(step("relations as object")).Return(nil)
+		repo.On("Delete", ctx, suID).Run(step("row")).Return(nil)
+
+		if err := svc.Delete(ctx, suID); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		want := []string{"policies", "credential c1", "credential c2", "relations as subject", "relations as object", "row"}
+		if !slices.Equal(steps, want) {
+			t.Fatalf("order = %v, want %v", steps, want)
+		}
+	})
+
 	tests := []struct {
-		name    string
-		setup   func(*mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService)
-		wantErr bool
+		name      string
+		setup     func(*mocks.Repository, *mocks.CredentialRepository, *mocks.RelationService, *mocks.MembershipService)
+		wantErr   bool
+		wantErrIs error
 	}{
 		{
-			name: "sweeps SU as subject and as object",
+			name: "a missing service user is not found before anything runs",
 			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
-				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
-				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
-				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+			},
+			wantErr:   true,
+			wantErrIs: serviceuser.ErrNotExist,
+		},
+		{
+			name: "a policy cleanup failure stops the delete before credentials and the row",
+			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
+				repo.On("GetByID", ctx, suID).Return(su, nil)
+				mem.On("RemovePrincipalPolicies", ctx, suID, schema.ServiceUserPrincipal).Return(errors.New("spicedb unavailable"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "a credential that is already deleted is skipped",
+			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
+				repo.On("GetByID", ctx, suID).Return(su, nil)
+				mem.On("RemovePrincipalPolicies", ctx, suID, schema.ServiceUserPrincipal).Return(nil)
+				cred.On("List", ctx, credFilter).Return([]serviceuser.Credential{{ID: "c1"}}, nil)
+				cred.On("Delete", ctx, "c1").Return(serviceuser.ErrCredNotExist)
 				rel.On("Delete", ctx, subjectFilter).Return(nil)
 				rel.On("Delete", ctx, objectFilter).Return(nil)
 				repo.On("Delete", ctx, suID).Return(nil)
 			},
 		},
 		{
-			name: "membership failure is swallowed and both sweeps still run",
+			name: "a credential delete failure stops the delete before the row",
 			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
-				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
-				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
-				// covers the path where membership returns early without reaching its
-				// cascade cleanup (e.g. SU has no remaining org policies)
-				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(errors.New("not a member"))
-				rel.On("Delete", ctx, subjectFilter).Return(nil)
-				rel.On("Delete", ctx, objectFilter).Return(nil)
-				repo.On("Delete", ctx, suID).Return(nil)
+				repo.On("GetByID", ctx, suID).Return(su, nil)
+				mem.On("RemovePrincipalPolicies", ctx, suID, schema.ServiceUserPrincipal).Return(nil)
+				cred.On("List", ctx, credFilter).Return([]serviceuser.Credential{{ID: "c1"}}, nil)
+				cred.On("Delete", ctx, "c1").Return(errors.New("db down"))
 			},
+			wantErr: true,
 		},
 		{
-			name: "tolerates ErrNotExist from Object-side sweep",
+			name: "tolerates ErrNotExist from the object-side sweep",
 			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
-				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
-				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
-				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				repo.On("GetByID", ctx, suID).Return(su, nil)
+				mem.On("RemovePrincipalPolicies", ctx, suID, schema.ServiceUserPrincipal).Return(nil)
+				cred.On("List", ctx, credFilter).Return([]serviceuser.Credential{}, nil)
 				rel.On("Delete", ctx, subjectFilter).Return(nil)
 				rel.On("Delete", ctx, objectFilter).Return(relation.ErrNotExist)
 				repo.On("Delete", ctx, suID).Return(nil)
 			},
 		},
 		{
-			name: "Object-side non-ErrNotExist failure blocks repo delete",
+			name: "an object-side failure stops the delete before the row",
 			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
-				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
-				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
-				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				repo.On("GetByID", ctx, suID).Return(su, nil)
+				mem.On("RemovePrincipalPolicies", ctx, suID, schema.ServiceUserPrincipal).Return(nil)
+				cred.On("List", ctx, credFilter).Return([]serviceuser.Credential{}, nil)
 				rel.On("Delete", ctx, subjectFilter).Return(nil)
 				rel.On("Delete", ctx, objectFilter).Return(errors.New("spicedb unavailable"))
-				// repo.Delete must NOT be called
 			},
 			wantErr: true,
 		},
 		{
-			name: "Subject-side failure short-circuits before Object sweep",
+			name: "a subject-side failure stops the delete before the object sweep",
 			setup: func(repo *mocks.Repository, cred *mocks.CredentialRepository, rel *mocks.RelationService, mem *mocks.MembershipService) {
-				repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID, OrgID: orgID}, nil)
-				cred.On("List", ctx, serviceuser.Filter{ServiceUserID: suID}).Return([]serviceuser.Credential{}, nil)
-				mem.On("RemoveOrganizationMember", ctx, orgID, suID, schema.ServiceUserPrincipal).Return(nil)
+				repo.On("GetByID", ctx, suID).Return(su, nil)
+				mem.On("RemovePrincipalPolicies", ctx, suID, schema.ServiceUserPrincipal).Return(nil)
+				cred.On("List", ctx, credFilter).Return([]serviceuser.Credential{}, nil)
 				rel.On("Delete", ctx, subjectFilter).Return(errors.New("spicedb unavailable"))
-				// Object-side Delete and repo.Delete must NOT be called
 			},
 			wantErr: true,
 		},
@@ -233,8 +272,84 @@ func TestService_Delete(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
+			if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+				t.Errorf("Delete() error = %v, want %v", err, tt.wantErrIs)
+			}
 		})
 	}
+}
+
+func TestService_CredentialsNeedALiveServiceUser(t *testing.T) {
+	ctx := context.Background()
+	const suID = "0b6a0c4e-5f3d-4a2b-9c8e-1d2f3a4b5c6d"
+
+	calls := []struct {
+		name string
+		call func(*serviceuser.Service) error
+	}{
+		{"CreateKey", func(svc *serviceuser.Service) error {
+			_, err := svc.CreateKey(ctx, serviceuser.Credential{ServiceUserID: suID})
+			return err
+		}},
+		{"CreateSecret", func(svc *serviceuser.Service) error {
+			_, err := svc.CreateSecret(ctx, serviceuser.Credential{ServiceUserID: suID})
+			return err
+		}},
+		{"CreateToken", func(svc *serviceuser.Service) error {
+			_, err := svc.CreateToken(ctx, serviceuser.Credential{ServiceUserID: suID})
+			return err
+		}},
+		{"ListKeys", func(svc *serviceuser.Service) error {
+			_, err := svc.ListKeys(ctx, suID)
+			return err
+		}},
+		{"ListSecret", func(svc *serviceuser.Service) error {
+			_, err := svc.ListSecret(ctx, suID)
+			return err
+		}},
+	}
+	for _, tc := range calls {
+		t.Run(tc.name+" on a deleted service user is not found and touches no credential", func(t *testing.T) {
+			svc, repo, _, _, _, _ := newTestService(t)
+			repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+
+			if err := tc.call(svc); !errors.Is(err, serviceuser.ErrNotExist) {
+				t.Fatalf("want ErrNotExist, got %v", err)
+			}
+		})
+	}
+
+	t.Run("ListKeys on a live service user lists its keys", func(t *testing.T) {
+		svc, repo, credRepo, _, _, _ := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID}, nil)
+		credRepo.On("List", ctx, serviceuser.Filter{ServiceUserID: suID, IsKey: true}).Return([]serviceuser.Credential{{ID: "k1"}}, nil)
+
+		keys, err := svc.ListKeys(ctx, suID)
+		if err != nil || len(keys) != 1 || keys[0].ID != "k1" {
+			t.Fatalf("ListKeys() = %v, %v", keys, err)
+		}
+	})
+
+	t.Run("CreateSecret on a live service user stores a client secret", func(t *testing.T) {
+		svc, repo, credRepo, _, _, _ := newTestService(t)
+		repo.On("GetByID", ctx, suID).Return(serviceuser.ServiceUser{ID: suID}, nil)
+		credRepo.On("Create", ctx, mock.MatchedBy(func(c serviceuser.Credential) bool {
+			return c.ServiceUserID == suID && c.Type == serviceuser.ClientSecretCredentialType && c.SecretHash != ""
+		})).Return(serviceuser.Credential{ID: "s1"}, nil)
+
+		secret, err := svc.CreateSecret(ctx, serviceuser.Credential{ServiceUserID: suID})
+		if err != nil || secret.ID != "s1" || secret.Value == "" {
+			t.Fatalf("CreateSecret() = %+v, %v", secret, err)
+		}
+	})
+
+	t.Run("an id that is not a uuid is rejected without a lookup", func(t *testing.T) {
+		svc, _, _, _, _, _ := newTestService(t)
+
+		if _, err := svc.ListSecret(ctx, "not-a-uuid"); !errors.Is(err, serviceuser.ErrInvalidID) {
+			t.Fatalf("want ErrInvalidID, got %v", err)
+		}
+	})
 }
 
 func TestService_Get(t *testing.T) {

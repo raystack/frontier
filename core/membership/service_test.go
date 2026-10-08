@@ -16,6 +16,33 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestService_RemovePrincipalPolicies(t *testing.T) {
+	ctx := context.Background()
+	serviceUserID := uuid.New().String()
+	filter := policy.Filter{PrincipalID: serviceUserID, PrincipalType: schema.ServiceUserPrincipal}
+
+	t.Run("should delete every policy held by the principal", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+
+		mockPolicySvc.EXPECT().List(ctx, filter).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "p2").Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		assert.NoError(t, svc.RemovePrincipalPolicies(ctx, serviceUserID, schema.ServiceUserPrincipal))
+	})
+
+	t.Run("should surface policy delete errors", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+
+		mockPolicySvc.EXPECT().List(ctx, filter).Return([]policy.Policy{{ID: "p1"}}, nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(errors.New("spicedb unavailable"))
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		assert.Error(t, svc.RemovePrincipalPolicies(ctx, serviceUserID, schema.ServiceUserPrincipal))
+	})
+}
+
 func TestService_RemoveAllPATPolicies(t *testing.T) {
 	ctx := context.Background()
 	patID := uuid.New().String()

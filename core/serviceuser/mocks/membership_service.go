@@ -132,17 +132,17 @@ func (_c *MembershipService_ListPrincipalIDsByResource_Call) RunAndReturn(run fu
 	return _c
 }
 
-// RemoveOrganizationMember provides a mock function with given fields: ctx, orgID, principalID, principalType
-func (_m *MembershipService) RemoveOrganizationMember(ctx context.Context, orgID string, principalID string, principalType string) error {
-	ret := _m.Called(ctx, orgID, principalID, principalType)
+// RemovePrincipalPolicies provides a mock function with given fields: ctx, principalID, principalType
+func (_m *MembershipService) RemovePrincipalPolicies(ctx context.Context, principalID string, principalType string) error {
+	ret := _m.Called(ctx, principalID, principalType)
 
 	if len(ret) == 0 {
-		panic("no return value specified for RemoveOrganizationMember")
+		panic("no return value specified for RemovePrincipalPolicies")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = rf(ctx, orgID, principalID, principalType)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, principalID, principalType)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -150,33 +150,32 @@ func (_m *MembershipService) RemoveOrganizationMember(ctx context.Context, orgID
 	return r0
 }
 
-// MembershipService_RemoveOrganizationMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveOrganizationMember'
-type MembershipService_RemoveOrganizationMember_Call struct {
+// MembershipService_RemovePrincipalPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemovePrincipalPolicies'
+type MembershipService_RemovePrincipalPolicies_Call struct {
 	*mock.Call
 }
 
-// RemoveOrganizationMember is a helper method to define mock.On call
+// RemovePrincipalPolicies is a helper method to define mock.On call
 //   - ctx context.Context
-//   - orgID string
 //   - principalID string
 //   - principalType string
-func (_e *MembershipService_Expecter) RemoveOrganizationMember(ctx interface{}, orgID interface{}, principalID interface{}, principalType interface{}) *MembershipService_RemoveOrganizationMember_Call {
-	return &MembershipService_RemoveOrganizationMember_Call{Call: _e.mock.On("RemoveOrganizationMember", ctx, orgID, principalID, principalType)}
+func (_e *MembershipService_Expecter) RemovePrincipalPolicies(ctx interface{}, principalID interface{}, principalType interface{}) *MembershipService_RemovePrincipalPolicies_Call {
+	return &MembershipService_RemovePrincipalPolicies_Call{Call: _e.mock.On("RemovePrincipalPolicies", ctx, principalID, principalType)}
 }
 
-func (_c *MembershipService_RemoveOrganizationMember_Call) Run(run func(ctx context.Context, orgID string, principalID string, principalType string)) *MembershipService_RemoveOrganizationMember_Call {
+func (_c *MembershipService_RemovePrincipalPolicies_Call) Run(run func(ctx context.Context, principalID string, principalType string)) *MembershipService_RemovePrincipalPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *MembershipService_RemoveOrganizationMember_Call) Return(_a0 error) *MembershipService_RemoveOrganizationMember_Call {
+func (_c *MembershipService_RemovePrincipalPolicies_Call) Return(_a0 error) *MembershipService_RemovePrincipalPolicies_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MembershipService_RemoveOrganizationMember_Call) RunAndReturn(run func(context.Context, string, string, string) error) *MembershipService_RemoveOrganizationMember_Call {
+func (_c *MembershipService_RemovePrincipalPolicies_Call) RunAndReturn(run func(context.Context, string, string) error) *MembershipService_RemovePrincipalPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
