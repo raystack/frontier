@@ -472,6 +472,8 @@ func (s *RoleRepositoryTestSuite) TestDelete() {
 		tx, err := s.client.BeginTxx(s.ctx, nil)
 		s.Require().NoError(err)
 		defer tx.Rollback() // nolint
+		var holderPID int
+		s.Require().NoError(tx.QueryRowContext(s.ctx, "SELECT pg_backend_pid()").Scan(&holderPID))
 		_, err = tx.ExecContext(s.ctx, "INSERT INTO policies (role_id, resource_id, resource_type, principal_id, principal_type) VALUES ($1, $2, 'ns1', $3, 'app/user')",
 			target.ID, s.orgID, uuid.NewString())
 		s.Require().NoError(err)
@@ -480,8 +482,7 @@ func (s *RoleRepositoryTestSuite) TestDelete() {
 		go func() { done <- s.repository.Delete(s.ctx, target.ID) }()
 
 		s.Require().Eventually(func() bool {
-			var waiting int
-			err := s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock'").Scan(&waiting)
+			waiting, err := blockedBy(s.ctx, s.client, holderPID)
 			return err == nil && waiting == 1
 		}, time.Second, 10*time.Millisecond, "the delete did not wait for the policy insert")
 
