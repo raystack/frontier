@@ -43,15 +43,13 @@ type ServiceUserCreator interface {
 	// fixed-id bootstrap row instead of creating a duplicate.
 	GetByID(ctx context.Context, id string) (serviceuser.ServiceUser, error)
 	Create(ctx context.Context, su serviceuser.ServiceUser) (serviceuser.ServiceUser, error)
-	// Delete rolls back a row this boot just created when the credential write fails.
-	Delete(ctx context.Context, id string) error
 }
 
 // ServiceUserCredentialStore manages client-secret credentials keyed by id.
 type ServiceUserCredentialStore interface {
 	Get(ctx context.Context, id string) (serviceuser.Credential, error)
 	Create(ctx context.Context, cred serviceuser.Credential) (serviceuser.Credential, error)
-	Delete(ctx context.Context, id string) error
+	UpdateBootstrapSecretHash(ctx context.Context, id, secretHash string) error
 }
 
 // SuperUserPromoter grants a platform relation (admin/member) to a principal.
@@ -102,9 +100,13 @@ func ensureBootstrapSuperUser(
 		return fmt.Errorf("bootstrap superuser: credential %q belongs to service user %q, want bootstrap service user %q",
 			clientID, cred.ServiceUserID, schema.BootstrapServiceUserID)
 	}
+	if cred.Type != serviceuser.ClientSecretCredentialType {
+		return fmt.Errorf("bootstrap superuser: credential %q has type %q, want %q",
+			clientID, cred.Type, serviceuser.ClientSecretCredentialType)
+	}
 
 	if bcrypt.CompareHashAndPassword([]byte(cred.SecretHash), []byte(cfg.ClientSecret)) != nil {
-		if err := rotateBootstrapSecret(ctx, cfg, clientID, cred, creds); err != nil {
+		if err := rotateBootstrapSecret(ctx, cfg, clientID, creds); err != nil {
 			return err
 		}
 		logger.InfoContext(ctx, "rotated bootstrap superuser secret", "client_id", clientID)
@@ -121,14 +123,13 @@ func createBootstrapSuperUser(
 	creds ServiceUserCredentialStore,
 	promoter SuperUserPromoter,
 ) error {
-	suID, created, err := ensureBootstrapServiceUser(ctx, cfg, serviceUsers)
+	suID, err := ensureBootstrapServiceUser(ctx, cfg, serviceUsers)
 	if err != nil {
 		return err
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.ClientSecret), bootstrapBcryptCost)
 	if err != nil {
-		return rollbackFreshBootstrapSU(ctx, logger, serviceUsers, suID, created,
-			fmt.Errorf("bootstrap superuser: hash secret: %w", err))
+		return fmt.Errorf("bootstrap superuser: hash secret: %w", err)
 	}
 	// Reached only because the caller saw the credential is missing, so this never
 	// adds a second credential for the bootstrap SA.
@@ -139,8 +140,7 @@ func createBootstrapSuperUser(
 		SecretHash:    string(hash),
 		Title:         cfg.title(),
 	}); err != nil {
-		return rollbackFreshBootstrapSU(ctx, logger, serviceUsers, suID, created,
-			fmt.Errorf("bootstrap superuser: create credential: %w", err))
+		return fmt.Errorf("bootstrap superuser: create credential: %w", err)
 	}
 	logger.InfoContext(ctx, "created bootstrap superuser service account",
 		"client_id", clientID, "serviceuser_id", suID)
@@ -148,14 +148,13 @@ func createBootstrapSuperUser(
 }
 
 // ensureBootstrapServiceUser returns the fixed-id bootstrap row, creating it only if
-// absent so recovery is idempotent (never a duplicate row). The bool reports whether
-// this call created it.
-func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfig, serviceUsers ServiceUserCreator) (string, bool, error) {
+// absent so recovery is idempotent (never a duplicate row).
+func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfig, serviceUsers ServiceUserCreator) (string, error) {
 	id := schema.BootstrapServiceUserID
 	if _, err := serviceUsers.GetByID(ctx, id); err == nil {
-		return id, false, nil
+		return id, nil
 	} else if !errors.Is(err, serviceuser.ErrNotExist) {
-		return "", false, fmt.Errorf("bootstrap superuser: get service user: %w", err)
+		return "", fmt.Errorf("bootstrap superuser: get service user: %w", err)
 	}
 	su, err := serviceUsers.Create(ctx, serviceuser.ServiceUser{
 		ID:    id,
@@ -163,49 +162,19 @@ func ensureBootstrapServiceUser(ctx context.Context, cfg SuperUserBootstrapConfi
 		Title: cfg.title(),
 	})
 	if err != nil {
-		return "", false, fmt.Errorf("bootstrap superuser: create service user: %w", err)
+		return "", fmt.Errorf("bootstrap superuser: create service user: %w", err)
 	}
-	return su.ID, true, nil
+	return su.ID, nil
 }
 
-// rollbackFreshBootstrapSU deletes the row on failure only if this boot created it;
-// a reused (possibly promoted) row is left for the next boot to retry. Rollback is
-// best-effort — the original error is always returned.
-func rollbackFreshBootstrapSU(ctx context.Context, logger *slog.Logger, serviceUsers ServiceUserCreator, suID string, created bool, cause error) error {
-	if !created {
-		return cause
-	}
-	if err := serviceUsers.Delete(ctx, suID); err != nil {
-		logger.WarnContext(ctx, "failed to roll back freshly created bootstrap service user",
-			"serviceuser_id", suID, "err", err.Error())
-	}
-	return cause
-}
-
-// rotateBootstrapSecret replaces the stored secret. The credential repo has no update,
-// so it deletes and recreates with the same id (a brief gap at boot is fine).
-func rotateBootstrapSecret(
-	ctx context.Context,
-	cfg SuperUserBootstrapConfig,
-	clientID string,
-	cred serviceuser.Credential,
-	creds ServiceUserCredentialStore,
-) error {
+// rotateBootstrapSecret replaces the stored secret in place.
+func rotateBootstrapSecret(ctx context.Context, cfg SuperUserBootstrapConfig, clientID string, creds ServiceUserCredentialStore) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.ClientSecret), bootstrapBcryptCost)
 	if err != nil {
 		return fmt.Errorf("bootstrap superuser: hash secret: %w", err)
 	}
-	if err := creds.Delete(ctx, clientID); err != nil {
-		return fmt.Errorf("bootstrap superuser: rotate (delete): %w", err)
-	}
-	if _, err := creds.Create(ctx, serviceuser.Credential{
-		ID:            clientID,
-		ServiceUserID: cred.ServiceUserID,
-		Type:          serviceuser.ClientSecretCredentialType,
-		SecretHash:    string(hash),
-		Title:         cred.Title,
-	}); err != nil {
-		return fmt.Errorf("bootstrap superuser: rotate (create): %w", err)
+	if err := creds.UpdateBootstrapSecretHash(ctx, clientID, string(hash)); err != nil {
+		return fmt.Errorf("bootstrap superuser: rotate secret: %w", err)
 	}
 	return nil
 }
