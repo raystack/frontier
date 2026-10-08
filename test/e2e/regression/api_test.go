@@ -3152,7 +3152,7 @@ func (s *APIRegressionTestSuite) TestOrganizationRoleDeleteInUse() {
 	s.Require().NoError(err)
 }
 
-func (s *APIRegressionTestSuite) TestOrganizationDeleteKeepsTheRow() {
+func (s *APIRegressionTestSuite) TestOrganizationDeleteHidesTheOrgAndRemovesWhatItOwned() {
 	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
 	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
