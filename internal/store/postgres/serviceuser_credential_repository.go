@@ -161,7 +161,7 @@ func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (se
 }
 
 func (s ServiceUserCredentialRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_SERVICEUSERCREDENTIALS).Where(
+	query, params, err := softDelete(TABLE_SERVICEUSERCREDENTIALS).Where(
 		goqu.Ex{
 			"id": id,
 		},
@@ -171,8 +171,16 @@ func (s ServiceUserCredentialRepository) Delete(ctx context.Context, id string) 
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSERCREDENTIALS, "Delete", func(ctx context.Context) error {
-		if _, err = s.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
 			return err
+		}
+		deleted, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if deleted == 0 {
+			return sql.ErrNoRows
 		}
 		return nil
 	}); err != nil {

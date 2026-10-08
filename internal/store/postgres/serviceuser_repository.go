@@ -288,7 +288,7 @@ func (s ServiceUserRepository) Delete(ctx context.Context, id string) error {
 		Select("title").
 		Where(goqu.Ex{"id": goqu.I(TABLE_SERVICEUSER + ".org_id")})
 
-	query, params, err := dialect.Delete(TABLE_SERVICEUSER).
+	query, params, err := softDelete(TABLE_SERVICEUSER).
 		Where(goqu.Ex{"id": id}).
 		Returning(
 			goqu.I(TABLE_SERVICEUSER+".*"),
