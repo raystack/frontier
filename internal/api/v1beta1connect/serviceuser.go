@@ -238,8 +238,10 @@ func (h *ConnectHandler) CreateServiceUserJWK(ctx context.Context, request *conn
 			"title", title)
 
 		switch {
-		case err == serviceuser.ErrNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
+		case errors.Is(err, serviceuser.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, serviceuser.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserJWK: service_user_id=%s title=%s: %w", serviceUserID, title, err))
 		}
@@ -267,8 +269,10 @@ func (h *ConnectHandler) ListServiceUserJWKs(ctx context.Context, request *conne
 			"service_user_id", serviceUserID)
 
 		switch {
-		case err == serviceuser.ErrNotExist:
-			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
+		case errors.Is(err, serviceuser.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, serviceuser.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
 		default:
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserJWKs: service_user_id=%s: %w", serviceUserID, err))
 		}
@@ -353,7 +357,14 @@ func (h *ConnectHandler) CreateServiceUserCredential(ctx context.Context, reques
 		Title:         title,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserCredential: service_user_id=%s title=%s: %w", serviceUserID, title, err))
+		switch {
+		case errors.Is(err, serviceuser.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, serviceuser.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserCredential: service_user_id=%s title=%s: %w", serviceUserID, title, err))
+		}
 	}
 
 	return connect.NewResponse(&frontierv1beta1.CreateServiceUserCredentialResponse{
@@ -371,7 +382,14 @@ func (h *ConnectHandler) ListServiceUserCredentials(ctx context.Context, request
 
 	credentials, err := h.serviceUserService.ListSecret(ctx, serviceUserID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserCredentials: service_user_id=%s: %w", serviceUserID, err))
+		switch {
+		case errors.Is(err, serviceuser.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, serviceuser.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserCredentials: service_user_id=%s: %w", serviceUserID, err))
+		}
 	}
 	secretsPB := make([]*frontierv1beta1.SecretCredential, 0, len(credentials))
 	for _, sec := range credentials {
@@ -391,10 +409,14 @@ func (h *ConnectHandler) DeleteServiceUserCredential(ctx context.Context, reques
 
 	err := h.serviceUserService.DeleteSecret(ctx, secretID)
 	if err != nil {
-		if errors.Is(err, serviceuser.ErrProtected) {
+		switch {
+		case errors.Is(err, serviceuser.ErrCredNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
+		case errors.Is(err, serviceuser.ErrProtected):
 			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserCredential: secret_id=%s: %w", secretID, err))
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserCredential: secret_id=%s: %w", secretID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserCredentialResponse{}), nil
 }
@@ -412,7 +434,14 @@ func (h *ConnectHandler) CreateServiceUserToken(ctx context.Context, request *co
 		Title:         title,
 	})
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserToken: service_user_id=%s title=%s: %w", serviceUserID, title, err))
+		switch {
+		case errors.Is(err, serviceuser.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, serviceuser.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateServiceUserToken: service_user_id=%s title=%s: %w", serviceUserID, title, err))
+		}
 	}
 	return connect.NewResponse(&frontierv1beta1.CreateServiceUserTokenResponse{
 		Token: &frontierv1beta1.ServiceUserToken{
@@ -429,7 +458,14 @@ func (h *ConnectHandler) ListServiceUserTokens(ctx context.Context, request *con
 
 	credentials, err := h.serviceUserService.ListToken(ctx, serviceUserID)
 	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserTokens: service_user_id=%s: %w", serviceUserID, err))
+		switch {
+		case errors.Is(err, serviceuser.ErrInvalidID):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+		case errors.Is(err, serviceuser.ErrNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserNotFound)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ListServiceUserTokens: service_user_id=%s: %w", serviceUserID, err))
+		}
 	}
 	secretsPB := make([]*frontierv1beta1.ServiceUserToken, 0, len(credentials))
 	for _, sec := range credentials {
@@ -449,10 +485,14 @@ func (h *ConnectHandler) DeleteServiceUserToken(ctx context.Context, request *co
 
 	err := h.serviceUserService.DeleteToken(ctx, tokenID)
 	if err != nil {
-		if errors.Is(err, serviceuser.ErrProtected) {
+		switch {
+		case errors.Is(err, serviceuser.ErrCredNotExist):
+			return nil, connect.NewError(connect.CodeNotFound, ErrServiceUserCredNotFound)
+		case errors.Is(err, serviceuser.ErrProtected):
 			return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthorized)
+		default:
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserToken: token_id=%s: %w", tokenID, err))
 		}
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteServiceUserToken: token_id=%s: %w", tokenID, err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteServiceUserTokenResponse{}), nil
 }

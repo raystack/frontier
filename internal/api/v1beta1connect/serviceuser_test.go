@@ -515,6 +515,22 @@ func TestConnectHandler_CreateServiceUserJWK(t *testing.T) {
 		errCode connect.Code
 	}{
 		{
+			name: "should return bad request when the service user id is not valid",
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().CreateKey(mock.Anything, serviceuser.Credential{
+					Title:         "title",
+					ServiceUserID: "1",
+				}).Return(serviceuser.Credential{}, serviceuser.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
 			name: "should return internal server error when create service user key service returns error",
 			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
 				Id:    "1",
@@ -543,7 +559,7 @@ func TestConnectHandler_CreateServiceUserJWK(t *testing.T) {
 				Title: "title",
 			}),
 			want:    nil,
-			wantErr: ErrServiceUserCredNotFound,
+			wantErr: ErrServiceUserNotFound,
 			errCode: connect.CodeNotFound,
 		},
 		{
@@ -608,6 +624,18 @@ func TestConnectHandler_ListServiceUserJWKs(t *testing.T) {
 		errCode connect.Code
 	}{
 		{
+			name: "should return bad request when the service user id is not valid",
+			setup: func(su *mocks.ServiceUserService) {
+				su.EXPECT().ListKeys(mock.Anything, "1").Return(nil, serviceuser.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserJWKsRequest{
+				Id: "1",
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
 			name: "should return internal server error when list service user keys service returns error",
 			request: connect.NewRequest(&frontierv1beta1.ListServiceUserJWKsRequest{
 				Id: "1",
@@ -628,7 +656,7 @@ func TestConnectHandler_ListServiceUserJWKs(t *testing.T) {
 				Id: "1",
 			}),
 			want:    nil,
-			wantErr: ErrServiceUserCredNotFound,
+			wantErr: ErrServiceUserNotFound,
 			errCode: connect.CodeNotFound,
 		},
 		{
@@ -848,6 +876,38 @@ func TestHandler_CreateServiceUserCredential(t *testing.T) {
 		errCode connect.Code
 	}{
 		{
+			name: "should return not found when the service user does not exist",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("CreateSecret", mock.Anything, serviceuser.Credential{
+					Title:         "title",
+					ServiceUserID: "1",
+				}).Return(serviceuser.Secret{}, serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			want:    nil,
+			wantErr: ErrServiceUserNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return bad request when the service user id is not valid",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("CreateSecret", mock.Anything, serviceuser.Credential{
+					Title:         "title",
+					ServiceUserID: "1",
+				}).Return(serviceuser.Secret{}, serviceuser.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+				Id:    "1",
+				Title: "title",
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
+		{
 			name: "should return internal server error when create service user secret service returns error",
 			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
 				Id:    "1",
@@ -927,6 +987,30 @@ func TestHandler_ListServiceUserCredentials(t *testing.T) {
 		wantErr error
 		errCode connect.Code
 	}{
+		{
+			name: "should return not found when the service user does not exist",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListSecret", mock.Anything, "service-user-id").Return(nil, serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+				Id: "service-user-id",
+			}),
+			want:    nil,
+			wantErr: ErrServiceUserNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return bad request when the service user id is not valid",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListSecret", mock.Anything, "service-user-id").Return(nil, serviceuser.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+				Id: "service-user-id",
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
 		{
 			name: "should return internal server error when list service user credentials service returns error",
 			request: connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
@@ -1109,6 +1193,19 @@ func TestHandler_DeleteServiceUserCredential(t *testing.T) {
 		errCode connect.Code
 	}{
 		{
+			name: "should return not found when the credential does not exist",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteSecret", mock.Anything, "credential-id").Return(serviceuser.ErrCredNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserCredentialRequest{
+				Id:       "service-user-id",
+				SecretId: "credential-id",
+			}),
+			want:    nil,
+			wantErr: ErrServiceUserCredNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
 			name: "should return internal server error when delete service user credential service returns error",
 			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserCredentialRequest{
 				Id:       "service-user-id",
@@ -1166,6 +1263,38 @@ func TestHandler_CreateServiceUserToken(t *testing.T) {
 		wantErr error
 		errCode connect.Code
 	}{
+		{
+			name: "should return not found when the service user does not exist",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("CreateToken", mock.Anything, serviceuser.Credential{
+					Title:         "Test Token",
+					ServiceUserID: "service-user-id",
+				}).Return(serviceuser.Token{}, serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+				Id:    "service-user-id",
+				Title: "Test Token",
+			}),
+			want:    nil,
+			wantErr: ErrServiceUserNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return bad request when the service user id is not valid",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("CreateToken", mock.Anything, serviceuser.Credential{
+					Title:         "Test Token",
+					ServiceUserID: "service-user-id",
+				}).Return(serviceuser.Token{}, serviceuser.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+				Id:    "service-user-id",
+				Title: "Test Token",
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
 		{
 			name: "should return internal server error when create service user token service returns error",
 			request: connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
@@ -1242,6 +1371,30 @@ func TestHandler_ListServiceUserTokens(t *testing.T) {
 		wantErr error
 		errCode connect.Code
 	}{
+		{
+			name: "should return not found when the service user does not exist",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListToken", mock.Anything, "service-user-id").Return(nil, serviceuser.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserTokensRequest{
+				Id: "service-user-id",
+			}),
+			want:    nil,
+			wantErr: ErrServiceUserNotFound,
+			errCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return bad request when the service user id is not valid",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("ListToken", mock.Anything, "service-user-id").Return(nil, serviceuser.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.ListServiceUserTokensRequest{
+				Id: "service-user-id",
+			}),
+			want:    nil,
+			wantErr: ErrBadRequest,
+			errCode: connect.CodeInvalidArgument,
+		},
 		{
 			name: "should return internal server error when list service user tokens service returns error",
 			request: connect.NewRequest(&frontierv1beta1.ListServiceUserTokensRequest{
@@ -1336,6 +1489,18 @@ func TestHandler_DeleteServiceUserToken(t *testing.T) {
 		wantErr error
 		errCode connect.Code
 	}{
+		{
+			name: "should return not found when the credential does not exist",
+			setup: func(su *mocks.ServiceUserService) {
+				su.On("DeleteToken", mock.Anything, "token-id").Return(serviceuser.ErrCredNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserTokenRequest{
+				TokenId: "token-id",
+			}),
+			want:    nil,
+			wantErr: ErrServiceUserCredNotFound,
+			errCode: connect.CodeNotFound,
+		},
 		{
 			name: "should return internal server error when delete service user token service returns error",
 			request: connect.NewRequest(&frontierv1beta1.DeleteServiceUserTokenRequest{
