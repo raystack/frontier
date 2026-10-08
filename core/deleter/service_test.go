@@ -769,7 +769,7 @@ func TestDeleteOrganization(t *testing.T) {
 		assert.ErrorContains(t, err, "su-1")
 	})
 
-	t.Run("domains and tokens go after the roles and before the org row", func(t *testing.T) {
+	t.Run("domains and tokens go before the policies and roles and the org row last", func(t *testing.T) {
 		m := newMocks(t)
 
 		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
@@ -809,10 +809,10 @@ func TestDeleteOrganization(t *testing.T) {
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"policy", "role", "domain", "pats", "org"}, steps)
+		assert.Equal(t, []string{"domain", "pats", "policy", "role", "org"}, steps)
 	})
 
-	t.Run("domain delete failure keeps the org row", func(t *testing.T) {
+	t.Run("domain list failure stops before the org policies", func(t *testing.T) {
 		m := newMocks(t)
 
 		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
@@ -828,10 +828,32 @@ func TestDeleteOrganization(t *testing.T) {
 		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
 			Return([]invitation.Invitation{}, nil)
 		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
-		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
-			Return([]policy.Policy{}, nil)
-		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
-			Return([]role.Role{}, nil)
+		m.domainSvc.EXPECT().List(mock.Anything, domain.Filter{OrgID: "org-1"}).
+			Return(nil, errors.New("domain list failed"))
+
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.ErrorContains(t, err, "domain list failed")
+	})
+
+	t.Run("domain delete failure stops before the org policies", func(t *testing.T) {
+		m := newMocks(t)
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
 		m.domainSvc.EXPECT().List(mock.Anything, domain.Filter{OrgID: "org-1"}).
 			Return([]domain.Domain{{ID: "dom-1", Name: "acme.test"}}, nil)
 		m.domainSvc.EXPECT().Delete(mock.Anything, "dom-1").Return(errors.New("domain delete failed"))
@@ -844,7 +866,7 @@ func TestDeleteOrganization(t *testing.T) {
 		assert.ErrorContains(t, err, "acme.test")
 	})
 
-	t.Run("token delete failure keeps the org row", func(t *testing.T) {
+	t.Run("token delete failure stops before the org policies", func(t *testing.T) {
 		m := newMocks(t)
 
 		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
@@ -860,10 +882,6 @@ func TestDeleteOrganization(t *testing.T) {
 		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
 			Return([]invitation.Invitation{}, nil)
 		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
-		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
-			Return([]policy.Policy{}, nil)
-		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
-			Return([]role.Role{}, nil)
 		m.domainSvc.EXPECT().List(mock.Anything, domain.Filter{OrgID: "org-1"}).
 			Return([]domain.Domain{}, nil)
 		m.patSvc.EXPECT().DeleteAllByOrg(mock.Anything, "org-1").Return(errors.New("pat delete failed"))

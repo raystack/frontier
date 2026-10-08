@@ -354,6 +354,20 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to delete org while deleting its kyc record: %w", err)
 	}
 
+	domains, err := d.domainService.List(ctx, domain.Filter{OrgID: id})
+	if err != nil {
+		return err
+	}
+	for _, dmn := range domains {
+		if err = d.domainService.Delete(ctx, dmn.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a domain[%s]: %w", dmn.Name, err)
+		}
+	}
+
+	if err := d.userPATService.DeleteAllByOrg(ctx, id); err != nil {
+		return fmt.Errorf("failed to delete org while deleting its personal access tokens: %w", err)
+	}
+
 	// delete all policies; this removes the org owners, so it stays after the
 	// steps above. Policies must go before roles as they refer to them.
 	policies, err := d.policyService.List(ctx, policy.Filter{
@@ -379,20 +393,6 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		if err = d.roleService.Delete(ctx, p.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a role[%s]: %w", p.Name, err)
 		}
-	}
-
-	domains, err := d.domainService.List(ctx, domain.Filter{OrgID: id})
-	if err != nil {
-		return err
-	}
-	for _, dmn := range domains {
-		if err = d.domainService.Delete(ctx, dmn.ID); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a domain[%s]: %w", dmn.Name, err)
-		}
-	}
-
-	if err := d.userPATService.DeleteAllByOrg(ctx, id); err != nil {
-		return fmt.Errorf("failed to delete org while deleting its personal access tokens: %w", err)
 	}
 
 	if err := d.orgService.DeleteModel(ctx, id); err != nil {
