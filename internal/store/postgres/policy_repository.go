@@ -281,12 +281,10 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, role.ErrNotExist):
-			return policy.Policy{}, role.ErrNotExist
 		case errors.Is(err, ErrForeignKeyViolation):
 			return policy.Policy{}, fmt.Errorf("%w: %w", policy.ErrInvalidDetail, err)
 		default:
-			return policy.Policy{}, fmt.Errorf("%w: %s", errDB, err)
+			return policy.Policy{}, fmt.Errorf("%w: %w", errDB, err)
 		}
 	}
 
