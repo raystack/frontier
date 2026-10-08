@@ -131,7 +131,8 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
-			ID: clientID, ServiceUserID: schema.BootstrapServiceUserID, SecretHash: bcryptHash(t, "s3cret"),
+			ID: clientID, ServiceUserID: schema.BootstrapServiceUserID, Type: serviceuser.ClientSecretCredentialType,
+			SecretHash: bcryptHash(t, "s3cret"),
 		}, nil)
 		prom.On("Sudo", mock.Anything, schema.BootstrapServiceUserID, schema.AdminRelationName).Return(nil)
 
@@ -147,7 +148,8 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "new-secret"}
 
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
-			ID: clientID, ServiceUserID: schema.BootstrapServiceUserID, SecretHash: bcryptHash(t, "old-secret"), Title: "t",
+			ID: clientID, ServiceUserID: schema.BootstrapServiceUserID, Type: serviceuser.ClientSecretCredentialType,
+			SecretHash: bcryptHash(t, "old-secret"), Title: "t",
 		}, nil)
 		var rotatedHash string
 		creds.On("UpdateBootstrapSecretHash", mock.Anything, clientID, mock.Anything).
@@ -172,6 +174,20 @@ func TestEnsureBootstrapSuperUser(t *testing.T) {
 		// not rotate that credential or promote its owner.
 		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
 			ID: clientID, ServiceUserID: "22222222-2222-2222-2222-222222222222", SecretHash: bcryptHash(t, "other-secret"),
+		}, nil)
+
+		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))
+		creds.AssertNotCalled(t, "UpdateBootstrapSecretHash", mock.Anything, mock.Anything, mock.Anything)
+		creds.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+		prom.AssertNotCalled(t, "Sudo", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("refuses when the credential is not a client secret", func(t *testing.T) {
+		serviceUsers, creds, prom := new(mockSUCreator), new(mockCredStore), new(mockSUPromoter)
+		cfg := SuperUserBootstrapConfig{ClientID: clientID, ClientSecret: "s3cret"}
+
+		creds.On("Get", mock.Anything, clientID).Return(serviceuser.Credential{
+			ID: clientID, ServiceUserID: schema.BootstrapServiceUserID, Type: serviceuser.JWTCredentialType,
 		}, nil)
 
 		assert.Error(t, ensureBootstrapSuperUser(ctx, logger, cfg, serviceUsers, creds, prom))

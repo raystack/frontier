@@ -103,9 +103,9 @@ func (s *ServiceUserRepositoryTestSuite) TestUpdateBootstrapSecretHash() {
 		ID: schema.BootstrapServiceUserID, OrgID: schema.PlatformOrgID.String(), Title: "bootstrap",
 	})
 	s.Require().NoError(err)
-	newCred := func(ownerID, title string) serviceuser.Credential {
+	newCred := func(ownerID, title string, typ serviceuser.CredentialType) serviceuser.Credential {
 		cred, err := s.credentialRepository.Create(s.ctx, serviceuser.Credential{
-			ServiceUserID: ownerID, Type: serviceuser.ClientSecretCredentialType, SecretHash: "old", Title: title,
+			ServiceUserID: ownerID, Type: typ, SecretHash: "old", Title: title,
 		})
 		s.Require().NoError(err)
 		return cred
@@ -117,7 +117,7 @@ func (s *ServiceUserRepositoryTestSuite) TestUpdateBootstrapSecretHash() {
 	}
 
 	s.Run("replaces the hash and keeps the row", func() {
-		cred := newCred(bootstrapSU.ID, "rotated")
+		cred := newCred(bootstrapSU.ID, "rotated", serviceuser.ClientSecretCredentialType)
 		s.Require().NoError(s.credentialRepository.UpdateBootstrapSecretHash(s.ctx, cred.ID, "new"))
 
 		got, err := s.credentialRepository.Get(s.ctx, cred.ID)
@@ -136,15 +136,23 @@ func (s *ServiceUserRepositoryTestSuite) TestUpdateBootstrapSecretHash() {
 	s.Run("leaves a credential of any other service user alone", func() {
 		other, err := s.repository.Create(s.ctx, serviceuser.ServiceUser{OrgID: s.orgID, Title: "other"})
 		s.Require().NoError(err)
-		cred := newCred(other.ID, "not bootstrap")
+		cred := newCred(other.ID, "not bootstrap", serviceuser.ClientSecretCredentialType)
 
 		err = s.credentialRepository.UpdateBootstrapSecretHash(s.ctx, cred.ID, "new")
 		s.Assert().ErrorIs(err, serviceuser.ErrCredNotExist)
 		s.Assert().Equal("old", storedHash(cred.ID))
 	})
 
+	s.Run("leaves a credential of another type alone", func() {
+		cred := newCred(bootstrapSU.ID, "key", serviceuser.JWTCredentialType)
+
+		err := s.credentialRepository.UpdateBootstrapSecretHash(s.ctx, cred.ID, "new")
+		s.Assert().ErrorIs(err, serviceuser.ErrCredNotExist)
+		s.Assert().Equal("old", storedHash(cred.ID))
+	})
+
 	s.Run("leaves a soft-deleted credential alone", func() {
-		cred := newCred(bootstrapSU.ID, "gone")
+		cred := newCred(bootstrapSU.ID, "gone", serviceuser.ClientSecretCredentialType)
 		_, err := s.client.ExecContext(s.ctx, "UPDATE serviceuser_credentials SET deleted_at = now() WHERE id = $1", cred.ID)
 		s.Require().NoError(err)
 

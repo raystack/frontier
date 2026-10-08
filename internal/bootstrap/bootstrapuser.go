@@ -100,6 +100,10 @@ func ensureBootstrapSuperUser(
 		return fmt.Errorf("bootstrap superuser: credential %q belongs to service user %q, want bootstrap service user %q",
 			clientID, cred.ServiceUserID, schema.BootstrapServiceUserID)
 	}
+	if cred.Type != serviceuser.ClientSecretCredentialType {
+		return fmt.Errorf("bootstrap superuser: credential %q has type %q, want %q",
+			clientID, cred.Type, serviceuser.ClientSecretCredentialType)
+	}
 
 	if bcrypt.CompareHashAndPassword([]byte(cred.SecretHash), []byte(cfg.ClientSecret)) != nil {
 		if err := rotateBootstrapSecret(ctx, cfg, clientID, creds); err != nil {

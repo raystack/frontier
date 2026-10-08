@@ -187,8 +187,8 @@ func (s ServiceUserCredentialRepository) Delete(ctx context.Context, id string) 
 	return nil
 }
 
-// UpdateBootstrapSecretHash updates the secret of a live credential that belongs
-// to the bootstrap service user. Any other credential reports not found.
+// UpdateBootstrapSecretHash updates the secret of a live client-secret credential
+// that belongs to the bootstrap service user. Any other credential reports not found.
 func (s ServiceUserCredentialRepository) UpdateBootstrapSecretHash(ctx context.Context, id, secretHash string) error {
 	if strings.TrimSpace(id) == "" {
 		return serviceuser.ErrInvalidKeyID
@@ -201,6 +201,7 @@ func (s ServiceUserCredentialRepository) UpdateBootstrapSecretHash(ctx context.C
 		goqu.Ex{
 			"id":             id,
 			"serviceuser_id": schema.BootstrapServiceUserID,
+			"type":           serviceuser.ClientSecretCredentialType.String(),
 		},
 		live(TABLE_SERVICEUSERCREDENTIALS),
 	).ToSQL()
