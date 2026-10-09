@@ -300,6 +300,27 @@ func (s *OrgKycRepositoryTestSuite) TestList() {
 	}
 }
 
+func (s *OrgKycRepositoryTestSuite) TestListSkipsSoftDeletedOrgs() {
+	s.Require().NoError(s.cleanup())
+
+	live, err := s.orgRepository.Create(s.ctx, organization.Organization{Name: "kyc-live-org"})
+	s.Require().NoError(err)
+	deleted, err := s.orgRepository.Create(s.ctx, organization.Organization{Name: "kyc-gone-org"})
+	s.Require().NoError(err)
+
+	_, err = s.repository.Upsert(s.ctx, kyc.KYC{OrgID: deleted.ID, Status: true, Link: "gone-link"})
+	s.Require().NoError(err)
+
+	_, err = s.client.ExecContext(s.ctx, "UPDATE organizations SET deleted_at = now() WHERE id = $1", deleted.ID)
+	s.Require().NoError(err)
+
+	got, err := s.repository.List(s.ctx)
+	s.Require().NoError(err)
+
+	s.Require().Len(got, 1)
+	s.Assert().Equal(live.ID, got[0].OrgID)
+}
+
 func TestOrganizationKYCRepository(t *testing.T) {
 	suite.Run(t, new(OrgKycRepositoryTestSuite))
 }
