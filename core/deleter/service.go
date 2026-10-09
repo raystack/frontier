@@ -303,9 +303,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 
 	// delete all related projects
-	projects, err := d.projService.List(ctx, project.Filter{
-		OrgID: id,
-	})
+	projects, err := d.listOrgProjects(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -316,7 +314,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 
 	// delete all related groups
-	groups, err := d.groupService.List(ctx, group.Filter{OrganizationID: id})
+	groups, err := d.listOrgGroups(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -542,6 +540,30 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 		return fmt.Errorf("failed to delete user PATs: %w", err)
 	}
 	return d.userService.Delete(ctx, userID)
+}
+
+func (d Service) listOrgProjects(ctx context.Context, orgID string) ([]project.Project, error) {
+	enabled, err := d.projService.List(ctx, project.Filter{OrgID: orgID})
+	if err != nil {
+		return nil, err
+	}
+	disabled, err := d.projService.List(ctx, project.Filter{OrgID: orgID, State: project.Disabled})
+	if err != nil {
+		return nil, err
+	}
+	return append(enabled, disabled...), nil
+}
+
+func (d Service) listOrgGroups(ctx context.Context, orgID string) ([]group.Group, error) {
+	enabled, err := d.groupService.List(ctx, group.Filter{OrganizationID: orgID})
+	if err != nil {
+		return nil, err
+	}
+	disabled, err := d.groupService.List(ctx, group.Filter{OrganizationID: orgID, State: group.Disabled})
+	if err != nil {
+		return nil, err
+	}
+	return append(enabled, disabled...), nil
 }
 
 // ensureDeletable collects everything that blocks deleting the organization and
