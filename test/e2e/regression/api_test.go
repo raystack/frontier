@@ -3152,6 +3152,76 @@ func (s *APIRegressionTestSuite) TestOrganizationRoleDeleteInUse() {
 	s.Require().NoError(err)
 }
 
+func (s *APIRegressionTestSuite) TestOrganizationDeleteHidesTheOrgAndRemovesWhatItOwned() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Title: "org soft delete",
+			Name:  "org-soft-delete",
+		},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	createDomainResp, err := s.testBench.Client.CreateOrganizationDomain(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationDomainRequest{
+		OrgId:  orgID,
+		Domain: "org-soft-delete.raystack.io",
+	}))
+	s.Require().NoError(err)
+	domainID := createDomainResp.Msg.GetDomain().GetId()
+
+	policiesResp, err := s.testBench.Client.ListPolicies(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{OrgId: orgID}))
+	s.Require().NoError(err)
+	policiesOnOrgBeforeDelete := policiesResp.Msg.GetPolicies()
+	s.Require().NotEmpty(policiesOnOrgBeforeDelete)
+
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+	s.Require().NoError(err)
+
+	s.Run("no live policy names the org as its resource", func() {
+		for _, policyBeforeDelete := range policiesOnOrgBeforeDelete {
+			_, err := s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyBeforeDelete.GetId()}))
+			s.Require().Error(err)
+			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		}
+	})
+
+	s.Run("the org is hidden from the superuser listing", func() {
+		listResp, err := s.testBench.AdminClient.ListAllOrganizations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAllOrganizationsRequest{}))
+		s.Require().NoError(err)
+		for _, org := range listResp.Msg.GetOrganizations() {
+			s.Assert().NotEqual(orgID, org.GetId())
+		}
+	})
+
+	s.Run("the org's domain is gone with it", func() {
+		_, err := s.testBench.Client.GetOrganizationDomain(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationDomainRequest{
+			OrgId: orgID,
+			Id:    domainID,
+		}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+
+	s.Run("a second delete is refused", func() {
+		_, err := s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+		s.Require().Error(err)
+		s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+	})
+
+	s.Run("a new org can take the name", func() {
+		recreateResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org soft delete again",
+				Name:  "org-soft-delete",
+			},
+		}))
+		s.Require().NoError(err)
+		s.Assert().NotEqual(orgID, recreateResp.Msg.GetOrganization().GetId())
+	})
+}
+
 func TestEndToEndAPIRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(APIRegressionTestSuite))
 }
