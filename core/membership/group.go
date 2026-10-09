@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
@@ -217,7 +218,7 @@ func (s *Service) RemoveAllGroupMembers(ctx context.Context, groupID string) err
 // Errors are joined; partial failures are logged so a retry can complete
 // the cleanup.
 func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
-	grp, err := s.groupService.Get(ctx, groupID)
+	grp, err := s.getGroupIncludingDisabled(ctx, groupID)
 	if err != nil {
 		return err
 	}
@@ -233,6 +234,21 @@ func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
 		errs = errors.Join(errs, fmt.Errorf("unlink group from org: %w", err))
 	}
 	return errs
+}
+
+func (s *Service) getGroupIncludingDisabled(ctx context.Context, groupID string) (group.Group, error) {
+	grp, err := s.groupService.Get(ctx, groupID)
+	if !errors.Is(err, group.ErrNotExist) {
+		return grp, err
+	}
+	disabled, listErr := s.groupService.List(ctx, group.Filter{GroupIDs: []string{groupID}, State: group.Disabled})
+	if listErr != nil {
+		return group.Group{}, listErr
+	}
+	if len(disabled) == 0 {
+		return group.Group{}, err
+	}
+	return disabled[0], nil
 }
 
 // removeGroupAsPrincipalPolicies deletes every policy where the given group

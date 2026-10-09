@@ -509,9 +509,40 @@ func TestService_OnGroupDeleted(t *testing.T) {
 		assert.NoError(t, svc.OnGroupDeleted(ctx, groupID))
 	})
 
+	t.Run("cleans up a disabled group that Get does not return", func(t *testing.T) {
+		policySvc := mocks.NewPolicyService(t)
+		relSvc := mocks.NewRelationService(t)
+		grpSvc := mocks.NewGroupService(t)
+
+		disabled := grp
+		disabled.State = group.Disabled
+		grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
+		grpSvc.EXPECT().List(ctx, group.Filter{GroupIDs: []string{groupID}, State: group.Disabled}).
+			Return([]group.Group{disabled}, nil)
+		policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID}).Return([]policy.Policy{}, nil)
+		policySvc.EXPECT().List(ctx, policy.Filter{
+			PrincipalType: schema.GroupPrincipal,
+			PrincipalID:   groupID,
+		}).Return([]policy.Policy{}, nil)
+		relSvc.EXPECT().Delete(ctx, relation.Relation{
+			Object:       relation.Object{ID: groupID, Namespace: schema.GroupNamespace},
+			Subject:      relation.Subject{ID: orgID, Namespace: schema.OrganizationNamespace},
+			RelationName: schema.OrganizationRelationName,
+		}).Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), policySvc, relSvc,
+			mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t),
+			mocks.NewProjectService(t), grpSvc, mocks.NewServiceuserService(t),
+			mocks.NewAuditRecordRepository(t))
+
+		assert.NoError(t, svc.OnGroupDeleted(ctx, groupID))
+	})
+
 	t.Run("returns error if group not found", func(t *testing.T) {
 		grpSvc := mocks.NewGroupService(t)
 		grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
+		grpSvc.EXPECT().List(ctx, group.Filter{GroupIDs: []string{groupID}, State: group.Disabled}).
+			Return([]group.Group{}, nil)
 
 		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
 			mocks.NewPolicyService(t), mocks.NewRelationService(t),

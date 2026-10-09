@@ -411,3 +411,31 @@ func TestService_List_PrincipalFilter(t *testing.T) {
 		assert.Empty(t, result)
 	})
 }
+
+func TestService_DeleteModel(t *testing.T) {
+	ctx := context.Background()
+	newSvc := func(t *testing.T) (*group.Service, *mocks.Repository) {
+		t.Helper()
+		mockRepo := mocks.NewRepository(t)
+		svc := group.NewService(mockRepo, mocks.NewRelationService(t), mocks.NewAuthnService(t), mocks.NewPolicyService(t))
+		return svc, mockRepo
+	}
+
+	t.Run("deletes a disabled group", func(t *testing.T) {
+		svc, repo := newSvc(t)
+		disabled := group.Group{ID: "grp-off", OrganizationID: "org-1", State: group.Disabled}
+		repo.EXPECT().GetByIDs(mock.Anything, []string{"grp-off"}, group.Filter{IncludeDisabled: true}).
+			Return([]group.Group{disabled}, nil)
+		repo.EXPECT().Delete(mock.Anything, "grp-off").Return(nil)
+
+		assert.NoError(t, svc.DeleteModel(ctx, "grp-off"))
+	})
+
+	t.Run("a group that does not exist is not found", func(t *testing.T) {
+		svc, repo := newSvc(t)
+		repo.EXPECT().GetByIDs(mock.Anything, []string{"grp-x"}, group.Filter{IncludeDisabled: true}).
+			Return([]group.Group{}, nil)
+
+		assert.ErrorIs(t, svc.DeleteModel(ctx, "grp-x"), group.ErrNotExist)
+	})
+}
