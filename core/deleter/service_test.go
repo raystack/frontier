@@ -63,6 +63,16 @@ type deleterMocks struct {
 
 func newMocks(t *testing.T) deleterMocks {
 	t.Helper()
+	m := newBareMocks(t)
+	m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
+		Return([]project.Project{}, nil).Maybe()
+	m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", State: group.Disabled}).
+		Return([]group.Group{}, nil).Maybe()
+	return m
+}
+
+func newBareMocks(t *testing.T) deleterMocks {
+	t.Helper()
 	m := deleterMocks{
 		orgSvc:      mocks.NewOrganizationService(t),
 		projSvc:     mocks.NewProjectService(t),
@@ -155,6 +165,25 @@ func TestDeleteProject(t *testing.T) {
 		err := m.build().DeleteProject(context.Background(), "proj-1")
 		assert.NoError(t, err)
 	})
+}
+
+func expectEmptyOrgTail(m deleterMocks, steps *[]string) {
+	m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+		Return([]serviceuser.ServiceUser{}, nil)
+	m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+		Return([]invitation.Invitation{}, nil)
+	m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+	m.domainSvc.EXPECT().List(mock.Anything, domain.Filter{OrgID: "org-1"}).
+		Return([]domain.Domain{}, nil)
+	m.patSvc.EXPECT().DeleteAllByOrg(mock.Anything, "org-1").Return(nil)
+	m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+		Return([]policy.Policy{}, nil)
+	m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+		Return([]role.Role{}, nil)
+	m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").
+		Run(func(context.Context, string) { *steps = append(*steps, "org") }).Return(nil)
+	m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+		Return(role.Role{}, errors.New("no owners in this test"))
 }
 
 // expectOwnerNotified wires the owner lookup and one delivered mail; a
@@ -266,6 +295,103 @@ func TestDeleteOrganization(t *testing.T) {
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
+	})
+
+	t.Run("disabled projects and groups are deleted with the org and the org row goes last", func(t *testing.T) {
+		m := newBareMocks(t)
+		var steps []string
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{{ID: "proj-on", Name: "on"}}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
+			Return([]project.Project{{ID: "proj-off", Name: "off", State: project.Disabled}}, nil)
+		for _, id := range []string{"proj-on", "proj-off"} {
+			m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: id}).
+				Return([]policy.Policy{}, nil)
+			m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: id, IncludeDeleted: true}).
+				Return([]resource.Resource{}, nil)
+			m.projSvc.EXPECT().DeleteModel(mock.Anything, id).
+				Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
+		}
+
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{{ID: "grp-on", Name: "on"}}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", State: group.Disabled}).
+			Return([]group.Group{{ID: "grp-off", Name: "off", State: group.Disabled}}, nil)
+		for _, id := range []string{"grp-on", "grp-off"} {
+			m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, id).Return(nil)
+			m.grpSvc.EXPECT().DeleteModel(mock.Anything, id).
+				Run(func(_ context.Context, id string) { steps = append(steps, "group:"+id) }).Return(nil)
+		}
+
+		expectEmptyOrgTail(m, &steps)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{
+			"project:proj-on", "project:proj-off", "group:grp-on", "group:grp-off", "org",
+		}, steps)
+	})
+
+	t.Run("an org with only enabled children lists nothing extra to delete", func(t *testing.T) {
+		m := newBareMocks(t)
+		var steps []string
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{{ID: "proj-on", Name: "on"}}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
+			Return([]project.Project{}, nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-on"}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-on", IncludeDeleted: true}).
+			Return([]resource.Resource{}, nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-on").
+			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{{ID: "grp-on", Name: "on"}}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", State: group.Disabled}).
+			Return([]group.Group{}, nil)
+		m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-on").Return(nil)
+		m.grpSvc.EXPECT().DeleteModel(mock.Anything, "grp-on").
+			Run(func(_ context.Context, id string) { steps = append(steps, "group:"+id) }).Return(nil)
+
+		expectEmptyOrgTail(m, &steps)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"project:proj-on", "group:grp-on", "org"}, steps)
+	})
+
+	t.Run("a failed disabled project delete stops before the org row", func(t *testing.T) {
+		m := newBareMocks(t)
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
+			Return([]project.Project{{ID: "proj-off", Name: "off", State: project.Disabled}}, nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-off"}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-off", IncludeDeleted: true}).
+			Return([]resource.Resource{}, nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-off").Return(errors.New("boom"))
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.ErrorContains(t, err, "project[off]")
 	})
 
 	t.Run("already deleted org returns not found without touching anything", func(t *testing.T) {

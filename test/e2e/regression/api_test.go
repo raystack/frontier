@@ -3222,6 +3222,106 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteHidesTheOrgAndRemovesWhat
 	})
 }
 
+func (s *APIRegressionTestSuite) TestOrganizationDeleteAlsoDeletesDisabledProjectsAndGroups() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	orgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Title: "org-disabled-children", Name: "org-disabled-children"},
+	}))
+	s.Require().NoError(err)
+	orgID := orgResp.Msg.GetOrganization().GetId()
+
+	createProject := func(name string) string {
+		resp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: name, OrgId: orgID},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetProject().GetId()
+	}
+	createGroup := func(name string) string {
+		resp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+			OrgId: orgID,
+			Body:  &frontierv1beta1.GroupRequestBody{Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetGroup().GetId()
+	}
+
+	enabledProjectID := createProject("enabled-project")
+	disabledProjectID := createProject("disabled-project")
+	enabledGroupID := createGroup("enabled-group")
+	disabledGroupID := createGroup("disabled-group")
+
+	_, err = s.testBench.Client.DisableProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableProjectRequest{Id: disabledProjectID}))
+	s.Require().NoError(err)
+	_, err = s.testBench.Client.DisableGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableGroupRequest{Id: disabledGroupID}))
+	s.Require().NoError(err)
+
+	policyIDs := func(req *frontierv1beta1.ListPoliciesRequest) []string {
+		resp, err := s.testBench.Client.ListPolicies(ctxOrgAdminAuth, connect.NewRequest(req))
+		s.Require().NoError(err)
+		ids := []string{}
+		for _, p := range resp.Msg.GetPolicies() {
+			ids = append(ids, p.GetId())
+		}
+		return ids
+	}
+	disabledProjectPolicyIDs := policyIDs(&frontierv1beta1.ListPoliciesRequest{ProjectId: disabledProjectID})
+	disabledGroupPolicyIDs := policyIDs(&frontierv1beta1.ListPoliciesRequest{GroupId: disabledGroupID})
+	s.Require().NotEmpty(disabledProjectPolicyIDs)
+	s.Require().NotEmpty(disabledGroupPolicyIDs)
+
+	enabledProjects, err := s.testBench.AdminClient.ListProjects(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListProjectsRequest{OrgId: orgID}))
+	s.Require().NoError(err)
+	s.Require().Len(enabledProjects.Msg.GetProjects(), 1)
+	s.Require().Equal(enabledProjectID, enabledProjects.Msg.GetProjects()[0].GetId())
+	enabledGroups, err := s.testBench.AdminClient.ListGroups(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupsRequest{OrgId: orgID}))
+	s.Require().NoError(err)
+	s.Require().Len(enabledGroups.Msg.GetGroups(), 1)
+	s.Require().Equal(enabledGroupID, enabledGroups.Msg.GetGroups()[0].GetId())
+	disabledProjects, err := s.testBench.AdminClient.ListProjects(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListProjectsRequest{OrgId: orgID, State: "disabled"}))
+	s.Require().NoError(err)
+	s.Require().Len(disabledProjects.Msg.GetProjects(), 1)
+	s.Require().Equal(disabledProjectID, disabledProjects.Msg.GetProjects()[0].GetId())
+	disabledGroups, err := s.testBench.AdminClient.ListGroups(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupsRequest{OrgId: orgID, State: "disabled"}))
+	s.Require().NoError(err)
+	s.Require().Len(disabledGroups.Msg.GetGroups(), 1)
+	s.Require().Equal(disabledGroupID, disabledGroups.Msg.GetGroups()[0].GetId())
+
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+	s.Require().NoError(err)
+
+	s.Run("no project row of the org is left, disabled ones included", func() {
+		for _, state := range []string{"", "disabled"} {
+			resp, err := s.testBench.AdminClient.ListProjects(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListProjectsRequest{OrgId: orgID, State: state}))
+			s.Require().NoError(err)
+			s.Assert().Empty(resp.Msg.GetProjects(), "state %q", state)
+		}
+	})
+
+	s.Run("no group row of the org is left, disabled ones included", func() {
+		for _, state := range []string{"", "disabled"} {
+			resp, err := s.testBench.AdminClient.ListGroups(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupsRequest{OrgId: orgID, State: state}))
+			s.Require().NoError(err)
+			s.Assert().Empty(resp.Msg.GetGroups(), "state %q", state)
+		}
+	})
+
+	s.Run("no policy of the disabled project or group is left", func() {
+		for _, id := range append(disabledProjectPolicyIDs, disabledGroupPolicyIDs...) {
+			_, err := s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: id}))
+			s.Require().Error(err)
+			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		}
+	})
+
+	s.Run("the org is gone, a second delete is refused", func() {
+		_, err := s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+		s.Require().Error(err)
+		s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+	})
+}
+
 func TestEndToEndAPIRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(APIRegressionTestSuite))
 }
