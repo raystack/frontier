@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/core/audit"
 
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/domain"
 
 	"github.com/raystack/frontier/billing"
 
@@ -95,6 +96,12 @@ type UserService interface {
 
 type UserPATService interface {
 	DeleteAllByUser(ctx context.Context, userID string) error
+	DeleteAllByOrg(ctx context.Context, orgID string) error
+}
+
+type DomainService interface {
+	List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type ServiceUserService interface {
@@ -149,6 +156,7 @@ type Service struct {
 	invitationService  InvitationService
 	userService        UserService
 	userPATService     UserPATService
+	domainService      DomainService
 	serviceUserService ServiceUserService
 	customerService    CustomerService
 	subService         SubscriptionService
@@ -168,7 +176,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	membershipService MembershipService,
 	policyService PolicyService, roleService RoleService,
 	invitationService InvitationService, userService UserService,
-	userPATService UserPATService,
+	userPATService UserPATService, domainService DomainService,
 	serviceUserService ServiceUserService,
 	customerService CustomerService, subService SubscriptionService,
 	invoiceService InvoiceService, checkoutService CheckoutService,
@@ -186,6 +194,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		invitationService:  invitationService,
 		userService:        userService,
 		userPATService:     userPATService,
+		domainService:      domainService,
 		serviceUserService: serviceUserService,
 		customerService:    customerService,
 		subService:         subService,
@@ -343,6 +352,20 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	// before the policies so a failure here leaves the org owned
 	if err := d.kycService.DeleteKyc(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete org while deleting its kyc record: %w", err)
+	}
+
+	domains, err := d.domainService.List(ctx, domain.Filter{OrgID: id})
+	if err != nil {
+		return err
+	}
+	for _, dmn := range domains {
+		if err = d.domainService.Delete(ctx, dmn.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a domain[%s]: %w", dmn.Name, err)
+		}
+	}
+
+	if err := d.userPATService.DeleteAllByOrg(ctx, id); err != nil {
+		return fmt.Errorf("failed to delete org while deleting its personal access tokens: %w", err)
 	}
 
 	// delete all policies; this removes the org owners, so it stays after the
