@@ -150,17 +150,20 @@ func (s *Service) Delete(ctx context.Context, userID, id string) error {
 	if pat.UserID != userID {
 		return paterrors.ErrNotFound
 	}
+	return s.softDeleteThenRemovePolicies(ctx, pat)
+}
 
-	if err := s.repo.Delete(ctx, id); err != nil {
+func (s *Service) softDeleteThenRemovePolicies(ctx context.Context, pat patmodels.PAT) error {
+	if err := s.repo.Delete(ctx, pat.ID); err != nil {
 		return fmt.Errorf("soft deleting PAT: %w", err)
 	}
 
-	if err := s.membershipService.RemoveAllPATPolicies(ctx, id); err != nil {
+	if err := s.membershipService.RemoveAllPATPolicies(ctx, pat.ID); err != nil {
 		return fmt.Errorf("deleting policies: %w", err)
 	}
 
 	if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRevokedEvent, pat, time.Now().UTC(), nil); err != nil {
-		s.logger.ErrorContext(ctx, "failed to create audit record for PAT revocation", "pat_id", id, "error", err)
+		s.logger.ErrorContext(ctx, "failed to create audit record for PAT revocation", "pat_id", pat.ID, "error", err)
 	}
 
 	return nil
@@ -174,6 +177,19 @@ func (s *Service) DeleteAllByUser(ctx context.Context, userID string) error {
 	}
 	for _, pat := range pats {
 		if err := s.Delete(ctx, userID, pat.ID); err != nil {
+			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) DeleteAllByOrg(ctx context.Context, orgID string) error {
+	pats, err := s.repo.ListByOrg(ctx, orgID)
+	if err != nil {
+		return fmt.Errorf("listing PATs for org: %w", err)
+	}
+	for _, pat := range pats {
+		if err := s.softDeleteThenRemovePolicies(ctx, pat); err != nil {
 			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
 		}
 	}
