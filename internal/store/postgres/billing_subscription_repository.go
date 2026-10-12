@@ -450,7 +450,7 @@ func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscrip
 }
 
 func (r BillingSubscriptionRepository) Delete(ctx context.Context, id string) error {
-	stmt := dialect.Delete(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+	stmt := softDelete(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
