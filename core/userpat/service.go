@@ -190,11 +190,33 @@ func (s *Service) DeleteAllByOrg(ctx context.Context, orgID string) error {
 		return fmt.Errorf("listing PATs for org: %w", err)
 	}
 	for _, pat := range pats {
-		if err := s.softDeleteThenRemovePolicies(ctx, pat); err != nil {
-			if errors.Is(err, paterrors.ErrNotFound) {
-				continue
-			}
+		if err := s.revokeOrgPAT(ctx, pat); err != nil {
 			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) revokeOrgPAT(ctx context.Context, pat patmodels.PAT) error {
+	softDeleted := false
+	if pat.DeletedAt == nil {
+		err := s.repo.Delete(ctx, pat.ID)
+		switch {
+		case err == nil:
+			softDeleted = true
+		case errors.Is(err, paterrors.ErrNotFound):
+		default:
+			return fmt.Errorf("soft deleting PAT: %w", err)
+		}
+	}
+
+	if err := s.membershipService.RemoveAllPATPolicies(ctx, pat.ID); err != nil {
+		return fmt.Errorf("deleting policies: %w", err)
+	}
+
+	if softDeleted {
+		if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRevokedEvent, pat, time.Now().UTC(), nil); err != nil {
+			s.logger.ErrorContext(ctx, "failed to create audit record for PAT revocation", "pat_id", pat.ID, "error", err)
 		}
 	}
 	return nil
