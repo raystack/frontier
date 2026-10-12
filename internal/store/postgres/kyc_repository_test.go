@@ -315,13 +315,13 @@ func (s *OrgKycRepositoryTestSuite) TestOrgIDIsUniqueOverLiveRowsOnly() {
 	orgID := s.kycs[0].OrgID
 
 	s.Run("a live row cannot be duplicated", func() {
-		s.Assert().Error(s.insertKycRow(orgID))
+		s.Assert().ErrorContains(s.insertKycRow(orgID), "uq_organizations_kyc_org_id_live")
 	})
 
 	s.Run("a soft deleted row and a live row coexist", func() {
 		s.softDeleteKycRow(orgID)
 		s.Require().NoError(s.insertKycRow(orgID))
-		s.Assert().Error(s.insertKycRow(orgID))
+		s.Assert().ErrorContains(s.insertKycRow(orgID), "uq_organizations_kyc_org_id_live")
 	})
 }
 
