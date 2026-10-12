@@ -7,6 +7,7 @@ import (
 
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
@@ -47,7 +48,7 @@ func (s *BillingCustomerRepositoryPGTestSuite) SetupTest() {
 
 func (s *BillingCustomerRepositoryPGTestSuite) TearDownTest() {
 	queries := []string{}
-	for _, table := range []string{postgres.TABLE_BILLING_CUSTOMERS, postgres.TABLE_ORGANIZATIONS} {
+	for _, table := range []string{postgres.TABLE_BILLING_CHECKOUTS, postgres.TABLE_BILLING_PLANS, postgres.TABLE_BILLING_CUSTOMERS, postgres.TABLE_ORGANIZATIONS, postgres.TABLE_AUDITRECORDS} {
 		queries = append(queries, fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table))
 	}
 	if err := execQueries(s.ctx, s.client, queries); err != nil {
@@ -118,4 +119,63 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestUpdateCreditMinByIDSkipsDelet
 
 func TestBillingCustomerRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingCustomerRepositoryPGTestSuite))
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteKeepsTheRowAndHidesIt() {
+	id := s.customerID("bc-cust-live")
+
+	s.Require().NoError(s.repository.Delete(s.ctx, id))
+
+	deletedAt := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT coalesce(deleted_at::text, '') FROM billing_customers WHERE id = $1`, id)
+	s.NotEmpty(deletedAt, "the row stays with its delete time")
+	occurredAt := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT occurred_at::text FROM audit_records WHERE event = $1 AND resource_id = $2`,
+		string(auditrecord.BillingCustomerDeletedEvent), id)
+	s.Equal(deletedAt, occurredAt, "the audit record carries the delete time")
+	_, err := s.repository.GetByID(s.ctx, id)
+	s.ErrorIs(err, customer.ErrNotFound)
+	s.ErrorIs(s.repository.Delete(s.ctx, id), customer.ErrNotFound, "a second delete answers not found")
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteRefusesWhileLiveRecordsPointAtTheAccount() {
+	cases := []struct {
+		table string
+		seed  string
+	}{
+		{
+			table: "billing_subscriptions",
+			seed: `INSERT INTO billing_subscriptions (customer_id, provider_id, plan_id, state)
+				VALUES ($1, 'bc-sub', (SELECT id FROM billing_plans WHERE name = 'bc-plan'), 'active')`,
+		},
+		{
+			table: "billing_invoices",
+			seed: `INSERT INTO billing_invoices (customer_id, provider_id, amount, currency, hosted_url, state)
+				VALUES ($1, 'bc-inv', 100, 'usd', 'bc-inv', 'open')`,
+		},
+		{
+			table: "billing_checkouts",
+			seed: `INSERT INTO billing_checkouts (customer_id, provider_id, checkout_url, state)
+				VALUES ($1, 'bc-session', 'bc-session', 'pending')`,
+		},
+	}
+	for _, tc := range cases {
+		s.Run(tc.table, func() {
+			s.exec(`INSERT INTO billing_plans (name, description) VALUES ('bc-plan', 'plan under test')`)
+			id := s.customerID("bc-cust-live")
+			s.exec(tc.seed, id)
+
+			s.ErrorIs(s.repository.Delete(s.ctx, id), customer.ErrHasLiveRecords)
+			s.Equal("", scalarSQL(s.T(), s.ctx, s.client,
+				`SELECT coalesce(deleted_at::text, '') FROM billing_customers WHERE id = $1`, id),
+				"the refused delete leaves the row live")
+
+			s.exec(fmt.Sprintf(`UPDATE %s SET deleted_at = now() WHERE customer_id = $1`, tc.table), id)
+			s.NoError(s.repository.Delete(s.ctx, id), "a deleted child no longer blocks")
+
+			s.exec(`TRUNCATE TABLE billing_plans RESTART IDENTITY CASCADE`)
+			s.exec(`UPDATE billing_customers SET deleted_at = NULL WHERE id = $1`, id)
+			s.exec(fmt.Sprintf(`DELETE FROM %s`, tc.table))
+		})
+	}
 }
