@@ -300,6 +300,30 @@ func (s *OrgKycRepositoryTestSuite) TestList() {
 	}
 }
 
+func (s *OrgKycRepositoryTestSuite) softDeleteKycRow(orgID string) {
+	_, err := s.client.ExecContext(s.ctx, "UPDATE organizations_kyc SET deleted_at = now() WHERE org_id = $1 AND deleted_at IS NULL", orgID)
+	s.Require().NoError(err)
+}
+
+func (s *OrgKycRepositoryTestSuite) insertKycRow(orgID string) error {
+	_, err := s.client.ExecContext(s.ctx, "INSERT INTO organizations_kyc (org_id, status, link) VALUES ($1, false, '')", orgID)
+	return err
+}
+
+func (s *OrgKycRepositoryTestSuite) TestOrgIDIsUniqueOverLiveRowsOnly() {
+	orgID := s.kycs[0].OrgID
+
+	s.Run("a live row cannot be duplicated", func() {
+		s.Assert().Error(s.insertKycRow(orgID))
+	})
+
+	s.Run("a soft deleted row and a live row coexist", func() {
+		s.softDeleteKycRow(orgID)
+		s.Require().NoError(s.insertKycRow(orgID))
+		s.Assert().Error(s.insertKycRow(orgID))
+	})
+}
+
 func TestOrganizationKYCRepository(t *testing.T) {
 	suite.Run(t, new(OrgKycRepositoryTestSuite))
 }
