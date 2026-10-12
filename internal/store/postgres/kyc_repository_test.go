@@ -324,6 +324,14 @@ func (s *OrgKycRepositoryTestSuite) TestOrgIDIsUniqueOverLiveRowsOnly() {
 	})
 }
 
+func (s *OrgKycRepositoryTestSuite) TestGetByOrgIDSkipsSoftDeletedRow() {
+	orgID := s.kycs[0].OrgID
+	s.softDeleteKycRow(orgID)
+
+	_, err := s.repository.GetByOrgID(s.ctx, orgID)
+	s.Assert().ErrorIs(err, kyc.ErrNotExist)
+}
+
 func TestOrganizationKYCRepository(t *testing.T) {
 	suite.Run(t, new(OrgKycRepositoryTestSuite))
 }
