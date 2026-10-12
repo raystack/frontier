@@ -407,6 +407,26 @@ func (s *OrgKycRepositoryTestSuite) TestDelete() {
 	})
 }
 
+func (s *OrgKycRepositoryTestSuite) TestListIgnoresSoftDeletedKyc() {
+	s.Require().NoError(s.cleanup())
+	deletedOrgID := s.orgWithKyc("org-with-deleted-kyc")
+	liveOrgID := s.orgWithKyc("org-with-live-kyc")
+	s.Require().NoError(s.repository.Delete(s.ctx, deletedOrgID))
+
+	got, err := s.repository.List(s.ctx)
+
+	s.Require().NoError(err)
+	byOrg := map[string]kyc.KYC{}
+	for _, k := range got {
+		byOrg[k.OrgID] = k
+	}
+	s.Require().Len(got, 2)
+	s.Assert().False(byOrg[deletedOrgID].Status)
+	s.Assert().Equal("", byOrg[deletedOrgID].Link)
+	s.Assert().True(byOrg[liveOrgID].Status)
+	s.Assert().Equal("abcd", byOrg[liveOrgID].Link)
+}
+
 func TestOrganizationKYCRepository(t *testing.T) {
 	suite.Run(t, new(OrgKycRepositoryTestSuite))
 }
