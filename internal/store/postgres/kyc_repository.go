@@ -86,10 +86,6 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 	}
 	var result kycWithOrgName
 
-	if err := r.ensureLiveOrg(ctx, input.OrgID); err != nil {
-		return kyc.KYC{}, err
-	}
-
 	_, err := r.GetByOrgID(ctx, input.OrgID)
 	if err == nil {
 		// kyc for org exists, prepare UPDATE query with JOIN
@@ -117,21 +113,20 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 			return kyc.KYC{}, fmt.Errorf("%w: %w", errQuery, err)
 		}
 	} else if err.Error() == kyc.ErrNotExist.Error() {
-		// kyc for org doesn't exist, prepare INSERT query with subquery for org name
-		orgNameSubquery := fromLive(TABLE_ORGANIZATIONS).
-			Select("title").
+		// kyc for org doesn't exist, prepare INSERT from the live org row
+		liveOrg := fromLive(TABLE_ORGANIZATIONS).
+			Select(goqu.I("id"), goqu.V(input.Status), goqu.V(input.Link)).
 			Where(goqu.Ex{"id": input.OrgID})
+		inserted := dialect.Insert(TABLE_ORGANIZATIONS_KYC).
+			Cols("org_id", "status", "link").
+			FromQuery(liveOrg).
+			Returning(goqu.I(TABLE_ORGANIZATIONS_KYC + ".*"))
 
-		query, params, err = dialect.Insert(TABLE_ORGANIZATIONS_KYC).
-			Rows(goqu.Record{
-				"org_id": input.OrgID,
-				"status": input.Status,
-				"link":   input.Link,
-			}).
-			Returning(
-				goqu.I(TABLE_ORGANIZATIONS_KYC+".*"),
-				orgNameSubquery.As("org_name"),
-			).ToSQL()
+		query, params, err = dialect.From("inserted").
+			With("inserted", inserted).
+			Join(goqu.T(TABLE_ORGANIZATIONS), goqu.On(goqu.I(TABLE_ORGANIZATIONS+".id").Eq(goqu.I("inserted.org_id")))).
+			Select(goqu.I("inserted.*"), goqu.I(TABLE_ORGANIZATIONS+".title").As("org_name")).
+			ToSQL()
 		if err != nil {
 			return kyc.KYC{}, fmt.Errorf("%w: %w", errQuery, err)
 		}
@@ -146,6 +141,9 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS_KYC, "Upsert", func(ctx context.Context) error {
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&result); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return kyc.ErrOrgDoesntExist
+				}
 				return err
 			}
 
@@ -183,40 +181,16 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 		switch {
 		case errors.Is(err, ErrCheckViolation):
 			return kyc.KYC{}, kyc.ErrKycLinkNotSet
-		case errors.Is(err, ErrForeignKeyViolation):
+		case errors.Is(err, ErrForeignKeyViolation), errors.Is(err, kyc.ErrOrgDoesntExist):
 			return kyc.KYC{}, kyc.ErrOrgDoesntExist
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return kyc.KYC{}, kyc.ErrInvalidUUID
 		default:
 			return kyc.KYC{}, err
 		}
 	}
 
 	return result.KYC.transformToKyc()
-}
-
-func (r OrgKycRepository) ensureLiveOrg(ctx context.Context, orgID string) error {
-	query, params, err := fromLive(TABLE_ORGANIZATIONS).
-		Select(goqu.L("1")).
-		Where(goqu.Ex{"id": orgID}).
-		ToSQL()
-	if err != nil {
-		return fmt.Errorf("%w: %w", errQuery, err)
-	}
-
-	var found int
-	err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "EnsureLiveOrg", func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &found, query, params...)
-	})
-	err = checkPostgresError(err)
-	switch {
-	case err == nil:
-		return nil
-	case errors.Is(err, sql.ErrNoRows):
-		return kyc.ErrOrgDoesntExist
-	case errors.Is(err, ErrInvalidTextRepresentation):
-		return kyc.ErrInvalidUUID
-	default:
-		return err
-	}
 }
 
 // Delete marks the kyc record of an org as deleted and keeps the row. Deleting
