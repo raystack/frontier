@@ -302,7 +302,8 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 	defer s.mu.Unlock()
 
 	invoiceObs, err := s.repository.List(ctx, Filter{
-		CustomerID: customr.ID,
+		CustomerID:     customr.ID,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return err
@@ -325,6 +326,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		existingInvoice, ok := utils.FindFirst(invoiceObs, func(i Invoice) bool {
 			return i.ProviderID == stripeInvoice.ID
 		})
+		if ok && !existingInvoice.DeletedAt.IsZero() {
+			continue
+		}
 		if ok {
 			err = s.upsert(ctx, customr.ID, &existingInvoice, stripeInvoice)
 		} else {
