@@ -360,6 +360,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, dmn := range domains {
 		if err = d.domainService.Delete(ctx, dmn.ID); err != nil {
+			if errors.Is(err, domain.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a domain[%s]: %w", dmn.Name, err)
 		}
 	}

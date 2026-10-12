@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -864,6 +865,40 @@ func TestDeleteOrganization(t *testing.T) {
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "domain delete failed")
 		assert.ErrorContains(t, err, "acme.test")
+	})
+
+	t.Run("a domain that is already gone is skipped and the next one is deleted", func(t *testing.T) {
+		m := newMocks(t)
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+			Return([]project.Project{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{}, nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		m.domainSvc.EXPECT().List(mock.Anything, domain.Filter{OrgID: "org-1"}).
+			Return([]domain.Domain{{ID: "dom-1", Name: "gone.test"}, {ID: "dom-2", Name: "acme.test"}}, nil)
+		m.domainSvc.EXPECT().Delete(mock.Anything, "dom-1").Return(fmt.Errorf("get domain: %w", domain.ErrNotExist))
+		m.domainSvc.EXPECT().Delete(mock.Anything, "dom-2").Return(nil).Once()
+		m.patSvc.EXPECT().DeleteAllByOrg(mock.Anything, "org-1").Return(nil)
+		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").Return(nil)
+
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+			Return([]policy.Policy{}, nil)
+		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+			Return([]role.Role{}, nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
 	})
 
 	t.Run("token delete failure stops before the org policies", func(t *testing.T) {
