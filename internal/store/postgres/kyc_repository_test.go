@@ -430,3 +430,54 @@ func (s *OrgKycRepositoryTestSuite) TestListIgnoresSoftDeletedKyc() {
 func TestOrganizationKYCRepository(t *testing.T) {
 	suite.Run(t, new(OrgKycRepositoryTestSuite))
 }
+
+func (s *OrgKycRepositoryTestSuite) softDeleteOrg(orgID string) {
+	_, err := s.client.ExecContext(s.ctx, "UPDATE organizations SET deleted_at = now() WHERE id = $1", orgID)
+	s.Require().NoError(err)
+}
+
+func (s *OrgKycRepositoryTestSuite) kycAuditCount(orgID string) int {
+	var n int
+	err := s.client.QueryRowxContext(s.ctx, fmt.Sprintf(
+		"SELECT count(*) FROM %s WHERE target_id = $1 AND event IN ('kyc.verified', 'kyc.unverified')", postgres.TABLE_AUDITRECORDS),
+		orgID).Scan(&n)
+	s.Require().NoError(err)
+	return n
+}
+
+func (s *OrgKycRepositoryTestSuite) TestUpsertRefusesSoftDeletedOrg() {
+	s.Run("first time insert writes nothing", func() {
+		org, err := s.orgRepository.Create(s.ctx, organization.Organization{Name: "deleted-org-no-kyc"})
+		s.Require().NoError(err)
+		s.softDeleteOrg(org.ID)
+
+		_, err = s.repository.Upsert(s.ctx, kyc.KYC{OrgID: org.ID, Status: true, Link: "abcd"})
+
+		s.Assert().ErrorIs(err, kyc.ErrOrgDoesntExist)
+		s.Assert().Empty(s.deletedAtOf(org.ID))
+		s.Assert().Equal(0, s.kycAuditCount(org.ID))
+	})
+
+	s.Run("existing kyc row stays unchanged", func() {
+		orgID := s.orgWithKyc("deleted-org-with-kyc")
+		auditsBefore := s.kycAuditCount(orgID)
+		s.softDeleteOrg(orgID)
+
+		_, err := s.repository.Upsert(s.ctx, kyc.KYC{OrgID: orgID, Status: false, Link: "changed"})
+
+		s.Assert().ErrorIs(err, kyc.ErrOrgDoesntExist)
+		var status bool
+		var link string
+		s.Require().NoError(s.client.QueryRowxContext(s.ctx, "SELECT status, link FROM organizations_kyc WHERE org_id = $1", orgID).Scan(&status, &link))
+		s.Assert().True(status)
+		s.Assert().Equal("abcd", link)
+		s.Assert().Equal(auditsBefore, s.kycAuditCount(orgID))
+	})
+
+	s.Run("live org still works", func() {
+		orgID := s.orgWithKyc("live-org")
+		got, err := s.repository.Upsert(s.ctx, kyc.KYC{OrgID: orgID, Status: true, Link: "new-link"})
+		s.Require().NoError(err)
+		s.Assert().Equal("new-link", got.Link)
+	})
+}
