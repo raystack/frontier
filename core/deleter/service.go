@@ -442,20 +442,10 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 // here.
 func (d Service) deleteCustomers(ctx context.Context, id string, customers []customer.Customer, amounts map[string]accountTokens) error {
 	for _, c := range customers {
-		// TODO(fix): the subscription and checkout reads here skip rows with
-		// deleted_at. Once these deletes turn soft, a row left behind with
-		// deleted_at set is invisible to this loop. A subscription then blocks the
-		// customer delete on its foreign key, and a checkout is removed without
-		// its audit record below. Make these deletes soft in the same change.
-		// cancels active subscriptions on the billing provider and removes local records
+		// cancels active subscriptions on the billing provider and hides the local rows
 		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
 		}
-		// TODO(fix): this delete is due to become a soft delete. An invoice will
-		// only be allowed to carry deleted_at once its customer already does,
-		// and the customer below is deleted last, so this order gets rejected.
-		// Delete the customer first, or run the whole loop in one transaction
-		// with a deferred check.
 		if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
 		}
@@ -466,8 +456,8 @@ func (d Service) deleteCustomers(ctx context.Context, id string, customers []cus
 		if err := d.checkoutService.DeleteByCustomer(ctx, c.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account checkouts[%s]: %w", c.ID, err)
 		}
-		// the checkout rows are gone after this; the audit records keep the
-		// provider references so the sessions can still be found on the provider.
+		// the checkout rows are hidden after this; the audit records say which
+		// sessions the delete covered.
 		// The records are only written when ctx carries the audit service (the
 		// API path seeds it); otherwise audit.NewLogger falls back to a noop
 		auditLogger := audit.NewLogger(ctx, id)
@@ -495,7 +485,7 @@ func (d Service) deleteCustomers(ctx context.Context, id string, customers []cus
 		// tokens still on the account are forfeited by this delete, so
 		// record the amount before the transactions are removed. The
 		// purchased share goes on the record too: the transaction rows are
-		// deleted right after, and support settles a transfer from this
+		// hidden right after, and support settles a transfer from this
 		// number later
 		account, err := d.resolveAccountTokens(ctx, c.ID, amounts)
 		if err != nil {

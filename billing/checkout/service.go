@@ -788,7 +788,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
 	return s.repository.List(ctx, filter)
 }
 
-// DeleteByCustomer removes all checkout records of a billing account. Checkout
+// DeleteByCustomer marks every checkout of a billing account as deleted. Checkout
 // sessions on the billing provider are not touched as they expire on their own.
 func (s *Service) DeleteByCustomer(ctx context.Context, customerID string) error {
 	return s.repository.DeleteByCustomerID(ctx, customerID)
