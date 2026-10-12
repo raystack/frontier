@@ -27,6 +27,7 @@ type PAT struct {
 	ExpiresAt     time.Time  `rql:"name=expires_at,type=datetime"`
 	CreatedAt     time.Time  `rql:"name=created_at,type=datetime"`
 	UpdatedAt     time.Time  `rql:"name=updated_at,type=datetime"`
+	DeletedAt     *time.Time
 }
 
 type PATList struct {

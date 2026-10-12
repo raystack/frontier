@@ -418,12 +418,12 @@ func (_c *Repository_List_Call) RunAndReturn(run func(context.Context, string, s
 	return _c
 }
 
-// ListByOrg provides a mock function with given fields: ctx, orgID
-func (_m *Repository) ListByOrg(ctx context.Context, orgID string) ([]models.PAT, error) {
+// ListAllByOrg provides a mock function with given fields: ctx, orgID
+func (_m *Repository) ListAllByOrg(ctx context.Context, orgID string) ([]models.PAT, error) {
 	ret := _m.Called(ctx, orgID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListByOrg")
+		panic("no return value specified for ListAllByOrg")
 	}
 
 	var r0 []models.PAT
@@ -448,31 +448,31 @@ func (_m *Repository) ListByOrg(ctx context.Context, orgID string) ([]models.PAT
 	return r0, r1
 }
 
-// Repository_ListByOrg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByOrg'
-type Repository_ListByOrg_Call struct {
+// Repository_ListAllByOrg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllByOrg'
+type Repository_ListAllByOrg_Call struct {
 	*mock.Call
 }
 
-// ListByOrg is a helper method to define mock.On call
+// ListAllByOrg is a helper method to define mock.On call
 //   - ctx context.Context
 //   - orgID string
-func (_e *Repository_Expecter) ListByOrg(ctx interface{}, orgID interface{}) *Repository_ListByOrg_Call {
-	return &Repository_ListByOrg_Call{Call: _e.mock.On("ListByOrg", ctx, orgID)}
+func (_e *Repository_Expecter) ListAllByOrg(ctx interface{}, orgID interface{}) *Repository_ListAllByOrg_Call {
+	return &Repository_ListAllByOrg_Call{Call: _e.mock.On("ListAllByOrg", ctx, orgID)}
 }
 
-func (_c *Repository_ListByOrg_Call) Run(run func(ctx context.Context, orgID string)) *Repository_ListByOrg_Call {
+func (_c *Repository_ListAllByOrg_Call) Run(run func(ctx context.Context, orgID string)) *Repository_ListAllByOrg_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *Repository_ListByOrg_Call) Return(_a0 []models.PAT, _a1 error) *Repository_ListByOrg_Call {
+func (_c *Repository_ListAllByOrg_Call) Return(_a0 []models.PAT, _a1 error) *Repository_ListAllByOrg_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Repository_ListByOrg_Call) RunAndReturn(run func(context.Context, string) ([]models.PAT, error)) *Repository_ListByOrg_Call {
+func (_c *Repository_ListAllByOrg_Call) RunAndReturn(run func(context.Context, string) ([]models.PAT, error)) *Repository_ListAllByOrg_Call {
 	_c.Call.Return(run)
 	return _c
 }

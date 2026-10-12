@@ -1984,13 +1984,13 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 
 	t.Run("no-op when the org has no PATs", func(t *testing.T) {
 		svc, repo, _, _ := newService(t)
-		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(nil, nil)
+		repo.EXPECT().ListAllByOrg(mock.Anything, "org-1").Return(nil, nil)
 		assert.NoError(t, svc.DeleteAllByOrg(context.Background(), "org-1"))
 	})
 
 	t.Run("returns error when the org list fails", func(t *testing.T) {
 		svc, repo, _, _ := newService(t)
-		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(nil, errors.New("db down"))
+		repo.EXPECT().ListAllByOrg(mock.Anything, "org-1").Return(nil, errors.New("db down"))
 		err := svc.DeleteAllByOrg(context.Background(), "org-1")
 		assert.ErrorContains(t, err, "listing PATs for org")
 		assert.ErrorContains(t, err, "db down")
@@ -2002,7 +2002,7 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 			{ID: "pat-1", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
 			{ID: "pat-2", UserID: "user-2", OrgID: "org-1", Title: "t2", ExpiresAt: time.Now().Add(time.Hour)},
 		}
-		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(pats, nil)
+		repo.EXPECT().ListAllByOrg(mock.Anything, "org-1").Return(pats, nil)
 
 		var calls []string
 		for _, pat := range pats {
@@ -2033,7 +2033,7 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 			{ID: "pat-bad", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
 			{ID: "pat-2", UserID: "user-1", OrgID: "org-1", Title: "t2", ExpiresAt: time.Now().Add(time.Hour)},
 		}
-		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(pats, nil)
+		repo.EXPECT().ListAllByOrg(mock.Anything, "org-1").Return(pats, nil)
 		repo.EXPECT().Delete(mock.Anything, "pat-bad").Return(errors.New("db down"))
 
 		err := svc.DeleteAllByOrg(context.Background(), "org-1")
@@ -2048,7 +2048,7 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 			{ID: "pat-bad", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
 			{ID: "pat-2", UserID: "user-1", OrgID: "org-1", Title: "t2", ExpiresAt: time.Now().Add(time.Hour)},
 		}
-		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(pats, nil)
+		repo.EXPECT().ListAllByOrg(mock.Anything, "org-1").Return(pats, nil)
 		repo.EXPECT().Delete(mock.Anything, "pat-bad").Return(nil)
 		membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-bad").Return(errors.New("spicedb down"))
 
@@ -2064,7 +2064,7 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 			{ID: "pat-gone", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
 			{ID: "pat-2", UserID: "user-2", OrgID: "org-1", Title: "t2", ExpiresAt: time.Now().Add(time.Hour)},
 		}
-		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(pats, nil)
+		repo.EXPECT().ListAllByOrg(mock.Anything, "org-1").Return(pats, nil)
 		repo.EXPECT().Delete(mock.Anything, "pat-gone").Return(paterrors.ErrNotFound)
 		repo.EXPECT().Delete(mock.Anything, "pat-2").Return(nil)
 		membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-2").Return(nil)
@@ -2080,7 +2080,7 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 		pats := []models.PAT{
 			{ID: "pat-gone", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
 		}
-		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(pats, nil)
+		repo.EXPECT().ListAllByOrg(mock.Anything, "org-1").Return(pats, nil)
 		repo.EXPECT().Delete(mock.Anything, "pat-gone").Return(paterrors.ErrNotFound)
 
 		assert.NoError(t, svc.DeleteAllByOrg(context.Background(), "org-1"))

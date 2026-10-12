@@ -437,13 +437,13 @@ func (r UserPATRepository) ListByUser(ctx context.Context, userID string) ([]mod
 	return pats, nil
 }
 
-func (r UserPATRepository) ListByOrg(ctx context.Context, orgID string) ([]models.PAT, error) {
-	query, params, err := fromLive(TABLE_USER_PATS).Where(goqu.Ex{"org_id": orgID}).ToSQL()
+func (r UserPATRepository) ListAllByOrg(ctx context.Context, orgID string) ([]models.PAT, error) {
+	query, params, err := dialect.From(TABLE_USER_PATS).Where(goqu.Ex{"org_id": orgID}).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", errQuery, err)
 	}
 	var rows []UserPAT
-	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListByOrg", func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_USER_PATS, "ListAllByOrg", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &rows, query, params...)
 	}); err != nil {
 		return nil, fmt.Errorf("%w: %w", errDB, err)

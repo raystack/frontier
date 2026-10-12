@@ -185,7 +185,7 @@ func (s *Service) DeleteAllByUser(ctx context.Context, userID string) error {
 }
 
 func (s *Service) DeleteAllByOrg(ctx context.Context, orgID string) error {
-	pats, err := s.repo.ListByOrg(ctx, orgID)
+	pats, err := s.repo.ListAllByOrg(ctx, orgID)
 	if err != nil {
 		return fmt.Errorf("listing PATs for org: %w", err)
 	}

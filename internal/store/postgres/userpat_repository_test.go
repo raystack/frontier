@@ -351,10 +351,10 @@ func (s *UserPATRepositoryTestSuite) TestListByUser_EmptyWhenNoTokens() {
 	s.Empty(got)
 }
 
-func (s *UserPATRepositoryTestSuite) TestListByOrg_ReturnsLivePATsOfTheOrg() {
+func (s *UserPATRepositoryTestSuite) TestListAllByOrg_ReturnsLiveAndDeletedPATsOfTheOrg() {
 	s.truncateTokens()
 
-	var liveInOrg0 []string
+	var idsInOrg0 []string
 	for _, spec := range []struct {
 		user, org, title, hash string
 	}{
@@ -371,7 +371,7 @@ func (s *UserPATRepositoryTestSuite) TestListByOrg_ReturnsLivePATsOfTheOrg() {
 		})
 		s.Require().NoError(err)
 		if spec.org == s.orgs[0].ID {
-			liveInOrg0 = append(liveInOrg0, pat.ID)
+			idsInOrg0 = append(idsInOrg0, pat.ID)
 		}
 	}
 
@@ -384,17 +384,19 @@ func (s *UserPATRepositoryTestSuite) TestListByOrg_ReturnsLivePATsOfTheOrg() {
 	})
 	s.Require().NoError(err)
 	s.Require().NoError(s.repository.Delete(s.ctx, deleted.ID))
+	idsInOrg0 = append(idsInOrg0, deleted.ID)
 
-	got, err := s.repository.ListByOrg(s.ctx, s.orgs[0].ID)
+	got, err := s.repository.ListAllByOrg(s.ctx, s.orgs[0].ID)
 	s.Require().NoError(err)
 	gotIDs := make([]string, 0, len(got))
 	for _, pat := range got {
 		s.Equal(s.orgs[0].ID, pat.OrgID)
 		gotIDs = append(gotIDs, pat.ID)
+		s.Equal(pat.ID == deleted.ID, pat.DeletedAt != nil)
 	}
-	s.ElementsMatch(liveInOrg0, gotIDs)
+	s.ElementsMatch(idsInOrg0, gotIDs)
 
-	none, err := s.repository.ListByOrg(s.ctx, uuid.NewString())
+	none, err := s.repository.ListAllByOrg(s.ctx, uuid.NewString())
 	s.Require().NoError(err)
 	s.Empty(none)
 }
