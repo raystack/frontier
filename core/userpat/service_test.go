@@ -2057,6 +2057,34 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 		assert.ErrorContains(t, err, "deleting policies")
 		assert.ErrorContains(t, err, "spicedb down")
 	})
+
+	t.Run("skips a PAT that was already revoked and still deletes the next one", func(t *testing.T) {
+		svc, repo, membershipSvc, auditRepo := newService(t)
+		pats := []models.PAT{
+			{ID: "pat-gone", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
+			{ID: "pat-2", UserID: "user-2", OrgID: "org-1", Title: "t2", ExpiresAt: time.Now().Add(time.Hour)},
+		}
+		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(pats, nil)
+		repo.EXPECT().Delete(mock.Anything, "pat-gone").Return(paterrors.ErrNotFound)
+		repo.EXPECT().Delete(mock.Anything, "pat-2").Return(nil)
+		membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, "pat-2").Return(nil)
+		auditRepo.EXPECT().Create(mock.Anything, mock.Anything).
+			Return(auditmodels.AuditRecord{}, nil).
+			Once()
+
+		assert.NoError(t, svc.DeleteAllByOrg(context.Background(), "org-1"))
+	})
+
+	t.Run("a skipped PAT removes no policies and writes no audit record", func(t *testing.T) {
+		svc, repo, _, _ := newService(t)
+		pats := []models.PAT{
+			{ID: "pat-gone", UserID: "user-1", OrgID: "org-1", Title: "t1", ExpiresAt: time.Now().Add(time.Hour)},
+		}
+		repo.EXPECT().ListByOrg(mock.Anything, "org-1").Return(pats, nil)
+		repo.EXPECT().Delete(mock.Anything, "pat-gone").Return(paterrors.ErrNotFound)
+
+		assert.NoError(t, svc.DeleteAllByOrg(context.Background(), "org-1"))
+	})
 }
 
 func TestService_Update(t *testing.T) {

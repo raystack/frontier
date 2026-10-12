@@ -6,6 +6,7 @@ import (
 	"crypto/sha3"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -190,6 +191,9 @@ func (s *Service) DeleteAllByOrg(ctx context.Context, orgID string) error {
 	}
 	for _, pat := range pats {
 		if err := s.softDeleteThenRemovePolicies(ctx, pat); err != nil {
+			if errors.Is(err, paterrors.ErrNotFound) {
+				continue
+			}
 			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
 		}
 	}
