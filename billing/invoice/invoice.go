@@ -74,6 +74,7 @@ type Invoice struct {
 	CreatedAt     time.Time
 	PeriodStartAt time.Time
 	PeriodEndAt   time.Time
+	DeletedAt     time.Time
 
 	Items    []Item
 	Metadata metadata.Metadata
@@ -122,9 +123,10 @@ type Item struct {
 }
 
 type Filter struct {
-	CustomerID  string
-	NonZeroOnly bool
-	State       State
+	CustomerID     string
+	NonZeroOnly    bool
+	State          State
+	IncludeDeleted bool
 
 	Pagination *pagination.Pagination
 }

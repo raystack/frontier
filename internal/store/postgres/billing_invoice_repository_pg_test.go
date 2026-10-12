@@ -128,6 +128,32 @@ func (s *BillingInvoiceRepositoryPGTestSuite) TestListSkipsDeletedInvoicesAndCou
 	s.Equal(int32(1), page.Count, "the count statement carries the same filter as the rows")
 }
 
+func (s *BillingInvoiceRepositoryPGTestSuite) TestListIncludesDeletedRowsWhenAsked() {
+	got, err := s.repository.List(s.ctx, invoice.Filter{
+		CustomerID:     s.customerID("bi-cust-live"),
+		IncludeDeleted: true,
+	})
+	s.Require().NoError(err)
+	s.ElementsMatch([]string{"bi-inv-live", "bi-inv-deleted"}, s.links(got))
+	for _, inv := range got {
+		if inv.HostedURL == "bi-inv-deleted" {
+			s.False(inv.DeletedAt.IsZero(), "a deleted row says when it was deleted")
+		} else {
+			s.True(inv.DeletedAt.IsZero())
+		}
+	}
+
+	page := pagination.NewPagination(1, 10)
+	got, err = s.repository.List(s.ctx, invoice.Filter{
+		CustomerID:     s.customerID("bi-cust-live"),
+		IncludeDeleted: true,
+		Pagination:     page,
+	})
+	s.Require().NoError(err)
+	s.Len(got, 2)
+	s.Equal(int32(2), page.Count, "the count statement follows the same switch")
+}
+
 func (s *BillingInvoiceRepositoryPGTestSuite) TestListReadsOnlyTheInvoiceTable() {
 	// List has no join, so an invoice of a soft-deleted customer still lists.
 	// That matches every other single-table List in the store. The admin
