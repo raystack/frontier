@@ -307,7 +307,7 @@ func (r BillingTransactionRepository) UpdateByID(ctx context.Context, toUpdate c
 }
 
 func (r BillingTransactionRepository) DeleteByAccountID(ctx context.Context, accountID string) error {
-	query, params, err := dialect.Delete(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+	query, params, err := softDelete(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"account_id": accountID,
 	}).ToSQL()
 	if err != nil {
