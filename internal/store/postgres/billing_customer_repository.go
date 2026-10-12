@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/auditrecord"
@@ -497,6 +498,14 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 }
 
 func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error {
+	lockQuery, lockParams, err := fromLive(TABLE_BILLING_CUSTOMERS).
+		Select("id").
+		Where(goqu.Ex{"id": id}).
+		ForUpdate(exp.Wait).
+		ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errParse, err)
+	}
 	query, params, err := softDelete(TABLE_BILLING_CUSTOMERS).
 		Where(goqu.Ex{"id": id}).
 		Returning(&Customer{}).ToSQL()
@@ -511,6 +520,11 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 	var customerModel Customer
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
+			var lockedID string
+			if err := tx.QueryRowxContext(ctx, lockQuery, lockParams...).Scan(&lockedID); err != nil {
+				return err
+			}
+
 			var liveRecords bool
 			if err := tx.QueryRowxContext(ctx, liveRecordsQuery, liveRecordsParams...).Scan(&liveRecords); err != nil {
 				return err

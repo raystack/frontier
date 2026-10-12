@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/raystack/frontier/billing/checkout"
 	"github.com/raystack/frontier/billing/credit"
@@ -265,4 +266,29 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestTeardownCanBeRunAgain() {
 	s.Require().NoError(s.transactions.DeleteByAccountID(s.ctx, cust))
 	s.Require().NoError(s.repository.Delete(s.ctx, cust))
 	s.ErrorIs(s.repository.Delete(s.ctx, cust), customer.ErrNotFound)
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteWaitsForAnInFlightChildInsertAndRefuses() {
+	id := s.customerID("bc-cust-live")
+	tx, err := s.client.DB.BeginTxx(s.ctx, nil)
+	s.Require().NoError(err)
+	defer tx.Rollback() //nolint:errcheck
+	var holderPID int
+	s.Require().NoError(tx.QueryRowContext(s.ctx, "SELECT pg_backend_pid()").Scan(&holderPID))
+	_, err = tx.ExecContext(s.ctx, `INSERT INTO billing_checkouts (customer_id, provider_id, checkout_url, state)
+		VALUES ($1, 'bc-session', 'bc-session', 'pending')`, id)
+	s.Require().NoError(err)
+
+	result := make(chan error, 1)
+	go func() { result <- s.repository.Delete(s.ctx, id) }()
+
+	s.Require().Eventually(func() bool {
+		waiting, err := blockedBy(s.ctx, s.client, holderPID)
+		return err == nil && waiting == 1
+	}, 5*time.Second, 20*time.Millisecond, "the delete waits on the row lock")
+
+	s.Require().NoError(tx.Commit())
+	s.ErrorIs(<-result, customer.ErrHasLiveRecords)
+	s.Equal("", scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT coalesce(deleted_at::text, '') FROM billing_customers WHERE id = $1`, id))
 }
