@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sort"
 	"testing"
@@ -330,6 +331,80 @@ func (s *OrgKycRepositoryTestSuite) TestGetByOrgIDSkipsSoftDeletedRow() {
 
 	_, err := s.repository.GetByOrgID(s.ctx, orgID)
 	s.Assert().ErrorIs(err, kyc.ErrNotExist)
+}
+
+func (s *OrgKycRepositoryTestSuite) deletedAtOf(orgID string) []sql.NullTime {
+	var deletedAts []sql.NullTime
+	err := s.client.SelectContext(s.ctx, &deletedAts, "SELECT deleted_at FROM organizations_kyc WHERE org_id = $1 ORDER BY created_at", orgID)
+	s.Require().NoError(err)
+	return deletedAts
+}
+
+func (s *OrgKycRepositoryTestSuite) orgWithKyc(name string) string {
+	org, err := s.orgRepository.Create(s.ctx, organization.Organization{Name: name})
+	s.Require().NoError(err)
+	_, err = s.repository.Upsert(s.ctx, kyc.KYC{OrgID: org.ID, Status: true, Link: "abcd"})
+	s.Require().NoError(err)
+	return org.ID
+}
+
+func (s *OrgKycRepositoryTestSuite) TestDelete() {
+	s.Run("keeps the row with deleted_at set", func() {
+		orgID := s.orgWithKyc("org-delete-keeps-row")
+
+		s.Require().NoError(s.repository.Delete(s.ctx, orgID))
+
+		deletedAts := s.deletedAtOf(orgID)
+		s.Require().Len(deletedAts, 1)
+		s.Assert().True(deletedAts[0].Valid)
+	})
+
+	s.Run("a second delete keeps the first deleted_at and returns nil", func() {
+		orgID := s.orgWithKyc("org-second-delete")
+		s.Require().NoError(s.repository.Delete(s.ctx, orgID))
+		first := s.deletedAtOf(orgID)
+
+		s.Require().NoError(s.repository.Delete(s.ctx, orgID))
+
+		second := s.deletedAtOf(orgID)
+		s.Require().Len(second, 1)
+		s.Assert().True(first[0].Time.Equal(second[0].Time))
+	})
+
+	s.Run("an org without kyc returns nil", func() {
+		org, err := s.orgRepository.Create(s.ctx, organization.Organization{Name: "org-without-kyc"})
+		s.Require().NoError(err)
+
+		s.Assert().NoError(s.repository.Delete(s.ctx, org.ID))
+	})
+
+	s.Run("upsert after delete inserts a new live row", func() {
+		orgID := s.orgWithKyc("org-upsert-after-delete")
+		s.Require().NoError(s.repository.Delete(s.ctx, orgID))
+
+		got, err := s.repository.Upsert(s.ctx, kyc.KYC{OrgID: orgID, Status: true, Link: "fresh-link"})
+
+		s.Require().NoError(err)
+		s.Assert().Equal("fresh-link", got.Link)
+		deletedAts := s.deletedAtOf(orgID)
+		s.Require().Len(deletedAts, 2)
+		s.Assert().True(deletedAts[0].Valid)
+		s.Assert().False(deletedAts[1].Valid)
+	})
+
+	s.Run("updating a live row leaves the deleted row untouched", func() {
+		orgID := s.orgWithKyc("org-update-after-delete")
+		s.Require().NoError(s.repository.Delete(s.ctx, orgID))
+		_, err := s.repository.Upsert(s.ctx, kyc.KYC{OrgID: orgID, Status: true, Link: "fresh-link"})
+		s.Require().NoError(err)
+
+		_, err = s.repository.Upsert(s.ctx, kyc.KYC{OrgID: orgID, Status: true, Link: "newer-link"})
+		s.Require().NoError(err)
+
+		var links []string
+		s.Require().NoError(s.client.SelectContext(s.ctx, &links, "SELECT link FROM organizations_kyc WHERE org_id = $1 AND deleted_at IS NOT NULL", orgID))
+		s.Assert().Equal([]string{"abcd"}, links)
+	})
 }
 
 func TestOrganizationKYCRepository(t *testing.T) {

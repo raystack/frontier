@@ -99,6 +99,7 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 				goqu.Ex{
 					TABLE_ORGANIZATIONS_KYC + ".org_id": input.OrgID,
 				},
+				live(TABLE_ORGANIZATIONS_KYC),
 				goqu.Ex{
 					TABLE_ORGANIZATIONS + ".id": input.OrgID,
 				},
@@ -187,10 +188,10 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 	return result.KYC.transformToKyc()
 }
 
-// Delete removes the kyc record of an org. Deleting is idempotent: an org
-// without a kyc record returns success.
+// Delete marks the kyc record of an org as deleted and keeps the row. Deleting
+// is idempotent: an org without a live kyc record returns success.
 func (r OrgKycRepository) Delete(ctx context.Context, orgID string) error {
-	query, params, err := dialect.Delete(TABLE_ORGANIZATIONS_KYC).Where(goqu.Ex{
+	query, params, err := softDelete(TABLE_ORGANIZATIONS_KYC).Where(goqu.Ex{
 		"org_id": orgID,
 	}).ToSQL()
 	if err != nil {
