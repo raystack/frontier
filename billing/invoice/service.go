@@ -613,7 +613,8 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 
 func (s *Service) lastOverdraftInvoice(ctx context.Context, customerID string) (*Invoice, error) {
 	invoices, err := s.repository.List(ctx, Filter{
-		CustomerID: customerID,
+		CustomerID:     customerID,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return nil, err

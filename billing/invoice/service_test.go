@@ -1,9 +1,14 @@
 package invoice
 
 import (
+	"context"
+	"log/slog"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/raystack/frontier/billing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestService_computeOverdraftWindow(t *testing.T) {
@@ -171,4 +176,61 @@ func TestService_overdraftItemName(t *testing.T) {
 			}
 		})
 	}
+}
+
+type recordingInvoiceRepository struct {
+	Repository
+	invoices []Invoice
+	created  []Invoice
+	updated  []Invoice
+}
+
+func (r *recordingInvoiceRepository) List(_ context.Context, flt Filter) ([]Invoice, error) {
+	if flt.IncludeDeleted {
+		return r.invoices, nil
+	}
+	var live []Invoice
+	for _, inv := range r.invoices {
+		if inv.DeletedAt.IsZero() {
+			live = append(live, inv)
+		}
+	}
+	return live, nil
+}
+
+func (r *recordingInvoiceRepository) Create(_ context.Context, inv Invoice) (Invoice, error) {
+	r.created = append(r.created, inv)
+	return inv, nil
+}
+
+func (r *recordingInvoiceRepository) UpdateByID(_ context.Context, inv Invoice) (Invoice, error) {
+	r.updated = append(r.updated, inv)
+	return inv, nil
+}
+
+func TestService_lastOverdraftInvoice(t *testing.T) {
+	t.Run("a deleted overdraft invoice still anchors the window", func(t *testing.T) {
+		end := time.Now().UTC()
+		repo := &recordingInvoiceRepository{invoices: []Invoice{{
+			ID:        "inv-gone",
+			DeletedAt: end,
+			Items:     []Item{{Type: CreditItemType, TimeRangeEnd: &end}},
+		}}}
+		svc := NewService(slog.Default(), nil, repo, nil, nil, nil, nil, billing.Config{})
+
+		got, err := svc.lastOverdraftInvoice(context.Background(), "cust-1")
+		assert.NoError(t, err)
+		if assert.NotNil(t, got, "the deleted invoice must still be found") {
+			assert.Equal(t, "inv-gone", got.ID)
+		}
+	})
+
+	t.Run("an invoice without a credit item is not the anchor", func(t *testing.T) {
+		repo := &recordingInvoiceRepository{invoices: []Invoice{{ID: "inv-plan"}}}
+		svc := NewService(slog.Default(), nil, repo, nil, nil, nil, nil, billing.Config{})
+
+		got, err := svc.lastOverdraftInvoice(context.Background(), "cust-1")
+		assert.NoError(t, err)
+		assert.Nil(t, got)
+	})
 }
