@@ -556,27 +556,10 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 		// include all transactions by default
 		startRange := c.CreatedAt
 
-		// check if there is already an invoice created for this balance
-		invoices, err := s.List(ctx, Filter{
-			CustomerID: c.ID,
-		})
+		lastOverdraftInvoice, err := s.lastOverdraftInvoice(ctx, c.ID)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("failed to list invoices for customer %s: %w", c.ID, err))
 			continue
-		}
-
-		// find the last credit overdraft invoice for the customer
-		var lastOverdraftInvoice *Invoice
-		for _, invoice := range invoices { // invoices are ordered by created_at desc
-			for _, item := range invoice.Items {
-				if item.Type == CreditItemType {
-					lastOverdraftInvoice = &invoice
-					break
-				}
-			}
-			if lastOverdraftInvoice != nil {
-				break
-			}
 		}
 
 		startRange, alreadyInvoiced := computeOverdraftWindow(startRange, endRange, lastOverdraftInvoice)
@@ -626,6 +609,24 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 		return errors.Join(errs...)
 	}
 	return nil
+}
+
+func (s *Service) lastOverdraftInvoice(ctx context.Context, customerID string) (*Invoice, error) {
+	invoices, err := s.repository.List(ctx, Filter{
+		CustomerID: customerID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, inv := range invoices {
+		for _, item := range inv.Items {
+			if item.Type == CreditItemType {
+				found := inv
+				return &found, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 // computeOverdraftWindow returns the start of the invoice window for the
