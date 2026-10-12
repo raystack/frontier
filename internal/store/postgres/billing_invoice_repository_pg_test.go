@@ -147,6 +147,17 @@ func (s *BillingInvoiceRepositoryPGTestSuite) TestSearchSkipsDeletedInvoicesCust
 	s.Equal([]string{"bi-inv-live"}, out)
 }
 
+func (s *BillingInvoiceRepositoryPGTestSuite) TestProviderIDIsUniqueOverLiveRowsOnly() {
+	s.invoice("bi-cust-live", "bi-inv-again", "paid")
+	s.exec(`UPDATE billing_invoices SET deleted_at = now() WHERE provider_id = 'bi-inv-again'`)
+
+	s.invoice("bi-cust-live", "bi-inv-again", "paid")
+
+	_, err := s.client.DB.ExecContext(s.ctx, `INSERT INTO billing_invoices (customer_id, provider_id, amount, currency, hosted_url, state)
+		VALUES ((SELECT id FROM billing_customers WHERE name = 'bi-cust-live'), 'bi-inv-again', 100, 'usd', 'bi-inv-again', 'paid')`)
+	s.Require().Error(err, "two live rows must not share a provider id")
+}
+
 func TestBillingInvoiceRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingInvoiceRepositoryPGTestSuite))
 }

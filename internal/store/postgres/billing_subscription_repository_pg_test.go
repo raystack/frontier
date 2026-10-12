@@ -107,6 +107,22 @@ func (s *BillingSubscriptionRepositoryPGTestSuite) TestListSkipsDeleted() {
 	s.Equal("bs-sub-live", got[0].ProviderID)
 }
 
+func (s *BillingSubscriptionRepositoryPGTestSuite) TestProviderIDIsUniqueOverLiveRowsOnly() {
+	s.subscription("bs-sub-again")
+	s.exec(`UPDATE billing_subscriptions SET deleted_at = now() WHERE provider_id = 'bs-sub-again'`)
+
+	s.subscription("bs-sub-again")
+
+	_, err := s.client.DB.ExecContext(s.ctx, `INSERT INTO billing_subscriptions (customer_id, provider_id, plan_id, state)
+		VALUES ((SELECT id FROM billing_customers WHERE name = 'bs-cust'), 'bs-sub-again',
+			(SELECT id FROM billing_plans WHERE name = 'bs-plan'), 'active')`)
+	s.Require().Error(err, "two live rows must not share a provider id")
+
+	live := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT count(*)::text FROM billing_subscriptions WHERE provider_id = 'bs-sub-again' AND deleted_at IS NULL`)
+	s.Equal("1", live)
+}
+
 func TestBillingSubscriptionRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingSubscriptionRepositoryPGTestSuite))
 }
