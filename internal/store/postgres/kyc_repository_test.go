@@ -333,6 +333,15 @@ func (s *OrgKycRepositoryTestSuite) TestGetByOrgIDSkipsSoftDeletedRow() {
 	s.Assert().ErrorIs(err, kyc.ErrNotExist)
 }
 
+func (s *OrgKycRepositoryTestSuite) TestGetByOrgIDSkipsDeletedOrg() {
+	orgID := s.orgWithKyc("deleted-org-live-kyc")
+	s.softDeleteOrg(orgID)
+
+	_, err := s.repository.GetByOrgID(s.ctx, orgID)
+
+	s.Assert().ErrorIs(err, kyc.ErrNotExist)
+}
+
 func (s *OrgKycRepositoryTestSuite) deletedAtOf(orgID string) []sql.NullTime {
 	var deletedAts []sql.NullTime
 	err := s.client.SelectContext(s.ctx, &deletedAts, "SELECT deleted_at FROM organizations_kyc WHERE org_id = $1 ORDER BY created_at", orgID)
