@@ -481,3 +481,28 @@ func (s *OrgKycRepositoryTestSuite) TestUpsertRefusesSoftDeletedOrg() {
 		s.Assert().Equal("new-link", got.Link)
 	})
 }
+
+func (s *OrgKycRepositoryTestSuite) TestUpsertWritesExactlyOneLiveRow() {
+	s.Run("updating a live row adds no row", func() {
+		orgID := s.orgWithKyc("upsert-update-org")
+
+		_, err := s.repository.Upsert(s.ctx, kyc.KYC{OrgID: orgID, Status: false, Link: "changed"})
+
+		s.Require().NoError(err)
+		s.Assert().Len(s.deletedAtOf(orgID), 1)
+	})
+
+	s.Run("a deleted row is kept and a new live row is added", func() {
+		orgID := s.orgWithKyc("upsert-after-delete-org")
+		s.softDeleteKycRow(orgID)
+
+		got, err := s.repository.Upsert(s.ctx, kyc.KYC{OrgID: orgID, Status: true, Link: "again"})
+
+		s.Require().NoError(err)
+		s.Assert().Equal("again", got.Link)
+		deletedAts := s.deletedAtOf(orgID)
+		s.Require().Len(deletedAts, 2)
+		s.Assert().True(deletedAts[0].Valid)
+		s.Assert().False(deletedAts[1].Valid)
+	})
+}
