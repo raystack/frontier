@@ -380,7 +380,7 @@ func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, cust
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
 		"id": customerID,
-	}).Returning(&Customer{}).ToSQL()
+	}, live(TABLE_BILLING_CUSTOMERS)).Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return customer.Details{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
