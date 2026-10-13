@@ -2557,6 +2557,85 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		_, err = s.testBench.Client.UpdateOrganizationResource(ctxOrgAdminAuth, updateRequest(resourceID, orgID, "Frozen"))
 		s.Assert().NoError(err)
 	})
+	s.Run("7. deleting an org resource removes access and frees its name", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{Title: "org 7", Name: "org-resource-7"},
+		}))
+		s.Require().NoError(err)
+		orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+		creatorEmail := "user-org-resource-7-creator@raystack.org"
+		memberEmail := "user-org-resource-7-member@raystack.org"
+		var memberIDs []string
+		for _, u := range []struct{ email, name string }{
+			{creatorEmail, "user_org_resource_7_creator"},
+			{memberEmail, "user_org_resource_7_member"},
+		} {
+			userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+				Title: u.name, Email: u.email, Name: u.name,
+			}}))
+			s.Require().NoError(err)
+			memberIDs = append(memberIDs, userResp.Msg.GetUser().GetId())
+		}
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{
+				{UserId: memberIDs[0], RoleId: s.orgViewerRole},
+				{UserId: memberIDs[1], RoleId: s.orgViewerRole},
+			},
+		}))
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
+
+		creatorCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, creatorEmail)
+		s.Require().NoError(err)
+		ctxCreator := testbench.ContextWithAuth(context.Background(), creatorCookie)
+		memberCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, memberEmail)
+		s.Require().NoError(err)
+		ctxMember := testbench.ContextWithAuth(context.Background(), memberCookie)
+
+		createRequest := func() *connect.Request[frontierv1beta1.CreateOrganizationResourceRequest] {
+			return connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+				OrgId: orgID,
+				Body:  &frontierv1beta1.ResourceRequestBody{Name: "store-1", Namespace: computeOrderNamespace},
+			})
+		}
+		createResp, err := s.testBench.Client.CreateOrganizationResource(ctxCreator, createRequest())
+		s.Require().NoError(err)
+		resourceID := createResp.Msg.GetResource().GetId()
+
+		deleteRequest := func(id string) *connect.Request[frontierv1beta1.DeleteOrganizationResourceRequest] {
+			return connect.NewRequest(&frontierv1beta1.DeleteOrganizationResourceRequest{Id: id, OrgId: orgID})
+		}
+
+		_, err = s.testBench.Client.DeleteOrganizationResource(ctxMember, deleteRequest(resourceID))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.DeleteOrganizationResource(ctxCreator, deleteRequest(resourceID))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.DeleteOrganizationResource(ctxCreator, deleteRequest(resourceID))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		checkResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+			Permission: schema.UpdatePermission,
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, memberIDs[0]),
+		}))
+		s.Require().NoError(err)
+		s.Assert().False(checkResp.Msg.GetStatus())
+
+		recreateResp, err := s.testBench.Client.CreateOrganizationResource(ctxCreator, createRequest())
+		s.Require().NoError(err)
+		recreatedID := recreateResp.Msg.GetResource().GetId()
+		s.Assert().NotEqual(resourceID, recreatedID)
+
+		_, err = s.testBench.Client.DisableOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{Id: orgID}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.DeleteOrganizationResource(ctxCreator, deleteRequest(recreatedID))
+		s.Assert().Equal(connect.CodeFailedPrecondition, connect.CodeOf(err))
+		_, err = s.testBench.Client.DeleteOrganizationResource(ctxOrgAdminAuth, deleteRequest(recreatedID))
+		s.Assert().NoError(err)
+	})
 }
 
 func (s *APIRegressionTestSuite) TestPolicyAPI() {

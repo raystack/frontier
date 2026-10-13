@@ -809,6 +809,24 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			ID:        pbreq.Msg.GetOrgId(),
 		}, req)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationResource": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.DeleteOrganizationResourceRequest])
+		res, err := ensureResourceBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId())
+		if err != nil {
+			return err
+		}
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: res.GetNamespace(), ID: res.GetId(),
+		}, schema.DeletePermission, req)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.OrganizationNamespace,
+			ID:        pbreq.Msg.GetOrgId(),
+		}, req)
+	},
 
 	// audit records
 	frontierv1beta1connect.FrontierServiceCreateAuditRecordProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
