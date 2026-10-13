@@ -41,5 +41,6 @@ func (t UserPAT) transform() (models.PAT, error) {
 		ExpiresAt:     t.ExpiresAt,
 		CreatedAt:     t.CreatedAt,
 		UpdatedAt:     t.UpdatedAt,
+		DeletedAt:     t.DeletedAt,
 	}, nil
 }

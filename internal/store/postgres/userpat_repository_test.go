@@ -351,6 +351,56 @@ func (s *UserPATRepositoryTestSuite) TestListByUser_EmptyWhenNoTokens() {
 	s.Empty(got)
 }
 
+func (s *UserPATRepositoryTestSuite) TestListAllByOrg_ReturnsLiveAndDeletedPATsOfTheOrg() {
+	s.truncateTokens()
+
+	var idsInOrg0 []string
+	for _, spec := range []struct {
+		user, org, title, hash string
+	}{
+		{s.users[0].ID, s.orgs[0].ID, "u0-o0-a", "hashU0O0A"},
+		{s.users[1].ID, s.orgs[0].ID, "u1-o0-a", "hashU1O0A"},
+		{s.users[0].ID, s.orgs[1].ID, "u0-o1-a", "hashU0O1A"},
+	} {
+		pat, err := s.repository.Create(s.ctx, models.PAT{
+			UserID:     spec.user,
+			OrgID:      spec.org,
+			Title:      spec.title,
+			SecretHash: spec.hash,
+			ExpiresAt:  time.Now().Add(24 * time.Hour),
+		})
+		s.Require().NoError(err)
+		if spec.org == s.orgs[0].ID {
+			idsInOrg0 = append(idsInOrg0, pat.ID)
+		}
+	}
+
+	deleted, err := s.repository.Create(s.ctx, models.PAT{
+		UserID:     s.users[0].ID,
+		OrgID:      s.orgs[0].ID,
+		Title:      "u0-o0-gone",
+		SecretHash: "hashU0O0Gone",
+		ExpiresAt:  time.Now().Add(24 * time.Hour),
+	})
+	s.Require().NoError(err)
+	s.Require().NoError(s.repository.Delete(s.ctx, deleted.ID))
+	idsInOrg0 = append(idsInOrg0, deleted.ID)
+
+	got, err := s.repository.ListAllByOrg(s.ctx, s.orgs[0].ID)
+	s.Require().NoError(err)
+	gotIDs := make([]string, 0, len(got))
+	for _, pat := range got {
+		s.Equal(s.orgs[0].ID, pat.OrgID)
+		gotIDs = append(gotIDs, pat.ID)
+		s.Equal(pat.ID == deleted.ID, pat.DeletedAt != nil)
+	}
+	s.ElementsMatch(idsInOrg0, gotIDs)
+
+	none, err := s.repository.ListAllByOrg(s.ctx, uuid.NewString())
+	s.Require().NoError(err)
+	s.Empty(none)
+}
+
 func (s *UserPATRepositoryTestSuite) TestRegenerate() {
 	s.Run("clears alert-sent keys but preserves other metadata", func() {
 		s.truncateTokens()
