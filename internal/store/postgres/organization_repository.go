@@ -509,7 +509,7 @@ func (r OrganizationRepository) SetState(ctx context.Context, id string, state o
 }
 
 func (r OrganizationRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_ORGANIZATIONS).Where(
+	query, params, err := softDelete(TABLE_ORGANIZATIONS).Where(
 		goqu.Ex{
 			"id": id,
 		},
