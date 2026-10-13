@@ -197,10 +197,14 @@ func (s Service) Disable(ctx context.Context, id string) error {
 // responsibility — see core/deleter.DeleteGroup for the orchestration that
 // pairs this with membership.OnGroupDeleted.
 func (s Service) DeleteModel(ctx context.Context, id string) error {
-	group, err := s.repository.GetByID(ctx, id)
+	found, err := s.repository.GetByIDs(ctx, []string{id}, Filter{IncludeDisabled: true})
 	if err != nil {
 		return err
 	}
+	if len(found) == 0 {
+		return ErrNotExist
+	}
+	group := found[0]
 
 	if err := s.repository.Delete(ctx, id); err != nil {
 		return err

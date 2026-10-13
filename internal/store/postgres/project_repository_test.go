@@ -521,3 +521,24 @@ func (s *ProjectRepositoryTestSuite) TestSkipsSoftDeletedProjects() {
 	err = s.repository.SetState(s.ctx, deleted.ID, project.Disabled)
 	s.Assert().ErrorIs(err, project.ErrNotExist)
 }
+
+func (s *ProjectRepositoryTestSuite) TestListIncludeDisabled() {
+	disabled := s.projects[0]
+	orgID := disabled.Organization.ID
+	s.Require().NoError(s.repository.SetState(s.ctx, disabled.ID, project.Disabled))
+
+	hidden, err := s.repository.List(s.ctx, project.Filter{OrgID: orgID})
+	s.Require().NoError(err)
+	for _, p := range hidden {
+		s.Assert().NotEqual(disabled.ID, p.ID)
+	}
+
+	all, err := s.repository.List(s.ctx, project.Filter{OrgID: orgID, IncludeDisabled: true})
+	s.Require().NoError(err)
+	s.Assert().Len(all, len(hidden)+1)
+	ids := []string{}
+	for _, p := range all {
+		ids = append(ids, p.ID)
+	}
+	s.Assert().Contains(ids, disabled.ID)
+}

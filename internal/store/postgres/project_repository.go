@@ -201,12 +201,13 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 			"id": goqu.Op{"in": flt.ProjectIDs},
 		})
 	}
-	if flt.State == "" {
-		stmt = stmt.Where(notDisabledProjectExp)
-	} else {
+	switch {
+	case flt.State != "":
 		stmt = stmt.Where(goqu.Ex{
 			"state": flt.State.String(),
 		})
+	case !flt.IncludeDisabled:
+		stmt = stmt.Where(notDisabledProjectExp)
 	}
 
 	if flt.Pagination != nil {

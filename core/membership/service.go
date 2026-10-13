@@ -54,6 +54,7 @@ type ProjectService interface {
 type GroupService interface {
 	Get(ctx context.Context, idOrName string) (group.Group, error)
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
+	GetByIDs(ctx context.Context, ids []string, flt ...group.Filter) ([]group.Group, error)
 }
 
 type ServiceuserService interface {

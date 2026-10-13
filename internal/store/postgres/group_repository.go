@@ -178,9 +178,10 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	if flt.OrganizationID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
 	}
-	if flt.State != "" {
+	switch {
+	case flt.State != "":
 		sqlStatement = sqlStatement.Where(goqu.Ex{"state": flt.State})
-	} else {
+	case !flt.IncludeDisabled:
 		sqlStatement = sqlStatement.Where(notDisabledGroupExp)
 	}
 	if flt.GroupIDs != nil {

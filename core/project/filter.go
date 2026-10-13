@@ -10,6 +10,7 @@ type Filter struct {
 	WithMemberCount bool
 	ProjectIDs      []string
 	State           State
+	IncludeDisabled bool
 	// NonInherited filters out projects that are inherited from access given through an organization
 	NonInherited bool
 	Pagination   *pagination.Pagination
