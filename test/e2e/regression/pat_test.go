@@ -155,6 +155,16 @@ func (s *PATRegressionTestSuite) checkPermission(ctx context.Context, namespace,
 	return resp.Msg.GetStatus()
 }
 
+func (s *PATRegressionTestSuite) patHasPermissionInSpiceDB(ctx context.Context, patID, namespace, id, permission string) bool {
+	resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctx, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+		Resource:   schema.JoinNamespaceAndResourceID(namespace, id),
+		Permission: permission,
+		Subject:    schema.JoinNamespaceAndResourceID(schema.PATPrincipal, patID),
+	}))
+	s.Require().NoError(err)
+	return resp.Msg.GetStatus()
+}
+
 func (s *PATRegressionTestSuite) TestPATScope_OrgViewer_ProjectViewer() {
 	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 	orgID, proj1ID, proj2ID := s.createOrgAndProjects(ctxAdmin, "org-pat-ov-pv", "pat-ov-pv-p1", "pat-ov-pv-p2")
@@ -768,6 +778,56 @@ func (s *PATRegressionTestSuite) TestPATCRUD_CreateErrors() {
 		}))
 		s.Assert().Error(err)
 		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
+	})
+}
+
+func (s *PATRegressionTestSuite) TestPATOfDeletedOrgStopsAuthenticating() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	orgID, proj1ID, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-deleted-org", "pat-deleted-org-p1", "")
+
+	patID, patToken := s.createPAT(ctxAdmin, orgID, "pat-of-deleted-org", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+		{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace, ResourceIds: []string{proj1ID}},
+	})
+	patCtx := getPATCtx(patToken)
+	s.Require().True(s.checkPermission(patCtx, schema.OrganizationNamespace, orgID, schema.GetPermission))
+	s.Require().True(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.OrganizationNamespace, orgID, schema.GetPermission))
+	s.Require().True(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.ProjectNamespace, proj1ID, schema.GetPermission))
+
+	policiesResp, err := s.testBench.Client.ListPolicies(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{UserId: patID}))
+	s.Require().NoError(err)
+	patPoliciesBeforeDelete := policiesResp.Msg.GetPolicies()
+	s.Require().Len(patPoliciesBeforeDelete, 2)
+
+	_, err = s.testBench.Client.DeleteOrganization(ctxAdmin, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+	s.Require().NoError(err)
+
+	s.Run("the token is rejected", func() {
+		_, err := s.testBench.Client.GetCurrentUser(patCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+	})
+
+	s.Run("the token is hidden from its owner", func() {
+		_, err := s.testBench.Client.GetCurrentUserPAT(ctxAdmin, connect.NewRequest(&frontierv1beta1.GetCurrentUserPATRequest{Id: patID}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+
+	s.Run("no live policy is held by the token", func() {
+		policiesResp, err := s.testBench.Client.ListPolicies(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{UserId: patID}))
+		s.Require().NoError(err)
+		s.Assert().Empty(policiesResp.Msg.GetPolicies())
+		for _, policyBeforeDelete := range patPoliciesBeforeDelete {
+			_, err := s.testBench.Client.GetPolicy(ctxAdmin, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyBeforeDelete.GetId()}))
+			s.Require().Error(err)
+			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		}
+	})
+
+	s.Run("the token has no access left in SpiceDB", func() {
+		s.Assert().False(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.OrganizationNamespace, orgID, schema.GetPermission))
+		s.Assert().False(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.ProjectNamespace, proj1ID, schema.GetPermission))
 	})
 }
 

@@ -438,40 +438,30 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 }
 
 func (s *OrganizationRepositoryTestSuite) TestDelete() {
-	type testCase struct {
-		Description          string
-		OrganizationToDelete organization.Organization
-		ErrString            string
-	}
+	s.Run("should return error if organization not found", func() {
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, uuid.NewString()), organization.ErrNotExist)
+	})
 
-	var testCases = []testCase{
-		{
-			Description: "should delete a organization",
-			OrganizationToDelete: organization.Organization{
-				ID: s.orgs[0].ID,
-			},
-		},
-		{
-			Description: "should return error if organization not found",
-			OrganizationToDelete: organization.Organization{
-				ID: uuid.NewString(),
-			},
-			ErrString: organization.ErrNotExist.Error(),
-		},
-	}
+	s.Run("should keep the row, hide it from reads, refuse a second delete and free its name", func() {
+		deleted := s.orgs[0]
 
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			err := s.repository.Delete(s.ctx, tc.OrganizationToDelete.ID)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			} else {
-				s.Assert().NoError(err)
-			}
-		})
-	}
+		s.Require().NoError(s.repository.Delete(s.ctx, deleted.ID))
+
+		s.Assert().Equal("1", scalarSQL(s.T(), s.ctx, s.client,
+			"SELECT count(*) FROM organizations WHERE id = $1 AND deleted_at IS NOT NULL", deleted.ID))
+		s.Assert().Equal("1", scalarSQL(s.T(), s.ctx, s.client,
+			"SELECT count(*) FROM audit_records WHERE event = 'organization.delete' AND resource_id = $1", deleted.ID))
+
+		_, err := s.repository.GetByID(s.ctx, deleted.ID)
+		s.Assert().ErrorIs(err, organization.ErrNotExist)
+
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, deleted.ID), organization.ErrNotExist)
+
+		again, err := s.repository.Create(s.ctx, organization.Organization{Name: deleted.Name, Metadata: metadata.Metadata{}})
+		s.Require().NoError(err)
+		s.Assert().NotEqual(deleted.ID, again.ID)
+		s.Assert().Equal(deleted.Name, again.Name)
+	})
 }
 
 func (s *OrganizationRepositoryTestSuite) TestSetState() {
