@@ -309,11 +309,14 @@ func getSubQuery() *goqu.SelectDataset {
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
 
-	rankedSubscriptions := dialect.From(TABLE_ORGANIZATIONS).
+	rankedSubscriptions := fromLive(TABLE_ORGANIZATIONS).
 		Select(subquerySelects...).
 		LeftJoin(
 			goqu.T(TABLE_BILLING_CUSTOMERS),
-			goqu.On(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ORG_ID))),
+			goqu.On(
+				goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ORG_ID)),
+				live(TABLE_BILLING_CUSTOMERS),
+			),
 		).
 		LeftJoin(
 			goqu.T(TABLE_BILLING_SUBSCRIPTIONS),
@@ -321,6 +324,7 @@ func getSubQuery() *goqu.SelectDataset {
 				goqu.And(
 					goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CUSTOMER_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ID)),
 					goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_STATE).Neq("canceled"),
+					live(TABLE_BILLING_SUBSCRIPTIONS),
 				),
 			)).
 		LeftJoin(
