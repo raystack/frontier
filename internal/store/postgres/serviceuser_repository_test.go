@@ -208,17 +208,20 @@ func (s *ServiceUserRepositoryTestSuite) TestCredentialDeleteKeepsTheRow() {
 	s.Assert().ErrorIs(s.credentialRepository.Delete(s.ctx, cred.ID), serviceuser.ErrCredNotExist)
 }
 
-func (s *ServiceUserRepositoryTestSuite) TestOrgDeleteCountsLiveServiceUsersOnly() {
+func (s *ServiceUserRepositoryTestSuite) TestOrgDeleteKeepsServiceUserRows() {
 	orgRepository := postgres.NewOrganizationRepository(s.client)
-	org, err := orgRepository.Create(s.ctx, organization.Organization{Name: "org-with-a-deleted-service-user", Title: "org"})
+	org, err := orgRepository.Create(s.ctx, organization.Organization{Name: "org-with-a-live-service-user", Title: "org"})
 	s.Require().NoError(err)
-	su, err := s.repository.Create(s.ctx, serviceuser.ServiceUser{OrgID: org.ID, Title: "blocks the delete while live"})
+	su, err := s.repository.Create(s.ctx, serviceuser.ServiceUser{OrgID: org.ID, Title: "left for the deleter"})
 	s.Require().NoError(err)
 
-	s.Assert().ErrorIs(orgRepository.Delete(s.ctx, org.ID), postgres.ErrForeignKeyViolation)
+	s.Require().NoError(orgRepository.Delete(s.ctx, org.ID))
 
-	s.Require().NoError(s.repository.Delete(s.ctx, su.ID))
-	s.Assert().NoError(orgRepository.Delete(s.ctx, org.ID))
+	var orgDeletedAt, suDeletedAt sql.NullTime
+	s.Require().NoError(s.client.GetContext(s.ctx, &orgDeletedAt, "SELECT deleted_at FROM organizations WHERE id = $1", org.ID))
+	s.Require().NoError(s.client.GetContext(s.ctx, &suDeletedAt, "SELECT deleted_at FROM serviceusers WHERE id = $1", su.ID))
+	s.Assert().True(orgDeletedAt.Valid)
+	s.Assert().False(suDeletedAt.Valid)
 }
 
 func TestServiceUserRepository(t *testing.T) {
