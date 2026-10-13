@@ -665,3 +665,29 @@ func (s *ResourceRepositoryTestSuite) TestReadsResourceWithoutProject() {
 		s.Assert().True(cmp.Equal(listed, created, ignoreTimes), cmp.Diff(listed, created, ignoreTimes))
 	})
 }
+
+func (s *ResourceRepositoryTestSuite) TestListByOrg() {
+	create := func(urn, orgID, projectID string) resource.Resource {
+		created, err := s.repository.Create(s.ctx, resource.Resource{
+			URN:           urn,
+			Name:          urn,
+			OrgID:         orgID,
+			ProjectID:     projectID,
+			NamespaceID:   s.resources[0].NamespaceID,
+			PrincipalID:   s.resources[0].PrincipalID,
+			PrincipalType: s.resources[0].PrincipalType,
+		})
+		s.Require().NoError(err)
+		return created
+	}
+	live := create("org-live", s.orgs[0].ID, "")
+	deleted := create("org-deleted", s.orgs[0].ID, "")
+	s.Require().NoError(s.repository.Delete(s.ctx, deleted.ID))
+	create("other-org", s.orgs[1].ID, "")
+	create("in-a-project", s.orgs[0].ID, s.projects[0].ID)
+
+	got, err := s.repository.List(s.ctx, resource.Filter{OrgID: s.orgs[0].ID})
+	s.Require().NoError(err)
+	s.Require().Len(got, 1)
+	s.Assert().Equal(live.ID, got[0].ID)
+}

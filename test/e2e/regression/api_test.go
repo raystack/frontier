@@ -3309,6 +3309,22 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteHidesTheOrgAndRemovesWhat
 	s.Require().NoError(err)
 	domainID := createDomainResp.Msg.GetDomain().GetId()
 
+	createResourceResp, err := s.testBench.Client.CreateOrganizationResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+		OrgId: orgID,
+		Body:  &frontierv1beta1.ResourceRequestBody{Name: "store-1", Namespace: computeOrderNamespace},
+	}))
+	s.Require().NoError(err)
+	creatorCanUpdateResource := func() bool {
+		resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(computeOrderNamespace, createResourceResp.Msg.GetResource().GetId()),
+			Permission: schema.UpdatePermission,
+			Subject:    createResourceResp.Msg.GetResource().GetPrincipal(),
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetStatus()
+	}
+	s.Require().True(creatorCanUpdateResource())
+
 	policiesResp, err := s.testBench.Client.ListPolicies(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{OrgId: orgID}))
 	s.Require().NoError(err)
 	policiesOnOrgBeforeDelete := policiesResp.Msg.GetPolicies()
@@ -3340,6 +3356,10 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteHidesTheOrgAndRemovesWhat
 		}))
 		s.Require().Error(err)
 		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+
+	s.Run("the org's own resource is gone with it", func() {
+		s.Assert().False(creatorCanUpdateResource())
 	})
 
 	s.Run("a second delete is refused", func() {

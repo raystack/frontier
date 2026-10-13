@@ -118,6 +118,9 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
+	if flt.OrgID != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrgID, "project_id": nil})
+	}
 	if flt.UserID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"principal_id": flt.UserID})
 	}

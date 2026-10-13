@@ -69,6 +69,7 @@ type PolicyService interface {
 
 type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
+	Delete(ctx context.Context, namespaceID, id string) error
 	Purge(ctx context.Context, namespaceID, id string) error
 }
 
@@ -310,6 +311,20 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	for _, p := range projects {
 		if err = d.DeleteProject(ctx, p.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a project[%s]: %w", p.Name, err)
+		}
+	}
+
+	// delete the org's own resources
+	resources, err := d.resService.List(ctx, resource.Filter{OrgID: id})
+	if err != nil {
+		return err
+	}
+	for _, r := range resources {
+		if err = d.resService.Delete(ctx, r.NamespaceID, r.ID); err != nil {
+			if errors.Is(err, resource.ErrNotExist) {
+				continue
+			}
+			return fmt.Errorf("failed to delete org while deleting a resource[%s]: %w", r.Name, err)
 		}
 	}
 
