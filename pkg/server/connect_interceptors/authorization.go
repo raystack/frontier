@@ -777,6 +777,20 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			ID:        pbreq.Msg.GetProjectId(),
 		}, req)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationResource": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.CreateOrganizationResourceRequest])
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: schema.OrganizationNamespace, ID: pbreq.Msg.GetOrgId(),
+		}, schema.GetPermission, req)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.OrganizationNamespace,
+			ID:        pbreq.Msg.GetOrgId(),
+		}, req)
+	},
 
 	// audit records
 	frontierv1beta1connect.FrontierServiceCreateAuditRecordProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {

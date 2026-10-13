@@ -523,6 +523,105 @@ func TestCreate(t *testing.T) {
 		})
 		assert.NoError(t, err)
 	})
+
+	t.Run("links the resource to its project and names the project in the audit record", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
+		userID := uuid.New().String()
+
+		projectSvc.EXPECT().Get(mock.Anything, testProject.ID).Return(testProject, nil)
+
+		createdRes := resource.Resource{
+			ID: uuid.New().String(), Name: "res-link", NamespaceID: "resource/item",
+			ProjectID: testProject.ID, OrgID: testProject.Organization.ID,
+			PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		}
+		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r resource.Resource) bool {
+			return r.URN == "frn:"+testProject.Name+":resource/item:res-link"
+		})).Return(createdRes, nil)
+
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		relationSvc.EXPECT().Create(mock.Anything, relation.Relation{
+			Object:       relation.Object{ID: createdRes.ID, Namespace: "resource/item"},
+			Subject:      relation.Subject{ID: testProject.ID, Namespace: schema.ProjectNamespace},
+			RelationName: schema.ProjectRelationName,
+		}).Return(relation.Relation{}, nil).Once()
+		relationSvc.EXPECT().Create(mock.Anything, mock.MatchedBy(func(rel relation.Relation) bool {
+			return rel.RelationName == schema.OwnerRelationName && rel.Subject.ID == userID
+		})).Return(relation.Relation{}, nil).Once()
+
+		auditRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r auditmodels.AuditRecord) bool {
+			return r.Resource.ID == testProject.ID && r.Resource.Type == pkgauditrecord.ProjectType &&
+				r.OrgID == testProject.Organization.ID && r.OrgName == testProject.Organization.Title
+		})).Return(auditmodels.AuditRecord{}, nil)
+
+		_, err := svc.Create(ctx, resource.Resource{
+			Name: "res-link", NamespaceID: "resource/item", ProjectID: testProject.ID,
+			PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		})
+		assert.NoError(t, err)
+	})
+}
+
+func TestCreateOrgResource(t *testing.T) {
+	ctx := context.Background()
+	testOrg := organization.Organization{
+		ID:    uuid.New().String(),
+		Name:  "test-org",
+		Title: "Test Org",
+	}
+
+	t.Run("links the resource to the org and names the org in the audit record", func(t *testing.T) {
+		repo, relationSvc, _, _, orgSvc, _, auditRepo, _, svc := newTestService(t)
+		userID := uuid.New().String()
+
+		orgSvc.EXPECT().GetRaw(mock.Anything, testOrg.ID).Return(testOrg, nil)
+
+		createdRes := resource.Resource{
+			ID: uuid.New().String(), Name: "store-1", NamespaceID: "resource/store",
+			OrgID: testOrg.ID, PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		}
+		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r resource.Resource) bool {
+			return r.ProjectID == "" && r.OrgID == testOrg.ID &&
+				r.URN == "frn:"+testOrg.ID+":resource/store:store-1"
+		})).Return(createdRes, nil)
+
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		relationSvc.EXPECT().Create(mock.Anything, mock.MatchedBy(func(rel relation.Relation) bool {
+			return rel.RelationName == schema.OrganizationRelationName &&
+				rel.Object.ID == createdRes.ID && rel.Object.Namespace == "resource/store" &&
+				rel.Subject.ID == testOrg.ID && rel.Subject.Namespace == schema.OrganizationNamespace
+		})).Return(relation.Relation{}, nil).Once()
+		relationSvc.EXPECT().Create(mock.Anything, mock.MatchedBy(func(rel relation.Relation) bool {
+			return rel.RelationName == schema.OwnerRelationName && rel.Subject.ID == userID
+		})).Return(relation.Relation{}, nil).Once()
+
+		auditRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r auditmodels.AuditRecord) bool {
+			return r.Event == pkgauditrecord.ResourceCreatedEvent &&
+				r.Resource.ID == testOrg.ID && r.Resource.Type == pkgauditrecord.OrganizationType &&
+				r.Resource.Name == testOrg.Title &&
+				r.OrgID == testOrg.ID && r.OrgName == testOrg.Title &&
+				r.Target != nil && r.Target.ID == createdRes.ID
+		})).Return(auditmodels.AuditRecord{}, nil)
+
+		got, err := svc.Create(ctx, resource.Resource{
+			Name: "store-1", NamespaceID: "resource/store", OrgID: testOrg.ID,
+			PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, createdRes, got)
+	})
+
+	t.Run("returns the org lookup error without creating anything", func(t *testing.T) {
+		_, _, _, _, orgSvc, _, _, _, svc := newTestService(t)
+
+		orgSvc.EXPECT().GetRaw(mock.Anything, testOrg.ID).Return(organization.Organization{}, organization.ErrNotExist)
+
+		_, err := svc.Create(ctx, resource.Resource{
+			Name: "store-1", NamespaceID: "resource/store", OrgID: testOrg.ID,
+			PrincipalID: uuid.New().String(), PrincipalType: schema.UserPrincipal,
+		})
+		assert.ErrorIs(t, err, organization.ErrNotExist)
+	})
 }
 
 func TestList(t *testing.T) {
@@ -583,6 +682,27 @@ func TestDelete(t *testing.T) {
 		})).Return(auditmodels.AuditRecord{}, nil)
 
 		err := svc.Delete(ctx, "resource/item", "r1")
+		assert.NoError(t, err)
+	})
+
+	t.Run("deletes an org resource and names the org in the audit record", func(t *testing.T) {
+		repo, relationSvc, _, _, orgSvc, _, auditRepo, _, svc := newTestService(t)
+		org := organization.Organization{ID: uuid.New().String(), Title: "Org Two"}
+		orgRes := resource.Resource{ID: "r2", Name: "store-1", NamespaceID: "resource/store", OrgID: org.ID}
+
+		repo.EXPECT().GetByID(mock.Anything, "r2").Return(orgRes, nil)
+		orgSvc.EXPECT().GetRaw(mock.Anything, org.ID).Return(org, nil)
+		relationSvc.EXPECT().Delete(mock.Anything, relation.Relation{
+			Object: relation.Object{ID: "r2", Namespace: "resource/store"},
+		}).Return(nil)
+		repo.EXPECT().Delete(mock.Anything, "r2").Return(nil)
+		auditRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(rec auditmodels.AuditRecord) bool {
+			return rec.Event == pkgauditrecord.ResourceDeletedEvent &&
+				rec.Resource.ID == org.ID && rec.Resource.Type == pkgauditrecord.OrganizationType &&
+				rec.OrgID == org.ID && rec.OrgName == org.Title
+		})).Return(auditmodels.AuditRecord{}, nil)
+
+		err := svc.Delete(ctx, "resource/store", "r2")
 		assert.NoError(t, err)
 	})
 
@@ -663,23 +783,6 @@ func TestPurge(t *testing.T) {
 
 		err := svc.Purge(context.Background(), "resource/item", "r1")
 		assert.ErrorContains(t, err, "spicedb down")
-	})
-}
-
-func TestAddProjectToResource(t *testing.T) {
-	t.Run("creates project relation", func(t *testing.T) {
-		_, relationSvc, _, _, _, _, _, _, svc := newTestService(t)
-
-		relationSvc.EXPECT().Create(mock.Anything, relation.Relation{
-			Object:       relation.Object{ID: "r1", Namespace: "resource/item"},
-			Subject:      relation.Subject{ID: "proj-1", Namespace: schema.ProjectNamespace},
-			RelationName: schema.ProjectRelationName,
-		}).Return(relation.Relation{}, nil)
-
-		err := svc.AddProjectToResource(context.Background(), "proj-1", resource.Resource{
-			ID: "r1", NamespaceID: "resource/item",
-		})
-		assert.NoError(t, err)
 	})
 }
 

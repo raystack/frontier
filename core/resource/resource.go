@@ -36,8 +36,8 @@ type Resource struct {
 	UpdatedAt time.Time
 }
 
-func (res Resource) CreateURN(projectName string) string {
-	return fmt.Sprintf("frn:%s:%s:%s", projectName, res.NamespaceID, res.Name)
+func (res Resource) CreateURN(scope string) string {
+	return fmt.Sprintf("frn:%s:%s:%s", scope, res.NamespaceID, res.Name)
 }
 
 type Check struct {

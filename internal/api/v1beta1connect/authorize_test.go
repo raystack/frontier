@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
@@ -456,5 +457,19 @@ func TestEnsurePATOrgActive(t *testing.T) {
 		ctx := authenticate.SetSuperUserInContext(context.Background(), true)
 
 		assert.NoError(t, h.EnsurePATOrgActive(ctx, testAuthzPATID))
+	})
+}
+
+func TestCheckPlanEntitlement(t *testing.T) {
+	t.Run("org target disabled passes", func(t *testing.T) {
+		h, m := newAuthorizeHandler(t)
+		customerSvc := mocks.NewCustomerService(t)
+		h.customerService = customerSvc
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, testAuthzOrgID).Return(organization.Organization{ID: testAuthzOrgID, State: organization.Disabled}, nil)
+		customerSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: testAuthzOrgID}).Return(nil, nil)
+
+		err := h.CheckPlanEntitlement(context.Background(), relation.Object{Namespace: schema.OrganizationNamespace, ID: testAuthzOrgID},
+			connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{}))
+		assert.NoError(t, err)
 	})
 }
