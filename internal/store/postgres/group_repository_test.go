@@ -657,3 +657,20 @@ func (s *GroupRepositoryTestSuite) TestSkipsSoftDeletedGroups() {
 	err = s.repository.SetState(s.ctx, deleted.ID, group.Disabled)
 	s.Assert().ErrorIs(err, group.ErrNotExist)
 }
+
+func (s *GroupRepositoryTestSuite) TestListIncludeDisabled() {
+	orgID := s.orgs[1].ID
+
+	hidden, err := s.repository.List(s.ctx, group.Filter{OrganizationID: orgID})
+	s.Require().NoError(err)
+	s.Assert().Len(hidden, 1)
+	s.Assert().Equal(group.Enabled, hidden[0].State)
+
+	all, err := s.repository.List(s.ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true})
+	s.Require().NoError(err)
+	states := map[group.State]int{}
+	for _, g := range all {
+		states[g.State]++
+	}
+	s.Assert().Equal(map[group.State]int{group.Enabled: 1, group.Disabled: 1}, states)
+}
