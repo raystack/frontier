@@ -21,6 +21,53 @@ func (_m *UserPATService) EXPECT() *UserPATService_Expecter {
 	return &UserPATService_Expecter{mock: &_m.Mock}
 }
 
+// DeleteAllByOrg provides a mock function with given fields: ctx, orgID
+func (_m *UserPATService) DeleteAllByOrg(ctx context.Context, orgID string) error {
+	ret := _m.Called(ctx, orgID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAllByOrg")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, orgID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UserPATService_DeleteAllByOrg_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAllByOrg'
+type UserPATService_DeleteAllByOrg_Call struct {
+	*mock.Call
+}
+
+// DeleteAllByOrg is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+func (_e *UserPATService_Expecter) DeleteAllByOrg(ctx interface{}, orgID interface{}) *UserPATService_DeleteAllByOrg_Call {
+	return &UserPATService_DeleteAllByOrg_Call{Call: _e.mock.On("DeleteAllByOrg", ctx, orgID)}
+}
+
+func (_c *UserPATService_DeleteAllByOrg_Call) Run(run func(ctx context.Context, orgID string)) *UserPATService_DeleteAllByOrg_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserPATService_DeleteAllByOrg_Call) Return(_a0 error) *UserPATService_DeleteAllByOrg_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *UserPATService_DeleteAllByOrg_Call) RunAndReturn(run func(context.Context, string) error) *UserPATService_DeleteAllByOrg_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteAllByUser provides a mock function with given fields: ctx, userID
 func (_m *UserPATService) DeleteAllByUser(ctx context.Context, userID string) error {
 	ret := _m.Called(ctx, userID)

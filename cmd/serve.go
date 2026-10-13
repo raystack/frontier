@@ -597,7 +597,7 @@ func buildAPIDependencies(
 
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, membershipService, policyService, roleService, invitationService, userService, userPATService,
-		serviceUserService, customerService, subscriptionService, invoiceService, checkoutService,
+		domainService, serviceUserService, customerService, subscriptionService, invoiceService, checkoutService,
 		creditService, orgKycService, planService,
 		mailDialer, cfg.Billing.OrgDeleteNotice,
 	)
