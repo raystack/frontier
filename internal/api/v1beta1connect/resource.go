@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -70,13 +71,8 @@ func (h *ConnectHandler) CreateProjectResource(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	parentProject, err := h.projectService.Get(ctx, request.Msg.GetProjectId())
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource.GetProject: project_id=%s: %w", request.Msg.GetProjectId(), err))
-	}
-
 	resourcePB, err := h.createResource(ctx, request, "CreateProjectResource", request.Msg.GetId(), request.Msg.GetBody(),
-		resource.Resource{ProjectID: parentProject.ID}, "project_id", request.Msg.GetProjectId())
+		resource.Resource{ProjectID: request.Msg.GetProjectId()}, "project_id", request.Msg.GetProjectId())
 	if err != nil {
 		return nil, err
 	}
@@ -279,6 +275,10 @@ func (h *ConnectHandler) createResource(ctx context.Context, request connect.Any
 			"principal", body.GetPrincipal())
 
 		switch {
+		case errors.Is(err, project.ErrNotExist),
+			errors.Is(err, project.ErrInvalidID),
+			errors.Is(err, project.ErrInvalidUUID):
+			return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
 		case errors.Is(err, organization.ErrNotExist),
 			errors.Is(err, organization.ErrInvalidID),
 			errors.Is(err, organization.ErrInvalidUUID):
