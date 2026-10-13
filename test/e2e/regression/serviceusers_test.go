@@ -1035,6 +1035,155 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 	})
 }
 
+func (s *ServiceUsersRegressionTestSuite) TestServiceUserDeleteLeavesNoPolicy() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	start := time.Now()
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Name: "org-sv-user-delete"},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	createProjectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{Name: "project-sv-user-delete", OrgId: orgID},
+	}))
+	s.Require().NoError(err)
+	projectID := createProjectResp.Msg.GetProject().GetId()
+	disabledProjectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{Name: "project-sv-user-delete-disabled", OrgId: orgID},
+	}))
+	s.Require().NoError(err)
+	disabledProjectID := disabledProjectResp.Msg.GetProject().GetId()
+
+	createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+		OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+	serviceUserID := createServiceUserResp.Msg.GetServiceuser().GetId()
+
+	for _, project := range []string{projectID, disabledProjectID} {
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleProjectViewer,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, project),
+				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, serviceUserID),
+			},
+		}))
+		s.Require().NoError(err)
+	}
+	_, err = s.testBench.Client.DisableProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableProjectRequest{Id: disabledProjectID}))
+	s.Require().NoError(err)
+
+	secretResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+		Id: serviceUserID, OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+	tokenResp, err := s.testBench.Client.CreateServiceUserToken(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+		Id: serviceUserID, OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+	keyResp, err := s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+		Id: serviceUserID, OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+	rsaKey, err := jwk.ParseKey([]byte(keyResp.Msg.GetKey().GetPrivateKey()), jwk.WithPEM(true))
+	s.Require().NoError(err)
+	s.Require().NoError(rsaKey.Set(jwk.KeyIDKey, keyResp.Msg.GetKey().GetKid()))
+	keyToken, err := utils.BuildToken(rsaKey, "custom", serviceUserID, 5*time.Minute, nil)
+	s.Require().NoError(err)
+
+	credentialContexts := map[string]context.Context{
+		"secret": getSVUCtx(secretResp.Msg.GetSecret()),
+		"token": testbench.ContextWithHeaders(context.Background(), map[string]string{
+			"Authorization": "Basic " + base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", tokenResp.Msg.GetToken().GetId(), tokenResp.Msg.GetToken().GetToken())),
+		}),
+		"key": testbench.ContextWithHeaders(context.Background(), map[string]string{
+			"Authorization": "Bearer " + string(keyToken),
+		}),
+	}
+	for name, ctx := range credentialContexts {
+		currentUserResp, err := s.testBench.Client.GetCurrentUser(ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().NoError(err, name)
+		s.Assert().Equal(serviceUserID, currentUserResp.Msg.GetServiceuser().GetId(), name)
+	}
+	s.Require().Len(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: serviceUserID}), 3)
+
+	_, err = s.testBench.Client.DeleteServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+		Id:    serviceUserID,
+		OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+
+	s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: serviceUserID}))
+	_, err = s.testBench.Client.GetServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetServiceUserRequest{
+		Id:    serviceUserID,
+		OrgId: orgID,
+	}))
+	s.Require().Error(err)
+	// PermissionDenied comes from the authorization check that runs before the handler.
+	// The deleted service user has no relations left, so that check fails; the handler would return NotFound.
+	s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+	for name, ctx := range credentialContexts {
+		_, err := s.testBench.Client.GetCurrentUser(ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err), name)
+	}
+	_, err = s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+		Id: serviceUserID, OrgId: orgID,
+	}))
+	s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+	_, err = s.testBench.Client.CreateServiceUserToken(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserTokenRequest{
+		Id: serviceUserID, OrgId: orgID,
+	}))
+	s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+	_, err = s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserJWKRequest{
+		Id: serviceUserID, OrgId: orgID,
+	}))
+	s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+	_, err = s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListServiceUserCredentialsRequest{
+		Id: serviceUserID, OrgId: orgID,
+	}))
+	s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+	_, err = s.testBench.Client.DeleteServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteServiceUserRequest{
+		Id:    serviceUserID,
+		OrgId: orgID,
+	}))
+	s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+	currentUserResp, err := s.testBench.Client.GetCurrentUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+	s.Require().NoError(err)
+	recordsResp, err := s.testBench.AdminClient.ListAuditRecords(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+		Query: &frontierv1beta1.RQLRequest{
+			Filters: []*frontierv1beta1.RQLFilter{{
+				Name:     "target_id",
+				Operator: "eq",
+				Value:    &frontierv1beta1.RQLFilter_StringValue{StringValue: serviceUserID},
+			}},
+		},
+	}))
+	s.Require().NoError(err)
+	var deleteRecords []*frontierv1beta1.AuditRecord
+	for _, record := range recordsResp.Msg.GetAuditRecords() {
+		if record.GetEvent() == "serviceuser.deleted" {
+			deleteRecords = append(deleteRecords, record)
+		}
+	}
+	s.Require().Len(deleteRecords, 1)
+	s.Assert().Equal(currentUserResp.Msg.GetUser().GetId(), deleteRecords[0].GetActor().GetId())
+	s.Assert().Equal(orgID, deleteRecords[0].GetResource().GetId())
+	s.Assert().Equal("serviceuser", deleteRecords[0].GetTarget().GetType())
+	s.Assert().True(deleteRecords[0].GetOccurredAt().AsTime().After(start.Add(-time.Second)))
+
+	// the org delete only visits enabled projects
+	_, err = s.testBench.Client.EnableProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.EnableProjectRequest{Id: disabledProjectID}))
+	s.Require().NoError(err)
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{
+		Id: orgID,
+	}))
+	s.Require().NoError(err)
+}
+
 func TestEndToEndServiceUsersRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(ServiceUsersRegressionTestSuite))
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -160,7 +161,7 @@ func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (se
 }
 
 func (s ServiceUserCredentialRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_SERVICEUSERCREDENTIALS).Where(
+	query, params, err := softDelete(TABLE_SERVICEUSERCREDENTIALS).Where(
 		goqu.Ex{
 			"id": id,
 		},
@@ -170,8 +171,16 @@ func (s ServiceUserCredentialRepository) Delete(ctx context.Context, id string) 
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSERCREDENTIALS, "Delete", func(ctx context.Context) error {
-		if _, err = s.dbc.DB.ExecContext(ctx, query, params...); err != nil {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
 			return err
+		}
+		deleted, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if deleted == 0 {
+			return sql.ErrNoRows
 		}
 		return nil
 	}); err != nil {
@@ -184,4 +193,42 @@ func (s ServiceUserCredentialRepository) Delete(ctx context.Context, id string) 
 		}
 	}
 	return nil
+}
+
+// UpdateBootstrapSecretHash updates the secret of a live client-secret credential
+// that belongs to the bootstrap service user. Any other credential reports not found.
+func (s ServiceUserCredentialRepository) UpdateBootstrapSecretHash(ctx context.Context, id, secretHash string) error {
+	if strings.TrimSpace(id) == "" {
+		return serviceuser.ErrInvalidKeyID
+	}
+
+	query, params, err := dialect.Update(TABLE_SERVICEUSERCREDENTIALS).Set(goqu.Record{
+		"secret_hash": secretHash,
+		"updated_at":  goqu.L("now()"),
+	}).Where(
+		goqu.Ex{
+			"id":             id,
+			"serviceuser_id": schema.BootstrapServiceUserID,
+			"type":           serviceuser.ClientSecretCredentialType.String(),
+		},
+		live(TABLE_SERVICEUSERCREDENTIALS),
+	).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errQuery, err)
+	}
+
+	return s.dbc.WithTimeout(ctx, TABLE_SERVICEUSERCREDENTIALS, "UpdateBootstrapSecretHash", func(ctx context.Context) error {
+		result, err := s.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return fmt.Errorf("%w: %w", errDB, err)
+		}
+		updated, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if updated == 0 {
+			return serviceuser.ErrCredNotExist
+		}
+		return nil
+	})
 }

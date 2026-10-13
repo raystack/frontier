@@ -11,10 +11,12 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
@@ -210,6 +212,15 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 		return policy.Policy{}, fmt.Errorf("%w: %w", errParse, err)
 	}
 
+	lockQuery, lockParams, err := fromLive(TABLE_ROLES).
+		Select("id").
+		Where(goqu.Ex{"id": pol.RoleID}).
+		ForKeyShare(exp.Wait).
+		ToSQL()
+	if err != nil {
+		return policy.Policy{}, fmt.Errorf("%w: %w", errQuery, err)
+	}
+
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
 		goqu.Record{
 			"role_id":        pol.RoleID,
@@ -234,6 +245,16 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 	var policyDB Policy
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_POLICIES, "Upsert", func(ctx context.Context) error {
+			// A soft-deleted role keeps its row, so the foreign key no longer proves the
+			// role is live. This lock waits for a running role delete but not for other policy creates.
+			var roleID string
+			if err := tx.QueryRowContext(ctx, lockQuery, lockParams...).Scan(&roleID); err != nil {
+				if errors.Is(err, sql.ErrNoRows) {
+					return role.ErrNotExist
+				}
+				return err
+			}
+
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&policyDB); err != nil {
 				return err
 			}
@@ -260,6 +281,8 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
+		case errors.Is(err, role.ErrNotExist):
+			return policy.Policy{}, role.ErrNotExist
 		case errors.Is(err, ErrForeignKeyViolation):
 			return policy.Policy{}, fmt.Errorf("%w: %w", policy.ErrInvalidDetail, err)
 		default:

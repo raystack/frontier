@@ -596,3 +596,10 @@ func bootstrapResource(
 
 	return insertedData, nil
 }
+
+// blockedBy counts the sessions waiting on a lock held by the given backend.
+func blockedBy(ctx context.Context, client *db.Client, holderPID int) (int, error) {
+	var waiting int
+	err := client.QueryRowxContext(ctx, "SELECT count(*) FROM pg_stat_activity WHERE $1 = ANY(pg_blocking_pids(pid))", holderPID).Scan(&waiting)
+	return waiting, err
+}
