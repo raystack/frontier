@@ -65,10 +65,6 @@ type deleterMocks struct {
 func newMocks(t *testing.T) deleterMocks {
 	t.Helper()
 	m := newBareMocks(t)
-	m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
-		Return([]project.Project{}, nil).Maybe()
-	m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", State: group.Disabled}).
-		Return([]group.Group{}, nil).Maybe()
 	return m
 }
 
@@ -229,7 +225,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
 		// projects (each triggers DeleteProject)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{{ID: "proj-1", Name: "p1"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
@@ -238,7 +234,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
 		// groups (DeleteGroup: OnGroupDeleted then DeleteModel)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{{ID: "grp-1", Name: "g1"}}, nil)
 		m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-1").Return(nil)
 		m.grpSvc.EXPECT().DeleteModel(mock.Anything, "grp-1").Return(nil)
@@ -307,10 +303,8 @@ func TestDeleteOrganization(t *testing.T) {
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
 
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
-			Return([]project.Project{{ID: "proj-on", Name: "on"}}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
-			Return([]project.Project{{ID: "proj-off", Name: "off", State: project.Disabled}}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{{ID: "proj-on", Name: "on"}, {ID: "proj-off", Name: "off", State: project.Disabled}}, nil)
 		for _, id := range []string{"proj-on", "proj-off"} {
 			m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: id}).
 				Return([]policy.Policy{}, nil)
@@ -320,10 +314,8 @@ func TestDeleteOrganization(t *testing.T) {
 				Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
 		}
 
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
-			Return([]group.Group{{ID: "grp-on", Name: "on"}}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", State: group.Disabled}).
-			Return([]group.Group{{ID: "grp-off", Name: "off", State: group.Disabled}}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
+			Return([]group.Group{{ID: "grp-on", Name: "on"}, {ID: "grp-off", Name: "off", State: group.Disabled}}, nil)
 		for _, id := range []string{"grp-on", "grp-off"} {
 			m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, id).Return(nil)
 			m.grpSvc.EXPECT().DeleteModel(mock.Anything, id).
@@ -347,20 +339,16 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{{ID: "proj-on", Name: "on"}}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
-			Return([]project.Project{}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-on"}).
 			Return([]policy.Policy{}, nil)
 		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-on", IncludeDeleted: true}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-on").
 			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{{ID: "grp-on", Name: "on"}}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", State: group.Disabled}).
-			Return([]group.Group{}, nil)
 		m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-on").Return(nil)
 		m.grpSvc.EXPECT().DeleteModel(mock.Anything, "grp-on").
 			Run(func(_ context.Context, id string) { steps = append(steps, "group:"+id) }).Return(nil)
@@ -379,9 +367,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
-			Return([]project.Project{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", State: project.Disabled}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{{ID: "proj-off", Name: "off", State: project.Disabled}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-off"}).
 			Return([]policy.Policy{}, nil)
@@ -546,9 +532,9 @@ func TestDeleteOrganization(t *testing.T) {
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -596,9 +582,9 @@ func TestDeleteOrganization(t *testing.T) {
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -700,9 +686,9 @@ func TestDeleteOrganization(t *testing.T) {
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -805,9 +791,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1", State: organization.Disabled}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -857,9 +843,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return(nil, errors.New("su list failed"))
@@ -879,9 +865,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{{ID: "su-1"}}, nil)
@@ -903,9 +889,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -946,9 +932,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -972,9 +958,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -1000,9 +986,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -1034,9 +1020,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return(organization.Organization{ID: "org-1"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -1193,9 +1179,9 @@ func TestForfeitAuditRecord(t *testing.T) {
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
 		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)
@@ -1244,9 +1230,9 @@ func TestForfeitAuditRecord(t *testing.T) {
 			Return(organization.Organization{ID: "org-1", Title: "Org One"}, nil)
 		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
 			Return([]customer.Customer{}, nil)
-		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1"}).
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
-		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1"}).
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 			Return([]serviceuser.ServiceUser{}, nil)

@@ -546,27 +546,11 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 }
 
 func (d Service) listOrgProjects(ctx context.Context, orgID string) ([]project.Project, error) {
-	enabled, err := d.projService.List(ctx, project.Filter{OrgID: orgID})
-	if err != nil {
-		return nil, err
-	}
-	disabled, err := d.projService.List(ctx, project.Filter{OrgID: orgID, State: project.Disabled})
-	if err != nil {
-		return nil, err
-	}
-	return append(enabled, disabled...), nil
+	return d.projService.List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true})
 }
 
 func (d Service) listOrgGroups(ctx context.Context, orgID string) ([]group.Group, error) {
-	enabled, err := d.groupService.List(ctx, group.Filter{OrganizationID: orgID})
-	if err != nil {
-		return nil, err
-	}
-	disabled, err := d.groupService.List(ctx, group.Filter{OrganizationID: orgID, State: group.Disabled})
-	if err != nil {
-		return nil, err
-	}
-	return append(enabled, disabled...), nil
+	return d.groupService.List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true})
 }
 
 // ensureDeletable collects everything that blocks deleting the organization and
