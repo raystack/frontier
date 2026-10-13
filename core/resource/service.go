@@ -517,10 +517,15 @@ func (s Service) Purge(ctx context.Context, namespaceID, id string) error {
 	return s.repository.Purge(ctx, id)
 }
 
-// RemovePrincipalAccess deletes every resource-level policy the principal holds
-// on resources owned by the given projects.
-func (s Service) RemovePrincipalAccess(ctx context.Context, principalID, principalType string, projectIDs []string) error {
-	if len(projectIDs) == 0 {
+func (s Service) RemovePrincipalAccess(ctx context.Context, principalID, principalType, orgID string, projectIDs []string) error {
+	var scopes []Filter
+	if orgID != "" {
+		scopes = append(scopes, Filter{OrgID: orgID})
+	}
+	for _, projectID := range projectIDs {
+		scopes = append(scopes, Filter{ProjectID: projectID})
+	}
+	if len(scopes) == 0 {
 		return nil
 	}
 
@@ -535,22 +540,20 @@ func (s Service) RemovePrincipalAccess(ctx context.Context, principalID, princip
 		return nil
 	}
 
-	// gather the IDs of every resource in the given projects. Below, any policy
-	// whose ResourceID matches one of these resources gets deleted.
-	projectResourceIDs := make(map[string]struct{})
-	for _, projectID := range projectIDs {
-		resources, err := s.repository.List(ctx, Filter{ProjectID: projectID})
+	resourceIDs := make(map[string]struct{})
+	for _, scope := range scopes {
+		resources, err := s.repository.List(ctx, scope)
 		if err != nil {
-			return fmt.Errorf("list resources for project %s: %w", projectID, err)
+			return fmt.Errorf("list resources: %w", err)
 		}
 		for _, res := range resources {
-			projectResourceIDs[res.ID] = struct{}{}
+			resourceIDs[res.ID] = struct{}{}
 		}
 	}
 
 	var errs error
 	for _, pol := range policies {
-		if _, ok := projectResourceIDs[pol.ResourceID]; ok {
+		if _, ok := resourceIDs[pol.ResourceID]; ok {
 			if err := s.policyService.Delete(ctx, pol.ID); err != nil {
 				errs = errors.Join(errs, fmt.Errorf("delete resource policy %s: %w", pol.ID, err))
 			}

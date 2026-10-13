@@ -66,7 +66,7 @@ type UserPATService interface {
 }
 
 type ResourceService interface {
-	RemovePrincipalAccess(ctx context.Context, principalID, principalType string, projectIDs []string) error
+	RemovePrincipalAccess(ctx context.Context, principalID, principalType, orgID string, projectIDs []string) error
 }
 
 type AuditRecordRepository interface {

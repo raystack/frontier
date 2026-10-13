@@ -360,6 +360,31 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 			return u.GetId()
 		}), createUserResponse.Msg.GetUser().GetId())
 
+		createResourceResp, err := s.testBench.Client.CreateOrganizationResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+			OrgId: createOrgResp.Msg.GetOrganization().GetId(),
+			Body:  &frontierv1beta1.ResourceRequestBody{Name: "store-1", Namespace: computeOrderNamespace},
+		}))
+		s.Require().NoError(err)
+		orgResource := schema.JoinNamespaceAndResourceID(computeOrderNamespace, createResourceResp.Msg.GetResource().GetId())
+		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    computeManagerRoleName,
+				Resource:  orgResource,
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResponse.Msg.GetUser().GetId()),
+			},
+		}))
+		s.Require().NoError(err)
+		memberCanDeleteResource := func() bool {
+			resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Resource:   orgResource,
+				Permission: schema.DeletePermission,
+				Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResponse.Msg.GetUser().GetId()),
+			}))
+			s.Require().NoError(err)
+			return resp.Msg.GetStatus()
+		}
+		s.Require().True(memberCanDeleteResource())
+
 		// remove user from org
 		_, err = s.testBench.Client.RemoveOrganizationMember(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
 			OrgId:         createOrgResp.Msg.GetOrganization().GetId(),
@@ -376,6 +401,10 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NotContains(utils.Map(listUsersAfterDelete.Msg.GetUsers(), func(u *frontierv1beta1.User) string {
 			return u.GetId()
 		}), createUserResponse.Msg.GetUser().GetId())
+
+		_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: createPolicyResp.Msg.GetPolicy().GetId()}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		s.Assert().False(memberCanDeleteResource())
 	})
 	s.Run("5. creating an org when PlatformDisableOrgsOnCreate is true should succeed but org is disabled", func() {
 		// enable disable_org_on_create preference

@@ -807,14 +807,14 @@ func TestAddResourceOwner(t *testing.T) {
 func TestRemovePrincipalAccess(t *testing.T) {
 	const userID = "user-1"
 
-	t.Run("no projects: no-op", func(t *testing.T) {
+	t.Run("no org and no projects: no-op", func(t *testing.T) {
 		_, _, _, _, _, _, _, _, svc := newTestService(t)
 
-		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, nil)
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, "", nil)
 		assert.NoError(t, err)
 	})
 
-	t.Run("deletes only policies on resources owned by the given projects", func(t *testing.T) {
+	t.Run("deletes only policies on the org's own resources and on resources owned by the given projects", func(t *testing.T) {
 		repo, _, _, _, _, _, _, policySvc, svc := newTestService(t)
 
 		policySvc.EXPECT().List(mock.Anything, policy.Filter{
@@ -823,17 +823,35 @@ func TestRemovePrincipalAccess(t *testing.T) {
 		}).Return([]policy.Policy{
 			{ID: "res-p1", ResourceType: "compute/instance", ResourceID: "res-1"},
 			{ID: "res-p2", ResourceType: "compute/instance", ResourceID: "res-2"},
+			{ID: "store-p1", ResourceType: "resource/store", ResourceID: "store-1"},
 			{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: "org-1"},
 		}, nil)
 
-		// resources owned by proj-1: res-1 only. res-2 lives elsewhere.
+		// the org owns store-1 and proj-1 owns res-1. res-2 lives elsewhere.
+		repo.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{{ID: "store-1"}}, nil)
 		repo.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
 			Return([]resource.Resource{{ID: "res-1"}}, nil)
 
-		// only the policy on res-1 is deleted; res-2 and the org policy are untouched.
+		// res-2 and the org policy are untouched.
 		policySvc.EXPECT().Delete(mock.Anything, "res-p1").Return(nil)
+		policySvc.EXPECT().Delete(mock.Anything, "store-p1").Return(nil)
 
-		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, "org-1", []string{"proj-1"})
+		assert.NoError(t, err)
+	})
+
+	t.Run("an org without projects still clears policies on its own resources", func(t *testing.T) {
+		repo, _, _, _, _, _, _, policySvc, svc := newTestService(t)
+
+		policySvc.EXPECT().List(mock.Anything, mock.Anything).Return([]policy.Policy{
+			{ID: "store-p1", ResourceType: "resource/store", ResourceID: "store-1"},
+		}, nil)
+		repo.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{{ID: "store-1"}}, nil)
+		policySvc.EXPECT().Delete(mock.Anything, "store-p1").Return(nil)
+
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, "org-1", nil)
 		assert.NoError(t, err)
 	})
 
@@ -842,7 +860,7 @@ func TestRemovePrincipalAccess(t *testing.T) {
 
 		policySvc.EXPECT().List(mock.Anything, mock.Anything).Return([]policy.Policy{}, nil)
 
-		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, "org-1", []string{"proj-1"})
 		assert.NoError(t, err)
 	})
 
@@ -853,13 +871,15 @@ func TestRemovePrincipalAccess(t *testing.T) {
 			{ID: "res-p1", ResourceType: "compute/instance", ResourceID: "res-1"},
 			{ID: "res-p2", ResourceType: "compute/instance", ResourceID: "res-2"},
 		}, nil)
+		repo.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{}, nil)
 		repo.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
 			Return([]resource.Resource{{ID: "res-1"}, {ID: "res-2"}}, nil)
 
 		policySvc.EXPECT().Delete(mock.Anything, "res-p1").Return(errors.New("delete boom"))
 		policySvc.EXPECT().Delete(mock.Anything, "res-p2").Return(nil)
 
-		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, "org-1", []string{"proj-1"})
 		assert.ErrorContains(t, err, "delete boom")
 	})
 
@@ -868,7 +888,7 @@ func TestRemovePrincipalAccess(t *testing.T) {
 
 		policySvc.EXPECT().List(mock.Anything, mock.Anything).Return(nil, errors.New("list boom"))
 
-		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, []string{"proj-1"})
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, "org-1", []string{"proj-1"})
 		assert.ErrorContains(t, err, "list boom")
 	})
 }
