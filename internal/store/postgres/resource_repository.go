@@ -31,6 +31,9 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	if strings.TrimSpace(res.URN) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
+	if res.ProjectID == "" && res.OrgID == "" {
+		return resource.Resource{}, resource.ErrInvalidDetail
+	}
 	if strings.TrimSpace(res.ID) == "" {
 		res.ID = uuid.New().String()
 	} else {
@@ -47,6 +50,8 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		}
 	}
 
+	projectID := sql.NullString{String: res.ProjectID, Valid: res.ProjectID != ""}
+	orgID := sql.NullString{String: res.OrgID, Valid: res.OrgID != ""}
 	principalID := sql.NullString{String: res.PrincipalID, Valid: res.PrincipalID != ""}
 	principalType := sql.NullString{String: res.PrincipalType, Valid: res.PrincipalType != ""}
 
@@ -61,7 +66,8 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			"urn":            res.URN,
 			"name":           res.Name,
 			"title":          res.Title,
-			"project_id":     res.ProjectID,
+			"project_id":     projectID,
+			"org_id":         orgID,
 			"namespace_name": res.NamespaceID,
 			"principal_id":   principalID,
 			"principal_type": principalType,
@@ -70,7 +76,8 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		goqu.DoUpdate(liveConflictTarget("urn"), goqu.Record{
 			"name":           res.Name,
 			"title":          res.Title,
-			"project_id":     res.ProjectID,
+			"project_id":     projectID,
+			"org_id":         orgID,
 			"namespace_name": res.NamespaceID,
 			"principal_id":   principalID,
 			"principal_type": principalType,

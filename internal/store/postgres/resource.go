@@ -14,7 +14,8 @@ type Resource struct {
 	URN           string         `db:"urn"`
 	Name          string         `db:"name"`
 	Title         string         `db:"title"`
-	ProjectID     string         `db:"project_id"`
+	ProjectID     sql.NullString `db:"project_id"`
+	OrgID         sql.NullString `db:"org_id"`
 	Project       Project        `db:"project"`
 	Metadata      []byte         `db:"metadata"`
 	NamespaceID   string         `db:"namespace_name"`
@@ -39,7 +40,8 @@ func (from Resource) transformToResource() (resource.Resource, error) {
 		URN:           from.URN,
 		Name:          from.Name,
 		Title:         from.Title,
-		ProjectID:     from.ProjectID,
+		ProjectID:     from.ProjectID.String,
+		OrgID:         from.OrgID.String,
 		NamespaceID:   from.NamespaceID,
 		Metadata:      unmarshalledMetadata,
 		PrincipalID:   from.PrincipalID.String,
@@ -54,7 +56,8 @@ type ResourceCols struct {
 	URN           string         `db:"urn"`
 	Title         string         `db:"title"`
 	Name          string         `db:"name"`
-	ProjectID     string         `db:"project_id"`
+	ProjectID     sql.NullString `db:"project_id"`
+	OrgID         sql.NullString `db:"org_id"`
 	NamespaceID   string         `db:"namespace_name"`
 	PrincipalID   sql.NullString `db:"principal_id"`
 	PrincipalType sql.NullString `db:"principal_type"`
