@@ -121,6 +121,7 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 		var relationsForResource []*azcore.Relation
 		for _, permName := range permissions {
 			fqPermissionName := schema.FQPermissionNameFromNamespace(namespaceName, permName)
+			orgLevelPermissionName := schema.OrgLevelPermissionName(fqPermissionName)
 
 			// create permissions
 			{
@@ -129,6 +130,7 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 					aznamespace.ComputedUserset("owner"),
 					aznamespace.TupleToUserset("project", "app_project_administer"),
 					aznamespace.TupleToUserset("project", fqPermissionName),
+					aznamespace.TupleToUserset(schema.OrganizationRelationName, orgLevelPermissionName),
 					aznamespace.TupleToUserset("granted", fqPermissionName),
 				), nil)
 				if err != nil {
@@ -144,6 +146,18 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 					aznamespace.TupleToUserset("granted", fqPermissionName),
 					aznamespace.TupleToUserset(schema.PATGrantRelationName, "app_project_administer"),
 					aznamespace.TupleToUserset(schema.PATGrantRelationName, fqPermissionName),
+				), nil)
+				if err != nil {
+					return nil, err
+				}
+				relationsForOrg = append(relationsForOrg, nsRel)
+			}
+			{
+				// for org resources
+				nsRel, err := aznamespace.Relation(orgLevelPermissionName, aznamespace.Union(
+					aznamespace.TupleToUserset("platform", "superuser"),
+					aznamespace.TupleToUserset("granted", "app_organization_administer"),
+					aznamespace.TupleToUserset("granted", fqPermissionName),
 				), nil)
 				if err != nil {
 					return nil, err
@@ -196,6 +210,8 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 		// attach service to project
 		relationsForResource = append(relationsForResource, aznamespace.MustRelation("project", nil,
 			aznamespace.AllowedRelation(schema.ProjectNamespace, generator.Ellipsis)))
+		relationsForResource = append(relationsForResource, aznamespace.MustRelation(schema.OrganizationRelationName, nil,
+			aznamespace.AllowedRelation(schema.OrganizationNamespace, generator.Ellipsis)))
 		// attach role binding to service
 		relationsForResource = append(relationsForResource, aznamespace.MustRelation("granted", nil,
 			aznamespace.AllowedRelation(schema.RoleBindingNamespace, generator.Ellipsis)))

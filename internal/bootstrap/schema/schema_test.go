@@ -164,18 +164,19 @@ func TestIsValidPermissionName(t *testing.T) {
 }
 
 func TestPermissionSlugWithinLimit(t *testing.T) {
-	// The slug service_resource_verb becomes a SpiceDB relation, which is capped at
-	// sixty-four characters. Each part is valid on its own, but together they can
-	// overflow, so a plan can pass and the schema still fail to compile.
+	// The slug service_resource_verb and its org_ name become SpiceDB relations,
+	// capped at sixty-four characters. Each part is valid on its own, but together
+	// they can overflow, so a plan can pass and the schema still fail to compile.
 	tests := []struct {
 		ns, name string
 		want     bool
 	}{
 		{"compute/order", "get", true},
-		// 30 + 29 + 3 plus the two underscores is exactly sixty-four
-		{strings.Repeat("a", 30) + "/" + strings.Repeat("b", 29), "get", true},
+		// 28 + 27 + 3 plus the two underscores is exactly sixty
+		{strings.Repeat("a", 28) + "/" + strings.Repeat("b", 27), "get", true},
 		// one more character tips it over the limit
-		{strings.Repeat("a", 30) + "/" + strings.Repeat("b", 30), "get", false},
+		{strings.Repeat("a", 28) + "/" + strings.Repeat("b", 28), "get", false},
+		{strings.Repeat("a", 30) + "/" + strings.Repeat("b", 29), "get", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.ns+"."+tt.name, func(t *testing.T) {
@@ -195,6 +196,7 @@ func TestIsReservedPermissionVerb(t *testing.T) {
 	}{
 		{"owner", true},
 		{"project", true},
+		{"org", true},
 		{"granted", true},
 		{"Owner", true}, // reserved check is case-insensitive
 		{"get", false},
@@ -221,6 +223,7 @@ func TestValidateCustomPermission(t *testing.T) {
 		{"short verb", "compute/order", "id", "invalid permission verb"},
 		{"reserved verb owner", "compute/order", "owner", "reserved"},
 		{"reserved verb granted", "compute/order", "granted", "reserved"},
+		{"reserved verb org", "compute/order", "org", "reserved"},
 		{"underscore namespace", "res_order/item", "get", "invalid permission namespace"},
 		{"missing resource", "compute", "get", "invalid permission namespace"},
 		{"slug too long", strings.Repeat("a", 30) + "/" + strings.Repeat("b", 30), "get", "too long"},
