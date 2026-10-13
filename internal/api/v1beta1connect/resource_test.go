@@ -513,6 +513,128 @@ func TestConnectHandler_CreateOrganizationResource(t *testing.T) {
 	}
 }
 
+func TestConnectHandler_UpdateOrganizationResource(t *testing.T) {
+	orgResource := resource.Resource{
+		ID:            utils.NewString(),
+		URN:           "frn:" + testOrgID + ":" + testNSID + ":store-1",
+		Name:          "store-1",
+		Title:         "Store One",
+		OrgID:         testOrgID,
+		NamespaceID:   testNSID,
+		PrincipalID:   testUserID,
+		PrincipalType: schema.UserPrincipal,
+	}
+	toUpdate := resource.Resource{
+		ID:            orgResource.ID,
+		Name:          orgResource.Name,
+		Title:         orgResource.Title,
+		OrgID:         testOrgID,
+		NamespaceID:   testNSID,
+		PrincipalID:   testUserID,
+		PrincipalType: schema.UserPrincipal,
+	}
+	validRequest := func() *connect.Request[frontierv1beta1.UpdateOrganizationResourceRequest] {
+		return connect.NewRequest(&frontierv1beta1.UpdateOrganizationResourceRequest{
+			Id:    orgResource.ID,
+			OrgId: testOrgID,
+			Body: &frontierv1beta1.ResourceRequestBody{
+				Name:      orgResource.Name,
+				Title:     orgResource.Title,
+				Namespace: testNSID,
+				Principal: testUserID,
+			},
+		})
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		request *connect.Request[frontierv1beta1.UpdateOrganizationResourceRequest]
+		want    *connect.Response[frontierv1beta1.UpdateOrganizationResourceResponse]
+		wantErr error
+	}{
+		{
+			name: "should return error if request body is nil",
+			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationResourceRequest{
+				Id:    orgResource.ID,
+				OrgId: testOrgID,
+			}),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			name: "should return not found if the resource does not exist",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.Anything, toUpdate).Return(resource.Resource{}, resource.ErrNotExist)
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrResourceNotFound),
+		},
+		{
+			name: "should return bad request if a field is invalid",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.Anything, toUpdate).Return(resource.Resource{}, resource.ErrInvalidDetail)
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			name: "should return conflict if the update conflicts",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.Anything, toUpdate).Return(resource.Resource{}, resource.ErrConflict)
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest),
+		},
+		{
+			name: "should return internal error if the resource service fails",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.Anything, toUpdate).Return(resource.Resource{}, errors.New("test error"))
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganizationResource: resource_id=%s org_id=%s resource_name=%s namespace=%s principal=%s: %w", orgResource.ID, testOrgID, orgResource.Name, testNSID, testUserID, errors.New("test error"))),
+		},
+		{
+			name: "should return the updated resource with its org",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Update(mock.Anything, toUpdate).Return(orgResource, nil)
+			},
+			request: validRequest(),
+			want: connect.NewResponse(&frontierv1beta1.UpdateOrganizationResourceResponse{
+				Resource: &frontierv1beta1.Resource{
+					Id:        orgResource.ID,
+					Name:      orgResource.Name,
+					Title:     orgResource.Title,
+					Urn:       orgResource.URN,
+					OrgId:     testOrgID,
+					Namespace: testNSID,
+					Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, testUserID),
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := mocks.NewResourceService(t)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+			h := ConnectHandler{resourceService: mockResourceSrv}
+			resp, err := h.UpdateOrganizationResource(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp)
+			}
+		})
+	}
+}
+
 func TestConnectHandler_GetProjectResource(t *testing.T) {
 	tests := []struct {
 		name            string

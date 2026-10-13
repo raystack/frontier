@@ -249,6 +249,18 @@ func TestIsAuthorized(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
 		},
 		{
+			name:       "org resource resolves to its disabled org without a project lookup",
+			object:     relation.Object{Namespace: "compute/instance", ID: testAuthzResID},
+			permission: schema.UpdatePermission,
+			setup: func(m authorizeMocks, object relation.Object) {
+				expectUserPrincipal(m)
+				expectCheckAuthz(m, object, testAuthzUserID, schema.UpdatePermission, true, nil)
+				m.resourceSvc.EXPECT().Get(mock.Anything, testAuthzResID).Return(resource.Resource{ID: testAuthzResID, OrgID: testAuthzOrgID}, nil)
+				m.orgSvc.EXPECT().Get(mock.Anything, testAuthzOrgID).Return(organization.Organization{}, organization.ErrDisabled)
+			},
+			wantErr: connect.NewError(connect.CodeFailedPrecondition, ErrOrgDisabled),
+		},
+		{
 			name:   "missing custom resource skips the gate",
 			object: relation.Object{Namespace: "compute/instance", ID: testAuthzResID},
 			setup: func(m authorizeMocks, object relation.Object) {
