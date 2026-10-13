@@ -237,18 +237,14 @@ func (s *Service) OnGroupDeleted(ctx context.Context, groupID string) error {
 }
 
 func (s *Service) getGroupIncludingDisabled(ctx context.Context, groupID string) (group.Group, error) {
-	grp, err := s.groupService.Get(ctx, groupID)
-	if !errors.Is(err, group.ErrNotExist) {
-		return grp, err
-	}
-	disabled, listErr := s.groupService.List(ctx, group.Filter{GroupIDs: []string{groupID}, State: group.Disabled})
-	if listErr != nil {
-		return group.Group{}, listErr
-	}
-	if len(disabled) == 0 {
+	found, err := s.groupService.GetByIDs(ctx, []string{groupID}, group.Filter{IncludeDisabled: true})
+	if err != nil {
 		return group.Group{}, err
 	}
-	return disabled[0], nil
+	if len(found) == 0 {
+		return group.Group{}, group.ErrNotExist
+	}
+	return found[0], nil
 }
 
 // removeGroupAsPrincipalPolicies deletes every policy where the given group

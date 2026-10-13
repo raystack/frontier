@@ -484,7 +484,7 @@ func TestService_OnGroupDeleted(t *testing.T) {
 		relSvc := mocks.NewRelationService(t)
 		grpSvc := mocks.NewGroupService(t)
 
-		grpSvc.EXPECT().Get(ctx, groupID).Return(grp, nil)
+		grpSvc.EXPECT().GetByIDs(ctx, []string{groupID}, group.Filter{IncludeDisabled: true}).Return([]group.Group{grp}, nil)
 		// RemoveAllGroupMembers — no member policies
 		policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID}).Return([]policy.Policy{}, nil)
 		// removeGroupAsPrincipalPolicies — one policy granting this group access elsewhere
@@ -509,15 +509,14 @@ func TestService_OnGroupDeleted(t *testing.T) {
 		assert.NoError(t, svc.OnGroupDeleted(ctx, groupID))
 	})
 
-	t.Run("cleans up a disabled group that Get does not return", func(t *testing.T) {
+	t.Run("cleans up a disabled group", func(t *testing.T) {
 		policySvc := mocks.NewPolicyService(t)
 		relSvc := mocks.NewRelationService(t)
 		grpSvc := mocks.NewGroupService(t)
 
 		disabled := grp
 		disabled.State = group.Disabled
-		grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
-		grpSvc.EXPECT().List(ctx, group.Filter{GroupIDs: []string{groupID}, State: group.Disabled}).
+		grpSvc.EXPECT().GetByIDs(ctx, []string{groupID}, group.Filter{IncludeDisabled: true}).
 			Return([]group.Group{disabled}, nil)
 		policySvc.EXPECT().List(ctx, policy.Filter{GroupID: groupID}).Return([]policy.Policy{}, nil)
 		policySvc.EXPECT().List(ctx, policy.Filter{
@@ -540,8 +539,7 @@ func TestService_OnGroupDeleted(t *testing.T) {
 
 	t.Run("returns error if group not found", func(t *testing.T) {
 		grpSvc := mocks.NewGroupService(t)
-		grpSvc.EXPECT().Get(ctx, groupID).Return(group.Group{}, group.ErrNotExist)
-		grpSvc.EXPECT().List(ctx, group.Filter{GroupIDs: []string{groupID}, State: group.Disabled}).
+		grpSvc.EXPECT().GetByIDs(ctx, []string{groupID}, group.Filter{IncludeDisabled: true}).
 			Return([]group.Group{}, nil)
 
 		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)),
