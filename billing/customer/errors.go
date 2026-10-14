@@ -14,4 +14,5 @@ var (
 	ErrDisabled                       = errors.New("billing customer is disabled")
 	ErrExistingAccountWithPendingDues = errors.New("existing account with pending dues found")
 	ErrHasLiveRecords                 = errors.New("billing account still has live subscriptions, invoices or checkouts")
+	ErrHasTokenDebt                   = errors.New("billing account owes tokens, settle the balance before deleting it")
 )

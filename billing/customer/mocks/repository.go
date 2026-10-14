@@ -80,21 +80,31 @@ func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, custome
 }
 
 // Delete provides a mock function with given fields: ctx, id
-func (_m *Repository) Delete(ctx context.Context, id string) error {
+func (_m *Repository) Delete(ctx context.Context, id string) (customer.ForfeitedTokens, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+	var r0 customer.ForfeitedTokens
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (customer.ForfeitedTokens, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) customer.ForfeitedTokens); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(customer.ForfeitedTokens)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Repository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
@@ -116,12 +126,12 @@ func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id string)) 
 	return _c
 }
 
-func (_c *Repository_Delete_Call) Return(_a0 error) *Repository_Delete_Call {
-	_c.Call.Return(_a0)
+func (_c *Repository_Delete_Call) Return(_a0 customer.ForfeitedTokens, _a1 error) *Repository_Delete_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, string) error) *Repository_Delete_Call {
+func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, string) (customer.ForfeitedTokens, error)) *Repository_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
