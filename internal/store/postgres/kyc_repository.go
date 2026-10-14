@@ -48,9 +48,14 @@ func NewOrgKycRepository(dbc *db.Client) *OrgKycRepository {
 }
 
 func (r OrgKycRepository) GetByOrgID(ctx context.Context, orgID string) (kyc.KYC, error) {
-	query, params, err := fromLive(TABLE_ORGANIZATIONS_KYC).Where(goqu.Ex{
-		"org_id": orgID,
-	}).ToSQL()
+	query, params, err := fromLive(TABLE_ORGANIZATIONS_KYC).
+		Join(goqu.T(TABLE_ORGANIZATIONS), goqu.On(
+			goqu.I(ORG_ID).Eq(goqu.I(ORG_KYC_ID)),
+			live(TABLE_ORGANIZATIONS),
+		)).
+		Select(goqu.I(TABLE_ORGANIZATIONS_KYC + ".*")).
+		Where(goqu.Ex{ORG_KYC_ID: orgID}).
+		ToSQL()
 
 	if err != nil {
 		return kyc.KYC{}, fmt.Errorf("%w: %w", errQuery, err)
