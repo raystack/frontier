@@ -273,6 +273,14 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	balance, err := s.creditService.GetBalance(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get token balance of billing account[%s]: %w", id, err)
+	}
+	if balance < 0 {
+		return ErrHasTokenDebt
+	}
+
 	// TODO: cancel and delete all subscriptions before deleting the customer
 
 	if customer.ProviderID != "" {
