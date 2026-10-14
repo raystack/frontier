@@ -509,3 +509,29 @@ func TestService_List(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Delete(t *testing.T) {
+	ctx := context.Background()
+	account := customer.Customer{ID: "acc-1", OrgID: "org-1"}
+
+	t.Run("refuses while the account owes tokens", func(t *testing.T) {
+		_, _, repo, creditSvc := mockService(t)
+		repo.EXPECT().GetByID(ctx, "acc-1").Return(account, nil)
+		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(-50), nil)
+		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
+
+		err := svc.Delete(ctx, "acc-1")
+
+		assert.ErrorIs(t, err, customer.ErrHasTokenDebt)
+	})
+
+	t.Run("deletes the account when it owes nothing", func(t *testing.T) {
+		_, _, repo, creditSvc := mockService(t)
+		repo.EXPECT().GetByID(ctx, "acc-1").Return(account, nil)
+		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
+		repo.EXPECT().Delete(ctx, "acc-1").Return(customer.ForfeitedTokens{}, nil)
+		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
+
+		assert.NoError(t, svc.Delete(ctx, "acc-1"))
+	})
+}
