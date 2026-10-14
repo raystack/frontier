@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/robfig/cron/v3"
@@ -298,8 +300,26 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	_, err = s.repository.Delete(ctx, id)
-	return err
+	forfeit, err := s.repository.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	if forfeit.Amount > 0 {
+		s.logTokensForfeited(context.WithoutCancel(ctx), customer, forfeit)
+	}
+	return nil
+}
+
+func (s *Service) logTokensForfeited(ctx context.Context, customer Customer, forfeit ForfeitedTokens) {
+	if err := audit.NewLogger(ctx, customer.OrgID).LogWithAttrs(audit.BillingTokensForfeitedEvent, audit.Target{
+		ID:   customer.ID,
+		Type: "billing_account",
+	}, map[string]string{
+		"amount":    strconv.FormatInt(forfeit.Amount, 10),
+		"purchased": strconv.FormatInt(forfeit.Purchased, 10),
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingTokensForfeitedEvent, "customer_id", customer.ID)
+	}
 }
 
 func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentMethod, error) {
