@@ -63,7 +63,7 @@ func (s *BillingTransactionRepositoryTestSuite) TestCreateEntry() {
 	}
 	creditEntry := credit.Transaction{
 		ID:          uuid.New().String(),
-		CustomerID:  uuid.New().String(),
+		CustomerID:  s.customer("bt-credit-target", 0),
 		Type:        credit.CreditType,
 		Amount:      10,
 		Source:      credit.SourceSystemAwardedEvent,
@@ -189,6 +189,18 @@ func (s *BillingTransactionRepositoryTestSuite) TestCreateEntryRefusesDeletedCus
 	s.exec(`UPDATE billing_customers SET deleted_at = now() WHERE id = $1`, account)
 
 	s.ErrorIs(s.spend(account, 10), customer.ErrNotFound)
+}
+
+func (s *BillingTransactionRepositoryTestSuite) TestCreateEntryRefusesACreditToADeletedCustomer() {
+	account := s.customer("bt-credit-gone", 0)
+	s.exec(`UPDATE billing_customers SET deleted_at = now() WHERE id = $1`, account)
+
+	_, err := s.repository.CreateEntry(s.ctx,
+		credit.Transaction{ID: uuid.New().String(), CustomerID: schema.PlatformOrgID.String(), Type: credit.DebitType, Amount: 10, Source: credit.SourceSystemAwardedEvent},
+		credit.Transaction{CustomerID: account, Type: credit.CreditType, Amount: 10, Source: credit.SourceSystemAwardedEvent})
+
+	s.ErrorIs(err, customer.ErrNotFound)
+	s.Equal("0", scalarSQL(s.T(), s.ctx, s.client, `SELECT count(*)::text FROM billing_transactions WHERE account_id = $1`, account))
 }
 
 func TestBillingTransactionRepository(t *testing.T) {

@@ -143,6 +143,12 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 		}
 	}
 
+	if creditEntry.CustomerID != schema.PlatformOrgID.String() {
+		if _, err = r.customerRepo.GetByID(ctx, creditEntry.CustomerID); err != nil {
+			return nil, fmt.Errorf("failed to get customer account: %w", err)
+		}
+	}
+
 	var creditReturnedEntry, debitReturnedEntry credit.Transaction
 	err = r.withRetry(ctx, func() error {
 		return r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
