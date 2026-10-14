@@ -33,6 +33,7 @@ type Repository interface {
 	Create(ctx context.Context, customer Customer) (Customer, error)
 	UpdateByID(ctx context.Context, customer Customer) (Customer, error)
 	Delete(ctx context.Context, id string) (ForfeitedTokens, error)
+	HasLiveRecords(ctx context.Context, id string) (bool, error)
 	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Details, error)
 	GetDetailsByID(ctx context.Context, customerID string) (Details, error)
 	UpdateDetailsByID(ctx context.Context, customerID string, details Details) (Details, error)
@@ -281,6 +282,14 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 	}
 	if balance < 0 {
 		return ErrHasTokenDebt
+	}
+
+	hasLiveRecords, err := s.repository.HasLiveRecords(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to check live records of billing account[%s]: %w", id, err)
+	}
+	if hasLiveRecords {
+		return ErrHasLiveRecords
 	}
 
 	// TODO: cancel and delete all subscriptions before deleting the customer

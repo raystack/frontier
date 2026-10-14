@@ -550,6 +550,7 @@ func TestService_Delete(t *testing.T) {
 		ctx := contextWithAudit(ctx, auditRepo)
 		repo.EXPECT().GetByID(ctx, "acc-1").Return(account, nil)
 		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
+		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
 		repo.EXPECT().Delete(ctx, "acc-1").Return(customer.ForfeitedTokens{}, nil)
 		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
 
@@ -564,6 +565,7 @@ func TestService_Delete(t *testing.T) {
 		ctx := contextWithAudit(ctx, auditRepo)
 		repo.EXPECT().GetByID(ctx, "acc-1").Return(account, nil)
 		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(100), nil)
+		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
 		repo.EXPECT().Delete(ctx, "acc-1").Return(customer.ForfeitedTokens{Amount: 100, Purchased: 40}, nil)
 		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
 
@@ -584,6 +586,7 @@ func TestService_Delete(t *testing.T) {
 		requestCtx, cancel := context.WithCancel(contextWithAudit(ctx, auditRepo))
 		repo.EXPECT().GetByID(mock.Anything, "acc-1").Return(account, nil)
 		creditSvc.EXPECT().GetBalance(mock.Anything, "acc-1").Return(int64(100), nil)
+		repo.EXPECT().HasLiveRecords(mock.Anything, "acc-1").Return(false, nil)
 		repo.EXPECT().Delete(mock.Anything, "acc-1").RunAndReturn(
 			func(context.Context, string) (customer.ForfeitedTokens, error) {
 				cancel()
@@ -594,5 +597,31 @@ func TestService_Delete(t *testing.T) {
 		require.NoError(t, svc.Delete(requestCtx, "acc-1"))
 
 		assert.Len(t, auditRepo.logs, 1)
+	})
+
+	t.Run("refuses before the billing provider is called while live records exist", func(t *testing.T) {
+		stripeClient, _, repo, creditSvc := mockService(t)
+		online := customer.Customer{ID: "acc-1", OrgID: "org-1", ProviderID: "cus_1"}
+		repo.EXPECT().GetByID(ctx, "acc-1").Return(online, nil)
+		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
+		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(true, nil)
+		svc := customer.NewService(slog.Default(), stripeClient, repo, billing.Config{}, creditSvc)
+
+		err := svc.Delete(ctx, "acc-1")
+
+		assert.ErrorIs(t, err, customer.ErrHasLiveRecords)
+	})
+
+	t.Run("deletes the billing provider customer when no live records exist", func(t *testing.T) {
+		stripeClient, stripeBackend, repo, creditSvc := mockService(t)
+		online := customer.Customer{ID: "acc-1", OrgID: "org-1", ProviderID: "cus_1"}
+		repo.EXPECT().GetByID(ctx, "acc-1").Return(online, nil)
+		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
+		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
+		stripeBackend.EXPECT().Call("DELETE", "/v1/customers/cus_1", "key_123", mock.Anything, mock.Anything).Return(nil)
+		repo.EXPECT().Delete(ctx, "acc-1").Return(customer.ForfeitedTokens{}, nil)
+		svc := customer.NewService(slog.Default(), stripeClient, repo, billing.Config{}, creditSvc)
+
+		require.NoError(t, svc.Delete(ctx, "acc-1"))
 	})
 }

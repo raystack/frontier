@@ -250,6 +250,63 @@ func (_c *Repository_GetDetailsByID_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
+// HasLiveRecords provides a mock function with given fields: ctx, id
+func (_m *Repository) HasLiveRecords(ctx context.Context, id string) (bool, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasLiveRecords")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_HasLiveRecords_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasLiveRecords'
+type Repository_HasLiveRecords_Call struct {
+	*mock.Call
+}
+
+// HasLiveRecords is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *Repository_Expecter) HasLiveRecords(ctx interface{}, id interface{}) *Repository_HasLiveRecords_Call {
+	return &Repository_HasLiveRecords_Call{Call: _e.mock.On("HasLiveRecords", ctx, id)}
+}
+
+func (_c *Repository_HasLiveRecords_Call) Run(run func(ctx context.Context, id string)) *Repository_HasLiveRecords_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_HasLiveRecords_Call) Return(_a0 bool, _a1 error) *Repository_HasLiveRecords_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_HasLiveRecords_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *Repository_HasLiveRecords_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, filter
 func (_m *Repository) List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error) {
 	ret := _m.Called(ctx, filter)
