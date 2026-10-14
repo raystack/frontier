@@ -601,6 +601,21 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) (custo
 	return forfeit, nil
 }
 
+func (r BillingCustomerRepository) HasLiveRecords(ctx context.Context, id string) (bool, error) {
+	query, params, err := liveBillingRecordsQuery(id)
+	if err != nil {
+		return false, fmt.Errorf("%w: %w", errParse, err)
+	}
+
+	var liveRecords bool
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "HasLiveRecords", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&liveRecords)
+	}); err != nil {
+		return false, fmt.Errorf("%w: %w", errDB, checkPostgresError(err))
+	}
+	return liveRecords, nil
+}
+
 func liveBillingRecordsQuery(customerID string) (string, []any, error) {
 	return dialect.Select(goqu.Or(
 		goqu.L("EXISTS (SELECT 1 FROM billing_subscriptions WHERE customer_id = ? AND deleted_at IS NULL)", customerID),

@@ -356,6 +356,25 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteRollsBackWhenTheTransac
 		`SELECT coalesce(deleted_at::text, '') FROM billing_customers WHERE id = $1`, id))
 }
 
+func (s *BillingCustomerRepositoryPGTestSuite) TestHasLiveRecordsSeesOnlyLiveChildren() {
+	id := s.customerID("bc-cust-live")
+
+	has, err := s.repository.HasLiveRecords(s.ctx, id)
+	s.Require().NoError(err)
+	s.False(has)
+
+	s.exec(`INSERT INTO billing_checkouts (customer_id, provider_id, checkout_url, state)
+		VALUES ($1, 'bc-session', 'bc-session', 'pending')`, id)
+	has, err = s.repository.HasLiveRecords(s.ctx, id)
+	s.Require().NoError(err)
+	s.True(has)
+
+	s.exec(`UPDATE billing_checkouts SET deleted_at = now() WHERE customer_id = $1`, id)
+	has, err = s.repository.HasLiveRecords(s.ctx, id)
+	s.Require().NoError(err)
+	s.False(has, "a deleted child does not count")
+}
+
 func (s *BillingCustomerRepositoryPGTestSuite) deleteError(id string) error {
 	_, err := s.repository.Delete(s.ctx, id)
 	return err
