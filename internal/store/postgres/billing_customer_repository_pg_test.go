@@ -101,6 +101,21 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestGetDetailsByIDSkipsDeleted() 
 	s.ErrorIs(err, customer.ErrNotFound)
 }
 
+func (s *BillingCustomerRepositoryPGTestSuite) TestUpdateCreditMinByIDSkipsDeleted() {
+	got, err := s.repository.UpdateCreditMinByID(s.ctx, s.customerID("bc-cust-live"), -500)
+	s.Require().NoError(err)
+	s.Equal(int64(-500), got.CreditMin)
+
+	goneID := s.customerID("bc-cust-gone")
+	updatedAtBefore := scalarSQL(s.T(), s.ctx, s.client, `SELECT updated_at::text FROM billing_customers WHERE id = $1`, goneID)
+
+	_, err = s.repository.UpdateCreditMinByID(s.ctx, goneID, -500)
+	s.ErrorIs(err, customer.ErrNotFound)
+
+	s.Equal("-100", scalarSQL(s.T(), s.ctx, s.client, `SELECT credit_min::text FROM billing_customers WHERE id = $1`, goneID))
+	s.Equal(updatedAtBefore, scalarSQL(s.T(), s.ctx, s.client, `SELECT updated_at::text FROM billing_customers WHERE id = $1`, goneID))
+}
+
 func TestBillingCustomerRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingCustomerRepositoryPGTestSuite))
 }
