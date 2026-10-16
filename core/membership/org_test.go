@@ -825,7 +825,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			wantErr: nil,
@@ -848,7 +848,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
 				d.policySvc.EXPECT().Delete(ctx, "proj-p1").Return(nil)
 				d.policySvc.EXPECT().Delete(ctx, "grp-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{projectID}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{projectID}).Return(nil)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: grpObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
@@ -870,7 +870,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 					{ID: "other-proj-p", ResourceType: schema.ProjectNamespace, ResourceID: otherProjectID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			wantErr: nil,
@@ -887,7 +887,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 					{ID: "proj-p1", ResourceType: schema.ProjectNamespace, ResourceID: projectID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "proj-p1").Return(errors.New("delete failed"))
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{projectID}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{projectID}).Return(nil)
 			},
 			wantErrContain: "delete sub-resource policy",
 		},
@@ -904,7 +904,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				}, nil)
 				// org policy deleted first (viewer, plain Delete)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				// then relation removal fails
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: grpObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(errors.New("spicedb down"))
 			},
@@ -923,7 +923,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{projectID, secondProjectID}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{projectID, secondProjectID}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 			wantErr: nil,
@@ -940,7 +940,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{projectID}).Return(errors.New("resource cleanup boom"))
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{projectID}).Return(errors.New("resource cleanup boom"))
 			},
 			wantErrContain: "remove custom-resource policies",
 		},
@@ -1037,7 +1037,7 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 				}, nil)
 				// plain delete, not DeleteWithMinRoleGuard
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},
@@ -1049,7 +1049,7 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
 				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},
@@ -1067,7 +1067,7 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, []string{}).Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},

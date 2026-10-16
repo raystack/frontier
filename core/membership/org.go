@@ -347,7 +347,7 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 			errs = errors.Join(errs, fmt.Errorf("delete sub-resource policy %s: %w", pol.ID, err))
 		}
 	}
-	if err := s.removeCustomResourceAccess(ctx, principalID, principalType, orgProjectIDs); err != nil {
+	if err := s.removeCustomResourceAccess(ctx, principalID, principalType, orgID, orgProjectIDs); err != nil {
 		errs = errors.Join(errs, err)
 	}
 	if errs != nil {
@@ -382,10 +382,7 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 	return nil
 }
 
-// removeCustomResourceAccess deletes the principal's policies on custom
-// resources in the org's projects. A policy only names a resource, so the
-// resource service is needed to tell which project that resource belongs to.
-func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, principalType string, orgProjectIDs []string) error {
+func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, principalType, orgID string, orgProjectIDs []string) error {
 	if s.resourceService == nil {
 		s.log.ErrorContext(ctx, "resource service not set: custom-resource policies left behind",
 			"principal_id", principalID,
@@ -393,7 +390,7 @@ func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, p
 		)
 		return nil
 	}
-	if err := s.resourceService.RemovePrincipalAccess(ctx, principalID, principalType, orgProjectIDs); err != nil {
+	if err := s.resourceService.RemovePrincipalAccess(ctx, principalID, principalType, orgID, orgProjectIDs); err != nil {
 		return fmt.Errorf("remove custom-resource policies: %w", err)
 	}
 	return nil
