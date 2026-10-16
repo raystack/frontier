@@ -126,3 +126,21 @@ func (s *BillingSubscriptionRepositoryPGTestSuite) TestProviderIDIsUniqueOverLiv
 func TestBillingSubscriptionRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingSubscriptionRepositoryPGTestSuite))
 }
+
+func (s *BillingSubscriptionRepositoryPGTestSuite) TestDeleteKeepsTheRowAndHidesIt() {
+	id := s.subscriptionID("bs-sub-live")
+
+	s.Require().NoError(s.repository.Delete(s.ctx, id))
+
+	deletedAt := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT coalesce(deleted_at::text, '') FROM billing_subscriptions WHERE id = $1`, id)
+	s.NotEmpty(deletedAt)
+	_, err := s.repository.GetByID(s.ctx, id)
+	s.ErrorIs(err, subscription.ErrNotFound)
+	got, err := s.repository.List(s.ctx, subscription.Filter{CustomerID: s.customerID()})
+	s.Require().NoError(err)
+	s.Empty(got)
+	s.Require().NoError(s.repository.Delete(s.ctx, id))
+	s.Equal(deletedAt, scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT deleted_at::text FROM billing_subscriptions WHERE id = $1`, id), "a second delete keeps the first delete time")
+}

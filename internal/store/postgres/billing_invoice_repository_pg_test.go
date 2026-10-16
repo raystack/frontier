@@ -187,3 +187,18 @@ func (s *BillingInvoiceRepositoryPGTestSuite) TestProviderIDIsUniqueOverLiveRows
 func TestBillingInvoiceRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingInvoiceRepositoryPGTestSuite))
 }
+
+func (s *BillingInvoiceRepositoryPGTestSuite) TestDeleteKeepsTheRowAndHidesIt() {
+	id := s.invoiceID("bi-inv-live")
+
+	s.Require().NoError(s.repository.Delete(s.ctx, id))
+
+	deletedAt := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT coalesce(deleted_at::text, '') FROM billing_invoices WHERE id = $1`, id)
+	s.NotEmpty(deletedAt)
+	_, err := s.repository.GetByID(s.ctx, id)
+	s.ErrorIs(err, invoice.ErrNotFound)
+	s.Require().NoError(s.repository.Delete(s.ctx, id))
+	s.Equal(deletedAt, scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT deleted_at::text FROM billing_invoices WHERE id = $1`, id), "a second delete keeps the first delete time")
+}

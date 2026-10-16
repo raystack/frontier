@@ -99,3 +99,21 @@ func (s *BillingCheckoutRepositoryPGTestSuite) TestListSkipsDeleted() {
 func TestBillingCheckoutRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingCheckoutRepositoryPGTestSuite))
 }
+
+func (s *BillingCheckoutRepositoryPGTestSuite) TestDeleteByCustomerIDKeepsTheRowsAndHidesThem() {
+	before := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT deleted_at::text FROM billing_checkouts WHERE provider_id = 'bch-gone-session'`)
+
+	s.Require().NoError(s.repository.DeleteByCustomerID(s.ctx, s.customerID()))
+
+	s.Equal("2", scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT count(*)::text FROM billing_checkouts WHERE customer_id = $1 AND deleted_at IS NOT NULL`, s.customerID()))
+	s.Equal(before, scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT deleted_at::text FROM billing_checkouts WHERE provider_id = 'bch-gone-session'`),
+		"a row deleted earlier keeps its first delete time")
+	got, err := s.repository.List(s.ctx, checkout.Filter{CustomerID: s.customerID()})
+	s.Require().NoError(err)
+	s.Empty(got)
+	_, err = s.repository.GetByID(s.ctx, s.checkoutID("bch-live-session"))
+	s.ErrorIs(err, checkout.ErrNotFound)
+}

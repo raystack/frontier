@@ -333,7 +333,7 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 }
 
 func (r BillingInvoiceRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_BILLING_INVOICES).Where(goqu.Ex{
+	query, params, err := softDelete(TABLE_BILLING_INVOICES).Where(goqu.Ex{
 		"id": id,
 	}).ToSQL()
 	if err != nil {
