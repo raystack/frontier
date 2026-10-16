@@ -80,21 +80,31 @@ func (_c *Repository_Create_Call) RunAndReturn(run func(context.Context, custome
 }
 
 // Delete provides a mock function with given fields: ctx, id
-func (_m *Repository) Delete(ctx context.Context, id string) error {
+func (_m *Repository) Delete(ctx context.Context, id string) (customer.ForfeitedTokens, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+	var r0 customer.ForfeitedTokens
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (customer.ForfeitedTokens, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) customer.ForfeitedTokens); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(customer.ForfeitedTokens)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // Repository_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
@@ -116,12 +126,12 @@ func (_c *Repository_Delete_Call) Run(run func(ctx context.Context, id string)) 
 	return _c
 }
 
-func (_c *Repository_Delete_Call) Return(_a0 error) *Repository_Delete_Call {
-	_c.Call.Return(_a0)
+func (_c *Repository_Delete_Call) Return(_a0 customer.ForfeitedTokens, _a1 error) *Repository_Delete_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, string) error) *Repository_Delete_Call {
+func (_c *Repository_Delete_Call) RunAndReturn(run func(context.Context, string) (customer.ForfeitedTokens, error)) *Repository_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -236,6 +246,63 @@ func (_c *Repository_GetDetailsByID_Call) Return(_a0 customer.Details, _a1 error
 }
 
 func (_c *Repository_GetDetailsByID_Call) RunAndReturn(run func(context.Context, string) (customer.Details, error)) *Repository_GetDetailsByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// HasLiveRecords provides a mock function with given fields: ctx, id
+func (_m *Repository) HasLiveRecords(ctx context.Context, id string) (bool, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasLiveRecords")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_HasLiveRecords_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HasLiveRecords'
+type Repository_HasLiveRecords_Call struct {
+	*mock.Call
+}
+
+// HasLiveRecords is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *Repository_Expecter) HasLiveRecords(ctx interface{}, id interface{}) *Repository_HasLiveRecords_Call {
+	return &Repository_HasLiveRecords_Call{Call: _e.mock.On("HasLiveRecords", ctx, id)}
+}
+
+func (_c *Repository_HasLiveRecords_Call) Run(run func(ctx context.Context, id string)) *Repository_HasLiveRecords_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_HasLiveRecords_Call) Return(_a0 bool, _a1 error) *Repository_HasLiveRecords_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_HasLiveRecords_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *Repository_HasLiveRecords_Call {
 	_c.Call.Return(run)
 	return _c
 }

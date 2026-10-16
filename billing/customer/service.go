@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/robfig/cron/v3"
@@ -30,7 +32,8 @@ type Repository interface {
 	List(ctx context.Context, filter Filter) ([]Customer, error)
 	Create(ctx context.Context, customer Customer) (Customer, error)
 	UpdateByID(ctx context.Context, customer Customer) (Customer, error)
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string) (ForfeitedTokens, error)
+	HasLiveRecords(ctx context.Context, id string) (bool, error)
 	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Details, error)
 	GetDetailsByID(ctx context.Context, customerID string) (Details, error)
 	UpdateDetailsByID(ctx context.Context, customerID string, details Details) (Details, error)
@@ -273,6 +276,22 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	balance, err := s.creditService.GetBalance(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get token balance of billing account[%s]: %w", id, err)
+	}
+	if balance < 0 {
+		return ErrHasTokenDebt
+	}
+
+	hasLiveRecords, err := s.repository.HasLiveRecords(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to check live records of billing account[%s]: %w", id, err)
+	}
+	if hasLiveRecords {
+		return ErrHasLiveRecords
+	}
+
 	// TODO: cancel and delete all subscriptions before deleting the customer
 
 	if customer.ProviderID != "" {
@@ -290,7 +309,26 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	return s.repository.Delete(ctx, id)
+	forfeit, err := s.repository.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	if forfeit.Amount > 0 {
+		s.logTokensForfeited(context.WithoutCancel(ctx), customer, forfeit)
+	}
+	return nil
+}
+
+func (s *Service) logTokensForfeited(ctx context.Context, customer Customer, forfeit ForfeitedTokens) {
+	if err := audit.NewLogger(ctx, customer.OrgID).LogWithAttrs(audit.BillingTokensForfeitedEvent, audit.Target{
+		ID:   customer.ID,
+		Type: "billing_account",
+	}, map[string]string{
+		"amount":    strconv.FormatInt(forfeit.Amount, 10),
+		"purchased": strconv.FormatInt(forfeit.Purchased, 10),
+	}); err != nil {
+		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingTokensForfeitedEvent, "customer_id", customer.ID)
+	}
 }
 
 func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentMethod, error) {

@@ -114,6 +114,12 @@ func TestMapBillingError(t *testing.T) {
 			wantMsg:  customer.ErrHasLiveRecords.Error(),
 		},
 		{
+			name:     "token debt blocks the account delete",
+			err:      fmt.Errorf("DeleteBillingAccount.Delete: customer_id=x: %w", customer.ErrHasTokenDebt),
+			wantCode: connect.CodeFailedPrecondition,
+			wantMsg:  customer.ErrHasTokenDebt.Error(),
+		},
+		{
 			name:     "customer not found",
 			err:      fmt.Errorf("CreateCheckout.GetBillingAccountFromOrgID: org_id=abc: %w", customer.ErrNotFound),
 			wantCode: connect.CodeNotFound,

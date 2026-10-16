@@ -135,3 +135,8 @@ func GetStripeWebhookSignatureFromContext(ctx context.Context) (string, bool) {
 	u, ok := ctx.Value(consts.BillingStripeWebhookSignatureContextKey).(string)
 	return u, ok
 }
+
+type ForfeitedTokens struct {
+	Amount    int64
+	Purchased int64
+}
