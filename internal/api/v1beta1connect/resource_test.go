@@ -619,6 +619,82 @@ func TestConnectHandler_UpdateOrganizationResource(t *testing.T) {
 	}
 }
 
+func TestConnectHandler_DeleteOrganizationResource(t *testing.T) {
+	orgResource := resource.Resource{
+		ID:            utils.NewString(),
+		Name:          "store-1",
+		OrgID:         testOrgID,
+		NamespaceID:   testNSID,
+		PrincipalID:   testUserID,
+		PrincipalType: schema.UserPrincipal,
+	}
+	request := connect.NewRequest(&frontierv1beta1.DeleteOrganizationResourceRequest{
+		Id:    orgResource.ID,
+		OrgId: testOrgID,
+	})
+
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		wantErr error
+	}{
+		{
+			name: "should return not found if the resource does not exist",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.Anything, orgResource.ID).Return(resource.Resource{}, resource.ErrNotExist)
+			},
+			wantErr: connect.NewError(connect.CodeNotFound, ErrResourceNotFound),
+		},
+		{
+			name: "should return internal error if the resource lookup fails",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.Anything, orgResource.ID).Return(resource.Resource{}, errors.New("test error"))
+			},
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationResource.GetResource: resource_id=%s: %w", orgResource.ID, errors.New("test error"))),
+		},
+		{
+			name: "should return internal error if the delete fails",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.Anything, orgResource.ID).Return(orgResource, nil)
+				rs.EXPECT().Delete(mock.Anything, testNSID, orgResource.ID).Return(errors.New("delete error"))
+			},
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteOrganizationResource: resource_id=%s org_id=%s namespace=%s: %w", orgResource.ID, testOrgID, testNSID, errors.New("delete error"))),
+		},
+		{
+			name: "should return not found if the resource is deleted after the lookup",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.Anything, orgResource.ID).Return(orgResource, nil)
+				rs.EXPECT().Delete(mock.Anything, testNSID, orgResource.ID).Return(resource.ErrNotExist)
+			},
+			wantErr: connect.NewError(connect.CodeNotFound, ErrResourceNotFound),
+		},
+		{
+			name: "should delete the resource",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Get(mock.Anything, orgResource.ID).Return(orgResource, nil)
+				rs.EXPECT().Delete(mock.Anything, testNSID, orgResource.ID).Return(nil)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := mocks.NewResourceService(t)
+			tt.setup(mockResourceSrv)
+			h := ConnectHandler{resourceService: mockResourceSrv}
+			resp, err := h.DeleteOrganizationResource(context.Background(), request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, connect.NewResponse(&frontierv1beta1.DeleteOrganizationResourceResponse{}), resp)
+			}
+		})
+	}
+}
+
 func TestConnectHandler_GetProjectResource(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -1106,6 +1182,24 @@ func TestConnectHandler_DeleteProjectResource(t *testing.T) {
 			}),
 			want:    nil,
 			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource: resource_id=%s project_id=%s namespace=%s: %w", testResource.ID, testResource.ProjectID, testResource.NamespaceID, errors.New("delete error"))),
+		},
+		{
+			name: "should return not found if the resource is deleted after the lookup",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ID).Return(testResource, nil)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+					Organization: organization.Organization{
+						ID: "test-org-id",
+					},
+				}, nil)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testResource.NamespaceID, testResource.ID).Return(resource.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+				Id: testResource.ID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrResourceNotFound),
 		},
 		{
 			name: "should return success if resource is deleted successfully",

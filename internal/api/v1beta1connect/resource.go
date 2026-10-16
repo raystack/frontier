@@ -131,22 +131,11 @@ func (h *ConnectHandler) UpdateProjectResource(ctx context.Context, request *con
 }
 
 func (h *ConnectHandler) DeleteProjectResource(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteProjectResourceRequest]) (*connect.Response[frontierv1beta1.DeleteProjectResourceResponse], error) {
-	errorLogger := NewErrorLogger()
 	resourceID := request.Msg.GetId()
 
-	resourceToDel, err := h.resourceService.Get(ctx, resourceID)
+	resourceToDel, err := h.getResourceToDelete(ctx, request, "DeleteProjectResource", resourceID)
 	if err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource.GetResource", err,
-			"resource_id", resourceID)
-
-		switch {
-		case errors.Is(err, resource.ErrNotExist),
-			errors.Is(err, resource.ErrInvalidID),
-			errors.Is(err, resource.ErrInvalidUUID):
-			return nil, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
-		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource.GetResource: resource_id=%s: %w", resourceID, err))
-		}
+		return nil, err
 	}
 
 	parentProject, err := h.projectService.Get(ctx, resourceToDel.ProjectID)
@@ -154,19 +143,64 @@ func (h *ConnectHandler) DeleteProjectResource(ctx context.Context, request *con
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource.GetProject: resource_id=%s project_id=%s: %w", resourceID, resourceToDel.ProjectID, err))
 	}
 
-	err = h.resourceService.Delete(ctx, resourceToDel.NamespaceID, resourceToDel.ID)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProjectResource: resource_id=%s project_id=%s namespace=%s: %w", resourceID, resourceToDel.ProjectID, resourceToDel.NamespaceID, err))
-	}
-
-	if err := audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{
-		ID:   resourceID,
-		Type: resourceToDel.NamespaceID,
-	}); err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteProjectResource.AuditLog", err,
-			"resource_id", resourceID)
+	if err := h.deleteResource(ctx, request, "DeleteProjectResource", resourceID, resourceToDel,
+		"project_id", resourceToDel.ProjectID, parentProject.Organization.ID); err != nil {
+		return nil, err
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteProjectResourceResponse{}), nil
+}
+
+func (h *ConnectHandler) DeleteOrganizationResource(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteOrganizationResourceRequest]) (*connect.Response[frontierv1beta1.DeleteOrganizationResourceResponse], error) {
+	resourceID := request.Msg.GetId()
+
+	resourceToDel, err := h.getResourceToDelete(ctx, request, "DeleteOrganizationResource", resourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := h.deleteResource(ctx, request, "DeleteOrganizationResource", resourceID, resourceToDel,
+		"org_id", resourceToDel.OrgID, resourceToDel.OrgID); err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&frontierv1beta1.DeleteOrganizationResourceResponse{}), nil
+}
+
+func (h *ConnectHandler) getResourceToDelete(ctx context.Context, request connect.AnyRequest, method, id string) (resource.Resource, error) {
+	res, err := h.resourceService.Get(ctx, id)
+	if err != nil {
+		NewErrorLogger().LogServiceError(ctx, request, method+".GetResource", err,
+			"resource_id", id)
+
+		switch {
+		case errors.Is(err, resource.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidID),
+			errors.Is(err, resource.ErrInvalidUUID):
+			return resource.Resource{}, connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
+		default:
+			return resource.Resource{}, connect.NewError(connect.CodeInternal, fmt.Errorf("%s.GetResource: resource_id=%s: %w", method, id, err))
+		}
+	}
+	return res, nil
+}
+
+func (h *ConnectHandler) deleteResource(ctx context.Context, request connect.AnyRequest, method, id string,
+	res resource.Resource, parentKey, parentValue, auditOrgID string,
+) error {
+	if err := h.resourceService.Delete(ctx, res.NamespaceID, res.ID); err != nil {
+		if errors.Is(err, resource.ErrNotExist) {
+			return connect.NewError(connect.CodeNotFound, ErrResourceNotFound)
+		}
+		return connect.NewError(connect.CodeInternal, fmt.Errorf("%s: resource_id=%s %s=%s namespace=%s: %w", method, id, parentKey, parentValue, res.NamespaceID, err))
+	}
+
+	if err := audit.GetAuditor(ctx, auditOrgID).Log(audit.ResourceDeletedEvent, audit.Target{
+		ID:   id,
+		Type: res.NamespaceID,
+	}); err != nil {
+		NewErrorLogger().LogServiceError(ctx, request, method+".AuditLog", err,
+			"resource_id", id)
+	}
+	return nil
 }
 
 func (h *ConnectHandler) CreateOrganizationResource(ctx context.Context, request *connect.Request[frontierv1beta1.CreateOrganizationResourceRequest]) (*connect.Response[frontierv1beta1.CreateOrganizationResourceResponse], error) {
