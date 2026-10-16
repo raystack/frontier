@@ -398,6 +398,121 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 	}
 }
 
+func TestConnectHandler_CreateOrganizationResource(t *testing.T) {
+	orgResource := resource.Resource{
+		ID:            utils.NewString(),
+		URN:           "frn:" + testOrgID + ":" + testNSID + ":store-1",
+		Name:          "store-1",
+		OrgID:         testOrgID,
+		NamespaceID:   testNSID,
+		PrincipalID:   testUserID,
+		PrincipalType: schema.UserPrincipal,
+	}
+	toCreate := resource.Resource{
+		Name:          orgResource.Name,
+		OrgID:         testOrgID,
+		NamespaceID:   testNSID,
+		PrincipalID:   testUserID,
+		PrincipalType: schema.UserPrincipal,
+	}
+	validRequest := func() *connect.Request[frontierv1beta1.CreateOrganizationResourceRequest] {
+		return connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+			OrgId: testOrgID,
+			Body: &frontierv1beta1.ResourceRequestBody{
+				Name:      orgResource.Name,
+				Namespace: testNSID,
+				Principal: testUserID,
+			},
+		})
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		request *connect.Request[frontierv1beta1.CreateOrganizationResourceRequest]
+		want    *connect.Response[frontierv1beta1.CreateOrganizationResourceResponse]
+		wantErr error
+	}{
+		{
+			name: "should return error if request body is nil",
+			request: connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+				OrgId: testOrgID,
+			}),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			name: "should return not found if the org does not exist",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Create(mock.Anything, toCreate).Return(resource.Resource{}, fmt.Errorf("failed to get organization: %w", organization.ErrNotExist))
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrOrgNotFound),
+		},
+		{
+			name: "should return bad request if a field does not exist in its foreign reference",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Create(mock.Anything, toCreate).Return(resource.Resource{}, resource.ErrInvalidDetail)
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
+			name: "should return conflict if the resource already exists",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Create(mock.Anything, toCreate).Return(resource.Resource{}, resource.ErrConflict)
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest),
+		},
+		{
+			name: "should return internal error if the resource service fails",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Create(mock.Anything, toCreate).Return(resource.Resource{}, errors.New("test error"))
+			},
+			request: validRequest(),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateOrganizationResource: resource_id= org_id=%s resource_name=%s namespace=%s principal=%s: %w", testOrgID, orgResource.Name, testNSID, testUserID, errors.New("test error"))),
+		},
+		{
+			name: "should return the resource with its org and no project",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Create(mock.Anything, toCreate).Return(orgResource, nil)
+			},
+			request: validRequest(),
+			want: connect.NewResponse(&frontierv1beta1.CreateOrganizationResourceResponse{
+				Resource: &frontierv1beta1.Resource{
+					Id:        orgResource.ID,
+					Name:      orgResource.Name,
+					Urn:       orgResource.URN,
+					OrgId:     testOrgID,
+					Namespace: testNSID,
+					Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, testUserID),
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+			}),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := mocks.NewResourceService(t)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+			h := ConnectHandler{resourceService: mockResourceSrv}
+			resp, err := h.CreateOrganizationResource(context.Background(), tt.request)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.wantErr.(*connect.Error).Code(), err.(*connect.Error).Code())
+				assert.Equal(t, tt.wantErr.(*connect.Error).Message(), err.(*connect.Error).Message())
+			} else {
+				assert.NoError(t, err)
+				assert.EqualValues(t, tt.want, resp)
+			}
+		})
+	}
+}
+
 func TestConnectHandler_GetProjectResource(t *testing.T) {
 	tests := []struct {
 		name            string

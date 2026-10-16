@@ -112,18 +112,18 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		principalType = sub.Namespace
 	}
 
-	resourceProject, err := s.projectService.Get(ctx, res.ProjectID)
+	p, err := s.getParent(ctx, res)
 	if err != nil {
-		return Resource{}, fmt.Errorf("failed to get project: %w", err)
+		return Resource{}, err
 	}
 
 	newResource, err := s.repository.Create(ctx, Resource{
 		ID:            res.ID,
-		URN:           res.CreateURN(resourceProject.Name),
+		URN:           res.CreateURN(p.urnScope),
 		Name:          res.Name,
 		Title:         res.Title,
-		ProjectID:     resourceProject.ID,
-		OrgID:         resourceProject.Organization.ID,
+		ProjectID:     p.projectID,
+		OrgID:         p.org.ID,
 		NamespaceID:   res.NamespaceID,
 		PrincipalID:   principalID,
 		PrincipalType: principalType,
@@ -142,36 +142,70 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.AddProjectToResource(ctx, newResource.ProjectID, newResource); err != nil {
+	if err = s.addParentToResource(ctx, p, newResource); err != nil {
 		return Resource{}, err
 	}
 	if err = s.AddResourceOwner(ctx, newResource); err != nil {
 		return Resource{}, err
 	}
 
-	s.createAuditRecord(ctx, pkgauditrecord.ResourceCreatedEvent, newResource, resourceProject)
+	s.createAuditRecord(ctx, pkgauditrecord.ResourceCreatedEvent, newResource, p)
 	return newResource, nil
 }
 
-func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Event, res Resource, proj project.Project) {
+type parent struct {
+	projectID string
+	org       organization.Organization
+	urnScope  string
+	link      relation.Subject
+	linkName  string
+	audit     auditmodels.Resource
+}
+
+func (s Service) getParent(ctx context.Context, res Resource) (parent, error) {
+	if res.ProjectID == "" && res.OrgID != "" {
+		org, err := s.orgService.GetRaw(ctx, res.OrgID)
+		if err != nil {
+			return parent{}, fmt.Errorf("failed to get organization: %w", err)
+		}
+		return parent{
+			org:      org,
+			urnScope: org.ID,
+			link:     relation.Subject{ID: org.ID, Namespace: schema.OrganizationNamespace},
+			linkName: schema.OrganizationRelationName,
+			audit:    auditmodels.Resource{ID: org.ID, Type: pkgauditrecord.OrganizationType, Name: org.Title},
+		}, nil
+	}
+
+	proj, err := s.projectService.Get(ctx, res.ProjectID)
+	if err != nil {
+		return parent{}, fmt.Errorf("failed to get project: %w", err)
+	}
+	return parent{
+		projectID: proj.ID,
+		org:       proj.Organization,
+		urnScope:  proj.Name,
+		link:      relation.Subject{ID: proj.ID, Namespace: schema.ProjectNamespace},
+		linkName:  schema.ProjectRelationName,
+		audit:     auditmodels.Resource{ID: proj.ID, Type: pkgauditrecord.ProjectType, Name: proj.Title},
+	}, nil
+}
+
+func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Event, res Resource, p parent) {
 	targetName := res.Title
 	if targetName == "" {
 		targetName = res.Name
 	}
 	if _, err := s.auditRecordRepository.Create(ctx, auditmodels.AuditRecord{
-		Event: event,
-		Resource: auditmodels.Resource{
-			ID:   proj.ID,
-			Type: pkgauditrecord.ProjectType,
-			Name: proj.Title,
-		},
+		Event:    event,
+		Resource: p.audit,
 		Target: &auditmodels.Target{
 			ID:   res.ID,
 			Type: pkgauditrecord.EntityType(res.NamespaceID),
 			Name: targetName,
 		},
-		OrgID:      proj.Organization.ID,
-		OrgName:    proj.Organization.Title,
+		OrgID:      p.org.ID,
+		OrgName:    p.org.Title,
 		OccurredAt: time.Now(),
 	}); err != nil {
 		grpczap.Extract(ctx).Error("failed to create resource audit record",
@@ -187,23 +221,16 @@ func (s Service) Update(ctx context.Context, resource Resource) (Resource, error
 	return s.repository.Update(ctx, resource)
 }
 
-func (s Service) AddProjectToResource(ctx context.Context, projectID string, res Resource) error {
-	rel := relation.Relation{
+func (s Service) addParentToResource(ctx context.Context, p parent, res Resource) error {
+	_, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        res.ID,
 			Namespace: res.NamespaceID,
 		},
-		Subject: relation.Subject{
-			ID:        projectID,
-			Namespace: schema.ProjectNamespace,
-		},
-		RelationName: schema.ProjectRelationName,
-	}
-
-	if _, err := s.relationService.Create(ctx, rel); err != nil {
-		return err
-	}
-	return nil
+		Subject:      p.link,
+		RelationName: p.linkName,
+	})
+	return err
 }
 
 func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
@@ -454,9 +481,9 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	if err != nil {
 		return err
 	}
-	resourceProject, err := s.projectService.Get(ctx, res.ProjectID)
+	p, err := s.getParent(ctx, res)
 	if err != nil {
-		return fmt.Errorf("failed to get project: %w", err)
+		return err
 	}
 
 	if err := s.relationService.Delete(ctx, relation.Relation{
@@ -471,7 +498,7 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 		return err
 	}
 
-	s.createAuditRecord(ctx, pkgauditrecord.ResourceDeletedEvent, res, resourceProject)
+	s.createAuditRecord(ctx, pkgauditrecord.ResourceDeletedEvent, res, p)
 	return nil
 }
 

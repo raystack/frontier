@@ -144,7 +144,7 @@ func (h *ConnectHandler) CheckPlanEntitlement(ctx context.Context, obj relation.
 		}
 		orgID = proj.Organization.ID
 	case schema.OrganizationNamespace:
-		org, err := h.orgService.Get(ctx, obj.ID)
+		org, err := h.orgService.GetRaw(ctx, obj.ID)
 		if err != nil {
 			errorLogger.LogUnexpectedError(ctx, request, "CheckPlanEntitlement", err,
 				"namespace", obj.Namespace,

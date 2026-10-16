@@ -73,6 +73,7 @@ func (s *PATRegressionTestSuite) SetupSuite() {
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapProject(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapGroup(ctx, s.testBench.Client, adminCookie))
+	s.Require().NoError(testbench.SeedComputeResources(ctx, s.testBench.AdminClient))
 
 	// build role name → UUID map for PAT creation (requires UUIDs)
 	ctxAdmin := testbench.ContextWithAuth(ctx, adminCookie)
@@ -283,6 +284,35 @@ func (s *PATRegressionTestSuite) TestPATScope_OrgViewer_AllProjects() {
 	})
 	s.Run("proj2 update allowed", func() {
 		s.Assert().True(s.checkPermission(patCtx, schema.ProjectNamespace, proj2ID, schema.UpdatePermission))
+	})
+}
+
+func (s *PATRegressionTestSuite) TestPATScope_AllProjectsDoesNotReachOrgResources() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	orgID, proj1ID, _ := s.createOrgAndProjects(ctxAdmin, "org-pat-ap-orgres", "pat-ap-orgres-p1", "")
+
+	projectResResp, err := s.testBench.Client.CreateProjectResource(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+		ProjectId: proj1ID,
+		Body:      &frontierv1beta1.ResourceRequestBody{Name: "order-1", Namespace: computeOrderNamespace},
+	}))
+	s.Require().NoError(err)
+	orgResResp, err := s.testBench.Client.CreateOrganizationResource(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+		OrgId: orgID,
+		Body:  &frontierv1beta1.ResourceRequestBody{Name: "order-1", Namespace: computeOrderNamespace},
+	}))
+	s.Require().NoError(err)
+
+	_, patToken := s.createPAT(ctxAdmin, orgID, "pat-ap-orgres", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+		{RoleId: s.roleID(schema.RoleProjectOwner), ResourceType: schema.ProjectNamespace},
+	})
+	patCtx := getPATCtx(patToken)
+
+	s.Run("project resource update allowed", func() {
+		s.Assert().True(s.checkPermission(patCtx, computeOrderNamespace, projectResResp.Msg.GetResource().GetId(), schema.UpdatePermission))
+	})
+	s.Run("org resource update denied", func() {
+		s.Assert().False(s.checkPermission(patCtx, computeOrderNamespace, orgResResp.Msg.GetResource().GetId(), schema.UpdatePermission))
 	})
 }
 
