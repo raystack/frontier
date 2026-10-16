@@ -31,6 +31,7 @@ import (
 	"connectrpc.com/connect"
 
 	"github.com/raystack/frontier/config"
+	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/frontier/proto/v1beta1/frontierv1beta1connect"
@@ -71,6 +72,7 @@ type APIRegressionTestSuite struct {
 	orgViewerRole   string
 	orgOwnerRole    string
 	groupMemberRole string
+	dbc             *db.Client
 }
 
 func (s *APIRegressionTestSuite) SetupSuite() {
@@ -102,6 +104,9 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 	}
 
 	s.testBench, err = testbench.Init(appConfig)
+	s.Require().NoError(err)
+
+	s.dbc, err = db.New(appConfig.DB)
 	s.Require().NoError(err)
 
 	ctx := context.Background()
@@ -154,6 +159,7 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 }
 
 func (s *APIRegressionTestSuite) TearDownSuite() {
+	s.Require().NoError(s.dbc.Close())
 	err := s.testBench.Close()
 	s.Require().NoError(err)
 }
@@ -3581,6 +3587,99 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteHidesTheOrgAndRemovesWhat
 		}))
 		s.Require().NoError(err)
 		s.Assert().NotEqual(orgID, recreateResp.Msg.GetOrganization().GetId())
+	})
+}
+
+func (s *APIRegressionTestSuite) TestOrganizationDeleteHidesItsKyc() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Title: "org kyc soft delete",
+			Name:  "org-kyc-soft-delete",
+		},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	kycLink := "https://kyc.example/org-kyc-soft-delete"
+	_, err = s.testBench.AdminClient.SetOrganizationKyc(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetOrganizationKycRequest{
+		OrgId:  orgID,
+		Status: true,
+		Link:   kycLink,
+	}))
+	s.Require().NoError(err)
+
+	getBeforeDeleteResp, err := s.testBench.Client.GetOrganizationKyc(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationKycRequest{OrgId: orgID}))
+	s.Require().NoError(err)
+	s.Require().True(getBeforeDeleteResp.Msg.GetOrganizationKyc().GetStatus())
+	s.Require().Equal(kycLink, getBeforeDeleteResp.Msg.GetOrganizationKyc().GetLink())
+
+	listBeforeDeleteResp, err := s.testBench.AdminClient.ListOrganizationsKyc(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationsKycRequest{}))
+	s.Require().NoError(err)
+	listedBeforeDelete := false
+	for _, orgKyc := range listBeforeDeleteResp.Msg.GetOrganizationsKyc() {
+		if orgKyc.GetOrgId() == orgID {
+			listedBeforeDelete = true
+			s.Require().True(orgKyc.GetStatus())
+		}
+	}
+	s.Require().True(listedBeforeDelete)
+
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+	s.Require().NoError(err)
+
+	s.Run("the deleted org is absent from the kyc list", func() {
+		listResp, err := s.testBench.AdminClient.ListOrganizationsKyc(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationsKycRequest{}))
+		s.Require().NoError(err)
+		for _, orgKyc := range listResp.Msg.GetOrganizationsKyc() {
+			s.Assert().NotEqual(orgID, orgKyc.GetOrgId())
+		}
+	})
+
+	s.Run("the kyc of the deleted org is no longer readable", func() {
+		getResp, err := s.testBench.Client.GetOrganizationKyc(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationKycRequest{OrgId: orgID}))
+		if err != nil {
+			s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+			return
+		}
+		s.Assert().False(getResp.Msg.GetOrganizationKyc().GetStatus())
+		s.Assert().Empty(getResp.Msg.GetOrganizationKyc().GetLink())
+	})
+
+	s.Run("the kyc row stays in the database marked deleted", func() {
+		var liveRows, deletedRows int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &liveRows,
+			"SELECT count(*) FROM organizations_kyc WHERE org_id = $1 AND deleted_at IS NULL", orgID))
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedRows,
+			"SELECT count(*) FROM organizations_kyc WHERE org_id = $1 AND deleted_at IS NOT NULL", orgID))
+		s.Assert().Equal(0, liveRows)
+		s.Assert().Equal(1, deletedRows)
+	})
+
+	s.Run("kyc cannot be set on the deleted org", func() {
+		_, err := s.testBench.AdminClient.SetOrganizationKyc(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetOrganizationKycRequest{
+			OrgId:  orgID,
+			Status: false,
+		}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeInvalidArgument, connect.CodeOf(err))
+	})
+
+	s.Run("a new org with the same name starts without kyc", func() {
+		recreateResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org kyc soft delete again",
+				Name:  "org-kyc-soft-delete",
+			},
+		}))
+		s.Require().NoError(err)
+		getResp, err := s.testBench.Client.GetOrganizationKyc(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationKycRequest{
+			OrgId: recreateResp.Msg.GetOrganization().GetId(),
+		}))
+		s.Require().NoError(err)
+		s.Assert().False(getResp.Msg.GetOrganizationKyc().GetStatus())
+		s.Assert().Empty(getResp.Msg.GetOrganizationKyc().GetLink())
 	})
 }
 
