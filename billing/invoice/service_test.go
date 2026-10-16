@@ -1,9 +1,20 @@
 package invoice
 
 import (
+	"context"
+	"log/slog"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/billing/customer"
+	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stripe/stripe-go/v79"
+	"github.com/stripe/stripe-go/v79/client"
+	"github.com/stripe/stripe-go/v79/form"
 )
 
 func TestService_computeOverdraftWindow(t *testing.T) {
@@ -171,4 +182,113 @@ func TestService_overdraftItemName(t *testing.T) {
 			}
 		})
 	}
+}
+
+type recordingInvoiceRepository struct {
+	Repository
+	invoices []Invoice
+	created  []Invoice
+	updated  []Invoice
+}
+
+func (r *recordingInvoiceRepository) List(_ context.Context, flt Filter) ([]Invoice, error) {
+	if flt.IncludeDeleted {
+		return r.invoices, nil
+	}
+	var live []Invoice
+	for _, inv := range r.invoices {
+		if inv.DeletedAt.IsZero() {
+			live = append(live, inv)
+		}
+	}
+	return live, nil
+}
+
+func (r *recordingInvoiceRepository) Create(_ context.Context, inv Invoice) (Invoice, error) {
+	r.created = append(r.created, inv)
+	return inv, nil
+}
+
+func (r *recordingInvoiceRepository) UpdateByID(_ context.Context, inv Invoice) (Invoice, error) {
+	r.updated = append(r.updated, inv)
+	return inv, nil
+}
+
+func TestService_lastOverdraftInvoice(t *testing.T) {
+	t.Run("a deleted overdraft invoice still anchors the window", func(t *testing.T) {
+		end := time.Now().UTC()
+		repo := &recordingInvoiceRepository{invoices: []Invoice{{
+			ID:        "inv-gone",
+			DeletedAt: end,
+			Items:     []Item{{Type: CreditItemType, TimeRangeEnd: &end}},
+		}}}
+		svc := NewService(slog.Default(), nil, repo, nil, nil, nil, nil, billing.Config{})
+
+		got, err := svc.lastOverdraftInvoice(context.Background(), "cust-1")
+		assert.NoError(t, err)
+		if assert.NotNil(t, got, "the deleted invoice must still be found") {
+			assert.Equal(t, "inv-gone", got.ID)
+		}
+	})
+
+	t.Run("an invoice without a credit item is not the anchor", func(t *testing.T) {
+		repo := &recordingInvoiceRepository{invoices: []Invoice{{ID: "inv-plan"}}}
+		svc := NewService(slog.Default(), nil, repo, nil, nil, nil, nil, billing.Config{})
+
+		got, err := svc.lastOverdraftInvoice(context.Background(), "cust-1")
+		assert.NoError(t, err)
+		assert.Nil(t, got)
+	})
+}
+
+func TestService_SyncWithProvider(t *testing.T) {
+	t.Run("a deleted local invoice is neither updated nor created again", func(t *testing.T) {
+		backend := stripemock.NewBackend(t)
+		backend.EXPECT().CallRaw("GET", "/v1/invoices", "key_123", mock.Anything, mock.Anything, mock.Anything).
+			Run(func(_, _, _ string, _ *form.Values, _ *stripe.Params, v stripe.LastResponseSetter) {
+				list := v.(*stripe.InvoiceList)
+				list.Data = []*stripe.Invoice{{ID: "in_gone", Status: stripe.InvoiceStatusPaid, Total: 100}}
+			}).Return(nil)
+		stripeClient := client.New("key_123", &stripe.Backends{API: backend})
+
+		repo := &recordingInvoiceRepository{invoices: []Invoice{{
+			ID:         "inv-gone",
+			ProviderID: "in_gone",
+			CustomerID: "cust-1",
+			State:      OpenState,
+			DeletedAt:  time.Now(),
+		}}}
+		svc := NewService(slog.Default(), stripeClient, repo, nil, nil, nil, nil, billing.Config{})
+
+		err := svc.SyncWithProvider(context.Background(), customer.Customer{ID: "cust-1", ProviderID: "cus_1"})
+		assert.NoError(t, err)
+		assert.Empty(t, repo.created, "the deleted invoice must not come back as a new row")
+		assert.Empty(t, repo.updated, "the deleted invoice must not be touched")
+	})
+
+	t.Run("a live local invoice is still updated", func(t *testing.T) {
+		backend := stripemock.NewBackend(t)
+		backend.EXPECT().CallRaw("GET", "/v1/invoices", "key_123", mock.Anything, mock.Anything, mock.Anything).
+			Run(func(_, _, _ string, _ *form.Values, _ *stripe.Params, v stripe.LastResponseSetter) {
+				list := v.(*stripe.InvoiceList)
+				list.Data = []*stripe.Invoice{{ID: "in_live", Status: stripe.InvoiceStatusPaid, Total: 100}}
+			}).Return(nil)
+		stripeClient := client.New("key_123", &stripe.Backends{API: backend})
+
+		repo := &recordingInvoiceRepository{invoices: []Invoice{{
+			ID:         "inv-live",
+			ProviderID: "in_live",
+			CustomerID: "cust-1",
+			State:      OpenState,
+			Amount:     100,
+		}}}
+		svc := NewService(slog.Default(), stripeClient, repo, nil, nil, nil, nil, billing.Config{})
+
+		err := svc.SyncWithProvider(context.Background(), customer.Customer{ID: "cust-1", ProviderID: "cus_1"})
+		assert.NoError(t, err)
+		assert.Empty(t, repo.created)
+		if assert.Len(t, repo.updated, 1) {
+			assert.Equal(t, PaidState, repo.updated[0].State)
+		}
+	})
 }

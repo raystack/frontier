@@ -84,6 +84,10 @@ func (i Invoice) transform() (invoice.Invoice, error) {
 	if i.PeriodEndAt != nil {
 		periodEndAt = *i.PeriodEndAt
 	}
+	var deletedAt time.Time
+	if i.DeletedAt != nil {
+		deletedAt = *i.DeletedAt
+	}
 	return invoice.Invoice{
 		ID:            i.ID,
 		ProviderID:    i.ProviderID,
@@ -99,6 +103,7 @@ func (i Invoice) transform() (invoice.Invoice, error) {
 		CreatedAt:     i.CreatedAt,
 		PeriodStartAt: periodStartAt,
 		PeriodEndAt:   periodEndAt,
+		DeletedAt:     deletedAt,
 	}, nil
 }
 
@@ -210,6 +215,9 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 
 func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) ([]invoice.Invoice, error) {
 	stmt := fromLive(TABLE_BILLING_INVOICES)
+	if flt.IncludeDeleted {
+		stmt = dialect.From(TABLE_BILLING_INVOICES)
+	}
 	if flt.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": flt.CustomerID,
