@@ -82,7 +82,10 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			"principal_id":   principalID,
 			"principal_type": principalType,
 			"metadata":       marshaledMetadata,
-		})).Returning(&ResourceCols{}).ToSQL()
+		}).
+			// never move a live resource to another project or org
+			Where(goqu.L("? IS NOT DISTINCT FROM ?", goqu.I(TABLE_RESOURCES+".project_id"), goqu.I("excluded.project_id")))).
+		Returning(&ResourceCols{}).ToSQL()
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
@@ -97,7 +100,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidDetail)
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidUUID)
-		case errors.Is(err, ErrDuplicateKey):
+		case errors.Is(err, ErrDuplicateKey), errors.Is(err, sql.ErrNoRows):
 			return resource.Resource{}, resource.ErrConflict
 		default:
 			return resource.Resource{}, err

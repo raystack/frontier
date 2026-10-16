@@ -385,6 +385,73 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 		}
 	})
 
+	orgResource := func(urn, name string) resource.Resource {
+		return resource.Resource{
+			URN:           urn,
+			Name:          name,
+			OrgID:         s.orgs[0].ID,
+			NamespaceID:   s.resources[0].NamespaceID,
+			PrincipalID:   s.resources[0].PrincipalID,
+			PrincipalType: s.resources[0].PrincipalType,
+		}
+	}
+	projectResource := func(urn string, project project.Project) resource.Resource {
+		return resource.Resource{
+			URN:           urn,
+			Name:          "item1",
+			ProjectID:     project.ID,
+			OrgID:         project.Organization.ID,
+			NamespaceID:   s.resources[0].NamespaceID,
+			PrincipalID:   s.resources[0].PrincipalID,
+			PrincipalType: s.resources[0].PrincipalType,
+		}
+	}
+
+	s.Run("should update the live org resource that already has the urn", func() {
+		created, err := s.repository.Create(s.ctx, orgResource("org-resource-again", "store1"))
+		s.Require().NoError(err)
+		got, err := s.repository.Create(s.ctx, orgResource("org-resource-again", "renamed"))
+		s.Require().NoError(err)
+		s.Assert().Equal(created.ID, got.ID)
+		s.Assert().Equal("renamed", got.Name)
+	})
+
+	s.Run("should return conflict when the urn belongs to a live resource of another project", func() {
+		existing := s.resources[0]
+		var other project.Project
+		for _, p := range s.projects {
+			if p.ID != existing.ProjectID {
+				other = p
+				break
+			}
+		}
+		_, err := s.repository.Create(s.ctx, projectResource(existing.URN, other))
+		s.Assert().ErrorIs(err, resource.ErrConflict)
+
+		got, err := s.repository.GetByID(s.ctx, existing.ID)
+		s.Require().NoError(err)
+		s.Assert().Equal(existing.ProjectID, got.ProjectID)
+	})
+
+	s.Run("should return conflict when a project resource and an org resource share the urn", func() {
+		orgOwned, err := s.repository.Create(s.ctx, orgResource("shared-by-org", "store1"))
+		s.Require().NoError(err)
+		_, err = s.repository.Create(s.ctx, projectResource("shared-by-org", s.projects[0]))
+		s.Assert().ErrorIs(err, resource.ErrConflict)
+
+		projectOwned, err := s.repository.Create(s.ctx, projectResource("shared-by-project", s.projects[0]))
+		s.Require().NoError(err)
+		_, err = s.repository.Create(s.ctx, orgResource("shared-by-project", "store1"))
+		s.Assert().ErrorIs(err, resource.ErrConflict)
+
+		got, err := s.repository.GetByID(s.ctx, orgOwned.ID)
+		s.Require().NoError(err)
+		s.Assert().Empty(got.ProjectID)
+		got, err = s.repository.GetByID(s.ctx, projectOwned.ID)
+		s.Require().NoError(err)
+		s.Assert().Equal(s.projects[0].ID, got.ProjectID)
+	})
+
 	s.Run("should create a new row when the urn belongs to a soft-deleted resource", func() {
 		deleted := s.resources[1]
 		if _, err := s.client.ExecContext(s.ctx, "UPDATE resources SET deleted_at = now() WHERE id = $1", deleted.ID); err != nil {
