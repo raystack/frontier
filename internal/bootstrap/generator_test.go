@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/authzed/spicedb/pkg/schemadsl/compiler"
@@ -70,4 +71,30 @@ func TestAddServiceToSchema(t *testing.T) {
 		fmt.Println(authzedSchemaSource)
 	}
 	assert.Equal(t, compiledSchemaZed, authzedSchemaSource)
+}
+
+func TestLongestPermissionSlugCompiles(t *testing.T) {
+	tests := []struct {
+		name      string
+		namespace string
+		want      bool
+	}{
+		{"sixty characters", strings.Repeat("a", 28) + "/" + strings.Repeat("b", 27), true},
+		{"sixty-one characters", strings.Repeat("a", 28) + "/" + strings.Repeat("b", 28), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, schema.PermissionSlugWithinLimit(tt.namespace, "get"))
+
+			defs, err := bootstrap.ApplyServiceDefinitionOverAZSchema(&schema.ServiceDefinition{
+				Permissions: []schema.ResourcePermission{{Namespace: tt.namespace, Name: "get"}},
+			}, bootstrap.GetBaseAZSchema())
+			assert.NoError(t, err)
+			source, err := bootstrap.PrepareSchemaAsAZSource(defs)
+			assert.NoError(t, err)
+
+			err = bootstrap.ValidatePreparedAZSchema(context.Background(), source)
+			assert.Equal(t, tt.want, err == nil, "compile error: %v", err)
+		})
+	}
 }

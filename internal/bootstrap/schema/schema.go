@@ -329,14 +329,18 @@ func IsValidPermissionNamespace(namespace string) bool {
 	return permissionNamespaceRe.MatchString(namespace)
 }
 
-// maxPermissionSlugLen is SpiceDB's ceiling on a relation name. The reconcile and
-// API paths flatten a permission to the slug service_resource_verb and register
-// that slug as a SpiceDB relation, so a longer slug is rejected when the schema is
-// compiled.
-const maxPermissionSlugLen = 64
+const spiceDBMaxRelationNameLen = 64
+
+const orgLevelPermissionPrefix = "org_"
+
+func OrgLevelPermissionName(fqPermissionName string) string {
+	return orgLevelPermissionPrefix + fqPermissionName
+}
+
+const maxPermissionSlugLen = spiceDBMaxRelationNameLen - len(orgLevelPermissionPrefix)
 
 // PermissionSlugWithinLimit reports whether the flattened slug
-// service_resource_verb fits SpiceDB's relation-name limit. Each part can be up to
+// service_resource_verb fits maxPermissionSlugLen. Each part can be up to
 // sixty-four characters on its own, so a valid namespace and verb can still combine
 // into a slug that SpiceDB will not store.
 func PermissionSlugWithinLimit(namespace, name string) bool {
@@ -345,13 +349,14 @@ func PermissionSlugWithinLimit(namespace, name string) bool {
 
 // reservedPermissionVerbs are the relation names the schema generator adds to
 // every custom resource definition (see internal/bootstrap/generator.go's owner,
-// project, and granted relations). A permission whose verb equals one of these
+// project, org, and granted relations). A permission whose verb equals one of these
 // makes the generator declare the same relation twice, which SpiceDB rejects when
 // it compiles the schema.
 var reservedPermissionVerbs = map[string]bool{
-	OwnerRelationName:     true, // owner
-	ProjectRelationName:   true, // project
-	RoleGrantRelationName: true, // granted
+	OwnerRelationName:        true, // owner
+	ProjectRelationName:      true, // project
+	OrganizationRelationName: true, // org
+	RoleGrantRelationName:    true, // granted
 }
 
 // IsReservedPermissionVerb reports whether name collides with a relation the
@@ -377,7 +382,7 @@ func ValidateCustomPermission(namespace, name string) error {
 		return fmt.Errorf("invalid permission namespace %q: service and resource must each be lowercase alphanumeric and three to sixty-four characters", namespace)
 	}
 	if !PermissionSlugWithinLimit(namespace, name) {
-		return fmt.Errorf("permission %s:%s is too long: the flattened service_resource_verb must be at most 64 characters", namespace, name)
+		return fmt.Errorf("permission %s:%s is too long: the flattened service_resource_verb must be at most %d characters", namespace, name, maxPermissionSlugLen)
 	}
 	return nil
 }

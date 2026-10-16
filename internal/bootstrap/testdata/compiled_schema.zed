@@ -44,6 +44,12 @@ definition app/organization {
 	permission grouplist = platform->superuser + granted->app_organization_administer + granted->app_organization_grouplist
 	permission invitationcreate = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationcreate
 	permission invitationlist = platform->superuser + granted->app_organization_administer + granted->app_organization_invitationlist
+	permission org_compute_order_create = platform->superuser + granted->app_organization_administer + granted->compute_order_create
+	permission org_compute_order_delete = platform->superuser + granted->app_organization_administer + granted->compute_order_delete
+	permission org_compute_order_get = platform->superuser + granted->app_organization_administer + granted->compute_order_get
+	permission org_compute_order_update = platform->superuser + granted->app_organization_administer + granted->compute_order_update
+	permission org_compute_receipt_get = platform->superuser + granted->app_organization_administer + granted->compute_receipt_get
+	permission org_compute_receipt_update = platform->superuser + granted->app_organization_administer + granted->compute_receipt_update
 	relation pat_granted: app/rolebinding
 
 	// relations
@@ -180,19 +186,21 @@ definition app/serviceuser {
 definition app/user {}
 
 definition compute/order {
-	permission create = owner + project->app_project_administer + project->compute_order_create + granted->compute_order_create
-	permission delete = owner + project->app_project_administer + project->compute_order_delete + granted->compute_order_delete
-	permission get = owner + project->app_project_administer + project->compute_order_get + granted->compute_order_get
+	permission create = owner + project->app_project_administer + project->compute_order_create + org->org_compute_order_create + granted->compute_order_create
+	permission delete = owner + project->app_project_administer + project->compute_order_delete + org->org_compute_order_delete + granted->compute_order_delete
+	permission get = owner + project->app_project_administer + project->compute_order_get + org->org_compute_order_get + granted->compute_order_get
 	relation granted: app/rolebinding
+	relation org: app/organization
 	relation owner: app/user | app/serviceuser
 	relation project: app/project
-	permission update = owner + project->app_project_administer + project->compute_order_update + granted->compute_order_update
+	permission update = owner + project->app_project_administer + project->compute_order_update + org->org_compute_order_update + granted->compute_order_update
 }
 
 definition compute/receipt {
-	permission get = owner + project->app_project_administer + project->compute_receipt_get + granted->compute_receipt_get
+	permission get = owner + project->app_project_administer + project->compute_receipt_get + org->org_compute_receipt_get + granted->compute_receipt_get
 	relation granted: app/rolebinding
+	relation org: app/organization
 	relation owner: app/user | app/serviceuser
 	relation project: app/project
-	permission update = owner + project->app_project_administer + project->compute_receipt_update + granted->compute_receipt_update
+	permission update = owner + project->app_project_administer + project->compute_receipt_update + org->org_compute_receipt_update + granted->compute_receipt_update
 }

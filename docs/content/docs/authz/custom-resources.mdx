@@ -63,12 +63,13 @@ A few rules the reconcile flow enforces for permissions:
 - A key has three parts joined by dots, `service.resource.verb`. Each part is lowercase,
   starts with a letter, and is at least three characters. So `compute.machine.get` works, but
   `compute.machine.get-all` does not (the hyphen is not alphanumeric).
-- The verb cannot be `owner`, `project`, or `granted`. The generated schema already defines
-  relations with those names on every resource, so a key like `compute.machine.owner` is
-  rejected even though it meets the rule above.
-- The whole flattened name `service_resource_verb` must be at most 64 characters, the limit
-  SpiceDB puts on a relation name. Three parts that are each fine on their own can still be
-  rejected together as too long.
+- The verb cannot be `owner`, `project`, `org`, or `granted`. The generated schema already
+  defines relations with those names on every resource, so a key like `compute.machine.owner`
+  is rejected even though it meets the rule above.
+- The whole flattened name `service_resource_verb` must be at most 60 characters. SpiceDB
+  limits a relation name to 64, and the generator also adds a rule named `org_` plus this
+  name. Three parts that are each fine on their own can still be rejected together as too
+  long.
 - A key whose service is `app` (an `app.*` key) is rejected, because the base schema owns
   those types (see [Why a separate `user/project` namespace](#why-a-separate-userproject-namespace)).
 
@@ -100,7 +101,7 @@ and admin API own custom permissions now.
 
 ## What rules get generated
 
-For **each** action on a custom resource, the generator adds an entry in five places: the
+For **each** action on a custom resource, the generator adds entries in five places: the
 resource namespace, `app/organization`, `app/project`, `app/rolebinding`, and `app/role`. The
 action name is flattened into a single slug: namespace `compute/machine` with action `get`
 becomes `compute_machine_get`.
@@ -115,8 +116,13 @@ after its namespace, so the check runs against `compute/machine:<id>`:
 compute/machine#get = owner
                    + project->app_project_administer
                    + project->compute_machine_get
+                   + org->org_compute_machine_get
                    + granted->compute_machine_get
 ```
+
+A resource belongs either to a project or directly to an organization. A project resource has
+a `project` link and an organization resource has an `org` link, so only one of the two
+parent arrows can match.
 
 **On the organization**, the org-wide version of the action:
 
@@ -128,6 +134,20 @@ app/organization#compute_machine_get = owner
                                      + pat_granted->app_project_administer
                                      + pat_granted->compute_machine_get
 ```
+
+**On the organization, for resources that belong to the organization**, the same rule without
+the `pat_granted` lines:
+
+```
+app/organization#org_compute_machine_get = platform->superuser
+                                         + granted->app_organization_administer
+                                         + granted->compute_machine_get
+```
+
+`pat_granted` holds the grants of personal access tokens scoped to all projects of the
+organization. Projects read the first rule, so those tokens reach resources in every project.
+Organization resources read this second rule, so the same tokens do not reach them. A token
+scoped to the organization itself is granted through `granted` and passes both.
 
 **On the project**, the project-wide version, which pulls from the org:
 
