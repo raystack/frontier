@@ -2461,6 +2461,102 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		_, err = s.testBench.Client.CreateOrganizationResource(ctxOrgAdminAuth, createRequest("store-2"))
 		s.Assert().NoError(err)
 	})
+	s.Run("6. updating an org resource checks its org and the caller's permission", func() {
+		createOrg := func(name string) string {
+			resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+				Body: &frontierv1beta1.OrganizationRequestBody{Title: name, Name: name},
+			}))
+			s.Require().NoError(err)
+			return resp.Msg.GetOrganization().GetId()
+		}
+		orgID := createOrg("org-resource-6")
+		otherOrgID := createOrg("org-resource-6-other")
+
+		creatorEmail := "user-org-resource-6-creator@raystack.org"
+		memberEmail := "user-org-resource-6-member@raystack.org"
+		var memberIDs []string
+		for _, u := range []struct{ email, name string }{
+			{creatorEmail, "user_org_resource_6_creator"},
+			{memberEmail, "user_org_resource_6_member"},
+		} {
+			userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+				Title: u.name, Email: u.email, Name: u.name,
+			}}))
+			s.Require().NoError(err)
+			memberIDs = append(memberIDs, userResp.Msg.GetUser().GetId())
+		}
+		addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId: orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{
+				{UserId: memberIDs[0], RoleId: s.orgViewerRole},
+				{UserId: memberIDs[1], RoleId: s.orgViewerRole},
+			},
+		}))
+		requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
+
+		creatorCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, creatorEmail)
+		s.Require().NoError(err)
+		ctxCreator := testbench.ContextWithAuth(context.Background(), creatorCookie)
+		memberCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, memberEmail)
+		s.Require().NoError(err)
+		ctxMember := testbench.ContextWithAuth(context.Background(), memberCookie)
+
+		createResp, err := s.testBench.Client.CreateOrganizationResource(ctxCreator, connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+			OrgId: orgID,
+			Body:  &frontierv1beta1.ResourceRequestBody{Name: "store-1", Namespace: computeOrderNamespace},
+		}))
+		s.Require().NoError(err)
+		resourceID := createResp.Msg.GetResource().GetId()
+
+		updateRequest := func(id, org, title string) *connect.Request[frontierv1beta1.UpdateOrganizationResourceRequest] {
+			return connect.NewRequest(&frontierv1beta1.UpdateOrganizationResourceRequest{
+				Id:    id,
+				OrgId: org,
+				Body: &frontierv1beta1.ResourceRequestBody{
+					Name:      "store-1",
+					Title:     title,
+					Namespace: computeOrderNamespace,
+					Metadata: &structpb.Struct{Fields: map[string]*structpb.Value{
+						"status": structpb.NewStringValue("SUCCESS"),
+					}},
+				},
+			})
+		}
+
+		updateResp, err := s.testBench.Client.UpdateOrganizationResource(ctxCreator, updateRequest(resourceID, orgID, "Store One"))
+		s.Require().NoError(err)
+		s.Assert().Equal("Store One", updateResp.Msg.GetResource().GetTitle())
+		s.Assert().Equal("SUCCESS", updateResp.Msg.GetResource().GetMetadata().AsMap()["status"])
+		s.Assert().Equal(orgID, updateResp.Msg.GetResource().GetOrgId())
+
+		_, err = s.testBench.Client.UpdateOrganizationResource(ctxMember, updateRequest(resourceID, orgID, "Taken"))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.UpdateOrganizationResource(ctxCreator, updateRequest(resourceID, otherOrgID, "Moved"))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: "org-6-proj-1", OrgId: orgID},
+		}))
+		s.Require().NoError(err)
+		projectResResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: createProjResp.Msg.GetProject().GetId(),
+			Body:      &frontierv1beta1.ResourceRequestBody{Name: "res-1", Namespace: computeOrderNamespace},
+		}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.UpdateOrganizationResource(ctxOrgAdminAuth, updateRequest(projectResResp.Msg.GetResource().GetId(), orgID, "Not An Org Resource"))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.UpdateOrganizationResource(ctxCreator, updateRequest(utils.NewString(), orgID, "Missing"))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.DisableOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{Id: orgID}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.UpdateOrganizationResource(ctxCreator, updateRequest(resourceID, orgID, "Frozen"))
+		s.Assert().Equal(connect.CodeFailedPrecondition, connect.CodeOf(err))
+		_, err = s.testBench.Client.UpdateOrganizationResource(ctxOrgAdminAuth, updateRequest(resourceID, orgID, "Frozen"))
+		s.Assert().NoError(err)
+	})
 }
 
 func (s *APIRegressionTestSuite) TestPolicyAPI() {

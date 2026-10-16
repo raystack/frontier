@@ -791,6 +791,24 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			ID:        pbreq.Msg.GetOrgId(),
 		}, req)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationResource": func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
+		pbreq := req.(*connect.Request[frontierv1beta1.UpdateOrganizationResourceRequest])
+		res, err := ensureResourceBelongToOrg(ctx, handler, pbreq.Msg.GetOrgId(), pbreq.Msg.GetId())
+		if err != nil {
+			return err
+		}
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: res.GetNamespace(), ID: res.GetId(),
+		}, schema.UpdatePermission, req)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.OrganizationNamespace,
+			ID:        pbreq.Msg.GetOrgId(),
+		}, req)
+	},
 
 	// audit records
 	frontierv1beta1connect.FrontierServiceCreateAuditRecordProcedure: func(ctx context.Context, handler *v1beta1connect.ConnectHandler, req connect.AnyRequest) error {
@@ -1293,6 +1311,20 @@ func ensureRoleBelongToOrg(ctx context.Context, handler *v1beta1connect.ConnectH
 		return ErrDeniedInvalidArgs
 	}
 	return nil
+}
+
+func ensureResourceBelongToOrg(ctx context.Context, handler *v1beta1connect.ConnectHandler, orgID, resourceID string) (*frontierv1beta1.Resource, error) {
+	resp, err := handler.GetProjectResource(ctx, connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+		Id: resourceID,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	res := resp.Msg.GetResource()
+	if res.GetOrgId() != orgID || res.GetProjectId() != "" {
+		return nil, ErrDeniedInvalidArgs
+	}
+	return res, nil
 }
 
 func getOrgForBillingAccount(ctx context.Context, handler *v1beta1connect.ConnectHandler, billingID string) (string, error) {

@@ -140,13 +140,16 @@ func (h *ConnectHandler) resolveObjectOrg(ctx context.Context, object relation.O
 		return "", false, nil
 	}
 
-	// custom resource: resource row -> project -> org
+	// custom resource: resource row -> org, or resource row -> project -> org
 	res, err := h.resourceService.Get(ctx, object.ID)
 	if err != nil {
 		if errors.Is(err, resource.ErrNotExist) || errors.Is(err, resource.ErrInvalidID) || errors.Is(err, resource.ErrInvalidUUID) || errors.Is(err, resource.ErrInvalidURN) {
 			return "", false, nil
 		}
 		return "", false, connect.NewError(connect.CodeInternal, fmt.Errorf("resolveObjectOrg: resource_id=%s: %w", object.ID, err))
+	}
+	if res.OrgID != "" {
+		return res.OrgID, true, nil
 	}
 	proj, err := h.projectService.Get(ctx, res.ProjectID)
 	if err != nil {
