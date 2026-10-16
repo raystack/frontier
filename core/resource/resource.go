@@ -26,6 +26,7 @@ type Resource struct {
 	Name          string `json:"name"`
 	Title         string `json:"title"`
 	ProjectID     string `json:"project_id"`
+	OrgID         string `json:"org_id"`
 	NamespaceID   string `json:"namespace_id"`
 	PrincipalID   string `json:"principal_id"`
 	PrincipalType string `json:"principal_type"`

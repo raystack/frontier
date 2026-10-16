@@ -496,6 +496,33 @@ func TestCreate(t *testing.T) {
 		})
 		assert.NoError(t, err)
 	})
+
+	t.Run("project resource also stores the project's org", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
+		userID := uuid.New().String()
+
+		projectSvc.EXPECT().Get(mock.Anything, testProject.ID).Return(testProject, nil)
+
+		repo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(r resource.Resource) bool {
+			return r.ProjectID == testProject.ID && r.OrgID == testProject.Organization.ID
+		})).Return(resource.Resource{
+			ID: uuid.New().String(), Name: "res-org-id", NamespaceID: "resource/item",
+			ProjectID: testProject.ID, OrgID: testProject.Organization.ID,
+			PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		}, nil)
+
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		relationSvc.EXPECT().Create(mock.Anything, mock.Anything).Return(relation.Relation{}, nil).Times(2)
+
+		auditRepo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.AuditRecord")).
+			Return(auditmodels.AuditRecord{}, nil)
+
+		_, err := svc.Create(ctx, resource.Resource{
+			Name: "res-org-id", NamespaceID: "resource/item", ProjectID: testProject.ID,
+			PrincipalID: userID, PrincipalType: schema.UserPrincipal,
+		})
+		assert.NoError(t, err)
+	})
 }
 
 func TestList(t *testing.T) {

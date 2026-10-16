@@ -262,6 +262,69 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 			ErrString: resource.ErrInvalidUUID,
 		},
 		{
+			Description: "should create an org resource that has no project",
+			ResourceToCreate: resource.Resource{
+				URN:           "new-urn-org-1",
+				Name:          "store1",
+				OrgID:         s.orgs[0].ID,
+				NamespaceID:   s.resources[0].NamespaceID,
+				PrincipalID:   s.resources[0].PrincipalID,
+				PrincipalType: s.resources[0].PrincipalType,
+			},
+			ExpectedResource: resource.Resource{
+				URN:           "new-urn-org-1",
+				Name:          "store1",
+				OrgID:         s.orgs[0].ID,
+				NamespaceID:   s.resources[0].NamespaceID,
+				PrincipalID:   s.resources[0].PrincipalID,
+				PrincipalType: s.resources[0].PrincipalType,
+			},
+		},
+		{
+			Description: "should create a project resource that also has its org",
+			ResourceToCreate: resource.Resource{
+				URN:           "new-urn-5",
+				Name:          "resource5",
+				ProjectID:     s.projects[0].ID,
+				OrgID:         s.projects[0].Organization.ID,
+				NamespaceID:   s.resources[0].NamespaceID,
+				PrincipalID:   s.resources[0].PrincipalID,
+				PrincipalType: s.resources[0].PrincipalType,
+			},
+			ExpectedResource: resource.Resource{
+				URN:           "new-urn-5",
+				Name:          "resource5",
+				ProjectID:     s.projects[0].ID,
+				OrgID:         s.projects[0].Organization.ID,
+				NamespaceID:   s.resources[0].NamespaceID,
+				PrincipalID:   s.resources[0].PrincipalID,
+				PrincipalType: s.resources[0].PrincipalType,
+			},
+		},
+		{
+			Description: "should return error if org id does not exist",
+			ResourceToCreate: resource.Resource{
+				URN:           "new-urn-notexist",
+				Name:          "store1",
+				OrgID:         utils.NewString(),
+				NamespaceID:   s.resources[0].NamespaceID,
+				PrincipalID:   s.resources[0].PrincipalID,
+				PrincipalType: s.resources[0].PrincipalType,
+			},
+			ErrString: resource.ErrInvalidDetail,
+		},
+		{
+			Description: "should return error if the resource has no project and no org",
+			ResourceToCreate: resource.Resource{
+				URN:           "new-urn-notexist",
+				Name:          "resource4",
+				NamespaceID:   s.resources[0].NamespaceID,
+				PrincipalID:   s.resources[0].PrincipalID,
+				PrincipalType: s.resources[0].PrincipalType,
+			},
+			ErrString: resource.ErrInvalidDetail,
+		},
+		{
 			Description: "should return error if resource urn is empty",
 			ErrString:   resource.ErrInvalidURN,
 		},
@@ -299,6 +362,26 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 		}
 		if got.ID != existing.ID || got.Name != "renamed" {
 			s.T().Fatalf("got %+v, expected row %s renamed in place", got, existing.ID)
+		}
+	})
+
+	s.Run("should set the org on the live resource that already has the urn", func() {
+		existing := s.resources[0]
+		orgID := s.projects[0].Organization.ID
+		got, err := s.repository.Create(s.ctx, resource.Resource{
+			URN:           existing.URN,
+			Name:          existing.Name,
+			ProjectID:     existing.ProjectID,
+			OrgID:         orgID,
+			NamespaceID:   existing.NamespaceID,
+			PrincipalID:   existing.PrincipalID,
+			PrincipalType: existing.PrincipalType,
+		})
+		if err != nil {
+			s.T().Fatal(err)
+		}
+		if got.ID != existing.ID || got.OrgID != orgID {
+			s.T().Fatalf("got %+v, expected row %s with org %s", got, existing.ID, orgID)
 		}
 	})
 
@@ -548,4 +631,37 @@ func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
 		PrincipalType: deleted.PrincipalType,
 	})
 	s.Assert().ErrorIs(err, resource.ErrConflict)
+}
+
+func (s *ResourceRepositoryTestSuite) TestReadsResourceWithoutProject() {
+	created, err := s.repository.Create(s.ctx, resource.Resource{
+		URN:           "org-resource-urn",
+		Name:          "store1",
+		OrgID:         s.orgs[0].ID,
+		NamespaceID:   s.resources[0].NamespaceID,
+		PrincipalID:   s.resources[0].PrincipalID,
+		PrincipalType: s.resources[0].PrincipalType,
+	})
+	s.Require().NoError(err)
+	ignoreTimes := cmpopts.IgnoreFields(resource.Resource{}, "CreatedAt", "UpdatedAt")
+
+	s.Run("by id", func() {
+		got, err := s.repository.GetByID(s.ctx, created.ID)
+		s.Require().NoError(err)
+		s.Assert().True(cmp.Equal(got, created, ignoreTimes), cmp.Diff(got, created, ignoreTimes))
+	})
+
+	s.Run("by urn", func() {
+		got, err := s.repository.GetByURN(s.ctx, created.URN)
+		s.Require().NoError(err)
+		s.Assert().True(cmp.Equal(got, created, ignoreTimes), cmp.Diff(got, created, ignoreTimes))
+	})
+
+	s.Run("in a list", func() {
+		got, err := s.repository.List(s.ctx, resource.Filter{})
+		s.Require().NoError(err)
+		s.Require().Len(got, len(s.resources)+1)
+		listed := got[len(got)-1]
+		s.Assert().True(cmp.Equal(listed, created, ignoreTimes), cmp.Diff(listed, created, ignoreTimes))
+	})
 }

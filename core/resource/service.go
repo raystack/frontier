@@ -123,6 +123,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		Name:          res.Name,
 		Title:         res.Title,
 		ProjectID:     resourceProject.ID,
+		OrgID:         resourceProject.Organization.ID,
 		NamespaceID:   res.NamespaceID,
 		PrincipalID:   principalID,
 		PrincipalType: principalType,
