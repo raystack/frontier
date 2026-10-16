@@ -209,7 +209,7 @@ func TestConnectHandler_ListProjectResources(t *testing.T) {
 func TestConnectHandler_CreateProjectResource(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(rs *mocks.ResourceService, ps *mocks.ProjectService)
+		setup   func(rs *mocks.ResourceService)
 		request *connect.Request[frontierv1beta1.CreateProjectResourceRequest]
 		want    *connect.Response[frontierv1beta1.CreateProjectResourceResponse]
 		wantErr error
@@ -224,9 +224,15 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
 		},
 		{
-			name: "should return internal error if project service returns error",
-			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("test error"))
+			name: "should return not found if the project does not exist",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
+					Name:          testResource.Name,
+					ProjectID:     testResource.ProjectID,
+					NamespaceID:   testResource.NamespaceID,
+					PrincipalID:   testUserID,
+					PrincipalType: testResource.PrincipalType,
+				}).Return(resource.Resource{}, fmt.Errorf("failed to get project: %w", project.ErrNotExist))
 			},
 			request: connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
 				ProjectId: testResource.ProjectID,
@@ -237,14 +243,11 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("CreateProjectResource.GetProject: project_id=%s: %w", testResource.ProjectID, errors.New("test error"))),
+			wantErr: connect.NewError(connect.CodeNotFound, ErrProjectNotFound),
 		},
 		{
 			name: "should return internal error if resource service returns error",
-			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResource.ProjectID,
-				}, nil)
+			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
 					Name:          testResource.Name,
 					ProjectID:     testResource.ProjectID,
@@ -266,10 +269,7 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
-			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResource.ProjectID,
-				}, nil)
+			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
 					Name:          testResource.Name,
 					ProjectID:     testResource.ProjectID,
@@ -291,10 +291,7 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 		},
 		{
 			name: "should return conflict error if resource already exists",
-			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResource.ProjectID,
-				}, nil)
+			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
 					Name:          testResource.Name,
 					ProjectID:     testResource.ProjectID,
@@ -316,13 +313,7 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 		},
 		{
 			name: "should return success if resource service returns nil",
-			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResource.ProjectID,
-					Organization: organization.Organization{
-						ID: "test-org-id",
-					},
-				}, nil)
+			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
 					Name:          testResource.Name,
 					ProjectID:     testResource.ProjectID,
@@ -346,13 +337,7 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 		},
 		{
 			name: "should handle metadata correctly",
-			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResource.ProjectID,
-					Organization: organization.Organization{
-						ID: "test-org-id",
-					},
-				}, nil)
+			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), mock.MatchedBy(func(res resource.Resource) bool {
 					return res.Name == testResource.Name && len(res.Metadata) > 0
 				})).Return(testResource, nil)
@@ -380,11 +365,10 @@ func TestConnectHandler_CreateProjectResource(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockResourceSrv := new(mocks.ResourceService)
-			mockProjectSrv := new(mocks.ProjectService)
 			if tt.setup != nil {
-				tt.setup(mockResourceSrv, mockProjectSrv)
+				tt.setup(mockResourceSrv)
 			}
-			h := ConnectHandler{resourceService: mockResourceSrv, projectService: mockProjectSrv}
+			h := ConnectHandler{resourceService: mockResourceSrv}
 			resp, err := h.CreateProjectResource(context.Background(), tt.request)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
