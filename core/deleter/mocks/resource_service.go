@@ -22,6 +22,54 @@ func (_m *ResourceService) EXPECT() *ResourceService_Expecter {
 	return &ResourceService_Expecter{mock: &_m.Mock}
 }
 
+// Delete provides a mock function with given fields: ctx, namespaceID, id
+func (_m *ResourceService) Delete(ctx context.Context, namespaceID string, id string) error {
+	ret := _m.Called(ctx, namespaceID, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Delete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, namespaceID, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ResourceService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type ResourceService_Delete_Call struct {
+	*mock.Call
+}
+
+// Delete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - namespaceID string
+//   - id string
+func (_e *ResourceService_Expecter) Delete(ctx interface{}, namespaceID interface{}, id interface{}) *ResourceService_Delete_Call {
+	return &ResourceService_Delete_Call{Call: _e.mock.On("Delete", ctx, namespaceID, id)}
+}
+
+func (_c *ResourceService_Delete_Call) Run(run func(ctx context.Context, namespaceID string, id string)) *ResourceService_Delete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *ResourceService_Delete_Call) Return(_a0 error) *ResourceService_Delete_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ResourceService_Delete_Call) RunAndReturn(run func(context.Context, string, string) error) *ResourceService_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, flt
 func (_m *ResourceService) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
 	ret := _m.Called(ctx, flt)
