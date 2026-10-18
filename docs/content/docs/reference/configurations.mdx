@@ -164,6 +164,16 @@ app:
         title: "End User License Agreement"
         version: "2026-02-14"
         url: "https://example.org/legal/eula/2026-02-14"
+  # live resources that block a project or organization delete
+  deletion:
+    # false (the default) keeps deletes as they are
+    enabled: false
+    # a rule per namespace for each delete. a namespace or delete with no
+    # rule blocks.
+    resources:
+      compute/machine: { project: block, organization: allow }
+      compute/order: { project: block_unless_deletable, organization: block_unless_deletable }
+      storage/file: { organization: allow }
   # metaschema cache configuration
   metaschema:
     # how often each server reloads the metaschema cache from the database, so a
@@ -303,6 +313,28 @@ Every document in the map is required at signup, so there is no per-document `re
 | **app.consent.documents.\<id\>.title**          | Human readable name, used by the client to label the link.                                                                                                          | `"Terms & Conditions"`               | Yes (when enabled)       |
 | **app.consent.documents.\<id\>.version**        | Opaque version, copied into the consent record and compared for equality only. Dates, semver or commit SHAs all work.                                               | `"2026-04-01"`                       | Yes (when enabled)       |
 | **app.consent.documents.\<id\>.url**            | Absolute URL of the document. Frontier never reads what is behind it.                                                                                               | `"https://example.org/legal/terms"`  | Yes (when enabled)       |
+
+### Deletion Configurations
+
+Live resources that stop a project or an organization from being deleted. Frontier decides from its own resources table and never asks the service that owns a resource.
+
+The map key is the resource namespace, such as `compute/machine`. Each namespace gives one rule for a project delete and one for an organization delete. A namespace that is not listed, or a delete with no rule, stops that delete. Config is read at boot, so any change here needs a restart.
+
+| **Rule**                 | **What it does**                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `block`                  | Any live resource stops the delete. The owning service deletes the resource first.                        |
+| `block_unless_deletable` | A live resource stops the delete unless its metadata has `"deletable": true`. The owning service sets it. |
+| `allow`                  | Never stops the delete.                                                                                   |
+
+Only the boolean `true` counts as deletable. A missing key, `false`, or the string `"true"` stops the delete. A resource update replaces the whole metadata, so the owning service sends `deletable` on every update.
+
+An unknown key or rule, a namespace with no rules, or a namespace not shaped like `service/name` fails at boot.
+
+| **Field**                                              | **Description**                                                                                            | **Example** | **Required**          |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ----------- | --------------------- |
+| **app.deletion.enabled**                               | Switches the check. Disabled, live resources never stop a delete. Enabled with no resources fails at boot. | `false`     | No (default: `false`) |
+| **app.deletion.resources.\<namespace\>.project**       | Rule for a project delete. Missing, it stops the delete.                                                   | `block`     | No                    |
+| **app.deletion.resources.\<namespace\>.organization**  | Rule for an organization delete. Missing, it stops the delete.                                             | `allow`     | No                    |
 
 ### Admin Configurations
 

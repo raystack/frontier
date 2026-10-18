@@ -1,0 +1,9 @@
+version: 1
+
+app:
+  deletion:
+    enabled: true
+    resources:
+      compute/machine: { project: block, organization: allow }
+      compute/order: { project: block_unless_deletable, organization: block_unless_deletable }
+      storage/file: { organization: allow }
