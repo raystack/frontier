@@ -24,7 +24,6 @@ const events = [
 
   "app.billing.entitlement.checked",
   "app.billing.checkout.deleted",
-  "app.billing.tokens.forfeited",
 
   "app.policy.created",
   "app.policy.deleted",
