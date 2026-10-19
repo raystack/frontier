@@ -18,6 +18,7 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/deleter/mocks"
 	"github.com/raystack/frontier/core/domain"
@@ -33,7 +34,10 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgauditrecord "github.com/raystack/frontier/pkg/auditrecord"
 	mailermocks "github.com/raystack/frontier/pkg/mailer/mocks"
+	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/mail.v2"
@@ -57,6 +61,7 @@ type deleterMocks struct {
 	invocSvc    *mocks.InvoiceService
 	checkoutSvc *mocks.CheckoutService
 	creditSvc   *mocks.CreditService
+	auditRecSvc *mocks.AuditRecordService
 	kycSvc      *mocks.KycService
 	planSvc     *mocks.PlanService
 	dialer      *mailermocks.Dialer
@@ -89,6 +94,7 @@ func newBareMocks(t *testing.T) deleterMocks {
 		invocSvc:    mocks.NewInvoiceService(t),
 		checkoutSvc: mocks.NewCheckoutService(t),
 		creditSvc:   mocks.NewCreditService(t),
+		auditRecSvc: mocks.NewAuditRecordService(t),
 		kycSvc:      mocks.NewKycService(t),
 		planSvc:     mocks.NewPlanService(t),
 		dialer:      mailermocks.NewDialer(t),
@@ -101,14 +107,20 @@ func newBareMocks(t *testing.T) deleterMocks {
 		}}, nil).Maybe()
 	m.planSvc.EXPECT().GetByID(mock.Anything, "plan-free").
 		Return(plan.Plan{ID: "plan-free"}, nil).Maybe()
+	m.auditRecSvc.EXPECT().List(mock.Anything, mock.Anything).
+		Return(auditrecord.AuditRecordsList{}, nil).Maybe()
 	return m
 }
 
 func (m deleterMocks) build() *deleter.Service {
+	return m.buildWithNotice(billing.OrgDeleteNoticeConfig{})
+}
+
+func (m deleterMocks) buildWithNotice(notice billing.OrgDeleteNoticeConfig) *deleter.Service {
 	return deleter.NewCascadeDeleter(m.orgSvc, m.projSvc, m.resSvc, m.grpSvc, m.mbrSvc,
 		m.polSvc, m.roleSvc, m.invSvc, m.usrSvc, m.patSvc, m.domainSvc, m.suSvc,
 		m.custSvc, m.subSvc, m.invocSvc, m.checkoutSvc, m.creditSvc, m.kycSvc,
-		m.planSvc, m.dialer, billing.OrgDeleteNoticeConfig{}, m.deletion)
+		m.planSvc, m.auditRecSvc, m.dialer, notice, m.deletion)
 }
 
 func TestDeleteProject(t *testing.T) {
@@ -222,7 +234,6 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{{ID: "chk-1", ProviderID: "cs_1", CustomerID: "cust-1"}}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
 		// projects (each triggers DeleteProject)
@@ -585,7 +596,6 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
@@ -637,7 +647,6 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
@@ -743,7 +752,6 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
@@ -1229,7 +1237,7 @@ func auditContext(repo *fakeAuditRepository) context.Context {
 }
 
 func TestForfeitAuditRecord(t *testing.T) {
-	t.Run("the forfeited amounts land in the audit record", func(t *testing.T) {
+	t.Run("org delete leaves the forfeit record to the billing account delete", func(t *testing.T) {
 		m := newMocks(t)
 		repo := &fakeAuditRepository{}
 
@@ -1241,7 +1249,6 @@ func TestForfeitAuditRecord(t *testing.T) {
 		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
 			Return([]invoice.Invoice{}, nil)
 		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
-		// 60 bought, 20 of those refunded: the record must say purchased 40
 		m.creditSvc.EXPECT().List(mock.Anything, credit.Filter{CustomerID: "cust-1"}).
 			Return([]credit.Transaction{
 				{Type: credit.CreditType, Source: credit.SourceSystemBuyEvent, Amount: 60},
@@ -1255,7 +1262,6 @@ func TestForfeitAuditRecord(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
@@ -1280,31 +1286,34 @@ func TestForfeitAuditRecord(t *testing.T) {
 
 		err := m.build().DeleteOrganization(auditContext(repo), "org-1")
 		assert.NoError(t, err)
-
-		forfeits, listErr := repo.List(context.Background(), audit.Filter{
-			OrgID:  "org-1",
-			Action: string(audit.BillingTokensForfeitedEvent),
-		})
-		assert.NoError(t, listErr)
-		assert.Len(t, forfeits, 1)
-		assert.Equal(t, "cust-1", forfeits[0].Target.ID)
-		assert.Equal(t, "100", forfeits[0].Metadata["amount"])
-		assert.Equal(t, "40", forfeits[0].Metadata["purchased"])
+		assert.Len(t, repo.logs, 1)
+		assert.Equal(t, string(audit.OrgDeletedEvent), repo.logs[0].Action)
 	})
 
-	t.Run("a retry recovers the amounts from the audit records", func(t *testing.T) {
+	t.Run("a retry recovers the amounts from the billing customer deleted records", func(t *testing.T) {
 		m := newMocks(t)
-		// the earlier attempt tore down billing and wrote the record before
-		// failing; this retry finds no billing accounts at all
-		repo := &fakeAuditRepository{logs: []audit.Log{{
-			OrgID:  "org-1",
-			Action: string(audit.BillingTokensForfeitedEvent),
-			Target: audit.Target{ID: "cust-1", Type: "billing_account"},
-			Metadata: map[string]string{
-				"amount":    "750",
-				"purchased": "200",
-			},
-		}}}
+		m.auditRecSvc = mocks.NewAuditRecordService(t)
+		repo := &fakeAuditRepository{}
+		forfeitRecord := func(accountID string, forfeited, purchased float64) auditrecord.AuditRecord {
+			return auditrecord.AuditRecord{
+				Event:    pkgauditrecord.BillingCustomerDeletedEvent,
+				Resource: auditrecord.Resource{ID: accountID, Type: pkgauditrecord.BillingCustomerType},
+				OrgID:    "org-1",
+				Metadata: metadata.Metadata{"forfeited_tokens": forfeited, "purchased_tokens": purchased},
+			}
+		}
+		m.auditRecSvc.EXPECT().List(mock.Anything, mock.MatchedBy(func(q *rql.Query) bool {
+			return q.Limit > 0 &&
+				assert.ObjectsAreEqual([]rql.Filter{
+					{Name: "event", Operator: "eq", Value: pkgauditrecord.BillingCustomerDeletedEvent.String()},
+					{Name: "org_id", Operator: "eq", Value: "org-1"},
+				}, q.Filters) &&
+				assert.ObjectsAreEqual([]rql.Sort{{Name: "occurred_at", Order: "desc"}}, q.Sort)
+		})).Return(auditrecord.AuditRecordsList{AuditRecords: []auditrecord.AuditRecord{
+			forfeitRecord("cust-1", 750, 200),
+			forfeitRecord("cust-1", 10, 10),
+			forfeitRecord("cust-2", 50, 0),
+		}}, nil)
 
 		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
 			Return(organization.Organization{ID: "org-1", Title: "Org One"}, nil)
@@ -1344,11 +1353,10 @@ func TestForfeitAuditRecord(t *testing.T) {
 			_, err := msg.WriteTo(&raw)
 			assert.NoError(t, err)
 			body := strings.ReplaceAll(raw.String(), "=\r\n", "")
-			// the recovered purchased share puts the settlement line back
-			assert.Contains(t, body, "Unused purchased tokens will be settled by the support team")
+			assert.Contains(t, body, "amount 800 purchased 200")
 		}).Return(nil)
 
-		err := m.build().DeleteOrganization(auditContext(repo), "org-1")
+		err := m.buildWithNotice(billing.OrgDeleteNoticeConfig{Body: "amount {{.Amount}} purchased {{.Purchased}}"}).DeleteOrganization(auditContext(repo), "org-1")
 		assert.NoError(t, err)
 	})
 }
@@ -1368,35 +1376,10 @@ func TestDeleteCustomers(t *testing.T) {
 				{ID: "chk-2", ProviderID: "cs_2", CustomerID: "cust-1", State: "expired"},
 			}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(100, nil)
-		m.creditSvc.EXPECT().List(mock.Anything, credit.Filter{CustomerID: "cust-1"}).
-			Return([]credit.Transaction{
-				{Type: credit.CreditType, Source: credit.SourceSystemBuyEvent, Amount: 40},
-			}, nil)
-		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-1").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
 
 		err := m.build().DeleteCustomers(context.Background(), "org-1")
 		assert.NoError(t, err)
-	})
-
-	t.Run("balance check failure stops the customer delete", func(t *testing.T) {
-		m := newMocks(t)
-
-		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
-		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
-			Return([]customer.Customer{c}, nil)
-		m.subSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
-		m.invocSvc.EXPECT().DeleteByCustomer(mock.Anything, c).Return(nil)
-		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
-			Return([]checkout.Checkout{}, nil)
-		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").
-			Return(0, errors.New("balance check failed"))
-		// strict mocks: creditSvc.DeleteByAccountID and custSvc.Delete must not be called
-
-		err := m.build().DeleteCustomers(context.Background(), "org-1")
-		assert.ErrorContains(t, err, "balance check failed")
 	})
 
 	t.Run("offline account still removes local billing records", func(t *testing.T) {
@@ -1410,8 +1393,6 @@ func TestDeleteCustomers(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-no-provider"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-no-provider").Return(nil)
-		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-no-provider").Return(0, nil)
-		m.creditSvc.EXPECT().DeleteByAccountID(mock.Anything, "cust-no-provider").Return(nil)
 		m.custSvc.EXPECT().Delete(mock.Anything, "cust-no-provider").Return(nil)
 
 		err := m.build().DeleteCustomers(context.Background(), "org-1")

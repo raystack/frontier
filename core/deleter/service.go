@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/auditrecord"
 
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/domain"
@@ -44,6 +44,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/mailer"
+	"github.com/raystack/salt/rql"
 )
 
 type ProjectService interface {
@@ -135,7 +136,10 @@ type CheckoutService interface {
 type CreditService interface {
 	GetBalance(ctx context.Context, accountID string) (int64, error)
 	List(ctx context.Context, flt credit.Filter) ([]credit.Transaction, error)
-	DeleteByAccountID(ctx context.Context, accountID string) error
+}
+
+type AuditRecordService interface {
+	List(ctx context.Context, query *rql.Query) (auditrecord.AuditRecordsList, error)
 }
 
 type KycService interface {
@@ -166,6 +170,7 @@ type Service struct {
 	creditService      CreditService
 	kycService         KycService
 	planService        PlanService
+	auditRecordService AuditRecordService
 	// mailDialer and deleteNoticeConfig drive the email that tells the org
 	// owners their organization was deleted
 	mailDialer         mailer.Dialer
@@ -183,7 +188,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	customerService CustomerService, subService SubscriptionService,
 	invoiceService InvoiceService, checkoutService CheckoutService,
 	creditService CreditService, kycService KycService,
-	planService PlanService,
+	planService PlanService, auditRecordService AuditRecordService,
 	mailDialer mailer.Dialer, deleteNoticeConfig billing.OrgDeleteNoticeConfig,
 	deletionConfig Config) *Service {
 	return &Service{
@@ -206,6 +211,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		creditService:      creditService,
 		kycService:         kycService,
 		planService:        planService,
+		auditRecordService: auditRecordService,
 		mailDialer:         mailDialer,
 		deleteNoticeConfig: deleteNoticeConfig,
 		deletionConfig:     deletionConfig,
@@ -281,7 +287,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 
 	// the delete notice reads the token balances, so it has to be collected
 	// while they still exist; its balance reads are reused by the blocker
-	// check and the teardown audit below
+	// check below
 	notice, err := d.collectDeleteNotice(ctx, customers)
 	if err != nil {
 		return err
@@ -302,7 +308,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	notice.Owners = d.resolveOwners(ctx, id)
 
 	// delete all billing accounts
-	if err := d.deleteCustomers(ctx, id, customers, notice.Accounts); err != nil {
+	if err := d.deleteCustomers(ctx, id, customers); err != nil {
 		return err
 	}
 
@@ -427,9 +433,6 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	return nil
 }
 
-// DeleteCustomers lists the accounts and reads the balances itself;
-// DeleteOrganization goes through deleteCustomers with what it already
-// collected.
 func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	customers, err := d.customerService.List(ctx, customer.Filter{
 		OrgID: id,
@@ -437,13 +440,12 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	return d.deleteCustomers(ctx, id, customers, nil)
+	return d.deleteCustomers(ctx, id, customers)
 }
 
-// deleteCustomers tears down the org's billing accounts. amounts carries the
-// per-account token numbers the caller already read; nil means read them
-// here.
-func (d Service) deleteCustomers(ctx context.Context, id string, customers []customer.Customer, amounts map[string]accountTokens) error {
+// deleteCustomers tears down the org's billing accounts. The account delete
+// hides the token transactions and records the forfeited tokens itself.
+func (d Service) deleteCustomers(ctx context.Context, id string, customers []customer.Customer) error {
 	for _, c := range customers {
 		// cancels active subscriptions on the billing provider and hides the local rows
 		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
@@ -485,30 +487,6 @@ func (d Service) deleteCustomers(ctx context.Context, id string, customers []cus
 				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingCheckoutDeletedEvent, "checkout_id", ch.ID)
 			}
 		}
-		// tokens still on the account are forfeited by this delete, so
-		// record the amount before the transactions are removed. The
-		// purchased share goes on the record too: the transaction rows are
-		// hidden right after, and support settles a transfer from this
-		// number later
-		account, err := d.resolveAccountTokens(ctx, c.ID, amounts)
-		if err != nil {
-			return fmt.Errorf("failed to delete org while checking balance of billing account[%s]: %w", c.ID, err)
-		}
-		if account.Balance > 0 {
-			if err := auditLogger.LogWithAttrs(audit.BillingTokensForfeitedEvent, audit.Target{
-				ID:   c.ID,
-				Type: "billing_account",
-			}, map[string]string{
-				"amount":    strconv.FormatInt(account.Balance, 10),
-				"purchased": strconv.FormatInt(account.Purchased, 10),
-			}); err != nil {
-				slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingTokensForfeitedEvent, "customer_id", c.ID)
-			}
-		}
-		if err := d.creditService.DeleteByAccountID(ctx, c.ID); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a billing account transactions[%s]: %w", c.ID, err)
-		}
-
 		// delete customer
 		if err = d.customerService.Delete(ctx, c.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account[%s]: %w", c.ID, err)
