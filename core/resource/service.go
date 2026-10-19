@@ -34,6 +34,7 @@ type AuthnService interface {
 
 type ProjectService interface {
 	Get(ctx context.Context, idOrName string) (project.Project, error)
+	List(ctx context.Context, f project.Filter) ([]project.Project, error)
 }
 
 type OrgService interface {
@@ -181,6 +182,25 @@ func (s Service) getParent(ctx context.Context, res Resource) (parent, error) {
 	if err != nil {
 		return parent{}, fmt.Errorf("failed to get project: %w", err)
 	}
+	return projectParent(proj), nil
+}
+
+// getParentToDelete also finds a disabled project
+func (s Service) getParentToDelete(ctx context.Context, res Resource) (parent, error) {
+	if res.ProjectID == "" {
+		return s.getParent(ctx, res)
+	}
+	projects, err := s.projectService.List(ctx, project.Filter{ProjectIDs: []string{res.ProjectID}, IncludeDisabled: true})
+	if err != nil {
+		return parent{}, fmt.Errorf("failed to get project: %w", err)
+	}
+	if len(projects) == 0 {
+		return parent{}, fmt.Errorf("failed to get project: %w", project.ErrNotExist)
+	}
+	return projectParent(projects[0]), nil
+}
+
+func projectParent(proj project.Project) parent {
 	return parent{
 		projectID: proj.ID,
 		org:       proj.Organization,
@@ -188,7 +208,7 @@ func (s Service) getParent(ctx context.Context, res Resource) (parent, error) {
 		link:      relation.Subject{ID: proj.ID, Namespace: schema.ProjectNamespace},
 		linkName:  schema.ProjectRelationName,
 		audit:     auditmodels.Resource{ID: proj.ID, Type: pkgauditrecord.ProjectType, Name: proj.Title},
-	}, nil
+	}
 }
 
 func (s Service) createAuditRecord(ctx context.Context, event pkgauditrecord.Event, res Resource, p parent) {
@@ -481,7 +501,7 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	if err != nil {
 		return err
 	}
-	p, err := s.getParent(ctx, res)
+	p, err := s.getParentToDelete(ctx, res)
 	if err != nil {
 		return err
 	}

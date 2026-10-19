@@ -541,4 +541,9 @@ func (s *ProjectRepositoryTestSuite) TestListIncludeDisabled() {
 		ids = append(ids, p.ID)
 	}
 	s.Assert().Contains(ids, disabled.ID)
+
+	byID, err := s.repository.List(s.ctx, project.Filter{ProjectIDs: []string{disabled.ID}, IncludeDisabled: true})
+	s.Require().NoError(err)
+	s.Require().Len(byID, 1)
+	s.Assert().Equal(disabled.ID, byID[0].ID)
 }
