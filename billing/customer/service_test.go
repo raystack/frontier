@@ -14,29 +14,11 @@ import (
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/customer/mocks"
 	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
-	"github.com/raystack/frontier/core/audit"
 	"github.com/stripe/stripe-go/v79"
 	"github.com/stripe/stripe-go/v79/client"
 )
 
 var errSample = errors.New("sample error")
-
-type recordingAuditRepository struct {
-	audit.NoopRepository
-	logs []audit.Log
-}
-
-func (r *recordingAuditRepository) Create(ctx context.Context, log *audit.Log) error {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	r.logs = append(r.logs, *log)
-	return nil
-}
-
-func contextWithAudit(parent context.Context, repository audit.Repository) context.Context {
-	return audit.SetContextWithService(parent, audit.NewService("test", repository, audit.NewNoopWebhookService()))
-}
 
 func mockService(t *testing.T) (*client.API, *stripemock.Backend, *mocks.Repository, *mocks.CreditService) {
 	t.Helper()
@@ -544,61 +526,6 @@ func TestService_Delete(t *testing.T) {
 		assert.ErrorIs(t, err, customer.ErrHasTokenDebt)
 	})
 
-	t.Run("a zero forfeit writes no audit record", func(t *testing.T) {
-		_, _, repo, creditSvc := mockService(t)
-		auditRepo := &recordingAuditRepository{}
-		ctx := contextWithAudit(ctx, auditRepo)
-		repo.EXPECT().GetByID(ctx, "acc-1").Return(account, nil)
-		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
-		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
-		repo.EXPECT().Delete(ctx, "acc-1").Return(customer.ForfeitedTokens{}, nil)
-		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
-
-		require.NoError(t, svc.Delete(ctx, "acc-1"))
-
-		assert.Empty(t, auditRepo.logs)
-	})
-
-	t.Run("writes the forfeited tokens audit record", func(t *testing.T) {
-		_, _, repo, creditSvc := mockService(t)
-		auditRepo := &recordingAuditRepository{}
-		ctx := contextWithAudit(ctx, auditRepo)
-		repo.EXPECT().GetByID(ctx, "acc-1").Return(account, nil)
-		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(100), nil)
-		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
-		repo.EXPECT().Delete(ctx, "acc-1").Return(customer.ForfeitedTokens{Amount: 100, Purchased: 40}, nil)
-		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
-
-		require.NoError(t, svc.Delete(ctx, "acc-1"))
-
-		require.Len(t, auditRepo.logs, 1)
-		log := auditRepo.logs[0]
-		assert.Equal(t, string(audit.BillingTokensForfeitedEvent), log.Action)
-		assert.Equal(t, "org-1", log.OrgID)
-		assert.Equal(t, audit.Target{ID: "acc-1", Type: "billing_account"}, log.Target)
-		assert.Equal(t, "100", log.Metadata["amount"])
-		assert.Equal(t, "40", log.Metadata["purchased"])
-	})
-
-	t.Run("writes the record even when the request context is cancelled", func(t *testing.T) {
-		_, _, repo, creditSvc := mockService(t)
-		auditRepo := &recordingAuditRepository{}
-		requestCtx, cancel := context.WithCancel(contextWithAudit(ctx, auditRepo))
-		repo.EXPECT().GetByID(mock.Anything, "acc-1").Return(account, nil)
-		creditSvc.EXPECT().GetBalance(mock.Anything, "acc-1").Return(int64(100), nil)
-		repo.EXPECT().HasLiveRecords(mock.Anything, "acc-1").Return(false, nil)
-		repo.EXPECT().Delete(mock.Anything, "acc-1").RunAndReturn(
-			func(context.Context, string) (customer.ForfeitedTokens, error) {
-				cancel()
-				return customer.ForfeitedTokens{Amount: 100, Purchased: 40}, nil
-			})
-		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
-
-		require.NoError(t, svc.Delete(requestCtx, "acc-1"))
-
-		assert.Len(t, auditRepo.logs, 1)
-	})
-
 	t.Run("refuses before the billing provider is called while live records exist", func(t *testing.T) {
 		stripeClient, _, repo, creditSvc := mockService(t)
 		online := customer.Customer{ID: "acc-1", OrgID: "org-1", ProviderID: "cus_1"}
@@ -619,7 +546,7 @@ func TestService_Delete(t *testing.T) {
 		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
 		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
 		stripeBackend.EXPECT().Call("DELETE", "/v1/customers/cus_1", "key_123", mock.Anything, mock.Anything).Return(nil)
-		repo.EXPECT().Delete(ctx, "acc-1").Return(customer.ForfeitedTokens{}, nil)
+		repo.EXPECT().Delete(ctx, "acc-1").Return(nil)
 		svc := customer.NewService(slog.Default(), stripeClient, repo, billing.Config{}, creditSvc)
 
 		require.NoError(t, svc.Delete(ctx, "acc-1"))

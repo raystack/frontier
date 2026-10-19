@@ -498,24 +498,24 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 	}, nil
 }
 
-func (r BillingCustomerRepository) Delete(ctx context.Context, id string) (customer.ForfeitedTokens, error) {
+func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error {
 	lockQuery, lockParams, err := fromLive(TABLE_BILLING_CUSTOMERS).
 		Select("id").
 		Where(goqu.Ex{"id": id}).
 		ForUpdate(exp.Wait).
 		ToSQL()
 	if err != nil {
-		return customer.ForfeitedTokens{}, fmt.Errorf("%w: %w", errParse, err)
+		return fmt.Errorf("%w: %w", errParse, err)
 	}
 	query, params, err := softDelete(TABLE_BILLING_CUSTOMERS).
 		Where(goqu.Ex{"id": id}).
 		Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.ForfeitedTokens{}, fmt.Errorf("%w: %w", errParse, err)
+		return fmt.Errorf("%w: %w", errParse, err)
 	}
 	liveRecordsQuery, liveRecordsParams, err := liveBillingRecordsQuery(id)
 	if err != nil {
-		return customer.ForfeitedTokens{}, fmt.Errorf("%w: %w", errParse, err)
+		return fmt.Errorf("%w: %w", errParse, err)
 	}
 
 	hideTransactionsQuery := `WITH hidden AS (
@@ -529,7 +529,7 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) (custo
 	hideTransactionsParams := []any{id, credit.CreditType, credit.SourceSystemBuyEvent}
 
 	var customerModel Customer
-	var forfeit customer.ForfeitedTokens
+	var forfeitedTokens, purchasedTokens int64
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
 			var lockedID string
@@ -545,13 +545,13 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) (custo
 				return customer.ErrHasLiveRecords
 			}
 			var bought int64
-			if err := tx.QueryRowxContext(ctx, hideTransactionsQuery, hideTransactionsParams...).Scan(&forfeit.Amount, &bought); err != nil {
+			if err := tx.QueryRowxContext(ctx, hideTransactionsQuery, hideTransactionsParams...).Scan(&forfeitedTokens, &bought); err != nil {
 				return err
 			}
-			if forfeit.Amount < 0 {
+			if forfeitedTokens < 0 {
 				return customer.ErrHasTokenDebt
 			}
-			forfeit.Purchased = min(max(bought, 0), forfeit.Amount)
+			purchasedTokens = min(max(bought, 0), forfeitedTokens)
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
 					return customer.ErrNotFound
@@ -580,8 +580,8 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) (custo
 				nil,
 				customerModel.OrgID,
 				map[string]any{
-					"forfeited_tokens": forfeit.Amount,
-					"purchased_tokens": forfeit.Purchased,
+					"forfeited_tokens": forfeitedTokens,
+					"purchased_tokens": purchasedTokens,
 				},
 				deletedAt,
 			)
@@ -591,17 +591,17 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) (custo
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, customer.ErrNotFound), errors.Is(err, sql.ErrNoRows):
-			return customer.ForfeitedTokens{}, customer.ErrNotFound
+			return customer.ErrNotFound
 		case errors.Is(err, customer.ErrHasLiveRecords):
-			return customer.ForfeitedTokens{}, customer.ErrHasLiveRecords
+			return customer.ErrHasLiveRecords
 		case errors.Is(err, customer.ErrHasTokenDebt):
-			return customer.ForfeitedTokens{}, customer.ErrHasTokenDebt
+			return customer.ErrHasTokenDebt
 		default:
-			return customer.ForfeitedTokens{}, fmt.Errorf("%w: %w", errTxn, err)
+			return fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
-	return forfeit, nil
+	return nil
 }
 
 func (r BillingCustomerRepository) HasLiveRecords(ctx context.Context, id string) (bool, error) {

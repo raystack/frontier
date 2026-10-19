@@ -218,17 +218,16 @@ func (s *BillingCustomerRepositoryPGTestSuite) deletedRows(table, column, id str
 		fmt.Sprintf(`SELECT count(*)::text FROM %s WHERE %s = $1 AND deleted_at IS NOT NULL`, table, column), id)
 }
 
-func (s *BillingCustomerRepositoryPGTestSuite) TestTeardownInTheDeleterOrderKeepsEveryRow() {
+func (s *BillingCustomerRepositoryPGTestSuite) TestTeardownInTheDeleterOrderForfeitsTheTokens() {
 	cust := s.customerID("bc-cust-live")
 	subID, invID := s.seedChildRows(cust)
 
 	s.Require().NoError(s.subscriptions.Delete(s.ctx, subID))
 	s.Require().NoError(s.invoices.Delete(s.ctx, invID))
 	s.Require().NoError(s.checkouts.DeleteByCustomerID(s.ctx, cust))
-	s.Require().NoError(s.transactions.DeleteByAccountID(s.ctx, cust))
-	forfeit, err := s.repository.Delete(s.ctx, cust)
-	s.Require().NoError(err)
-	s.Equal(customer.ForfeitedTokens{}, forfeit, "the deleter hid the transactions already, so the account delete forfeits nothing a second time")
+	s.Require().NoError(s.repository.Delete(s.ctx, cust))
+	s.Equal("70", s.recordedMetadata(cust, "forfeited_tokens"), "the customer delete hides the transactions and records what they held")
+	s.Equal("70", s.recordedMetadata(cust, "purchased_tokens"))
 
 	s.Equal("1", s.deletedRows(postgres.TABLE_BILLING_SUBSCRIPTIONS, "customer_id", cust))
 	s.Equal("1", s.deletedRows(postgres.TABLE_BILLING_INVOICES, "customer_id", cust))
@@ -266,8 +265,6 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestTeardownCanBeRunAgain() {
 	s.Require().NoError(s.subscriptions.Delete(s.ctx, subID))
 	s.Require().NoError(s.invoices.Delete(s.ctx, invID))
 	s.Require().NoError(s.checkouts.DeleteByCustomerID(s.ctx, cust))
-	s.Require().NoError(s.transactions.DeleteByAccountID(s.ctx, cust))
-	s.Require().NoError(s.transactions.DeleteByAccountID(s.ctx, cust))
 	s.Require().NoError(s.deleteError(cust))
 	s.ErrorIs(s.deleteError(cust), customer.ErrNotFound)
 }
@@ -327,17 +324,14 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteHidesTheAccountsTransac
 	s.exec(`UPDATE billing_transactions SET deleted_at = now() - interval '1 day' WHERE id = $1`, alreadyHidden)
 	hiddenAt := s.transactionDeletedAt(alreadyHidden)
 
-	forfeit, err := s.repository.Delete(s.ctx, id)
-	s.Require().NoError(err)
+	s.Require().NoError(s.repository.Delete(s.ctx, id))
 
-	s.Equal(customer.ForfeitedTokens{Amount: 250, Purchased: 180}, forfeit,
-		"the live credits minus the live debits, and the share of it bought net of refunds")
 	for _, txn := range []string{bought, refunded, awarded, used} {
 		s.NotEmpty(s.transactionDeletedAt(txn))
 	}
 	s.Equal(hiddenAt, s.transactionDeletedAt(alreadyHidden), "an older delete time is kept")
-	s.Equal("250", s.recordedMetadata(id, "forfeited_tokens"))
-	s.Equal("180", s.recordedMetadata(id, "purchased_tokens"))
+	s.Equal("250", s.recordedMetadata(id, "forfeited_tokens"), "the live credits minus the live debits")
+	s.Equal("180", s.recordedMetadata(id, "purchased_tokens"), "the share of it bought, net of refunds")
 	balance, err := s.transactions.GetBalance(s.ctx, id)
 	s.Require().NoError(err)
 	s.Equal(int64(0), balance)
@@ -387,8 +381,7 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestHasLiveRecordsSeesOnlyLiveChi
 }
 
 func (s *BillingCustomerRepositoryPGTestSuite) deleteError(id string) error {
-	_, err := s.repository.Delete(s.ctx, id)
-	return err
+	return s.repository.Delete(s.ctx, id)
 }
 
 func (s *BillingCustomerRepositoryPGTestSuite) deleteAccount(id string) {

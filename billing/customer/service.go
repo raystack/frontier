@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
-	"strconv"
 	"sync"
 	"time"
 
-	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/robfig/cron/v3"
@@ -32,7 +30,7 @@ type Repository interface {
 	List(ctx context.Context, filter Filter) ([]Customer, error)
 	Create(ctx context.Context, customer Customer) (Customer, error)
 	UpdateByID(ctx context.Context, customer Customer) (Customer, error)
-	Delete(ctx context.Context, id string) (ForfeitedTokens, error)
+	Delete(ctx context.Context, id string) error
 	HasLiveRecords(ctx context.Context, id string) (bool, error)
 	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Details, error)
 	GetDetailsByID(ctx context.Context, customerID string) (Details, error)
@@ -309,26 +307,7 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	forfeit, err := s.repository.Delete(ctx, id)
-	if err != nil {
-		return err
-	}
-	if forfeit.Amount > 0 {
-		s.logTokensForfeited(context.WithoutCancel(ctx), customer, forfeit)
-	}
-	return nil
-}
-
-func (s *Service) logTokensForfeited(ctx context.Context, customer Customer, forfeit ForfeitedTokens) {
-	if err := audit.NewLogger(ctx, customer.OrgID).LogWithAttrs(audit.BillingTokensForfeitedEvent, audit.Target{
-		ID:   customer.ID,
-		Type: "billing_account",
-	}, map[string]string{
-		"amount":    strconv.FormatInt(forfeit.Amount, 10),
-		"purchased": strconv.FormatInt(forfeit.Purchased, 10),
-	}); err != nil {
-		s.log.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.BillingTokensForfeitedEvent, "customer_id", customer.ID)
-	}
+	return s.repository.Delete(ctx, id)
 }
 
 func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentMethod, error) {
