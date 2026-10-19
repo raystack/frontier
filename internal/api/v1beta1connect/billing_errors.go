@@ -69,6 +69,8 @@ func mapBillingErrorCode(err error) *connect.Error {
 		return connect.NewError(connect.CodeFailedPrecondition, subscription.ErrPhaseIsUpdating)
 	case errors.Is(err, customer.ErrExistingAccountWithPendingDues):
 		return connect.NewError(connect.CodeFailedPrecondition, customer.ErrExistingAccountWithPendingDues)
+	case errors.Is(err, customer.ErrHasLiveRecords):
+		return connect.NewError(connect.CodeFailedPrecondition, customer.ErrHasLiveRecords)
 	case errors.Is(err, customer.ErrNotFound):
 		return connect.NewError(connect.CodeNotFound, ErrCustomerNotFound)
 	case errors.Is(err, checkout.ErrAlreadySubscribed):

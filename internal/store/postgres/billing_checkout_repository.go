@@ -282,7 +282,7 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 }
 
 func (r BillingCheckoutRepository) DeleteByCustomerID(ctx context.Context, customerID string) error {
-	query, params, err := dialect.Delete(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
+	query, params, err := softDelete(TABLE_BILLING_CHECKOUTS).Where(goqu.Ex{
 		"customer_id": customerID,
 	}).ToSQL()
 	if err != nil {

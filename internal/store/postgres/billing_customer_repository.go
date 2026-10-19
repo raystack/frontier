@@ -14,6 +14,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/auditrecord"
@@ -497,9 +498,21 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 }
 
 func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_BILLING_CUSTOMERS).
+	lockQuery, lockParams, err := fromLive(TABLE_BILLING_CUSTOMERS).
+		Select("id").
+		Where(goqu.Ex{"id": id}).
+		ForUpdate(exp.Wait).
+		ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errParse, err)
+	}
+	query, params, err := softDelete(TABLE_BILLING_CUSTOMERS).
 		Where(goqu.Ex{"id": id}).
 		Returning(&Customer{}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errParse, err)
+	}
+	liveRecordsQuery, liveRecordsParams, err := liveBillingRecordsQuery(id)
 	if err != nil {
 		return fmt.Errorf("%w: %w", errParse, err)
 	}
@@ -507,6 +520,18 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 	var customerModel Customer
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
+			var lockedID string
+			if err := tx.QueryRowxContext(ctx, lockQuery, lockParams...).Scan(&lockedID); err != nil {
+				return err
+			}
+
+			var liveRecords bool
+			if err := tx.QueryRowxContext(ctx, liveRecordsQuery, liveRecordsParams...).Scan(&liveRecords); err != nil {
+				return err
+			}
+			if liveRecords {
+				return customer.ErrHasLiveRecords
+			}
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&customerModel); err != nil {
 				if errors.Is(err, sql.ErrNoRows) {
 					return customer.ErrNotFound
@@ -542,12 +567,22 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
-		case errors.Is(err, sql.ErrNoRows):
+		case errors.Is(err, customer.ErrNotFound), errors.Is(err, sql.ErrNoRows):
 			return customer.ErrNotFound
+		case errors.Is(err, customer.ErrHasLiveRecords):
+			return customer.ErrHasLiveRecords
 		default:
 			return fmt.Errorf("%w: %w", errTxn, err)
 		}
 	}
 
 	return nil
+}
+
+func liveBillingRecordsQuery(customerID string) (string, []any, error) {
+	return dialect.Select(goqu.Or(
+		goqu.L("EXISTS (SELECT 1 FROM billing_subscriptions WHERE customer_id = ? AND deleted_at IS NULL)", customerID),
+		goqu.L("EXISTS (SELECT 1 FROM billing_invoices WHERE customer_id = ? AND deleted_at IS NULL)", customerID),
+		goqu.L("EXISTS (SELECT 1 FROM billing_checkouts WHERE customer_id = ? AND deleted_at IS NULL)", customerID),
+	)).ToSQL()
 }

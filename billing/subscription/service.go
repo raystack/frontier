@@ -1102,7 +1102,7 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, su
 // subscriptions are canceled on the billing provider first. A subscription
 // that is already gone or canceled on the provider counts as canceled, so a
 // teardown that failed midway can be run again. Offline accounts have nothing
-// on the provider; only their local records are removed.
+// on the provider; only their local rows are marked deleted.
 func (s *Service) DeleteByCustomer(ctx context.Context, customr customer.Customer) error {
 	subs, err := s.List(ctx, Filter{
 		CustomerID: customr.ID,

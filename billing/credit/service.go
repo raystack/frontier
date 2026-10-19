@@ -176,7 +176,7 @@ func (s Service) GetByID(ctx context.Context, id string) (Transaction, error) {
 	return s.transactionRepository.GetByID(ctx, id)
 }
 
-// DeleteByAccountID removes all credit transactions of a billing account. It is
+// DeleteByAccountID marks every credit transaction of a billing account as deleted. It is
 // meant for account teardown.
 func (s Service) DeleteByAccountID(ctx context.Context, accountID string) error {
 	return s.transactionRepository.DeleteByAccountID(ctx, accountID)

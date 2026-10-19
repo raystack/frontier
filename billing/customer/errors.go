@@ -13,4 +13,5 @@ var (
 	ErrInvalidDetail                  = errors.New("invalid billing customer detail")
 	ErrDisabled                       = errors.New("billing customer is disabled")
 	ErrExistingAccountWithPendingDues = errors.New("existing account with pending dues found")
+	ErrHasLiveRecords                 = errors.New("billing account still has live subscriptions, invoices or checkouts")
 )

@@ -63,7 +63,7 @@ func (s *BillingTransactionRepositoryTestSuite) TestCreateEntry() {
 	}
 	creditEntry := credit.Transaction{
 		ID:          uuid.New().String(),
-		CustomerID:  uuid.New().String(),
+		CustomerID:  s.customer("bt-credit-target", 0),
 		Type:        credit.CreditType,
 		Amount:      10,
 		Source:      credit.SourceSystemAwardedEvent,
@@ -191,6 +191,39 @@ func (s *BillingTransactionRepositoryTestSuite) TestCreateEntryRefusesDeletedCus
 	s.ErrorIs(s.spend(account, 10), customer.ErrNotFound)
 }
 
+func (s *BillingTransactionRepositoryTestSuite) TestCreateEntryRefusesACreditToADeletedCustomer() {
+	account := s.customer("bt-credit-gone", 0)
+	s.exec(`UPDATE billing_customers SET deleted_at = now() WHERE id = $1`, account)
+
+	_, err := s.repository.CreateEntry(s.ctx,
+		credit.Transaction{ID: uuid.New().String(), CustomerID: schema.PlatformOrgID.String(), Type: credit.DebitType, Amount: 10, Source: credit.SourceSystemAwardedEvent},
+		credit.Transaction{CustomerID: account, Type: credit.CreditType, Amount: 10, Source: credit.SourceSystemAwardedEvent})
+
+	s.ErrorIs(err, customer.ErrNotFound)
+	s.Equal("0", scalarSQL(s.T(), s.ctx, s.client, `SELECT count(*)::text FROM billing_transactions WHERE account_id = $1`, account))
+}
+
 func TestBillingTransactionRepository(t *testing.T) {
 	suite.Run(t, new(BillingTransactionRepositoryTestSuite))
+}
+
+func (s *BillingTransactionRepositoryTestSuite) TestDeleteByAccountIDKeepsTheRowsAndZeroesTheBalance() {
+	account := uuid.New().String()
+	s.txn(account, string(credit.CreditType), credit.SourceSystemBuyEvent, 100)
+	s.txn(account, string(credit.DebitType), "usage", 30)
+	gone := s.txn(account, string(credit.CreditType), credit.SourceSystemAwardedEvent, 5)
+	s.softDelete(gone)
+	before := scalarSQL(s.T(), s.ctx, s.client, `SELECT deleted_at::text FROM billing_transactions WHERE id = $1`, gone)
+
+	s.Require().NoError(s.repository.DeleteByAccountID(s.ctx, account))
+
+	s.Equal("3", scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT count(*)::text FROM billing_transactions WHERE account_id = $1 AND deleted_at IS NOT NULL`, account))
+	s.Equal(before, scalarSQL(s.T(), s.ctx, s.client, `SELECT deleted_at::text FROM billing_transactions WHERE id = $1`, gone))
+	balance, err := s.repository.GetBalance(s.ctx, account)
+	s.Require().NoError(err)
+	s.Equal(int64(0), balance)
+	got, err := s.repository.List(s.ctx, credit.Filter{CustomerID: account})
+	s.Require().NoError(err)
+	s.Empty(got)
 }

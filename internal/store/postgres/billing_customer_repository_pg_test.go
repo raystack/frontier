@@ -4,9 +4,15 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/billing/credit"
 	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/billing/invoice"
+	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/internal/store/postgres"
+	"github.com/raystack/frontier/pkg/auditrecord"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
@@ -18,6 +24,11 @@ type BillingCustomerRepositoryPGTestSuite struct {
 	ctx        context.Context
 	client     *db.Client
 	repository *postgres.BillingCustomerRepository
+
+	subscriptions *postgres.BillingSubscriptionRepository
+	invoices      *postgres.BillingInvoiceRepository
+	checkouts     *postgres.BillingCheckoutRepository
+	transactions  *postgres.BillingTransactionRepository
 }
 
 func (s *BillingCustomerRepositoryPGTestSuite) SetupSuite() {
@@ -28,6 +39,10 @@ func (s *BillingCustomerRepositoryPGTestSuite) SetupSuite() {
 	}
 	s.ctx = context.TODO()
 	s.repository = postgres.NewBillingCustomerRepository(s.client)
+	s.subscriptions = postgres.NewBillingSubscriptionRepository(s.client)
+	s.invoices = postgres.NewBillingInvoiceRepository(s.client)
+	s.checkouts = postgres.NewBillingCheckoutRepository(s.client)
+	s.transactions = postgres.NewBillingTransactionRepository(s.client)
 }
 
 func (s *BillingCustomerRepositoryPGTestSuite) TearDownSuite() {
@@ -47,7 +62,7 @@ func (s *BillingCustomerRepositoryPGTestSuite) SetupTest() {
 
 func (s *BillingCustomerRepositoryPGTestSuite) TearDownTest() {
 	queries := []string{}
-	for _, table := range []string{postgres.TABLE_BILLING_CUSTOMERS, postgres.TABLE_ORGANIZATIONS} {
+	for _, table := range []string{postgres.TABLE_BILLING_TRANSACTIONS, postgres.TABLE_BILLING_CHECKOUTS, postgres.TABLE_BILLING_INVOICES, postgres.TABLE_BILLING_SUBSCRIPTIONS, postgres.TABLE_BILLING_PLANS, postgres.TABLE_BILLING_CUSTOMERS, postgres.TABLE_ORGANIZATIONS, postgres.TABLE_AUDITRECORDS} {
 		queries = append(queries, fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table))
 	}
 	if err := execQueries(s.ctx, s.client, queries); err != nil {
@@ -118,4 +133,162 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestUpdateCreditMinByIDSkipsDelet
 
 func TestBillingCustomerRepositoryPG(t *testing.T) {
 	suite.Run(t, new(BillingCustomerRepositoryPGTestSuite))
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteKeepsTheRowAndHidesIt() {
+	id := s.customerID("bc-cust-live")
+
+	s.Require().NoError(s.repository.Delete(s.ctx, id))
+
+	deletedAt := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT coalesce(deleted_at::text, '') FROM billing_customers WHERE id = $1`, id)
+	s.NotEmpty(deletedAt, "the row stays with its delete time")
+	occurredAt := scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT occurred_at::text FROM audit_records WHERE event = $1 AND resource_id = $2`,
+		string(auditrecord.BillingCustomerDeletedEvent), id)
+	s.Equal(deletedAt, occurredAt, "the audit record carries the delete time")
+	_, err := s.repository.GetByID(s.ctx, id)
+	s.ErrorIs(err, customer.ErrNotFound)
+	s.ErrorIs(s.repository.Delete(s.ctx, id), customer.ErrNotFound, "a second delete answers not found")
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteRefusesWhileLiveRecordsPointAtTheAccount() {
+	cases := []struct {
+		table string
+		seed  string
+	}{
+		{
+			table: "billing_subscriptions",
+			seed: `INSERT INTO billing_subscriptions (customer_id, provider_id, plan_id, state)
+				VALUES ($1, 'bc-sub', (SELECT id FROM billing_plans WHERE name = 'bc-plan'), 'active')`,
+		},
+		{
+			table: "billing_invoices",
+			seed: `INSERT INTO billing_invoices (customer_id, provider_id, amount, currency, hosted_url, state)
+				VALUES ($1, 'bc-inv', 100, 'usd', 'bc-inv', 'open')`,
+		},
+		{
+			table: "billing_checkouts",
+			seed: `INSERT INTO billing_checkouts (customer_id, provider_id, checkout_url, state)
+				VALUES ($1, 'bc-session', 'bc-session', 'pending')`,
+		},
+	}
+	for _, tc := range cases {
+		s.Run(tc.table, func() {
+			s.exec(`INSERT INTO billing_plans (name, description) VALUES ('bc-plan', 'plan under test')`)
+			id := s.customerID("bc-cust-live")
+			s.exec(tc.seed, id)
+
+			s.ErrorIs(s.repository.Delete(s.ctx, id), customer.ErrHasLiveRecords)
+			s.Equal("", scalarSQL(s.T(), s.ctx, s.client,
+				`SELECT coalesce(deleted_at::text, '') FROM billing_customers WHERE id = $1`, id),
+				"the refused delete leaves the row live")
+
+			s.exec(fmt.Sprintf(`UPDATE %s SET deleted_at = now() WHERE customer_id = $1`, tc.table), id)
+			s.NoError(s.repository.Delete(s.ctx, id), "a deleted child no longer blocks")
+
+			s.exec(`TRUNCATE TABLE billing_plans RESTART IDENTITY CASCADE`)
+			s.exec(`UPDATE billing_customers SET deleted_at = NULL WHERE id = $1`, id)
+			s.exec(fmt.Sprintf(`DELETE FROM %s`, tc.table))
+		})
+	}
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) seedChildRows(cust string) (subID, invID string) {
+	s.T().Helper()
+	s.exec(`INSERT INTO billing_plans (name, description) VALUES ('bc-plan', 'plan under test')`)
+	s.exec(`INSERT INTO billing_subscriptions (customer_id, provider_id, plan_id, state)
+		VALUES ($1, 'bc-sub', (SELECT id FROM billing_plans WHERE name = 'bc-plan'), 'canceled')`, cust)
+	s.exec(`INSERT INTO billing_invoices (customer_id, provider_id, amount, currency, hosted_url, state)
+		VALUES ($1, 'bc-inv', 100, 'usd', 'bc-inv', 'paid')`, cust)
+	s.exec(`INSERT INTO billing_checkouts (customer_id, provider_id, checkout_url, state)
+		VALUES ($1, 'bc-session', 'bc-session', 'expired')`, cust)
+	s.exec(`INSERT INTO billing_transactions (account_id, type, source, amount, description)
+		VALUES ($1, 'credit', 'system.buy', 100, 'bought'), ($1, 'debit', 'usage', 30, 'spent')`, cust)
+	subID = scalarSQL(s.T(), s.ctx, s.client, `SELECT id FROM billing_subscriptions WHERE provider_id = 'bc-sub'`)
+	invID = scalarSQL(s.T(), s.ctx, s.client, `SELECT id FROM billing_invoices WHERE provider_id = 'bc-inv'`)
+	return subID, invID
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) deletedRows(table, column, id string) string {
+	s.T().Helper()
+	return scalarSQL(s.T(), s.ctx, s.client,
+		fmt.Sprintf(`SELECT count(*)::text FROM %s WHERE %s = $1 AND deleted_at IS NOT NULL`, table, column), id)
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestTeardownInTheDeleterOrderKeepsEveryRow() {
+	cust := s.customerID("bc-cust-live")
+	subID, invID := s.seedChildRows(cust)
+
+	s.Require().NoError(s.subscriptions.Delete(s.ctx, subID))
+	s.Require().NoError(s.invoices.Delete(s.ctx, invID))
+	s.Require().NoError(s.checkouts.DeleteByCustomerID(s.ctx, cust))
+	s.Require().NoError(s.transactions.DeleteByAccountID(s.ctx, cust))
+	s.Require().NoError(s.repository.Delete(s.ctx, cust))
+
+	s.Equal("1", s.deletedRows(postgres.TABLE_BILLING_SUBSCRIPTIONS, "customer_id", cust))
+	s.Equal("1", s.deletedRows(postgres.TABLE_BILLING_INVOICES, "customer_id", cust))
+	s.Equal("1", s.deletedRows(postgres.TABLE_BILLING_CHECKOUTS, "customer_id", cust))
+	s.Equal("2", s.deletedRows(postgres.TABLE_BILLING_TRANSACTIONS, "account_id", cust))
+	s.Equal("1", s.deletedRows(postgres.TABLE_BILLING_CUSTOMERS, "id", cust))
+
+	subs, err := s.subscriptions.List(s.ctx, subscription.Filter{CustomerID: cust})
+	s.Require().NoError(err)
+	s.Empty(subs)
+	invs, err := s.invoices.List(s.ctx, invoice.Filter{CustomerID: cust})
+	s.Require().NoError(err)
+	s.Empty(invs)
+	chks, err := s.checkouts.List(s.ctx, checkout.Filter{CustomerID: cust})
+	s.Require().NoError(err)
+	s.Empty(chks)
+	balance, err := s.transactions.GetBalance(s.ctx, cust)
+	s.Require().NoError(err)
+	s.Equal(int64(0), balance)
+	custs, err := s.repository.List(s.ctx, customer.Filter{OrgID: s.orgID("bc-live")})
+	s.Require().NoError(err)
+	s.Empty(custs)
+	txns, err := s.transactions.List(s.ctx, credit.Filter{CustomerID: cust})
+	s.Require().NoError(err)
+	s.Empty(txns)
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestTeardownCanBeRunAgain() {
+	cust := s.customerID("bc-cust-live")
+	subID, invID := s.seedChildRows(cust)
+	s.Require().NoError(s.subscriptions.Delete(s.ctx, subID))
+	s.Require().NoError(s.invoices.Delete(s.ctx, invID))
+	s.Require().NoError(s.checkouts.DeleteByCustomerID(s.ctx, cust))
+
+	s.Require().NoError(s.subscriptions.Delete(s.ctx, subID))
+	s.Require().NoError(s.invoices.Delete(s.ctx, invID))
+	s.Require().NoError(s.checkouts.DeleteByCustomerID(s.ctx, cust))
+	s.Require().NoError(s.transactions.DeleteByAccountID(s.ctx, cust))
+	s.Require().NoError(s.transactions.DeleteByAccountID(s.ctx, cust))
+	s.Require().NoError(s.repository.Delete(s.ctx, cust))
+	s.ErrorIs(s.repository.Delete(s.ctx, cust), customer.ErrNotFound)
+}
+
+func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteWaitsForAnInFlightChildInsertAndRefuses() {
+	id := s.customerID("bc-cust-live")
+	tx, err := s.client.DB.BeginTxx(s.ctx, nil)
+	s.Require().NoError(err)
+	defer tx.Rollback() //nolint:errcheck
+	var holderPID int
+	s.Require().NoError(tx.QueryRowContext(s.ctx, "SELECT pg_backend_pid()").Scan(&holderPID))
+	_, err = tx.ExecContext(s.ctx, `INSERT INTO billing_checkouts (customer_id, provider_id, checkout_url, state)
+		VALUES ($1, 'bc-session', 'bc-session', 'pending')`, id)
+	s.Require().NoError(err)
+
+	result := make(chan error, 1)
+	go func() { result <- s.repository.Delete(s.ctx, id) }()
+
+	s.Require().Eventually(func() bool {
+		waiting, err := blockedBy(s.ctx, s.client, holderPID)
+		return err == nil && waiting == 1
+	}, 5*time.Second, 20*time.Millisecond, "the delete waits on the row lock")
+
+	s.Require().NoError(tx.Commit())
+	s.ErrorIs(<-result, customer.ErrHasLiveRecords)
+	s.Equal("", scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT coalesce(deleted_at::text, '') FROM billing_customers WHERE id = $1`, id))
 }
