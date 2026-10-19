@@ -579,7 +579,10 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) (custo
 				},
 				nil,
 				customerModel.OrgID,
-				nil,
+				map[string]any{
+					"forfeited_tokens": forfeit.Amount,
+					"purchased_tokens": forfeit.Purchased,
+				},
 				deletedAt,
 			)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)

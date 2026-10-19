@@ -147,6 +147,8 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteKeepsTheRowAndHidesIt()
 		`SELECT occurred_at::text FROM audit_records WHERE event = $1 AND resource_id = $2`,
 		string(auditrecord.BillingCustomerDeletedEvent), id)
 	s.Equal(deletedAt, occurredAt, "the audit record carries the delete time")
+	s.Equal("0", s.recordedMetadata(id, "forfeited_tokens"), "an account without transactions forfeits zero")
+	s.Equal("0", s.recordedMetadata(id, "purchased_tokens"))
 	_, err := s.repository.GetByID(s.ctx, id)
 	s.ErrorIs(err, customer.ErrNotFound)
 	s.ErrorIs(s.deleteError(id), customer.ErrNotFound, "a second delete answers not found")
@@ -302,6 +304,13 @@ func (s *BillingCustomerRepositoryPGTestSuite) seedTransaction(account, txType, 
 		VALUES ($1, $2, $3, $4, $2) RETURNING id`, account, txType, source, amount)
 }
 
+func (s *BillingCustomerRepositoryPGTestSuite) recordedMetadata(accountID, key string) string {
+	s.T().Helper()
+	return scalarSQL(s.T(), s.ctx, s.client,
+		`SELECT coalesce(metadata->>$3, '') FROM audit_records WHERE event = $1 AND resource_id = $2`,
+		string(auditrecord.BillingCustomerDeletedEvent), accountID, key)
+}
+
 func (s *BillingCustomerRepositoryPGTestSuite) transactionDeletedAt(id string) string {
 	s.T().Helper()
 	return scalarSQL(s.T(), s.ctx, s.client,
@@ -327,6 +336,8 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteHidesTheAccountsTransac
 		s.NotEmpty(s.transactionDeletedAt(txn))
 	}
 	s.Equal(hiddenAt, s.transactionDeletedAt(alreadyHidden), "an older delete time is kept")
+	s.Equal("250", s.recordedMetadata(id, "forfeited_tokens"))
+	s.Equal("180", s.recordedMetadata(id, "purchased_tokens"))
 	balance, err := s.transactions.GetBalance(s.ctx, id)
 	s.Require().NoError(err)
 	s.Equal(int64(0), balance)
