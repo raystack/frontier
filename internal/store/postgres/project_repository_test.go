@@ -309,14 +309,35 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 }
 
 func (s *ProjectRepositoryTestSuite) TestDelete() {
-	s.Run("should delete a project and audit it", func() {
-		s.Require().NoError(s.repository.Delete(s.ctx, s.projects[1].ID))
-		s.Equal(1, s.auditCount(pkgAuditRecord.ProjectDeletedEvent, s.projects[1].ID))
+	deleted := s.projects[1]
+
+	s.Run("keeps the row with deleted_at set, hides it, and audits the delete", func() {
+		s.Require().NoError(s.repository.Delete(s.ctx, deleted.ID))
+		s.Equal(1, s.auditCount(pkgAuditRecord.ProjectDeletedEvent, deleted.ID))
+
+		var deletedRows int
+		s.Require().NoError(s.client.QueryRowxContext(s.ctx,
+			"SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NOT NULL", deleted.ID).Scan(&deletedRows))
+		s.Equal(1, deletedRows)
+
+		_, err := s.repository.GetByID(s.ctx, deleted.ID)
+		s.ErrorIs(err, project.ErrNotExist)
 	})
-	s.Run("should skip a project that does not exist without auditing", func() {
+	s.Run("a second delete returns not found and writes no second audit record", func() {
+		s.ErrorIs(s.repository.Delete(s.ctx, deleted.ID), project.ErrNotExist)
+		s.Equal(1, s.auditCount(pkgAuditRecord.ProjectDeletedEvent, deleted.ID))
+	})
+	s.Run("a project that does not exist returns not found without an audit record", func() {
 		id := uuid.NewString()
-		s.Require().NoError(s.repository.Delete(s.ctx, id))
+		s.ErrorIs(s.repository.Delete(s.ctx, id), project.ErrNotExist)
 		s.Equal(0, s.auditCount(pkgAuditRecord.ProjectDeletedEvent, id))
+	})
+	s.Run("a new project can take the deleted project's name", func() {
+		_, err := s.repository.Create(s.ctx, project.Project{
+			Name:         deleted.Name,
+			Organization: deleted.Organization,
+		})
+		s.NoError(err)
 	})
 }
 
