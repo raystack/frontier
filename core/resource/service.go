@@ -185,7 +185,6 @@ func (s Service) getParent(ctx context.Context, res Resource) (parent, error) {
 	return projectParent(proj), nil
 }
 
-// getParentToDelete also finds a disabled project
 func (s Service) getParentToDelete(ctx context.Context, res Resource) (parent, error) {
 	if res.ProjectID == "" {
 		return s.getParent(ctx, res)
