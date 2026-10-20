@@ -541,4 +541,15 @@ func (s *ProjectRepositoryTestSuite) TestListIncludeDisabled() {
 		ids = append(ids, p.ID)
 	}
 	s.Assert().Contains(ids, disabled.ID)
+
+	byID, err := s.repository.List(s.ctx, project.Filter{ProjectIDs: []string{disabled.ID}, IncludeDisabled: true})
+	s.Require().NoError(err)
+	s.Require().Len(byID, 1)
+	s.Assert().Equal(disabled.ID, byID[0].ID)
+
+	_, err = s.client.ExecContext(s.ctx, "UPDATE projects SET deleted_at = now() WHERE id = $1", disabled.ID)
+	s.Require().NoError(err)
+	deleted, err := s.repository.List(s.ctx, project.Filter{ProjectIDs: []string{disabled.ID}, IncludeDisabled: true})
+	s.Require().NoError(err)
+	s.Assert().Empty(deleted)
 }

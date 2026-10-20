@@ -665,12 +665,13 @@ func TestDelete(t *testing.T) {
 		Organization: organization.Organization{ID: uuid.New().String(), Title: "Org One"},
 	}
 	res := resource.Resource{ID: "r1", Name: "res-1", Title: "Resource One", NamespaceID: "resource/item", ProjectID: proj.ID}
+	lookup := project.Filter{ProjectIDs: []string{proj.ID}, IncludeDisabled: true}
 
 	t.Run("deletes relations then the row, and writes the audit record", func(t *testing.T) {
 		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
 
 		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
-		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{proj}, nil)
 		relationSvc.EXPECT().Delete(mock.Anything, relation.Relation{
 			Object: relation.Object{ID: "r1", Namespace: "resource/item"},
 		}).Return(nil)
@@ -719,7 +720,7 @@ func TestDelete(t *testing.T) {
 		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
 
 		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
-		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{proj}, nil)
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(relation.ErrNotExist)
 		repo.EXPECT().Delete(mock.Anything, "r1").Return(nil)
 		auditRepo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.AuditRecord")).
@@ -733,7 +734,7 @@ func TestDelete(t *testing.T) {
 		repo, relationSvc, _, projectSvc, _, _, _, _, svc := newTestService(t)
 
 		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
-		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{proj}, nil)
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(errors.New("spicedb down"))
 
 		err := svc.Delete(ctx, "resource/item", "r1")
@@ -744,12 +745,39 @@ func TestDelete(t *testing.T) {
 		repo, relationSvc, _, projectSvc, _, _, _, _, svc := newTestService(t)
 
 		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
-		projectSvc.EXPECT().Get(mock.Anything, proj.ID).Return(proj, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{proj}, nil)
 		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
 		repo.EXPECT().Delete(mock.Anything, "r1").Return(errors.New("db down"))
 
 		err := svc.Delete(ctx, "resource/item", "r1")
 		assert.ErrorContains(t, err, "db down")
+	})
+
+	t.Run("deletes a resource of a disabled project", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, _, svc := newTestService(t)
+		disabled := proj
+		disabled.State = project.Disabled
+
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{disabled}, nil)
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		repo.EXPECT().Delete(mock.Anything, "r1").Return(nil)
+		auditRepo.EXPECT().Create(mock.Anything, mock.MatchedBy(func(rec auditmodels.AuditRecord) bool {
+			return rec.Resource.ID == proj.ID
+		})).Return(auditmodels.AuditRecord{}, nil)
+
+		err := svc.Delete(ctx, "resource/item", "r1")
+		assert.NoError(t, err)
+	})
+
+	t.Run("deletes nothing when the project is gone", func(t *testing.T) {
+		repo, _, _, projectSvc, _, _, _, _, svc := newTestService(t)
+
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{}, nil)
+
+		err := svc.Delete(ctx, "resource/item", "r1")
+		assert.ErrorIs(t, err, project.ErrNotExist)
 	})
 }
 
