@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -36,6 +37,28 @@ func TestHandler_DeleteProject(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name: "should return not found when the project is gone",
+			setup: func(as *mocks.CascadeDeleter) {
+				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(project.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+				Id: "some-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrProjectNotFound),
+		},
+		{
+			name: "should return not found for an id that is not a uuid",
+			setup: func(as *mocks.CascadeDeleter) {
+				as.EXPECT().DeleteProject(mock.Anything, "some-name").Return(project.ErrInvalidUUID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+				Id: "some-name",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrProjectNotFound),
+		},
+		{
 			name: "should return error if deleter service encounters an error",
 			setup: func(as *mocks.CascadeDeleter) {
 				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(errors.New("some error"))
@@ -59,6 +82,38 @@ func TestHandler_DeleteProject(t *testing.T) {
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}
+
+	t.Run("should return failed precondition with one violation per namespace when resources block", func(t *testing.T) {
+		blocked := &deleter.BlockedError{
+			ProjectID: "some-id",
+			Blockers: []deleter.Blocker{
+				{Type: deleter.BlockerResourcesExist, Subject: "compute/order", SubjectType: deleter.SubjectResourceNamespace, Count: 2},
+			},
+		}
+		mockDeleteSrv := new(mocks.CascadeDeleter)
+		mockDeleteSrv.EXPECT().DeleteProject(mock.Anything, "some-id").Return(blocked)
+		mockDel := &ConnectHandler{deleterService: mockDeleteSrv}
+
+		resp, err := mockDel.DeleteProject(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+			Id: "some-id",
+		}))
+		assert.Nil(t, resp)
+
+		var connectErr *connect.Error
+		assert.ErrorAs(t, err, &connectErr)
+		assert.Equal(t, connect.CodeFailedPrecondition, connectErr.Code())
+		assert.Equal(t, "project cannot be deleted yet", connectErr.Message())
+
+		assert.Len(t, connectErr.Details(), 1)
+		detail, detailErr := connectErr.Details()[0].Value()
+		assert.NoError(t, detailErr)
+		failure, ok := detail.(*errdetails.PreconditionFailure)
+		assert.True(t, ok)
+		assert.Len(t, failure.GetViolations(), 1)
+		assert.Equal(t, deleter.BlockerResourcesExist, failure.GetViolations()[0].GetType())
+		assert.Equal(t, "compute/order", failure.GetViolations()[0].GetSubject())
+		assert.Empty(t, failure.GetViolations()[0].GetDescription())
+	})
 }
 
 func TestHandler_DeleteOrganization(t *testing.T) {
