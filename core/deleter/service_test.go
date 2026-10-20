@@ -113,17 +113,36 @@ func (m deleterMocks) build() *deleter.Service {
 func TestDeleteProject(t *testing.T) {
 	t.Run("deletes policies, resources, then project model", func(t *testing.T) {
 		m := newMocks(t)
+		var steps []string
 
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{{ID: "pol-1"}, {ID: "pol-2"}}, nil)
-		m.polSvc.EXPECT().Delete(mock.Anything, "pol-1").Return(nil)
-		m.polSvc.EXPECT().Delete(mock.Anything, "pol-2").Return(nil)
+		m.polSvc.EXPECT().Delete(mock.Anything, "pol-1").
+			Run(func(_ context.Context, id string) { steps = append(steps, "policy:"+id) }).Return(nil)
+		m.polSvc.EXPECT().Delete(mock.Anything, "pol-2").
+			Run(func(_ context.Context, id string) { steps = append(steps, "policy:"+id) }).Return(nil)
 
 		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
 			Return([]resource.Resource{{ID: "res-1", NamespaceID: "ns-1", Name: "r1"}}, nil)
-		m.resSvc.EXPECT().Purge(mock.Anything, "ns-1", "res-1").Return(nil)
+		m.resSvc.EXPECT().Purge(mock.Anything, "ns-1", "res-1").
+			Run(func(_ context.Context, _ string, id string) { steps = append(steps, "resource:"+id) }).Return(nil)
 
-		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").
+			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
+
+		err := m.build().DeleteProject(context.Background(), "proj-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"policy:pol-1", "policy:pol-2", "resource:res-1", "project:proj-1"}, steps)
+	})
+
+	t.Run("a project that is already gone counts as deleted", func(t *testing.T) {
+		m := newMocks(t)
+
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
+			Return([]resource.Resource{}, nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(project.ErrNotExist)
 
 		err := m.build().DeleteProject(context.Background(), "proj-1")
 		assert.NoError(t, err)
