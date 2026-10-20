@@ -1532,7 +1532,7 @@ func blockerConfig() deleter.Config {
 				deleter.ParentProject:      deleter.RuleAllow,
 				deleter.ParentOrganization: deleter.RuleAllow,
 			},
-			"storage/transfer": { // no project rule
+			"storage/transfer": {
 				deleter.ParentOrganization: deleter.RuleBlock,
 			},
 		},
@@ -1600,6 +1600,18 @@ func TestProjectResourceBlockers(t *testing.T) {
 		assert.Empty(t, blockers)
 	})
 
+	t.Run("returns no blockers for a project with no resources", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{}, nil)
+
+		blockers, err := m.build().ProjectResourceBlockers(context.Background(), "proj-1")
+
+		assert.NoError(t, err)
+		assert.Empty(t, blockers)
+	})
+
 	t.Run("returns error when resource list fails", func(t *testing.T) {
 		m := newMocks(t)
 		m.deletion = blockerConfig()
@@ -1608,7 +1620,7 @@ func TestProjectResourceBlockers(t *testing.T) {
 
 		_, err := m.build().ProjectResourceBlockers(context.Background(), "proj-1")
 
-		assert.ErrorContains(t, err, "db error")
+		assert.ErrorContains(t, err, "failed to list resources of project[proj-1]: db error")
 	})
 }
 
@@ -1655,6 +1667,23 @@ func TestOrganizationResourceBlockers(t *testing.T) {
 		}, blockers)
 	})
 
+	t.Run("judges the org's own resources when it has no projects", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{
+				{ID: "t1", NamespaceID: "storage/transfer"},
+				{ID: "f1", NamespaceID: "storage/file"},
+			}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{}, nil)
+
+		blockers, err := m.build().OrganizationResourceBlockers(context.Background(), "org-1")
+
+		assert.NoError(t, err)
+		assert.Equal(t, []deleter.Blocker{resourcesExist("storage/transfer", 1)}, blockers)
+	})
+
 	t.Run("returns error when the org's own resource list fails", func(t *testing.T) {
 		m := newMocks(t)
 		m.deletion = blockerConfig()
@@ -1663,7 +1692,7 @@ func TestOrganizationResourceBlockers(t *testing.T) {
 
 		_, err := m.build().OrganizationResourceBlockers(context.Background(), "org-1")
 
-		assert.ErrorContains(t, err, "db error")
+		assert.ErrorContains(t, err, "failed to list resources of organization[org-1]: db error")
 	})
 
 	t.Run("returns error when project list fails", func(t *testing.T) {
@@ -1676,7 +1705,7 @@ func TestOrganizationResourceBlockers(t *testing.T) {
 
 		_, err := m.build().OrganizationResourceBlockers(context.Background(), "org-1")
 
-		assert.ErrorContains(t, err, "db error")
+		assert.ErrorContains(t, err, "failed to list projects of organization[org-1]: db error")
 	})
 
 	t.Run("returns error when a project's resource list fails", func(t *testing.T) {
@@ -1691,6 +1720,6 @@ func TestOrganizationResourceBlockers(t *testing.T) {
 
 		_, err := m.build().OrganizationResourceBlockers(context.Background(), "org-1")
 
-		assert.ErrorContains(t, err, "db error")
+		assert.ErrorContains(t, err, "failed to list resources of project[proj-1]: db error")
 	})
 }

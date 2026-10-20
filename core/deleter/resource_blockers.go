@@ -2,6 +2,7 @@ package deleter
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"slices"
 
@@ -16,30 +17,27 @@ func (d Service) ProjectResourceBlockers(ctx context.Context, projectID string) 
 	}
 	resources, err := d.resService.List(ctx, resource.Filter{ProjectID: projectID})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list resources of project[%s]: %w", projectID, err)
 	}
 	return d.deletionConfig.blockers(ParentProject, resources), nil
 }
 
-// OrganizationResourceBlockers judges the org's own resources and those of
-// all its projects by the organization rules.
 func (d Service) OrganizationResourceBlockers(ctx context.Context, orgID string) ([]Blocker, error) {
 	if !d.deletionConfig.Enabled {
 		return nil, nil
 	}
-	// the org's own resources only; project resources are added below
 	resources, err := d.resService.List(ctx, resource.Filter{OrgID: orgID})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list resources of organization[%s]: %w", orgID, err)
 	}
 	projects, err := d.listOrgProjects(ctx, orgID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list projects of organization[%s]: %w", orgID, err)
 	}
 	for _, p := range projects {
 		projectResources, err := d.resService.List(ctx, resource.Filter{ProjectID: p.ID})
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to list resources of project[%s]: %w", p.ID, err)
 		}
 		resources = append(resources, projectResources...)
 	}
@@ -73,7 +71,6 @@ func (c Config) blocks(parent Parent, r resource.Resource) bool {
 		deletable, _ := r.Metadata[metadataDeletable].(bool)
 		return !deletable
 	default:
-		// block, or no rule
 		return true
 	}
 }
