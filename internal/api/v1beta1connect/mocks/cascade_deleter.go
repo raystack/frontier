@@ -81,6 +81,65 @@ func (_c *CascadeDeleter_CheckOrganizationDelete_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// CheckProjectDelete provides a mock function with given fields: ctx, id
+func (_m *CascadeDeleter) CheckProjectDelete(ctx context.Context, id string) ([]deleter.Blocker, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckProjectDelete")
+	}
+
+	var r0 []deleter.Blocker
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]deleter.Blocker, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []deleter.Blocker); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]deleter.Blocker)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CascadeDeleter_CheckProjectDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckProjectDelete'
+type CascadeDeleter_CheckProjectDelete_Call struct {
+	*mock.Call
+}
+
+// CheckProjectDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *CascadeDeleter_Expecter) CheckProjectDelete(ctx interface{}, id interface{}) *CascadeDeleter_CheckProjectDelete_Call {
+	return &CascadeDeleter_CheckProjectDelete_Call{Call: _e.mock.On("CheckProjectDelete", ctx, id)}
+}
+
+func (_c *CascadeDeleter_CheckProjectDelete_Call) Run(run func(ctx context.Context, id string)) *CascadeDeleter_CheckProjectDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CascadeDeleter_CheckProjectDelete_Call) Return(_a0 []deleter.Blocker, _a1 error) *CascadeDeleter_CheckProjectDelete_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CascadeDeleter_CheckProjectDelete_Call) RunAndReturn(run func(context.Context, string) ([]deleter.Blocker, error)) *CascadeDeleter_CheckProjectDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteGroup provides a mock function with given fields: ctx, id
 func (_m *CascadeDeleter) DeleteGroup(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)

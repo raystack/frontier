@@ -53,18 +53,38 @@ func (h *ConnectHandler) CheckOrganizationDelete(ctx context.Context, request *c
 		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckOrganizationDelete: organization_id=%s: %w", request.Msg.GetId(), err))
 	}
-	resp := &frontierv1beta1.CheckOrganizationDeleteResponse{
+	return connect.NewResponse(&frontierv1beta1.CheckOrganizationDeleteResponse{
 		CanDelete: len(blockers) == 0,
+		Blockers:  transformBlockersToPB(blockers),
+	}), nil
+}
+
+func (h *ConnectHandler) CheckProjectDelete(ctx context.Context, request *connect.Request[frontierv1beta1.CheckProjectDeleteRequest]) (*connect.Response[frontierv1beta1.CheckProjectDeleteResponse], error) {
+	blockers, err := h.deleterService.CheckProjectDelete(ctx, request.Msg.GetId())
+	if err != nil {
+		if errors.Is(err, project.ErrNotExist) || errors.Is(err, project.ErrInvalidUUID) {
+			return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
+		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckProjectDelete: project_id=%s: %w", request.Msg.GetId(), err))
 	}
+	return connect.NewResponse(&frontierv1beta1.CheckProjectDeleteResponse{
+		CanDelete: len(blockers) == 0,
+		Blockers:  transformBlockersToPB(blockers),
+	}), nil
+}
+
+func transformBlockersToPB(blockers []deleter.Blocker) []*frontierv1beta1.Blocker {
+	var pb []*frontierv1beta1.Blocker
 	for _, b := range blockers {
-		resp.Blockers = append(resp.Blockers, &frontierv1beta1.Blocker{
+		pb = append(pb, &frontierv1beta1.Blocker{
 			Type:        b.Type,
 			Subject:     b.Subject,
 			SubjectType: b.SubjectType,
+			Count:       int32(b.Count),
 			Message:     b.Message,
 		})
 	}
-	return connect.NewResponse(resp), nil
+	return pb
 }
 
 // deleteBlockedError turns the delete's blockers into a failed_precondition
