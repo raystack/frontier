@@ -170,6 +170,7 @@ type Service struct {
 	// owners their organization was deleted
 	mailDialer         mailer.Dialer
 	deleteNoticeConfig billing.OrgDeleteNoticeConfig
+	deletionConfig     Config
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
@@ -183,7 +184,8 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	invoiceService InvoiceService, checkoutService CheckoutService,
 	creditService CreditService, kycService KycService,
 	planService PlanService,
-	mailDialer mailer.Dialer, deleteNoticeConfig billing.OrgDeleteNoticeConfig) *Service {
+	mailDialer mailer.Dialer, deleteNoticeConfig billing.OrgDeleteNoticeConfig,
+	deletionConfig Config) *Service {
 	return &Service{
 		projService:        projService,
 		orgService:         orgService,
@@ -206,6 +208,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		planService:        planService,
 		mailDialer:         mailDialer,
 		deleteNoticeConfig: deleteNoticeConfig,
+		deletionConfig:     deletionConfig,
 	}
 }
 

@@ -107,7 +107,7 @@ func (m deleterMocks) build() *deleter.Service {
 	return deleter.NewCascadeDeleter(m.orgSvc, m.projSvc, m.resSvc, m.grpSvc, m.mbrSvc,
 		m.polSvc, m.roleSvc, m.invSvc, m.usrSvc, m.patSvc, m.domainSvc, m.suSvc,
 		m.custSvc, m.subSvc, m.invocSvc, m.checkoutSvc, m.creditSvc, m.kycSvc,
-		m.planSvc, m.dialer, billing.OrgDeleteNoticeConfig{})
+		m.planSvc, m.dialer, billing.OrgDeleteNoticeConfig{}, deleter.Config{})
 }
 
 func TestDeleteProject(t *testing.T) {

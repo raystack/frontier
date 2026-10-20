@@ -349,6 +349,9 @@ func buildAPIDependencies(
 	if err := cfg.App.Consent.Validate(); err != nil {
 		return api.Deps{}, err
 	}
+	if err := cfg.App.Deletion.Validate(); err != nil {
+		return api.Deps{}, err
+	}
 
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
@@ -599,7 +602,7 @@ func buildAPIDependencies(
 		groupService, membershipService, policyService, roleService, invitationService, userService, userPATService,
 		domainService, serviceUserService, customerService, subscriptionService, invoiceService, checkoutService,
 		creditService, orgKycService, planService,
-		mailDialer, cfg.Billing.OrgDeleteNotice,
+		mailDialer, cfg.Billing.OrgDeleteNotice, cfg.App.Deletion,
 	)
 
 	// we should default it with a stdout logger repository as postgres can start to bloat really fast

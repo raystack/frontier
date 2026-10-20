@@ -232,6 +232,18 @@ app:
         version: "2026-02-14"
         url: "https://example.org/legal/eula/2026-02-14"
 
+  # live resources that block a project or organization delete
+  deletion:
+    # false (the default) keeps deletes as they are
+    enabled: false
+    # a rule per namespace for each delete: block, allow, or
+    # block_unless_deletable (blocks until the resource metadata has
+    # "deletable": true). a namespace or delete with no rule blocks.
+    resources:
+      compute/machine: { project: block, organization: allow }
+      compute/order: { project: block_unless_deletable, organization: block_unless_deletable }
+      storage/file: { organization: allow }
+
   # metaschema cache configuration
   metaschema:
     # how often each server reloads the metaschema cache from the database, so a

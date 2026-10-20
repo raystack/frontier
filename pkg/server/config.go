@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/consent"
+	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/core/webhook"
@@ -97,6 +98,9 @@ type Config struct {
 
 	// Consent lists the documents a user must accept at signup. Disabled by default.
 	Consent consent.Config `yaml:"consent" mapstructure:"consent"`
+
+	// Deletion says which resources block a project or org delete. Disabled by default.
+	Deletion deleter.Config `yaml:"deletion" mapstructure:"deletion"`
 
 	Metaschema metaschema.Config `yaml:"metaschema" mapstructure:"metaschema"`
 
