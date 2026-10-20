@@ -381,7 +381,7 @@ func (r ProjectRepository) SetState(ctx context.Context, id string, state projec
 }
 
 func (r ProjectRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_PROJECTS).Where(
+	query, params, err := softDelete(TABLE_PROJECTS).Where(
 		goqu.Ex{
 			"id": id,
 		},
@@ -392,17 +392,12 @@ func (r ProjectRepository) Delete(ctx context.Context, id string) error {
 
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		var result projectWithOrgName
-		err := r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Delete", func(ctx context.Context) error {
+		if err := r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Delete", func(ctx context.Context) error {
 			return tx.QueryRowxContext(ctx, query, params...).StructScan(&result)
-		})
-		if errors.Is(err, sql.ErrNoRows) {
-			// already gone: nothing deleted, nothing to audit
-			return nil
-		}
-		if err != nil {
+		}); err != nil {
 			return err
 		}
-		return InsertAuditRecordInTx(ctx, tx, buildProjectAuditRecord(ctx, auditrecord.ProjectDeletedEvent, result, time.Now().UTC()))
+		return InsertAuditRecordInTx(ctx, tx, buildProjectAuditRecord(ctx, auditrecord.ProjectDeletedEvent, result, result.DeletedAt.Time))
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
