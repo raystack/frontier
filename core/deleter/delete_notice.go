@@ -45,19 +45,13 @@ type deleteNoticeData struct {
 	DeletedBy string
 }
 
-// accountTokens is what one billing account holds at delete time.
-type accountTokens struct {
-	Balance   int64
-	Purchased int64
-}
-
 // deleteNotice is everything sendDeleteNotices needs once the org is gone.
 // It has to be collected before teardown removes the owners and the token
-// balances. Accounts keeps the per-account numbers of the live accounts.
+// balances. Accounts holds the ids of the live accounts that hold tokens.
 type deleteNotice struct {
 	Amount    int64
 	Purchased int64
-	Accounts  map[string]accountTokens
+	Accounts  map[string]struct{}
 	// Balances holds every account's balance, positive or not, so the
 	// blocker check can reuse the reads
 	Balances map[string]int64
@@ -74,7 +68,7 @@ type deleteNotice struct {
 // purchased share is settled with the customer.
 func (d Service) collectDeleteNotice(ctx context.Context, customers []customer.Customer) (deleteNotice, error) {
 	var total, purchased int64
-	accounts := make(map[string]accountTokens, len(customers))
+	accounts := make(map[string]struct{}, len(customers))
 	balances := make(map[string]int64, len(customers))
 	for _, c := range customers {
 		balance, err := d.creditService.GetBalance(ctx, c.ID)
@@ -89,7 +83,7 @@ func (d Service) collectDeleteNotice(ctx context.Context, customers []customer.C
 			}
 			total += balance
 			purchased += bought
-			accounts[c.ID] = accountTokens{Balance: balance, Purchased: bought}
+			accounts[c.ID] = struct{}{}
 		}
 	}
 	return deleteNotice{
@@ -149,6 +143,9 @@ func (d Service) recoverForfeitFromAudit(ctx context.Context, orgID string, noti
 		if accountID == "" {
 			continue
 		}
+		if teardown, _ := record.Metadata[customer.DeleteRecordOrgTeardownKey].(bool); !teardown {
+			continue
+		}
 		if _, ok := seen[accountID]; ok {
 			continue
 		}
@@ -156,8 +153,8 @@ func (d Service) recoverForfeitFromAudit(ctx context.Context, orgID string, noti
 		if _, live := notice.Accounts[accountID]; live {
 			continue
 		}
-		forfeited, _ := record.Metadata["forfeited_tokens"].(float64)
-		purchased, _ := record.Metadata["purchased_tokens"].(float64)
+		forfeited, _ := record.Metadata[customer.DeleteRecordForfeitedTokensKey].(float64)
+		purchased, _ := record.Metadata[customer.DeleteRecordPurchasedTokensKey].(float64)
 		notice.Amount += int64(forfeited)
 		notice.Purchased += int64(purchased)
 	}

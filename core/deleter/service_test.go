@@ -234,7 +234,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{{ID: "chk-1", ProviderID: "cs_1", CustomerID: "cust-1"}}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1", customer.DeleteOptions{OrgTeardown: true}).Return(nil)
 
 		// projects (each triggers DeleteProject)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
@@ -596,7 +596,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1", customer.DeleteOptions{OrgTeardown: true}).Return(nil)
 
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
@@ -647,7 +647,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1", customer.DeleteOptions{OrgTeardown: true}).Return(nil)
 
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
@@ -752,7 +752,7 @@ func TestDeleteOrganization(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1", customer.DeleteOptions{OrgTeardown: true}).Return(nil)
 
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
@@ -1262,7 +1262,7 @@ func TestForfeitAuditRecord(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-1"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1", customer.DeleteOptions{OrgTeardown: true}).Return(nil)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
 		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
@@ -1299,7 +1299,7 @@ func TestForfeitAuditRecord(t *testing.T) {
 				Event:    pkgauditrecord.BillingCustomerDeletedEvent,
 				Resource: auditrecord.Resource{ID: accountID, Type: pkgauditrecord.BillingCustomerType},
 				OrgID:    "org-1",
-				Metadata: metadata.Metadata{"forfeited_tokens": forfeited, "purchased_tokens": purchased},
+				Metadata: metadata.Metadata{"forfeited_tokens": forfeited, "purchased_tokens": purchased, "org_teardown": true},
 			}
 		}
 		m.auditRecSvc.EXPECT().List(mock.Anything, mock.MatchedBy(func(q *rql.Query) bool {
@@ -1376,7 +1376,7 @@ func TestDeleteCustomers(t *testing.T) {
 				{ID: "chk-2", ProviderID: "cs_2", CustomerID: "cust-1", State: "expired"},
 			}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-1").Return(nil)
-		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-1", customer.DeleteOptions{OrgTeardown: true}).Return(nil)
 
 		err := m.build().DeleteCustomers(context.Background(), "org-1")
 		assert.NoError(t, err)
@@ -1393,7 +1393,7 @@ func TestDeleteCustomers(t *testing.T) {
 		m.checkoutSvc.EXPECT().List(mock.Anything, checkout.Filter{CustomerID: "cust-no-provider"}).
 			Return([]checkout.Checkout{}, nil)
 		m.checkoutSvc.EXPECT().DeleteByCustomer(mock.Anything, "cust-no-provider").Return(nil)
-		m.custSvc.EXPECT().Delete(mock.Anything, "cust-no-provider").Return(nil)
+		m.custSvc.EXPECT().Delete(mock.Anything, "cust-no-provider", customer.DeleteOptions{OrgTeardown: true}).Return(nil)
 
 		err := m.build().DeleteCustomers(context.Background(), "org-1")
 		assert.NoError(t, err)

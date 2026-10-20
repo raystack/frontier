@@ -236,7 +236,7 @@ type CustomerService interface {
 	GetByOrgID(ctx context.Context, orgID string) (customer.Customer, error)
 	Create(ctx context.Context, customer customer.Customer, offline bool) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string, opts customer.DeleteOptions) error
 	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
 	Update(ctx context.Context, customer customer.Customer) (customer.Customer, error)
 	RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error)

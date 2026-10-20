@@ -225,7 +225,8 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestTeardownInTheDeleterOrderForf
 	s.Require().NoError(s.subscriptions.Delete(s.ctx, subID))
 	s.Require().NoError(s.invoices.Delete(s.ctx, invID))
 	s.Require().NoError(s.checkouts.DeleteByCustomerID(s.ctx, cust))
-	s.Require().NoError(s.repository.Delete(s.ctx, cust))
+	s.Require().NoError(s.repository.Delete(s.ctx, cust, customer.DeleteOptions{OrgTeardown: true}))
+	s.Equal("true", s.recordedMetadata(cust, "org_teardown"))
 	s.Equal("70", s.recordedMetadata(cust, "forfeited_tokens"), "the customer delete hides the transactions and records what they held")
 	s.Equal("70", s.recordedMetadata(cust, "purchased_tokens"))
 
@@ -324,12 +325,13 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestDeleteHidesTheAccountsTransac
 	s.exec(`UPDATE billing_transactions SET deleted_at = now() - interval '1 day' WHERE id = $1`, alreadyHidden)
 	hiddenAt := s.transactionDeletedAt(alreadyHidden)
 
-	s.Require().NoError(s.repository.Delete(s.ctx, id))
+	s.Require().NoError(s.repository.Delete(s.ctx, id, customer.DeleteOptions{}))
 
 	for _, txn := range []string{bought, refunded, awarded, used} {
 		s.NotEmpty(s.transactionDeletedAt(txn))
 	}
 	s.Equal(hiddenAt, s.transactionDeletedAt(alreadyHidden), "an older delete time is kept")
+	s.Equal("false", s.recordedMetadata(id, "org_teardown"), "a delete outside the org teardown is not marked")
 	s.Equal("250", s.recordedMetadata(id, "forfeited_tokens"), "the live credits minus the live debits")
 	s.Equal("180", s.recordedMetadata(id, "purchased_tokens"), "the share of it bought, net of refunds")
 	balance, err := s.transactions.GetBalance(s.ctx, id)
@@ -381,7 +383,7 @@ func (s *BillingCustomerRepositoryPGTestSuite) TestHasLiveRecordsSeesOnlyLiveChi
 }
 
 func (s *BillingCustomerRepositoryPGTestSuite) deleteError(id string) error {
-	return s.repository.Delete(s.ctx, id)
+	return s.repository.Delete(s.ctx, id, customer.DeleteOptions{})
 }
 
 func (s *BillingCustomerRepositoryPGTestSuite) deleteAccount(id string) {

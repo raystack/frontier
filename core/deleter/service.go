@@ -112,7 +112,7 @@ type ServiceUserService interface {
 }
 
 type CustomerService interface {
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string, opts customer.DeleteOptions) error
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 }
 
@@ -488,7 +488,7 @@ func (d Service) deleteCustomers(ctx context.Context, id string, customers []cus
 			}
 		}
 		// delete customer
-		if err = d.customerService.Delete(ctx, c.ID); err != nil {
+		if err = d.customerService.Delete(ctx, c.ID, customer.DeleteOptions{OrgTeardown: true}); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account[%s]: %w", c.ID, err)
 		}
 	}

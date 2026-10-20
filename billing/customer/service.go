@@ -30,7 +30,7 @@ type Repository interface {
 	List(ctx context.Context, filter Filter) ([]Customer, error)
 	Create(ctx context.Context, customer Customer) (Customer, error)
 	UpdateByID(ctx context.Context, customer Customer) (Customer, error)
-	Delete(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string, opts DeleteOptions) error
 	HasLiveRecords(ctx context.Context, id string) (bool, error)
 	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Details, error)
 	GetDetailsByID(ctx context.Context, customerID string) (Details, error)
@@ -268,7 +268,7 @@ func (s *Service) Disable(ctx context.Context, id string) error {
 	return err
 }
 
-func (s *Service) Delete(ctx context.Context, id string) error {
+func (s *Service) Delete(ctx context.Context, id string, opts DeleteOptions) error {
 	customer, err := s.repository.GetByID(ctx, id)
 	if err != nil {
 		return err
@@ -307,7 +307,7 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		}
 	}
 
-	return s.repository.Delete(ctx, id)
+	return s.repository.Delete(ctx, id, opts)
 }
 
 func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentMethod, error) {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/core/auditrecord"
 	"github.com/raystack/frontier/core/deleter/mocks"
 	pkgauditrecord "github.com/raystack/frontier/pkg/auditrecord"
@@ -32,7 +33,7 @@ func recoverWith(t *testing.T, records []auditrecord.AuditRecord, listErr error,
 }
 
 func TestRecoverForfeitFromAudit(t *testing.T) {
-	forfeit := metadata.Metadata{"forfeited_tokens": float64(70), "purchased_tokens": float64(30)}
+	forfeit := metadata.Metadata{customer.DeleteRecordForfeitedTokensKey: float64(70), customer.DeleteRecordPurchasedTokensKey: float64(30), customer.DeleteRecordOrgTeardownKey: true}
 
 	t.Run("adds the forfeit of an account that is gone", func(t *testing.T) {
 		got := recoverWith(t, []auditrecord.AuditRecord{deletedRecord("cust-1", forfeit)}, nil, deleteNotice{})
@@ -40,11 +41,23 @@ func TestRecoverForfeitFromAudit(t *testing.T) {
 		assert.Equal(t, int64(30), got.Purchased)
 	})
 
+	t.Run("skips an account deleted on its own", func(t *testing.T) {
+		standalone := metadata.Metadata{customer.DeleteRecordForfeitedTokensKey: float64(70), customer.DeleteRecordPurchasedTokensKey: float64(30)}
+		got := recoverWith(t, []auditrecord.AuditRecord{deletedRecord("cust-1", standalone)}, nil, deleteNotice{})
+		assert.Equal(t, deleteNotice{}, got)
+	})
+
+	t.Run("skips a record whose teardown flag is not a boolean", func(t *testing.T) {
+		malformed := metadata.Metadata{customer.DeleteRecordForfeitedTokensKey: float64(70), customer.DeleteRecordOrgTeardownKey: "true"}
+		got := recoverWith(t, []auditrecord.AuditRecord{deletedRecord("cust-1", malformed)}, nil, deleteNotice{})
+		assert.Equal(t, deleteNotice{}, got)
+	})
+
 	t.Run("skips an account that is still live", func(t *testing.T) {
 		live := deleteNotice{
 			Amount:    100,
 			Purchased: 100,
-			Accounts:  map[string]accountTokens{"cust-1": {Balance: 100, Purchased: 100}},
+			Accounts:  map[string]struct{}{"cust-1": {}},
 		}
 		got := recoverWith(t, []auditrecord.AuditRecord{deletedRecord("cust-1", forfeit)}, nil, live)
 		assert.Equal(t, live, got)

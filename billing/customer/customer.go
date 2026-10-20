@@ -135,3 +135,13 @@ func GetStripeWebhookSignatureFromContext(ctx context.Context) (string, bool) {
 	u, ok := ctx.Value(consts.BillingStripeWebhookSignatureContextKey).(string)
 	return u, ok
 }
+
+type DeleteOptions struct {
+	OrgTeardown bool
+}
+
+const (
+	DeleteRecordForfeitedTokensKey = "forfeited_tokens"
+	DeleteRecordPurchasedTokensKey = "purchased_tokens"
+	DeleteRecordOrgTeardownKey     = "org_teardown"
+)

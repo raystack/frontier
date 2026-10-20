@@ -159,7 +159,7 @@ func (h *ConnectHandler) ListBillingAccounts(ctx context.Context, request *conne
 }
 
 func (h *ConnectHandler) DeleteBillingAccount(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteBillingAccountRequest]) (*connect.Response[frontierv1beta1.DeleteBillingAccountResponse], error) {
-	err := h.customerService.Delete(ctx, request.Msg.GetId())
+	err := h.customerService.Delete(ctx, request.Msg.GetId(), customer.DeleteOptions{})
 	if err != nil {
 		return nil, mapBillingError(ctx, fmt.Errorf("DeleteBillingAccount.Delete: customer_id=%s: %w", request.Msg.GetId(), err))
 	}

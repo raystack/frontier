@@ -80,17 +80,17 @@ func (_c *CustomerService_Create_Call) RunAndReturn(run func(context.Context, cu
 	return _c
 }
 
-// Delete provides a mock function with given fields: ctx, id
-func (_m *CustomerService) Delete(ctx context.Context, id string) error {
-	ret := _m.Called(ctx, id)
+// Delete provides a mock function with given fields: ctx, id, opts
+func (_m *CustomerService) Delete(ctx context.Context, id string, opts customer.DeleteOptions) error {
+	ret := _m.Called(ctx, id, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, customer.DeleteOptions) error); ok {
+		r0 = rf(ctx, id, opts)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -106,13 +106,14 @@ type CustomerService_Delete_Call struct {
 // Delete is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *CustomerService_Expecter) Delete(ctx interface{}, id interface{}) *CustomerService_Delete_Call {
-	return &CustomerService_Delete_Call{Call: _e.mock.On("Delete", ctx, id)}
+//   - opts customer.DeleteOptions
+func (_e *CustomerService_Expecter) Delete(ctx interface{}, id interface{}, opts interface{}) *CustomerService_Delete_Call {
+	return &CustomerService_Delete_Call{Call: _e.mock.On("Delete", ctx, id, opts)}
 }
 
-func (_c *CustomerService_Delete_Call) Run(run func(ctx context.Context, id string)) *CustomerService_Delete_Call {
+func (_c *CustomerService_Delete_Call) Run(run func(ctx context.Context, id string, opts customer.DeleteOptions)) *CustomerService_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(customer.DeleteOptions))
 	})
 	return _c
 }
@@ -122,7 +123,7 @@ func (_c *CustomerService_Delete_Call) Return(_a0 error) *CustomerService_Delete
 	return _c
 }
 
-func (_c *CustomerService_Delete_Call) RunAndReturn(run func(context.Context, string) error) *CustomerService_Delete_Call {
+func (_c *CustomerService_Delete_Call) RunAndReturn(run func(context.Context, string, customer.DeleteOptions) error) *CustomerService_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }

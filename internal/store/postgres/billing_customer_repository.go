@@ -498,7 +498,7 @@ func (r BillingCustomerRepository) UpdateDetailsByID(ctx context.Context, custom
 	}, nil
 }
 
-func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error {
+func (r BillingCustomerRepository) Delete(ctx context.Context, id string, opts customer.DeleteOptions) error {
 	lockQuery, lockParams, err := fromLive(TABLE_BILLING_CUSTOMERS).
 		Select("id").
 		Where(goqu.Ex{"id": id}).
@@ -580,8 +580,9 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 				nil,
 				customerModel.OrgID,
 				map[string]any{
-					"forfeited_tokens": forfeitedTokens,
-					"purchased_tokens": purchasedTokens,
+					customer.DeleteRecordForfeitedTokensKey: forfeitedTokens,
+					customer.DeleteRecordPurchasedTokensKey: purchasedTokens,
+					customer.DeleteRecordOrgTeardownKey:     opts.OrgTeardown,
 				},
 				deletedAt,
 			)

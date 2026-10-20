@@ -521,7 +521,7 @@ func TestService_Delete(t *testing.T) {
 		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(-50), nil)
 		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
 
-		err := svc.Delete(ctx, "acc-1")
+		err := svc.Delete(ctx, "acc-1", customer.DeleteOptions{OrgTeardown: true})
 
 		assert.ErrorIs(t, err, customer.ErrHasTokenDebt)
 	})
@@ -534,7 +534,7 @@ func TestService_Delete(t *testing.T) {
 		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(true, nil)
 		svc := customer.NewService(slog.Default(), stripeClient, repo, billing.Config{}, creditSvc)
 
-		err := svc.Delete(ctx, "acc-1")
+		err := svc.Delete(ctx, "acc-1", customer.DeleteOptions{OrgTeardown: true})
 
 		assert.ErrorIs(t, err, customer.ErrHasLiveRecords)
 	})
@@ -546,9 +546,9 @@ func TestService_Delete(t *testing.T) {
 		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
 		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
 		stripeBackend.EXPECT().Call("DELETE", "/v1/customers/cus_1", "key_123", mock.Anything, mock.Anything).Return(nil)
-		repo.EXPECT().Delete(ctx, "acc-1").Return(nil)
+		repo.EXPECT().Delete(ctx, "acc-1", customer.DeleteOptions{}).Return(nil)
 		svc := customer.NewService(slog.Default(), stripeClient, repo, billing.Config{}, creditSvc)
 
-		require.NoError(t, svc.Delete(ctx, "acc-1"))
+		require.NoError(t, svc.Delete(ctx, "acc-1", customer.DeleteOptions{}))
 	})
 }
