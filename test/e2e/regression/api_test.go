@@ -3799,6 +3799,13 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteAlsoDeletesDisabledProjec
 	enabledGroupID := createGroup("enabled-group")
 	disabledGroupID := createGroup("disabled-group")
 
+	resourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+		ProjectId: disabledProjectID,
+		Body:      &frontierv1beta1.ResourceRequestBody{Name: "disabled-project-order", Namespace: computeOrderNamespace},
+	}))
+	s.Require().NoError(err)
+	disabledProjectResourceID := resourceResp.Msg.GetResource().GetId()
+
 	_, err = s.testBench.Client.DisableProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableProjectRequest{Id: disabledProjectID}))
 	s.Require().NoError(err)
 	_, err = s.testBench.Client.DisableGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableGroupRequest{Id: disabledGroupID}))
@@ -3881,6 +3888,16 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteAlsoDeletesDisabledProjec
 			s.Require().Error(err)
 			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
 		}
+	})
+
+	s.Run("the disabled project and its resource stay in the database marked deleted", func() {
+		var deletedProjects, deletedResources int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedProjects,
+			"SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NOT NULL", disabledProjectID))
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedResources,
+			"SELECT count(*) FROM resources WHERE id = $1 AND deleted_at IS NOT NULL", disabledProjectResourceID))
+		s.Assert().Equal(1, deletedProjects)
+		s.Assert().Equal(1, deletedResources)
 	})
 
 	s.Run("the org is gone, a second delete is refused", func() {

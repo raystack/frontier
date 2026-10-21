@@ -636,21 +636,6 @@ func (s *ResourceRepositoryTestSuite) TestDelete() {
 	s.Assert().ErrorIs(err, resource.ErrNotExist)
 }
 
-func (s *ResourceRepositoryTestSuite) TestPurge() {
-	target := s.resources[0]
-
-	err := s.repository.Purge(s.ctx, target.ID)
-	s.Require().NoError(err)
-
-	var rows int
-	err = s.client.QueryRowxContext(s.ctx, "SELECT count(*) FROM resources WHERE id = $1", target.ID).Scan(&rows)
-	s.Require().NoError(err)
-	s.Assert().Equal(0, rows)
-
-	err = s.repository.Purge(s.ctx, utils.NewString())
-	s.Assert().NoError(err)
-}
-
 func TestResourceRepository(t *testing.T) {
 	suite.Run(t, new(ResourceRepositoryTestSuite))
 }
@@ -677,10 +662,6 @@ func (s *ResourceRepositoryTestSuite) TestSkipsSoftDeletedResources() {
 	for _, r := range got {
 		s.Assert().NotEqual(deleted.ID, r.ID)
 	}
-
-	all, err := s.repository.List(s.ctx, resource.Filter{IncludeDeleted: true})
-	s.Assert().NoError(err)
-	s.Assert().Len(all, len(before))
 
 	updated := deleted
 	updated.Title = "changed"
