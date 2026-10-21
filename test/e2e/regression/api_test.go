@@ -1259,6 +1259,32 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().NoError(err)
 		s.Assert().False(checkUserStatus.Msg.GetStatus())
 
+		var deletedRows int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedRows,
+			"SELECT count(*) FROM groups WHERE id = $1 AND deleted_at IS NOT NULL", deletedGroupID))
+		s.Assert().Equal(1, deletedRows)
+
+		_, err = s.testBench.Client.GetGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetGroupRequest{Id: deletedGroupID}))
+		s.Require().Error(err)
+		s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+		_, err = s.testBench.Client.DeleteGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{Id: deletedGroupID}))
+		s.Require().Error(err)
+		s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+
+		recreateResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+			OrgId: myOrg.GetId(),
+			Body:  &frontierv1beta1.GroupRequestBody{Name: "group-11"},
+		}))
+		s.Require().NoError(err)
+		listResp, err := s.testBench.Client.ListOrganizationGroups(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationGroupsRequest{OrgId: myOrg.GetId()}))
+		s.Require().NoError(err)
+		listedIDs := []string{}
+		for _, g := range listResp.Msg.GetGroups() {
+			listedIDs = append(listedIDs, g.GetId())
+		}
+		s.Assert().Contains(listedIDs, recreateResp.Msg.GetGroup().GetId())
+		s.Assert().NotContains(listedIDs, deletedGroupID)
+
 		_, err = s.testBench.Client.DeleteProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
 			Id: groupPolicyProjResp.Msg.GetProject().GetId(),
 		}))
@@ -3732,6 +3758,15 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteAlsoDeletesDisabledProjec
 	s.Require().NotEmpty(disabledProjectPolicyIDs)
 	s.Require().NotEmpty(disabledGroupPolicyIDs)
 
+	_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+		Body: &frontierv1beta1.PolicyRequestBody{
+			RoleId:    schema.RoleOrganizationViewer,
+			Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+			Principal: schema.JoinNamespaceAndResourceID(schema.GroupPrincipal, disabledGroupID),
+		},
+	}))
+	s.Require().NoError(err)
+
 	enabledProjects, err := s.testBench.AdminClient.ListProjects(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListProjectsRequest{OrgId: orgID}))
 	s.Require().NoError(err)
 	s.Require().Len(enabledProjects.Msg.GetProjects(), 1)
@@ -3760,11 +3795,23 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteAlsoDeletesDisabledProjec
 		}
 	})
 
-	s.Run("no group row of the org is left, disabled ones included", func() {
+	s.Run("no group of the org is listed, disabled ones included", func() {
 		for _, state := range []string{"", "disabled"} {
 			resp, err := s.testBench.AdminClient.ListGroups(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListGroupsRequest{OrgId: orgID, State: state}))
 			s.Require().NoError(err)
 			s.Assert().Empty(resp.Msg.GetGroups(), "state %q", state)
+		}
+	})
+
+	s.Run("both groups stay in the database marked deleted, with no live policy on or naming them", func() {
+		for _, id := range []string{enabledGroupID, disabledGroupID} {
+			var deletedRows, livePolicies int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedRows,
+				"SELECT count(*) FROM groups WHERE id = $1 AND deleted_at IS NOT NULL", id))
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &livePolicies,
+				"SELECT count(*) FROM policies WHERE (resource_id = $1 OR principal_id = $1) AND deleted_at IS NULL", id))
+			s.Assert().Equal(1, deletedRows, "group %s", id)
+			s.Assert().Equal(0, livePolicies, "group %s", id)
 		}
 	})
 

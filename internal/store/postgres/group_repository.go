@@ -304,7 +304,7 @@ func (r GroupRepository) SetState(ctx context.Context, id string, state group.St
 }
 
 func (r GroupRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_GROUPS).Where(
+	query, params, err := softDelete(TABLE_GROUPS).Where(
 		goqu.Ex{
 			"id": id,
 		},
