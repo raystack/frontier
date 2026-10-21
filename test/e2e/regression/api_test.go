@@ -2351,6 +2351,21 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		s.Require().NoError(err)
 		resourceID := createResourceResp.Msg.GetResource().GetId()
 
+		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+			Title: "user_org_resource_4", Email: "user-org-resource-4@raystack.org", Name: "user_org_resource_4",
+		}}))
+		s.Require().NoError(err)
+		userID := userResp.Msg.GetUser().GetId()
+		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    computeManagerRoleName,
+				Resource:  schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userID),
+			},
+		}))
+		s.Require().NoError(err)
+		s.Require().Len(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}), 1)
+
 		_, err = s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
 			ProjectId: projectID,
 			Id:        resourceID,
@@ -2368,6 +2383,10 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		}))
 		s.Require().NoError(err)
 		s.Assert().Empty(listResp.Msg.GetResources())
+
+		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
+		_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: createPolicyResp.Msg.GetPolicy().GetId()}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
 
 		_, err = s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
 			ProjectId: projectID,
@@ -2616,6 +2635,15 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		_, err = s.testBench.Client.DeleteOrganizationResource(ctxMember, deleteRequest(resourceID))
 		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
 
+		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    computeManagerRoleName,
+				Resource:  schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, memberIDs[1]),
+			},
+		}))
+		s.Require().NoError(err)
+
 		_, err = s.testBench.Client.DeleteOrganizationResource(ctxCreator, deleteRequest(resourceID))
 		s.Require().NoError(err)
 
@@ -2629,6 +2657,9 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		}))
 		s.Require().NoError(err)
 		s.Assert().False(checkResp.Msg.GetStatus())
+
+		_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: createPolicyResp.Msg.GetPolicy().GetId()}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
 
 		recreateResp, err := s.testBench.Client.CreateOrganizationResource(ctxCreator, createRequest())
 		s.Require().NoError(err)

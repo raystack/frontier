@@ -120,6 +120,11 @@ func applyListFilter(stmt *goqu.SelectDataset, flt policy.Filter) *goqu.SelectDa
 			"resource_type": flt.ResourceType,
 		})
 	}
+	if flt.ResourceID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"resource_id": flt.ResourceID,
+		})
+	}
 	if flt.RoleID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"role_id": flt.RoleID,
