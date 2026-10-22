@@ -616,7 +616,7 @@ func (d Service) ensureDeletable(ctx context.Context, id string, customers []cus
 	paidPlans := map[string]bool{}
 
 	// the delete is about to happen, so judge invoices on fresh provider data
-	blockers, err := d.collectBlockers(ctx, customers, true, balances, paidPlans)
+	blockers, err := d.collectBlockers(ctx, id, customers, true, balances, paidPlans)
 	if err != nil {
 		return err
 	}
@@ -707,16 +707,17 @@ func (d Service) CheckOrganizationDelete(ctx context.Context, id string) ([]Bloc
 	if err != nil {
 		return nil, err
 	}
-	return d.collectBlockers(ctx, customers, false, nil, map[string]bool{})
+	return d.collectBlockers(ctx, id, customers, false, nil, map[string]bool{})
 }
 
 // collectBlockers gathers the blockers across the org's billing accounts:
 // running subscriptions on a paid plan, invoices that still ask for money,
-// and token debt. fromProvider judges the invoices on data read straight
+// and token debt. It also adds the resources the deletion config says block
+// an org delete. fromProvider judges the invoices on data read straight
 // from the billing provider instead of the local rows. balances carries
 // account balances the caller already read, nil means read them here; the
 // plan lookups land in the caller's paidPlans cache.
-func (d Service) collectBlockers(ctx context.Context, customers []customer.Customer, fromProvider bool, balances map[string]int64, paidPlans map[string]bool) ([]Blocker, error) {
+func (d Service) collectBlockers(ctx context.Context, orgID string, customers []customer.Customer, fromProvider bool, balances map[string]int64, paidPlans map[string]bool) ([]Blocker, error) {
 	var blockers []Blocker
 	for _, c := range customers {
 		if !c.IsOffline() {
@@ -756,7 +757,12 @@ func (d Service) collectBlockers(ctx context.Context, customers []customer.Custo
 			})
 		}
 	}
-	return blockers, nil
+
+	resourceBlockers, err := d.OrganizationResourceBlockers(ctx, orgID)
+	if err != nil {
+		return nil, err
+	}
+	return append(blockers, resourceBlockers...), nil
 }
 
 // subscriptionBlockers returns a blocker for every running subscription on a
