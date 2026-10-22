@@ -720,8 +720,6 @@ func TestDeleteOrganization(t *testing.T) {
 				{ID: "m1", NamespaceID: "compute/machine"},
 				{ID: "o1", NamespaceID: "compute/order"},
 			}, nil)
-		// strict mocks: the free-plan subscription must not be canceled and
-		// nothing may be deleted
 
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 
