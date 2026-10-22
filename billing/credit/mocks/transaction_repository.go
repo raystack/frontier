@@ -83,53 +83,6 @@ func (_c *TransactionRepository_CreateEntry_Call) RunAndReturn(run func(context.
 	return _c
 }
 
-// DeleteByAccountID provides a mock function with given fields: ctx, accountID
-func (_m *TransactionRepository) DeleteByAccountID(ctx context.Context, accountID string) error {
-	ret := _m.Called(ctx, accountID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteByAccountID")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = rf(ctx, accountID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// TransactionRepository_DeleteByAccountID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteByAccountID'
-type TransactionRepository_DeleteByAccountID_Call struct {
-	*mock.Call
-}
-
-// DeleteByAccountID is a helper method to define mock.On call
-//   - ctx context.Context
-//   - accountID string
-func (_e *TransactionRepository_Expecter) DeleteByAccountID(ctx interface{}, accountID interface{}) *TransactionRepository_DeleteByAccountID_Call {
-	return &TransactionRepository_DeleteByAccountID_Call{Call: _e.mock.On("DeleteByAccountID", ctx, accountID)}
-}
-
-func (_c *TransactionRepository_DeleteByAccountID_Call) Run(run func(ctx context.Context, accountID string)) *TransactionRepository_DeleteByAccountID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *TransactionRepository_DeleteByAccountID_Call) Return(_a0 error) *TransactionRepository_DeleteByAccountID_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *TransactionRepository_DeleteByAccountID_Call) RunAndReturn(run func(context.Context, string) error) *TransactionRepository_DeleteByAccountID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetBalance provides a mock function with given fields: ctx, id
 func (_m *TransactionRepository) GetBalance(ctx context.Context, id string) (int64, error) {
 	ret := _m.Called(ctx, id)

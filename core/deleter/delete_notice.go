@@ -6,20 +6,23 @@ import (
 	"fmt"
 	htmltemplate "html/template"
 	"log/slog"
-	"strconv"
 	texttemplate "text/template"
 
 	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/raystack/frontier/billing/customer"
-	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/rql"
 	"gopkg.in/mail.v2"
 )
+
+const forfeitRecordsLimit = 1000
 
 // plain fallbacks used when the config leaves the templates empty
 const (
@@ -42,20 +45,13 @@ type deleteNoticeData struct {
 	DeletedBy string
 }
 
-// accountTokens is what one billing account holds at delete time.
-type accountTokens struct {
-	Balance   int64
-	Purchased int64
-}
-
 // deleteNotice is everything sendDeleteNotices needs once the org is gone.
 // It has to be collected before teardown removes the owners and the token
-// balances. Accounts keeps the per-account numbers so the teardown can audit
-// them without reading the balances a second time.
+// balances. Accounts holds the ids of the live accounts that hold tokens.
 type deleteNotice struct {
 	Amount    int64
 	Purchased int64
-	Accounts  map[string]accountTokens
+	Accounts  map[string]struct{}
 	// Balances holds every account's balance, positive or not, so the
 	// blocker check can reuse the reads
 	Balances map[string]int64
@@ -72,7 +68,7 @@ type deleteNotice struct {
 // purchased share is settled with the customer.
 func (d Service) collectDeleteNotice(ctx context.Context, customers []customer.Customer) (deleteNotice, error) {
 	var total, purchased int64
-	accounts := make(map[string]accountTokens, len(customers))
+	accounts := make(map[string]struct{}, len(customers))
 	balances := make(map[string]int64, len(customers))
 	for _, c := range customers {
 		balance, err := d.creditService.GetBalance(ctx, c.ID)
@@ -87,7 +83,7 @@ func (d Service) collectDeleteNotice(ctx context.Context, customers []customer.C
 			}
 			total += balance
 			purchased += bought
-			accounts[c.ID] = accountTokens{Balance: balance, Purchased: bought}
+			accounts[c.ID] = struct{}{}
 		}
 	}
 	return deleteNotice{
@@ -128,27 +124,26 @@ func (d Service) resolveOwners(ctx context.Context, orgID string) []user.User {
 	return owners
 }
 
-// recoverForfeitFromAudit adds the forfeits a failed earlier teardown wrote
-// audit records for, so the retry that completes the delete still reports
-// them in the owner notice. It reconciles per billing account: only the
-// newest record per account counts (a retried teardown can write the same
-// forfeit twice), and an account that still holds a live balance is already
-// counted by the collection pass, so its records are skipped. Best-effort:
-// without a readable audit store the notice keeps only the live amounts.
+// recoverForfeitFromAudit adds the forfeits that billing_customer.deleted
+// audit records hold for accounts a failed earlier attempt already deleted,
+// so the retry still reports them in the owner notice. Best-effort: without
+// a readable audit store the notice keeps only the live amounts.
 func (d Service) recoverForfeitFromAudit(ctx context.Context, orgID string, notice *deleteNotice) {
-	logs, err := audit.GetService(ctx).List(ctx, audit.Filter{
-		OrgID:  orgID,
-		Action: string(audit.BillingTokensForfeitedEvent),
-	})
+	records, err := d.auditRecordService.List(ctx, utils.NewRQLQuery("", 0, forfeitRecordsLimit, []rql.Filter{
+		{Name: "event", Operator: "eq", Value: auditrecord.BillingCustomerDeletedEvent.String()},
+		{Name: "org_id", Operator: "eq", Value: orgID},
+	}, []rql.Sort{{Name: "occurred_at", Order: "desc"}}, nil))
 	if err != nil {
 		slog.WarnContext(ctx, "failed to check audit records for forfeited tokens", "org_id", orgID, "error", err)
 		return
 	}
-	// the list is newest first, so the first record per account wins
 	seen := map[string]struct{}{}
-	for _, l := range logs {
-		accountID := l.Target.ID
+	for _, record := range records.AuditRecords {
+		accountID := record.Resource.ID
 		if accountID == "" {
+			continue
+		}
+		if teardown, _ := record.Metadata[customer.DeleteRecordOrgTeardownKey].(bool); !teardown {
 			continue
 		}
 		if _, ok := seen[accountID]; ok {
@@ -158,32 +153,11 @@ func (d Service) recoverForfeitFromAudit(ctx context.Context, orgID string, noti
 		if _, live := notice.Accounts[accountID]; live {
 			continue
 		}
-		amount, _ := strconv.ParseInt(l.Metadata["amount"], 10, 64)
-		purchased, _ := strconv.ParseInt(l.Metadata["purchased"], 10, 64)
-		notice.Amount += amount
-		notice.Purchased += purchased
+		forfeited, _ := record.Metadata[customer.DeleteRecordForfeitedTokensKey].(float64)
+		purchased, _ := record.Metadata[customer.DeleteRecordPurchasedTokensKey].(float64)
+		notice.Amount += int64(forfeited)
+		notice.Purchased += int64(purchased)
 	}
-}
-
-// resolveAccountTokens returns one account's balance and purchased share,
-// from the caller's already-collected amounts when given, otherwise read
-// fresh.
-func (d Service) resolveAccountTokens(ctx context.Context, accountID string, amounts map[string]accountTokens) (accountTokens, error) {
-	if amounts != nil {
-		return amounts[accountID], nil
-	}
-	balance, err := d.creditService.GetBalance(ctx, accountID)
-	if err != nil {
-		return accountTokens{}, err
-	}
-	if balance <= 0 {
-		return accountTokens{Balance: balance}, nil
-	}
-	bought, err := d.purchasedTokens(ctx, accountID, balance)
-	if err != nil {
-		return accountTokens{}, err
-	}
-	return accountTokens{Balance: balance, Purchased: bought}, nil
 }
 
 // purchasedTokens returns how many of the account's remaining tokens came

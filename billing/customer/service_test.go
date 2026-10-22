@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/raystack/frontier/billing"
@@ -508,4 +509,46 @@ func TestService_List(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestService_Delete(t *testing.T) {
+	ctx := context.Background()
+	account := customer.Customer{ID: "acc-1", OrgID: "org-1"}
+
+	t.Run("refuses while the account owes tokens", func(t *testing.T) {
+		_, _, repo, creditSvc := mockService(t)
+		repo.EXPECT().GetByID(ctx, "acc-1").Return(account, nil)
+		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(-50), nil)
+		svc := customer.NewService(slog.Default(), nil, repo, billing.Config{}, creditSvc)
+
+		err := svc.Delete(ctx, "acc-1", customer.DeleteOptions{OrgTeardown: true})
+
+		assert.ErrorIs(t, err, customer.ErrHasTokenDebt)
+	})
+
+	t.Run("refuses before the billing provider is called while live records exist", func(t *testing.T) {
+		stripeClient, _, repo, creditSvc := mockService(t)
+		online := customer.Customer{ID: "acc-1", OrgID: "org-1", ProviderID: "cus_1"}
+		repo.EXPECT().GetByID(ctx, "acc-1").Return(online, nil)
+		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
+		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(true, nil)
+		svc := customer.NewService(slog.Default(), stripeClient, repo, billing.Config{}, creditSvc)
+
+		err := svc.Delete(ctx, "acc-1", customer.DeleteOptions{OrgTeardown: true})
+
+		assert.ErrorIs(t, err, customer.ErrHasLiveRecords)
+	})
+
+	t.Run("deletes the billing provider customer when no live records exist", func(t *testing.T) {
+		stripeClient, stripeBackend, repo, creditSvc := mockService(t)
+		online := customer.Customer{ID: "acc-1", OrgID: "org-1", ProviderID: "cus_1"}
+		repo.EXPECT().GetByID(ctx, "acc-1").Return(online, nil)
+		creditSvc.EXPECT().GetBalance(ctx, "acc-1").Return(int64(0), nil)
+		repo.EXPECT().HasLiveRecords(ctx, "acc-1").Return(false, nil)
+		stripeBackend.EXPECT().Call("DELETE", "/v1/customers/cus_1", "key_123", mock.Anything, mock.Anything).Return(nil)
+		repo.EXPECT().Delete(ctx, "acc-1", customer.DeleteOptions{}).Return(nil)
+		svc := customer.NewService(slog.Default(), stripeClient, repo, billing.Config{}, creditSvc)
+
+		require.NoError(t, svc.Delete(ctx, "acc-1", customer.DeleteOptions{}))
+	})
 }
