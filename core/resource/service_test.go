@@ -828,16 +828,43 @@ func TestDelete(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("keeps the resource when a policy delete fails", func(t *testing.T) {
+	t.Run("stops at the first failed policy delete and keeps the resource", func(t *testing.T) {
 		repo, _, _, projectSvc, _, _, _, policySvc, svc := newTestService(t)
 
 		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
 		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{proj}, nil)
-		policySvc.EXPECT().List(mock.Anything, resPolicies).Return([]policy.Policy{{ID: "pol-1"}}, nil)
+		policySvc.EXPECT().List(mock.Anything, resPolicies).Return([]policy.Policy{{ID: "pol-1"}, {ID: "pol-2"}}, nil)
 		policySvc.EXPECT().Delete(mock.Anything, "pol-1").Return(errors.New("spicedb down"))
 
 		err := svc.Delete(ctx, "resource/item", "r1")
 		assert.ErrorContains(t, err, "spicedb down")
+		policySvc.AssertNotCalled(t, "Delete", mock.Anything, "pol-2")
+	})
+
+	t.Run("keeps the resource when listing its policies fails", func(t *testing.T) {
+		repo, _, _, projectSvc, _, _, _, policySvc, svc := newTestService(t)
+
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{proj}, nil)
+		policySvc.EXPECT().List(mock.Anything, resPolicies).Return(nil, errors.New("db down"))
+
+		err := svc.Delete(ctx, "resource/item", "r1")
+		assert.ErrorContains(t, err, "db down")
+	})
+
+	t.Run("looks up the policies with the namespace stored on the resource", func(t *testing.T) {
+		repo, relationSvc, _, projectSvc, _, _, auditRepo, policySvc, svc := newTestService(t)
+
+		repo.EXPECT().GetByID(mock.Anything, "r1").Return(res, nil)
+		projectSvc.EXPECT().List(mock.Anything, lookup).Return([]project.Project{proj}, nil)
+		policySvc.EXPECT().List(mock.Anything, resPolicies).Return([]policy.Policy{}, nil)
+		relationSvc.EXPECT().Delete(mock.Anything, mock.Anything).Return(nil)
+		repo.EXPECT().Delete(mock.Anything, "r1").Return(nil)
+		auditRepo.EXPECT().Create(mock.Anything, mock.AnythingOfType("models.AuditRecord")).
+			Return(auditmodels.AuditRecord{}, nil)
+
+		err := svc.Delete(ctx, "resource/other", "r1")
+		assert.NoError(t, err)
 	})
 }
 

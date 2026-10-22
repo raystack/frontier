@@ -504,7 +504,7 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	if err != nil {
 		return err
 	}
-	if err := s.deletePolicies(ctx, namespaceID, id); err != nil {
+	if err := s.deletePolicies(ctx, res); err != nil {
 		return err
 	}
 
@@ -524,8 +524,8 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	return nil
 }
 
-func (s Service) deletePolicies(ctx context.Context, namespaceID, id string) error {
-	policies, err := s.policyService.List(ctx, policy.Filter{ResourceID: id, ResourceType: namespaceID})
+func (s Service) deletePolicies(ctx context.Context, res Resource) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{ResourceID: res.ID, ResourceType: res.NamespaceID})
 	if err != nil {
 		return fmt.Errorf("list resource policies: %w", err)
 	}

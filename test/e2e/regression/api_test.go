@@ -2352,7 +2352,7 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		resourceID := createResourceResp.Msg.GetResource().GetId()
 
 		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
-			Title: "user_org_resource_4", Email: "user-org-resource-4@raystack.org", Name: "user_org_resource_4",
+			Title: "user_proj_resource_4", Email: "user-proj-resource-4@raystack.org", Name: "user_proj_resource_4",
 		}}))
 		s.Require().NoError(err)
 		userID := userResp.Msg.GetUser().GetId()
@@ -2364,7 +2364,26 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 			},
 		}))
 		s.Require().NoError(err)
+		policyID := createPolicyResp.Msg.GetPolicy().GetId()
+		userCanUpdateResource := func() bool {
+			resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Resource:   schema.JoinNamespaceAndResourceID(computeOrderNamespace, resourceID),
+				Permission: schema.UpdatePermission,
+				Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userID),
+			}))
+			s.Require().NoError(err)
+			return resp.Msg.GetStatus()
+		}
+		liveRoleBindingRows := func() int {
+			var rows int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &rows,
+				"SELECT count(*) FROM relations WHERE object_namespace_name = $1 AND object_id = $2 AND deleted_at IS NULL",
+				schema.RoleBindingNamespace, policyID))
+			return rows
+		}
 		s.Require().Len(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}), 1)
+		s.Require().True(userCanUpdateResource())
+		s.Require().Equal(2, liveRoleBindingRows())
 
 		_, err = s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
 			ProjectId: projectID,
@@ -2385,8 +2404,10 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		s.Assert().Empty(listResp.Msg.GetResources())
 
 		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
-		_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: createPolicyResp.Msg.GetPolicy().GetId()}))
+		_, err = s.testBench.Client.GetPolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyID}))
 		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		s.Assert().False(userCanUpdateResource())
+		s.Assert().Zero(liveRoleBindingRows())
 
 		_, err = s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
 			ProjectId: projectID,
