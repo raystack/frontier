@@ -192,6 +192,21 @@ func TestDeleteProject(t *testing.T) {
 		assert.ErrorContains(t, err, "pol-fail")
 	})
 
+	t.Run("a policy that is already gone does not stop the delete", func(t *testing.T) {
+		m := newMocks(t)
+		expectProject(m)
+
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
+			Return([]policy.Policy{{ID: "pol-gone"}}, nil)
+		m.polSvc.EXPECT().Delete(mock.Anything, "pol-gone").Return(policy.ErrNotExist)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID, IncludeDeleted: true}).
+			Return([]resource.Resource{}, nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
+
+		err := m.build().DeleteProject(context.Background(), projectID)
+		assert.NoError(t, err)
+	})
+
 	t.Run("no policies — still deletes resources and project", func(t *testing.T) {
 		m := newMocks(t)
 		expectProject(m)
@@ -223,13 +238,13 @@ func TestDeleteProject(t *testing.T) {
 		assert.EqualError(t, err, "project cannot be deleted yet")
 	})
 
-	t.Run("returns not found when the project is gone", func(t *testing.T) {
+	t.Run("succeeds and removes nothing when no live project has the id", func(t *testing.T) {
 		m := newMocks(t)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
 			Return([]project.Project{}, nil)
 
 		err := m.build().DeleteProject(context.Background(), projectID)
-		assert.ErrorIs(t, err, project.ErrNotExist)
+		assert.NoError(t, err)
 	})
 
 	t.Run("rejects an id that is not a uuid", func(t *testing.T) {

@@ -228,7 +228,7 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 		return err
 	}
 	if len(projects) == 0 {
-		return project.ErrNotExist
+		return nil
 	}
 	blockers, err := d.ProjectResourceBlockers(ctx, id)
 	if err != nil {
@@ -240,8 +240,6 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 	return d.deleteProject(ctx, projects[0])
 }
 
-// deleteProject skips the blocker check, so the org delete can use it: what
-// blocks a project delete must not block an org delete.
 func (d Service) deleteProject(ctx context.Context, prj project.Project) error {
 	// delete all project-level policies (and their rolebinding relations)
 	policies, err := d.policyService.List(ctx, policy.Filter{
@@ -251,7 +249,7 @@ func (d Service) deleteProject(ctx context.Context, prj project.Project) error {
 		return err
 	}
 	for _, p := range policies {
-		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+		if err = d.policyService.Delete(ctx, p.ID); err != nil && !errors.Is(err, policy.ErrNotExist) {
 			return fmt.Errorf("failed to delete project while deleting a policy[%s]: %w", p.ID, err)
 		}
 	}
