@@ -11,50 +11,70 @@ const DEFAULT_WORDING: BlockerWording = {
   organizationLabel: 'organization'
 };
 
-// One sentence per blocker type the server can return.
-const BLOCKER_INSTRUCTIONS: Record<
+// A short label and one sentence per blocker type the server can return.
+const BLOCKERS: Record<
   string,
-  (count: number, wording: BlockerWording) => string
+  { label: string; instruction: (wording: BlockerWording) => string }
 > = {
-  ACTIVE_SUBSCRIPTION: (_, { organizationLabel, basePlanTitle }) =>
-    `Downgrade your current subscription and switch to the ${
-      basePlanTitle || 'standard plan'
-    } before deleting this ${organizationLabel}.`,
-  UNPAID_INVOICE: (count, { organizationLabel }) =>
-    count > 1
-      ? `Please pay your ${count} outstanding invoices before deleting this ${organizationLabel}.`
-      : `Please pay your outstanding invoice before deleting this ${organizationLabel}.`,
-  NEGATIVE_TOKEN_BALANCE: (_, { organizationLabel }) =>
-    `Please purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
+  ACTIVE_SUBSCRIPTION: {
+    label: 'Active subscription',
+    instruction: ({ organizationLabel, basePlanTitle }) =>
+      `Downgrade your subscription to the ${
+        basePlanTitle || 'standard plan'
+      } before deleting this ${organizationLabel}.`
+  },
+  UNPAID_INVOICE: {
+    label: 'Outstanding invoice',
+    instruction: ({ organizationLabel }) =>
+      `Pay all outstanding invoices before deleting this ${organizationLabel}.`
+  },
+  NEGATIVE_TOKEN_BALANCE: {
+    label: 'Negative token balance',
+    instruction: ({ organizationLabel }) =>
+      `Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
+  }
 };
 
 // Used for blocker types this version does not know.
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
-// Returns one sentence per blocker type. Same-type blockers are counted.
-export function instructionLines(
+export interface BlockerItem {
+  label?: string;
+  instruction: string;
+}
+
+// Returns one item per blocker type. Unknown types share one generic
+// item with no label. Empty blockers also give the generic item.
+export function blockerItems(
   blockers: { type: string }[],
   wording: BlockerWording = DEFAULT_WORDING
-): string[] {
-  const counts = new Map<string, number>();
-  for (const blocker of blockers) {
-    counts.set(blocker.type, (counts.get(blocker.type) ?? 0) + 1);
-  }
-  const lines: string[] = [];
+): BlockerItem[] {
+  const items: BlockerItem[] = [];
   let hasUnknown = false;
-  for (const [type, count] of counts) {
-    const instruction = BLOCKER_INSTRUCTIONS[type];
-    if (instruction) {
-      lines.push(instruction(count, wording));
+  for (const type of new Set(blockers.map(blocker => blocker.type))) {
+    const blocker = BLOCKERS[type];
+    if (blocker) {
+      items.push({
+        label: blocker.label,
+        instruction: blocker.instruction(wording)
+      });
     } else {
       hasUnknown = true;
     }
   }
-  if (hasUnknown) {
-    lines.push(GENERIC_DELETE_BLOCKED_MESSAGE);
+  if (hasUnknown || items.length === 0) {
+    items.push({ instruction: GENERIC_DELETE_BLOCKED_MESSAGE });
   }
-  return lines;
+  return items;
+}
+
+// Returns one sentence per blocker type.
+export function instructionLines(
+  blockers: { type: string }[],
+  wording: BlockerWording = DEFAULT_WORDING
+): string[] {
+  return blockerItems(blockers, wording).map(item => item.instruction);
 }
 
 // Reads the blockers from a failed_precondition error and returns the
@@ -84,10 +104,7 @@ export function deleteBlockedDescription(
           violation !== null &&
           typeof (violation as { type?: unknown }).type === 'string'
       );
-    const lines = instructionLines(blockers, wording);
-    if (lines.length > 0) {
-      return lines.join(' ');
-    }
+    return instructionLines(blockers, wording).join(' ');
   }
   return GENERIC_DELETE_BLOCKED_MESSAGE;
 }
