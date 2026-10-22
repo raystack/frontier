@@ -1266,10 +1266,10 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 
 		_, err = s.testBench.Client.GetGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetGroupRequest{Id: deletedGroupID}))
 		s.Require().Error(err)
-		s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
 		_, err = s.testBench.Client.DeleteGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{Id: deletedGroupID}))
 		s.Require().Error(err)
-		s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
 
 		recreateResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
 			OrgId: myOrg.GetId(),

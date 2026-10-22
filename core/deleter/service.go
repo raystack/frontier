@@ -339,6 +339,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, g := range groups {
 		if err = d.DeleteGroup(ctx, g.ID); err != nil {
+			if errors.Is(err, group.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Name, err)
 		}
 	}

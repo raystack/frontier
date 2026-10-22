@@ -437,6 +437,31 @@ func TestDeleteOrganization(t *testing.T) {
 		assert.Equal(t, []string{"resource:res-live", "org"}, steps)
 	})
 
+	t.Run("a group that is already gone is skipped and the rest are deleted before the org row", func(t *testing.T) {
+		m := newBareMocks(t)
+		var steps []string
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
+			Return([]group.Group{{ID: "grp-gone", Name: "gone"}, {ID: "grp-live", Name: "live"}}, nil)
+		m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-gone").Return(group.ErrNotExist)
+		m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-live").Return(nil)
+		m.grpSvc.EXPECT().DeleteModel(mock.Anything, "grp-live").
+			Run(func(_ context.Context, id string) { steps = append(steps, "group:"+id) }).Return(nil)
+		expectEmptyOrgTail(m, &steps)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"group:grp-live", "org"}, steps)
+	})
+
 	t.Run("a failed org resource delete stops before the org row", func(t *testing.T) {
 		m := newBareMocks(t)
 
