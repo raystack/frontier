@@ -47,6 +47,7 @@ const (
 	fixturesDir            = "testdata"
 	computeOrderNamespace  = "compute/order"
 	computeDiskNamespace   = "compute/disk"
+	computeVolumeNamespace = "compute/volume"
 	computeViewerRoleName  = "compute_order_viewer"
 	computeManagerRoleName = "compute_order_manager"
 )
@@ -105,7 +106,8 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 			Deletion: deleter.Config{
 				Enabled: true,
 				Resources: map[string]deleter.Rules{
-					computeOrderNamespace: {deleter.ParentProject: deleter.RuleBlock, deleter.ParentOrganization: deleter.RuleAllow},
+					computeOrderNamespace:  {deleter.ParentProject: deleter.RuleBlock, deleter.ParentOrganization: deleter.RuleAllow},
+					computeVolumeNamespace: {deleter.ParentProject: deleter.RuleAllow, deleter.ParentOrganization: deleter.RuleAllow},
 				},
 			},
 		},
@@ -127,6 +129,11 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 	adminCookie, err := testbench.AuthenticateUser(ctx, s.testBench.Client, testbench.OrgAdminEmail)
 	s.Require().NoError(err)
 	s.adminCookie = adminCookie
+
+	_, err = s.testBench.AdminClient.CreatePermission(testbench.ContextWithAuth(ctx, adminCookie), connect.NewRequest(&frontierv1beta1.CreatePermissionRequest{
+		Bodies: []*frontierv1beta1.PermissionRequestBody{{Key: "compute.volume.get"}},
+	}))
+	s.Require().NoError(err)
 
 	s.Require().NoError(testbench.BootstrapUsers(ctx, s.testBench.Client, adminCookie))
 	s.Require().NoError(testbench.BootstrapOrganizations(ctx, s.testBench.Client, adminCookie))
@@ -3930,6 +3937,13 @@ func (s *APIRegressionTestSuite) TestProjectDeleteKeepsTheRowAndRemovesAccess() 
 	projectID := createProjectResp.Msg.GetProject().GetId()
 	projectResource := schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID)
 
+	createResourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+		ProjectId: projectID,
+		Body:      &frontierv1beta1.ResourceRequestBody{Name: "project-soft-delete-volume", Namespace: computeVolumeNamespace},
+	}))
+	s.Require().NoError(err)
+	resourceID := createResourceResp.Msg.GetResource().GetId()
+
 	createUser := func(name string) string {
 		resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
 			Body: &frontierv1beta1.UserRequestBody{
@@ -4047,6 +4061,13 @@ func (s *APIRegressionTestSuite) TestProjectDeleteKeepsTheRowAndRemovesAccess() 
 		var deletedRows int
 		s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedRows,
 			"SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NOT NULL", projectID))
+		s.Assert().Equal(1, deletedRows)
+	})
+
+	s.Run("the project's resource stays in the database marked deleted", func() {
+		var deletedRows int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedRows,
+			"SELECT count(*) FROM resources WHERE id = $1 AND deleted_at IS NOT NULL", resourceID))
 		s.Assert().Equal(1, deletedRows)
 	})
 
