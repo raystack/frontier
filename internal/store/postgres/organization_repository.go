@@ -311,6 +311,23 @@ func buildOrgUpdateAuditRecord(ctx context.Context, orgBeforeUpdate, orgAfterUpd
 	return auditRecord
 }
 
+func buildOrgUpdateColumns(org organization.Organization) (goqu.Record, error) {
+	record := goqu.Record{
+		"title":      org.Title,
+		"avatar":     org.Avatar,
+		"updated_at": goqu.L("now()"),
+	}
+	if org.Metadata == nil {
+		return record, nil
+	}
+	marshaledMetadata, err := json.Marshal(org.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errParse, err)
+	}
+	record["metadata"] = marshaledMetadata
+	return record, nil
+}
+
 func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization.Organization) (organization.Organization, error) {
 	if strings.TrimSpace(org.ID) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
@@ -320,9 +337,9 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
-	marshaledMetadata, err := json.Marshal(org.Metadata)
+	updateRecord, err := buildOrgUpdateColumns(org)
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
+		return organization.Organization{}, err
 	}
 
 	// Query to fetch org title before update
@@ -333,13 +350,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
-		goqu.Record{
-			"title":      org.Title,
-			"avatar":     org.Avatar,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
+	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": org.ID,
 	}, live(TABLE_ORGANIZATIONS)).Returning(&Organization{}).ToSQL()
 	if err != nil {
@@ -391,9 +402,9 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	marshaledMetadata, err := json.Marshal(org.Metadata)
+	updateRecord, err := buildOrgUpdateColumns(org)
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
+		return organization.Organization{}, err
 	}
 
 	// Query to fetch org data before update
@@ -404,13 +415,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
-		goqu.Record{
-			"title":      org.Title,
-			"avatar":     org.Avatar,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(
+	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(updateRecord).Where(
 		goqu.Ex{
 			"name": org.Name,
 		}, live(TABLE_ORGANIZATIONS)).Returning(&Organization{}).ToSQL()
