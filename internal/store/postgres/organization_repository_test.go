@@ -383,6 +383,48 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 	}
 }
 
+func (s *OrganizationRepositoryTestSuite) TestUpdateMetadataHandling() {
+	type updateFn func(org organization.Organization) (organization.Organization, error)
+	updaters := map[string]updateFn{
+		"by id": func(org organization.Organization) (organization.Organization, error) {
+			return s.repository.UpdateByID(s.ctx, org)
+		},
+		"by name": func(org organization.Organization) (organization.Organization, error) {
+			return s.repository.UpdateByName(s.ctx, org)
+		},
+	}
+
+	for name, update := range updaters {
+		s.Run(name, func() {
+			created, err := s.repository.Create(s.ctx, organization.Organization{
+				Name:     "meta-handling-" + uuid.NewString()[:8],
+				Title:    "before",
+				Metadata: metadata.Metadata{"poc": "owner@example.com", "size": "10"},
+			})
+			s.Require().NoError(err)
+
+			s.Run("keeps stored metadata when metadata is nil", func() {
+				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after"})
+				s.Require().NoError(err)
+				s.Equal("after", got.Title)
+				s.Equal(metadata.Metadata{"poc": "owner@example.com", "size": "10"}, got.Metadata)
+			})
+
+			s.Run("replaces stored metadata when metadata is set", func() {
+				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
+				s.Require().NoError(err)
+				s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
+			})
+
+			s.Run("clears stored metadata when metadata is empty", func() {
+				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{}})
+				s.Require().NoError(err)
+				s.Equal(metadata.Metadata{}, got.Metadata)
+			})
+		})
+	}
+}
+
 func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 	type testCase struct {
 		Description          string
