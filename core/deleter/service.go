@@ -270,8 +270,14 @@ func (d Service) deleteProject(ctx context.Context, prj project.Project) error {
 		}
 	}
 
-	if err := d.projService.DeleteModel(ctx, prj.ID); err != nil && !errors.Is(err, project.ErrNotExist) {
+	if err := d.projService.DeleteModel(ctx, prj.ID); err != nil {
+		if errors.Is(err, project.ErrNotExist) {
+			return nil
+		}
 		return err
+	}
+	if err := audit.NewLogger(ctx, prj.Organization.ID).Log(audit.ProjectDeletedEvent, audit.ProjectTarget(prj.ID)); err != nil {
+		slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.ProjectDeletedEvent)
 	}
 	return nil
 }

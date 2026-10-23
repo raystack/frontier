@@ -164,9 +164,31 @@ func TestDeleteProject(t *testing.T) {
 		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(project.ErrNotExist)
+		repo := &fakeAuditRepository{}
 
-		err := m.build().DeleteProject(context.Background(), projectID)
+		err := m.build().DeleteProject(auditContext(repo), projectID)
 		assert.NoError(t, err)
+		assert.Empty(t, repo.logs)
+	})
+
+	t.Run("publishes the project deleted event with the project's org", func(t *testing.T) {
+		m := newMocks(t)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{{ID: projectID, Name: "p1", Organization: organization.Organization{ID: "org-1"}}}, nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{}, nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
+		repo := &fakeAuditRepository{}
+
+		err := m.build().DeleteProject(auditContext(repo), projectID)
+		assert.NoError(t, err)
+		if assert.Len(t, repo.logs, 1) {
+			assert.Equal(t, audit.ProjectDeletedEvent.String(), repo.logs[0].Action)
+			assert.Equal(t, "org-1", repo.logs[0].OrgID)
+			assert.Equal(t, audit.ProjectTarget(projectID), repo.logs[0].Target)
+		}
 	})
 
 	t.Run("a resource that is already gone does not stop the delete", func(t *testing.T) {

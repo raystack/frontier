@@ -3908,6 +3908,16 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteAlsoDeletesDisabledProjec
 		s.Assert().Equal(1, deletedResources)
 	})
 
+	s.Run("each project of the org is published as an app.project.deleted event", func() {
+		for _, id := range []string{enabledProjectID, disabledProjectID} {
+			var events int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &events,
+				"SELECT count(*) FROM auditlogs WHERE action = $1 AND org_id = $2 AND target->>'ID' = $3",
+				"app.project.deleted", orgID, id))
+			s.Assert().Equal(1, events, id)
+		}
+	})
+
 	s.Run("the org is gone, a second delete is refused", func() {
 		_, err := s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
 		s.Require().Error(err)
@@ -4070,6 +4080,14 @@ func (s *APIRegressionTestSuite) TestProjectDeleteKeepsTheRowAndRemovesAccess() 
 		s.Require().NoError(s.dbc.GetContext(context.Background(), &deletedRows,
 			"SELECT count(*) FROM resources WHERE id = $1 AND deleted_at IS NOT NULL", resourceID))
 		s.Assert().Equal(1, deletedRows)
+	})
+
+	s.Run("the delete is published as an app.project.deleted event", func() {
+		var events int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &events,
+			"SELECT count(*) FROM auditlogs WHERE action = $1 AND org_id = $2 AND target->>'ID' = $3",
+			"app.project.deleted", orgID, projectID))
+		s.Assert().Equal(1, events)
 	})
 
 	s.Run("a second delete is refused", func() {
