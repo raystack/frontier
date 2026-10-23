@@ -44,6 +44,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/mailer"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 )
 
@@ -219,22 +220,43 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 }
 
 func (d Service) DeleteProject(ctx context.Context, id string) error {
+	if !utils.IsValidUUID(id) {
+		return project.ErrInvalidUUID
+	}
+	projects, err := d.projService.List(ctx, project.Filter{ProjectIDs: []string{id}, IncludeDisabled: true})
+	if err != nil {
+		return err
+	}
+	if len(projects) == 0 {
+		return nil
+	}
+	blockers, err := d.ProjectResourceBlockers(ctx, id)
+	if err != nil {
+		return err
+	}
+	if len(blockers) > 0 {
+		return &BlockedError{ProjectID: id, Blockers: blockers}
+	}
+	return d.deleteProject(ctx, projects[0])
+}
+
+func (d Service) deleteProject(ctx context.Context, prj project.Project) error {
 	// delete all project-level policies (and their rolebinding relations)
 	policies, err := d.policyService.List(ctx, policy.Filter{
-		ProjectID: id,
+		ProjectID: prj.ID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, p := range policies {
-		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+		if err = d.policyService.Delete(ctx, p.ID); err != nil && !errors.Is(err, policy.ErrNotExist) {
 			return fmt.Errorf("failed to delete project while deleting a policy[%s]: %w", p.ID, err)
 		}
 	}
 
 	// TODO(fix): soft-delete the live resources instead of purging every row
 	resources, err := d.resService.List(ctx, resource.Filter{
-		ProjectID:      id,
+		ProjectID:      prj.ID,
 		IncludeDeleted: true,
 	})
 	if err != nil {
@@ -246,7 +268,7 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 		}
 	}
 
-	if err := d.projService.DeleteModel(ctx, id); err != nil && !errors.Is(err, project.ErrNotExist) {
+	if err := d.projService.DeleteModel(ctx, prj.ID); err != nil && !errors.Is(err, project.ErrNotExist) {
 		return err
 	}
 	return nil
@@ -319,7 +341,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return err
 	}
 	for _, p := range projects {
-		if err = d.DeleteProject(ctx, p.ID); err != nil {
+		if err = d.deleteProject(ctx, p); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a project[%s]: %w", p.Name, err)
 		}
 	}

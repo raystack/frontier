@@ -14,7 +14,9 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
+	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/pkg/webhook"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 
 	"github.com/raystack/frontier/core/organization"
 
@@ -99,6 +101,12 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 					Validity: 10 * time.Minute,
 				},
 				TestUsers: testusers.Config{Enabled: true, Domain: "raystack.org", OTP: testbench.TestOTP},
+			},
+			Deletion: deleter.Config{
+				Enabled: true,
+				Resources: map[string]deleter.Rules{
+					computeOrderNamespace: {deleter.ParentProject: deleter.RuleBlock, deleter.ParentOrganization: deleter.RuleAllow},
+				},
 			},
 		},
 	}
@@ -4041,6 +4049,74 @@ func (s *APIRegressionTestSuite) TestProjectDeleteKeepsTheRowAndRemovesAccess() 
 		}))
 		s.Require().NoError(err)
 		s.Assert().NotEqual(projectID, recreateResp.Msg.GetProject().GetId())
+	})
+}
+
+func (s *APIRegressionTestSuite) TestProjectDeleteRefusedWhileResourcesBlock() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Title: "org project delete blockers",
+			Name:  "org-project-delete-blockers",
+		},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	createProjectWithOrder := func(name string) (string, string) {
+		projectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: name, OrgId: orgID},
+		}))
+		s.Require().NoError(err)
+		projectID := projectResp.Msg.GetProject().GetId()
+		resourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectID,
+			Body:      &frontierv1beta1.ResourceRequestBody{Name: name + "-order", Namespace: computeOrderNamespace},
+		}))
+		s.Require().NoError(err)
+		return projectID, resourceResp.Msg.GetResource().GetId()
+	}
+	deleteProject := func(id string) error {
+		_, err := s.testBench.Client.DeleteProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{Id: id}))
+		return err
+	}
+	emptiedID, orderID := createProjectWithOrder("project-blockers-emptied")
+	keptID, _ := createProjectWithOrder("project-blockers-kept")
+
+	s.Run("a project with a blocking resource is refused with the blocker", func() {
+		err := deleteProject(emptiedID)
+		var connectErr *connect.Error
+		s.Require().ErrorAs(err, &connectErr)
+		s.Assert().Equal(connect.CodeFailedPrecondition, connectErr.Code())
+		s.Assert().Equal("project cannot be deleted yet", connectErr.Message())
+
+		s.Require().Len(connectErr.Details(), 1)
+		detail, err := connectErr.Details()[0].Value()
+		s.Require().NoError(err)
+		failure, ok := detail.(*errdetails.PreconditionFailure)
+		s.Require().True(ok)
+		s.Require().Len(failure.GetViolations(), 1)
+		s.Assert().Equal(deleter.BlockerResourcesExist, failure.GetViolations()[0].GetType())
+		s.Assert().Equal(computeOrderNamespace, failure.GetViolations()[0].GetSubject())
+
+		_, err = s.testBench.Client.GetProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetProjectRequest{Id: emptiedID}))
+		s.Assert().NoError(err)
+	})
+
+	s.Run("the project can be deleted once the resource is gone", func() {
+		_, err := s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+			ProjectId: emptiedID,
+			Id:        orderID,
+		}))
+		s.Require().NoError(err)
+		s.Assert().NoError(deleteProject(emptiedID))
+	})
+
+	s.Run("the org can be deleted while its project still holds the resource", func() {
+		s.Require().Error(deleteProject(keptID))
+		_, err := s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+		s.Assert().NoError(err)
 	})
 }
 
