@@ -507,6 +507,8 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]customer.Customer{}, nil)
 		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
 			Return([]project.Project{{ID: "proj-1", Name: "p1"}}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{{ID: "m1", NamespaceID: "compute/machine", Name: "machine-1"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
 		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
@@ -693,6 +695,57 @@ func TestDeleteOrganization(t *testing.T) {
 			deleter.BlockerUnpaidInvoice,
 			deleter.BlockerNegativeTokenBalance,
 		}, types)
+	})
+
+	t.Run("resources that block an org delete stop it before the subscription is canceled", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-free"}}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{{ID: "t1", NamespaceID: "storage/transfer"}}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{{ID: "proj-1"}}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{
+				{ID: "m1", NamespaceID: "compute/machine"},
+				{ID: "o1", NamespaceID: "compute/order"},
+			}, nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Equal(t, "org-1", blocked.OrgID)
+		assert.Equal(t, []deleter.Blocker{
+			resourcesExist("compute/order", 1),
+			resourcesExist("storage/transfer", 1),
+		}, blocked.Blockers)
+		assert.EqualError(t, err, "organization cannot be deleted yet")
+	})
+
+	t.Run("a failed resource check stops the delete before anything changes", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return(nil, errors.New("db error"))
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.ErrorContains(t, err, "failed to list resources of organization[org-1]: db error")
 	})
 
 	t.Run("paid plan subscription blocks until the caller downgrades", func(t *testing.T) {
@@ -1409,6 +1462,41 @@ func TestCheckOrganizationDelete(t *testing.T) {
 			deleter.SubjectInvoice,
 			deleter.SubjectBillingAccount,
 		}, subjectTypes)
+	})
+
+	t.Run("reports the resource blockers with their counts after the billing ones", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-paid"}}, nil)
+		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1", NonZeroOnly: true}).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{{ID: "t1", NamespaceID: "storage/transfer"}}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{{ID: "proj-1"}}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{
+				{ID: "o1", NamespaceID: "compute/order"},
+				{ID: "o2", NamespaceID: "compute/order"},
+			}, nil)
+
+		blockers, err := m.build().CheckOrganizationDelete(context.Background(), "org-1")
+		assert.NoError(t, err)
+		if assert.Len(t, blockers, 3) {
+			assert.Equal(t, deleter.BlockerActiveSubscription, blockers[0].Type)
+			assert.Equal(t, []deleter.Blocker{
+				resourcesExist("compute/order", 2),
+				resourcesExist("storage/transfer", 1),
+			}, blockers[1:])
+		}
 	})
 
 	t.Run("returns empty when there are no blockers", func(t *testing.T) {

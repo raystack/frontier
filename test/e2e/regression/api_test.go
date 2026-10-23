@@ -107,6 +107,7 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 				Enabled: true,
 				Resources: map[string]deleter.Rules{
 					computeOrderNamespace:  {deleter.ParentProject: deleter.RuleBlock, deleter.ParentOrganization: deleter.RuleAllow},
+					computeDiskNamespace:   {deleter.ParentProject: deleter.RuleBlock, deleter.ParentOrganization: deleter.RuleBlockUnlessDeletable},
 					computeVolumeNamespace: {deleter.ParentProject: deleter.RuleAllow, deleter.ParentOrganization: deleter.RuleAllow},
 				},
 			},
@@ -4171,6 +4172,126 @@ func (s *APIRegressionTestSuite) TestProjectDeleteRefusedWhileResourcesBlock() {
 		s.Require().Error(deleteProject(keptID))
 		_, err := s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
 		s.Assert().NoError(err)
+	})
+}
+
+func (s *APIRegressionTestSuite) TestOrganizationDeleteRefusedWhileResourcesBlock() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Title: "org delete blockers",
+			Name:  "org-delete-blockers",
+		},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	projectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{Name: "org-delete-blockers-project", OrgId: orgID},
+	}))
+	s.Require().NoError(err)
+	projectID := projectResp.Msg.GetProject().GetId()
+
+	createDisk := func(name string, metadata *structpb.Struct) string {
+		resp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectID,
+			Body:      &frontierv1beta1.ResourceRequestBody{Name: name, Namespace: computeDiskNamespace, Metadata: metadata},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetResource().GetId()
+	}
+	blockingDiskID := createDisk("disk-in-use", nil)
+	createDisk("disk-deletable", &structpb.Struct{Fields: map[string]*structpb.Value{
+		"deletable": structpb.NewBoolValue(true),
+	}})
+
+	orgDiskResp, err := s.testBench.Client.CreateOrganizationResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationResourceRequest{
+		OrgId: orgID,
+		Body:  &frontierv1beta1.ResourceRequestBody{Name: "org-disk-in-use", Namespace: computeDiskNamespace},
+	}))
+	s.Require().NoError(err)
+	orgDiskID := orgDiskResp.Msg.GetResource().GetId()
+
+	deleteOrg := func() error {
+		_, err := s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+		return err
+	}
+	checkOrg := func() *frontierv1beta1.CheckOrganizationDeleteResponse {
+		resp, err := s.testBench.Client.CheckOrganizationDelete(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckOrganizationDeleteRequest{Id: orgID}))
+		s.Require().NoError(err)
+		return resp.Msg
+	}
+
+	s.Run("the check counts the project's and the org's own resources not marked deletable", func() {
+		resp := checkOrg()
+		s.Assert().False(resp.GetCanDelete())
+		s.Require().Len(resp.GetBlockers(), 1)
+		s.Assert().Equal(deleter.BlockerResourcesExist, resp.GetBlockers()[0].GetType())
+		s.Assert().Equal(computeDiskNamespace, resp.GetBlockers()[0].GetSubject())
+		s.Assert().Equal(deleter.SubjectResourceNamespace, resp.GetBlockers()[0].GetSubjectType())
+		s.Assert().Equal(int32(2), resp.GetBlockers()[0].GetCount())
+	})
+
+	s.Run("the org delete is refused with the blocker and nothing is removed", func() {
+		err := deleteOrg()
+		var connectErr *connect.Error
+		s.Require().ErrorAs(err, &connectErr)
+		s.Assert().Equal(connect.CodeFailedPrecondition, connectErr.Code())
+		s.Assert().Equal("organization cannot be deleted yet", connectErr.Message())
+
+		s.Require().Len(connectErr.Details(), 1)
+		detail, err := connectErr.Details()[0].Value()
+		s.Require().NoError(err)
+		failure, ok := detail.(*errdetails.PreconditionFailure)
+		s.Require().True(ok)
+		s.Require().Len(failure.GetViolations(), 1)
+		s.Assert().Equal(deleter.BlockerResourcesExist, failure.GetViolations()[0].GetType())
+		s.Assert().Equal(computeDiskNamespace, failure.GetViolations()[0].GetSubject())
+
+		_, err = s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{Id: orgID}))
+		s.Assert().NoError(err)
+		_, err = s.testBench.Client.GetProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetProjectRequest{Id: projectID}))
+		s.Assert().NoError(err)
+		_, err = s.testBench.Client.GetProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetProjectResourceRequest{
+			ProjectId: projectID,
+			Id:        blockingDiskID,
+		}))
+		s.Assert().NoError(err)
+
+		var liveOrgDisks int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &liveOrgDisks,
+			"SELECT count(*) FROM resources WHERE id = $1 AND deleted_at IS NULL", orgDiskID))
+		s.Assert().Equal(1, liveOrgDisks)
+	})
+
+	s.Run("the org's own resource still blocks once the project's blocking resource is gone", func() {
+		_, err := s.testBench.Client.DeleteProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+			ProjectId: projectID,
+			Id:        blockingDiskID,
+		}))
+		s.Require().NoError(err)
+
+		resp := checkOrg()
+		s.Assert().False(resp.GetCanDelete())
+		s.Require().Len(resp.GetBlockers(), 1)
+		s.Assert().Equal(computeDiskNamespace, resp.GetBlockers()[0].GetSubject())
+		s.Assert().Equal(int32(1), resp.GetBlockers()[0].GetCount())
+		s.Assert().Equal(connect.CodeFailedPrecondition, connect.CodeOf(deleteOrg()))
+	})
+
+	s.Run("the org can be deleted once no blocking resource is left, while the project rule still refuses", func() {
+		_, err := s.testBench.Client.DeleteOrganizationResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationResourceRequest{
+			Id:    orgDiskID,
+			OrgId: orgID,
+		}))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.DeleteProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{Id: projectID}))
+		s.Assert().Equal(connect.CodeFailedPrecondition, connect.CodeOf(err))
+
+		s.Assert().True(checkOrg().GetCanDelete())
+		s.Assert().NoError(deleteOrg())
 	})
 }
 
