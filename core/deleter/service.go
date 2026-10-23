@@ -219,16 +219,20 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	}
 }
 
-func (d Service) DeleteProject(ctx context.Context, id string) error {
-	if !utils.IsValidUUID(id) {
-		return project.ErrInvalidUUID
+func (d Service) CheckProjectDelete(ctx context.Context, id string) ([]Blocker, error) {
+	if _, err := d.getProject(ctx, id); err != nil {
+		return nil, err
 	}
-	projects, err := d.projService.List(ctx, project.Filter{ProjectIDs: []string{id}, IncludeDisabled: true})
+	return d.ProjectResourceBlockers(ctx, id)
+}
+
+func (d Service) DeleteProject(ctx context.Context, id string) error {
+	prj, err := d.getProject(ctx, id)
+	if errors.Is(err, project.ErrNotExist) {
+		return nil
+	}
 	if err != nil {
 		return err
-	}
-	if len(projects) == 0 {
-		return nil
 	}
 	blockers, err := d.ProjectResourceBlockers(ctx, id)
 	if err != nil {
@@ -237,7 +241,7 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 	if len(blockers) > 0 {
 		return &BlockedError{ProjectID: id, Blockers: blockers}
 	}
-	return d.deleteProject(ctx, projects[0])
+	return d.deleteProject(ctx, prj)
 }
 
 func (d Service) deleteProject(ctx context.Context, prj project.Project) error {
@@ -568,6 +572,20 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 
 func (d Service) listOrgProjects(ctx context.Context, orgID string) ([]project.Project, error) {
 	return d.projService.List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true})
+}
+
+func (d Service) getProject(ctx context.Context, id string) (project.Project, error) {
+	if !utils.IsValidUUID(id) {
+		return project.Project{}, project.ErrInvalidUUID
+	}
+	projects, err := d.projService.List(ctx, project.Filter{ProjectIDs: []string{id}, IncludeDisabled: true})
+	if err != nil {
+		return project.Project{}, err
+	}
+	if len(projects) == 0 {
+		return project.Project{}, project.ErrNotExist
+	}
+	return projects[0], nil
 }
 
 func (d Service) listOrgGroups(ctx context.Context, orgID string) ([]group.Group, error) {

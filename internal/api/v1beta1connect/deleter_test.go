@@ -254,3 +254,51 @@ func TestHandler_CheckOrganizationDelete(t *testing.T) {
 		assert.Equal(t, connect.NewError(connect.CodeNotFound, organization.ErrNotExist), err)
 	})
 }
+
+func TestHandler_CheckProjectDelete(t *testing.T) {
+	t.Run("should report the blockers with their count and can_delete false", func(t *testing.T) {
+		mockDel := new(mocks.CascadeDeleter)
+		mockDel.EXPECT().CheckProjectDelete(mock.Anything, "some-id").Return([]deleter.Blocker{
+			{Type: deleter.BlockerResourcesExist, Subject: "compute/order", SubjectType: deleter.SubjectResourceNamespace, Count: 2},
+		}, nil)
+		mockDep := &ConnectHandler{deleterService: mockDel}
+
+		resp, err := mockDep.CheckProjectDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckProjectDeleteRequest{
+			Id: "some-id",
+		}))
+		assert.NoError(t, err)
+		assert.False(t, resp.Msg.GetCanDelete())
+		assert.Len(t, resp.Msg.GetBlockers(), 1)
+		assert.Equal(t, deleter.BlockerResourcesExist, resp.Msg.GetBlockers()[0].GetType())
+		assert.Equal(t, "compute/order", resp.Msg.GetBlockers()[0].GetSubject())
+		assert.Equal(t, deleter.SubjectResourceNamespace, resp.Msg.GetBlockers()[0].GetSubjectType())
+		assert.Equal(t, int32(2), resp.Msg.GetBlockers()[0].GetCount())
+	})
+
+	t.Run("should report can_delete true when nothing blocks", func(t *testing.T) {
+		mockDel := new(mocks.CascadeDeleter)
+		mockDel.EXPECT().CheckProjectDelete(mock.Anything, "some-id").Return(nil, nil)
+		mockDep := &ConnectHandler{deleterService: mockDel}
+
+		resp, err := mockDep.CheckProjectDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckProjectDeleteRequest{
+			Id: "some-id",
+		}))
+		assert.NoError(t, err)
+		assert.True(t, resp.Msg.GetCanDelete())
+		assert.Empty(t, resp.Msg.GetBlockers())
+	})
+
+	t.Run("should return not found for a missing project or a name", func(t *testing.T) {
+		for _, notFound := range []error{project.ErrNotExist, project.ErrInvalidUUID} {
+			mockDel := new(mocks.CascadeDeleter)
+			mockDel.EXPECT().CheckProjectDelete(mock.Anything, "some-id").Return(nil, notFound)
+			mockDep := &ConnectHandler{deleterService: mockDel}
+
+			resp, err := mockDep.CheckProjectDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckProjectDeleteRequest{
+				Id: "some-id",
+			}))
+			assert.Nil(t, resp)
+			assert.Equal(t, connect.NewError(connect.CodeNotFound, ErrProjectNotFound), err)
+		}
+	})
+}

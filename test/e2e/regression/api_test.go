@@ -4081,8 +4081,23 @@ func (s *APIRegressionTestSuite) TestProjectDeleteRefusedWhileResourcesBlock() {
 		_, err := s.testBench.Client.DeleteProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{Id: id}))
 		return err
 	}
+	checkProject := func(id string) *frontierv1beta1.CheckProjectDeleteResponse {
+		resp, err := s.testBench.Client.CheckProjectDelete(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckProjectDeleteRequest{Id: id}))
+		s.Require().NoError(err)
+		return resp.Msg
+	}
 	emptiedID, orderID := createProjectWithOrder("project-blockers-emptied")
 	keptID, _ := createProjectWithOrder("project-blockers-kept")
+
+	s.Run("the check reports the blocker with its count", func() {
+		resp := checkProject(emptiedID)
+		s.Assert().False(resp.GetCanDelete())
+		s.Require().Len(resp.GetBlockers(), 1)
+		s.Assert().Equal(deleter.BlockerResourcesExist, resp.GetBlockers()[0].GetType())
+		s.Assert().Equal(computeOrderNamespace, resp.GetBlockers()[0].GetSubject())
+		s.Assert().Equal(deleter.SubjectResourceNamespace, resp.GetBlockers()[0].GetSubjectType())
+		s.Assert().Equal(int32(1), resp.GetBlockers()[0].GetCount())
+	})
 
 	s.Run("a project with a blocking resource is refused with the blocker", func() {
 		err := deleteProject(emptiedID)
@@ -4110,6 +4125,7 @@ func (s *APIRegressionTestSuite) TestProjectDeleteRefusedWhileResourcesBlock() {
 			Id:        orderID,
 		}))
 		s.Require().NoError(err)
+		s.Assert().True(checkProject(emptiedID).GetCanDelete())
 		s.Assert().NoError(deleteProject(emptiedID))
 	})
 

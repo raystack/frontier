@@ -255,6 +255,59 @@ func TestDeleteProject(t *testing.T) {
 	})
 }
 
+func TestCheckProjectDelete(t *testing.T) {
+	projectID := uuid.NewString()
+	expectProject := func(m deleterMocks) {
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{{ID: projectID, Name: "p1"}}, nil)
+	}
+
+	t.Run("returns the blockers and removes nothing", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		expectProject(m)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{
+				{ID: "m1", NamespaceID: "compute/machine"},
+				{ID: "m2", NamespaceID: "compute/machine"},
+			}, nil)
+
+		blockers, err := m.build().CheckProjectDelete(context.Background(), projectID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, []deleter.Blocker{resourcesExist("compute/machine", 2)}, blockers)
+	})
+
+	t.Run("returns no blockers when nothing blocks", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		expectProject(m)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{{ID: "f1", NamespaceID: "storage/file"}}, nil)
+
+		blockers, err := m.build().CheckProjectDelete(context.Background(), projectID)
+
+		assert.NoError(t, err)
+		assert.Empty(t, blockers)
+	})
+
+	t.Run("returns not found when the project is gone", func(t *testing.T) {
+		m := newMocks(t)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{}, nil)
+
+		_, err := m.build().CheckProjectDelete(context.Background(), projectID)
+		assert.ErrorIs(t, err, project.ErrNotExist)
+	})
+
+	t.Run("rejects an id that is not a uuid", func(t *testing.T) {
+		m := newMocks(t)
+
+		_, err := m.build().CheckProjectDelete(context.Background(), "p1")
+		assert.ErrorIs(t, err, project.ErrInvalidUUID)
+	})
+}
+
 func expectEmptyOrgTail(m deleterMocks, steps *[]string) {
 	m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
 		Return([]serviceuser.ServiceUser{}, nil)
