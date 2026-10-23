@@ -504,6 +504,9 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	if err != nil {
 		return err
 	}
+	if err := s.deletePolicies(ctx, res); err != nil {
+		return err
+	}
 
 	if err := s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
@@ -518,6 +521,19 @@ func (s Service) Delete(ctx context.Context, namespaceID, id string) error {
 	}
 
 	s.createAuditRecord(ctx, pkgauditrecord.ResourceDeletedEvent, res, p)
+	return nil
+}
+
+func (s Service) deletePolicies(ctx context.Context, res Resource) error {
+	policies, err := s.policyService.List(ctx, policy.Filter{ResourceID: res.ID, ResourceType: res.NamespaceID})
+	if err != nil {
+		return fmt.Errorf("list resource policies: %w", err)
+	}
+	for _, pol := range policies {
+		if err := s.policyService.Delete(ctx, pol.ID); err != nil && !errors.Is(err, policy.ErrNotExist) {
+			return fmt.Errorf("delete resource policy %s: %w", pol.ID, err)
+		}
+	}
 	return nil
 }
 
