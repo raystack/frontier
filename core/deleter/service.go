@@ -356,6 +356,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, su := range serviceUsers {
 		if err = d.serviceUserService.Delete(ctx, su.ID); err != nil {
+			if errors.Is(err, serviceuser.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a service user[%s]: %w", su.ID, err)
 		}
 	}
@@ -404,6 +407,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, p := range policies {
 		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+			if errors.Is(err, policy.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a policy[%s]: %w", p.ID, err)
 		}
 	}
@@ -417,6 +423,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, p := range roles {
 		if err = d.roleService.Delete(ctx, p.ID); err != nil {
+			if errors.Is(err, role.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a role[%s]: %w", p.Name, err)
 		}
 	}
