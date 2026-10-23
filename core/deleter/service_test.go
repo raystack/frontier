@@ -142,9 +142,9 @@ func TestDeleteProject(t *testing.T) {
 		m.polSvc.EXPECT().Delete(mock.Anything, "pol-2").
 			Run(func(_ context.Context, id string) { steps = append(steps, "policy:"+id) }).Return(nil)
 
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID, IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{{ID: "res-1", NamespaceID: "ns-1", Name: "r1"}}, nil)
-		m.resSvc.EXPECT().Purge(mock.Anything, "ns-1", "res-1").
+		m.resSvc.EXPECT().Delete(mock.Anything, "ns-1", "res-1").
 			Run(func(_ context.Context, _ string, id string) { steps = append(steps, "resource:"+id) }).Return(nil)
 
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).
@@ -161,9 +161,24 @@ func TestDeleteProject(t *testing.T) {
 
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID, IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(project.ErrNotExist)
+
+		err := m.build().DeleteProject(context.Background(), projectID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("a resource that is already gone does not stop the delete", func(t *testing.T) {
+		m := newMocks(t)
+		expectProject(m)
+
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{{ID: "res-1", NamespaceID: "ns-1", Name: "r1"}}, nil)
+		m.resSvc.EXPECT().Delete(mock.Anything, "ns-1", "res-1").Return(resource.ErrNotExist)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
 
 		err := m.build().DeleteProject(context.Background(), projectID)
 		assert.NoError(t, err)
@@ -199,7 +214,7 @@ func TestDeleteProject(t *testing.T) {
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return([]policy.Policy{{ID: "pol-gone"}}, nil)
 		m.polSvc.EXPECT().Delete(mock.Anything, "pol-gone").Return(policy.ErrNotExist)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID, IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
 
@@ -213,7 +228,7 @@ func TestDeleteProject(t *testing.T) {
 
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID, IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
 
@@ -372,7 +387,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-1", Name: "p1"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
@@ -456,7 +471,7 @@ func TestDeleteOrganization(t *testing.T) {
 		for _, id := range []string{"proj-on", "proj-off"} {
 			m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: id}).
 				Return([]policy.Policy{}, nil)
-			m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: id, IncludeDeleted: true}).
+			m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: id}).
 				Return([]resource.Resource{}, nil)
 			m.projSvc.EXPECT().DeleteModel(mock.Anything, id).
 				Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
@@ -494,9 +509,9 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-1", Name: "p1"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
 			Return([]resource.Resource{{ID: "m1", NamespaceID: "compute/machine", Name: "machine-1"}}, nil)
-		m.resSvc.EXPECT().Purge(mock.Anything, "compute/machine", "m1").Return(nil)
+		m.resSvc.EXPECT().Delete(mock.Anything, "compute/machine", "m1").Return(nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").
 			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
 		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
@@ -523,7 +538,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-on", Name: "on"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-on"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-on", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-on"}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-on").
 			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
@@ -553,7 +568,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-off", Name: "off", State: project.Disabled}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-off"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-off", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-off"}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-off").Return(errors.New("boom"))
 		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
