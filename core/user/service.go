@@ -160,6 +160,9 @@ func (s Service) Disable(ctx context.Context, id string) error {
 // Delete by user uuid
 // don't call this directly, use cascade deleter
 func (s Service) Delete(ctx context.Context, id string) error {
+	if err := s.sessionService.DeleteByUserID(ctx, id); err != nil {
+		return err
+	}
 	if err := s.relationService.Delete(ctx, relation.Relation{Subject: relation.Subject{
 		ID:        id,
 		Namespace: schema.UserPrincipal,
