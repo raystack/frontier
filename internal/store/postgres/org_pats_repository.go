@@ -141,9 +141,9 @@ func (r OrgPATsRepository) Search(ctx context.Context, orgID string, rqlQuery *r
 // buildInnerSubquery builds the base PAT query with filters and search applied.
 func (r OrgPATsRepository) buildInnerSubquery(orgID string, rqlQuery *rql.Query) (*goqu.SelectDataset, error) {
 	inner := dialect.From(goqu.T(TABLE_USER_PATS).As("p")).
-		LeftJoin(
+		InnerJoin(
 			goqu.T(TABLE_USERS).As("u"),
-			goqu.On(goqu.I("p.user_id").Eq(goqu.I("u.id"))),
+			goqu.On(goqu.I("p.user_id").Eq(goqu.I("u.id")), live("u")),
 		).
 		Where(
 			goqu.I("p.org_id").Eq(orgID),
