@@ -1828,16 +1828,48 @@ func TestRemoveUsersFromOrg(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	t.Run("removes user from all orgs, cleans PATs, then deletes user", func(t *testing.T) {
+	t.Run("removes the user from each org, then every policy it still holds, then its PATs, then the user", func(t *testing.T) {
+		m := newMocks(t)
+		var steps []string
+
+		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
+			Return([]string{"org-1", "org-2"}, nil)
+		m.mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, mock.Anything, "user-1", schema.UserPrincipal).
+			Run(func(_ context.Context, orgID, _, _ string) { steps = append(steps, "org:"+orgID) }).Return(nil)
+		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, "user-1", schema.UserPrincipal).
+			Run(func(context.Context, string, string) { steps = append(steps, "policies") }).Return(nil)
+		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, "user-1").
+			Run(func(context.Context, string) { steps = append(steps, "pats") }).Return(nil)
+		m.usrSvc.EXPECT().Delete(mock.Anything, "user-1").
+			Run(func(context.Context, string) { steps = append(steps, "user") }).Return(nil)
+
+		err := m.build().DeleteUser(context.Background(), "user-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"org:org-1", "org:org-2", "policies", "pats", "user"}, steps)
+	})
+
+	t.Run("an org removal failure stops the delete before the remaining policies", func(t *testing.T) {
+		m := newMocks(t)
+
+		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
+			Return([]string{"org-1"}, nil)
+		m.mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, "org-1", "user-1", schema.UserPrincipal).
+			Return(errors.New("cascade boom"))
+
+		err := m.build().DeleteUser(context.Background(), "user-1")
+		assert.ErrorContains(t, err, "cascade boom")
+	})
+
+	t.Run("a policy removal failure stops the delete before the PATs and the user", func(t *testing.T) {
 		m := newMocks(t)
 
 		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
 			Return(nil, nil)
-		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, "user-1").Return(nil)
-		m.usrSvc.EXPECT().Delete(mock.Anything, "user-1").Return(nil)
+		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, "user-1", schema.UserPrincipal).
+			Return(errors.New("spicedb unavailable"))
 
 		err := m.build().DeleteUser(context.Background(), "user-1")
-		assert.NoError(t, err)
+		assert.ErrorContains(t, err, "spicedb unavailable")
 	})
 
 	t.Run("aborts before userService.Delete when PAT cleanup fails", func(t *testing.T) {
@@ -1845,6 +1877,7 @@ func TestDeleteUser(t *testing.T) {
 
 		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
 			Return(nil, nil)
+		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, "user-1", schema.UserPrincipal).Return(nil)
 		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, "user-1").Return(errors.New("pat cleanup boom"))
 		// usrSvc.Delete must NOT be called — strict mock fails on unexpected call.
 

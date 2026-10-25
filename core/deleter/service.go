@@ -84,6 +84,7 @@ type MembershipService interface {
 	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
 	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
 	ForceRemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
+	RemovePrincipalPolicies(ctx context.Context, principalID, principalType string) error
 }
 
 type InvitationService interface {
@@ -567,6 +568,9 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 		if err = d.RemoveUsersFromOrg(ctx, orgID, []string{userID}); err != nil {
 			return fmt.Errorf("failed to delete user from org[%s]: %w", orgID, err)
 		}
+	}
+	if err := d.membershipService.RemovePrincipalPolicies(ctx, userID, schema.UserPrincipal); err != nil {
+		return fmt.Errorf("failed to delete user policies: %w", err)
 	}
 	if err := d.userPATService.DeleteAllByUser(ctx, userID); err != nil {
 		return fmt.Errorf("failed to delete user PATs: %w", err)
