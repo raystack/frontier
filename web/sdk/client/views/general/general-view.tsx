@@ -108,8 +108,6 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
 
   const isLoading = !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
 
-  // Asks the server on each click, so the answer is fresh after the user
-  // fixes a blocker somewhere else.
   const { mutateAsync: checkOrganizationDelete, isPending: isCheckingDelete } =
     useMutation(FrontierServiceQueries.checkOrganizationDelete);
 
@@ -187,7 +185,6 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
       );
     } catch (error) {
       handleConnectError(error, {
-        // The check returns this only when the organization is disabled.
         FailedPrecondition: () =>
           deleteBlockersDialogHandle.openWithPayload({
             blockers: [{ type: ORGANIZATION_DISABLED }]

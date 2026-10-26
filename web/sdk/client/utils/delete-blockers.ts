@@ -11,12 +11,8 @@ const DEFAULT_WORDING: BlockerWording = {
   organizationLabel: 'organization'
 };
 
-// Not a server blocker type. The server refuses the check for a disabled
-// organization with FAILED_PRECONDITION before it runs, and the caller turns
-// that into this blocker so it shows with the others.
 export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
 
-// A short label and one sentence per blocker type.
 const BLOCKERS: Record<
   string,
   {
@@ -57,8 +53,6 @@ export interface BlockerItem {
   instruction: string;
 }
 
-// Returns one item per blocker type. Unknown types share one generic
-// item with no label. Empty blockers also give the generic item.
 export function blockerItems(
   blockers: { type: string }[],
   wording: BlockerWording = DEFAULT_WORDING
@@ -82,7 +76,6 @@ export function blockerItems(
   return items;
 }
 
-// Returns one sentence per blocker type.
 export function instructionLines(
   blockers: { type: string }[],
   wording: BlockerWording = DEFAULT_WORDING

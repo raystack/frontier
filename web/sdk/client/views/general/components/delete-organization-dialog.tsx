@@ -46,8 +46,6 @@ export const DeleteOrganizationDialog = ({
   </AlertDialog>
 );
 
-// Mounted only while the dialog is open, so each open starts with an empty
-// form and fetches the token balance again.
 function DeleteOrganizationForm({
   onDeleteSuccess
 }: Pick<DeleteOrganizationDialogProps, 'onDeleteSuccess'>) {
@@ -56,9 +54,6 @@ function DeleteOrganizationForm({
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
   const [isAcknowledged, setIsAcknowledged] = useState(false);
-  // The confirm button below stays disabled until the balance fetch
-  // finishes, so the user cannot confirm before the token warning had a
-  // chance to appear.
   const { tokenBalance, isTokensFetching } = useTokens();
 
   const { mutateAsync: deleteOrganization } = useMutation(
