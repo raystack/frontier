@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -56,6 +56,7 @@ type FormData = yup.InferType<typeof generalSchema>;
 
 const deleteBlockersDialogHandle =
   AlertDialog.createHandle<DeleteBlockersPayload>();
+const deleteOrganizationDialogHandle = AlertDialog.createHandle();
 
 export interface GeneralViewProps {
   onDeleteSuccess?: () => void;
@@ -177,8 +178,6 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
     }
   }
 
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
   async function onDeleteClick() {
     if (!organization?.id) return;
     let check;
@@ -203,7 +202,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
       deleteBlockersDialogHandle.openWithPayload({ blockers: check.blockers });
       return;
     }
-    setShowDeleteDialog(true);
+    deleteOrganizationDialogHandle.open(null);
   }
 
   const orgLabel = t.organization({ case: 'capital' });
@@ -350,8 +349,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
         <>
           <DeleteBlockersDialog handle={deleteBlockersDialogHandle} />
           <DeleteOrganizationDialog
-            open={showDeleteDialog}
-            onOpenChange={setShowDeleteDialog}
+            handle={deleteOrganizationDialogHandle}
             onDeleteSuccess={onDeleteSuccess}
           />
         </>
