@@ -9,12 +9,20 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 )
 
 func (h *ConnectHandler) DeleteProject(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteProjectRequest]) (*connect.Response[frontierv1beta1.DeleteProjectResponse], error) {
 	if err := h.deleterService.DeleteProject(ctx, request.Msg.GetId()); err != nil {
+		var blocked *deleter.BlockedError
+		if errors.As(err, &blocked) {
+			return nil, deleteBlockedError(ctx, blocked)
+		}
+		if errors.Is(err, project.ErrNotExist) || errors.Is(err, project.ErrInvalidUUID) {
+			return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
+		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteProject.DeleteProject: project_id=%s: %w", request.Msg.GetId(), err))
 	}
 	return connect.NewResponse(&frontierv1beta1.DeleteProjectResponse{}), nil
@@ -45,18 +53,38 @@ func (h *ConnectHandler) CheckOrganizationDelete(ctx context.Context, request *c
 		}
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckOrganizationDelete: organization_id=%s: %w", request.Msg.GetId(), err))
 	}
-	resp := &frontierv1beta1.CheckOrganizationDeleteResponse{
+	return connect.NewResponse(&frontierv1beta1.CheckOrganizationDeleteResponse{
 		CanDelete: len(blockers) == 0,
+		Blockers:  transformBlockersToPB(blockers),
+	}), nil
+}
+
+func (h *ConnectHandler) CheckProjectDelete(ctx context.Context, request *connect.Request[frontierv1beta1.CheckProjectDeleteRequest]) (*connect.Response[frontierv1beta1.CheckProjectDeleteResponse], error) {
+	blockers, err := h.deleterService.CheckProjectDelete(ctx, request.Msg.GetId())
+	if err != nil {
+		if errors.Is(err, project.ErrNotExist) || errors.Is(err, project.ErrInvalidUUID) {
+			return nil, connect.NewError(connect.CodeNotFound, ErrProjectNotFound)
+		}
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckProjectDelete: project_id=%s: %w", request.Msg.GetId(), err))
 	}
+	return connect.NewResponse(&frontierv1beta1.CheckProjectDeleteResponse{
+		CanDelete: len(blockers) == 0,
+		Blockers:  transformBlockersToPB(blockers),
+	}), nil
+}
+
+func transformBlockersToPB(blockers []deleter.Blocker) []*frontierv1beta1.Blocker {
+	var pb []*frontierv1beta1.Blocker
 	for _, b := range blockers {
-		resp.Blockers = append(resp.Blockers, &frontierv1beta1.Blocker{
+		pb = append(pb, &frontierv1beta1.Blocker{
 			Type:        b.Type,
 			Subject:     b.Subject,
 			SubjectType: b.SubjectType,
+			Count:       int32(b.Count),
 			Message:     b.Message,
 		})
 	}
-	return connect.NewResponse(resp), nil
+	return pb
 }
 
 // deleteBlockedError turns the delete's blockers into a failed_precondition
@@ -73,10 +101,10 @@ func deleteBlockedError(ctx context.Context, blocked *deleter.BlockedError) *con
 		})
 	}
 	if detail, err := connect.NewErrorDetail(failure); err != nil {
-		slog.WarnContext(ctx, "failed to attach precondition failure details", "error", err, "org_id", blocked.OrgID)
+		slog.WarnContext(ctx, "failed to attach precondition failure details", "error", err, "org_id", blocked.OrgID, "project_id", blocked.ProjectID)
 	} else {
 		connectErr.AddDetail(detail)
 	}
-	slog.WarnContext(ctx, "organization delete blocked", "org_id", blocked.OrgID, "blockers", len(blocked.Blockers))
+	slog.WarnContext(ctx, "delete blocked", "org_id", blocked.OrgID, "project_id", blocked.ProjectID, "blockers", len(blocked.Blockers))
 	return connectErr
 }

@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/internal/api/v1beta1connect/mocks"
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -36,6 +37,28 @@ func TestHandler_DeleteProject(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name: "should return not found when the project is gone",
+			setup: func(as *mocks.CascadeDeleter) {
+				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(project.ErrNotExist)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+				Id: "some-id",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrProjectNotFound),
+		},
+		{
+			name: "should return not found for an id that is not a uuid",
+			setup: func(as *mocks.CascadeDeleter) {
+				as.EXPECT().DeleteProject(mock.Anything, "some-name").Return(project.ErrInvalidUUID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+				Id: "some-name",
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrProjectNotFound),
+		},
+		{
 			name: "should return error if deleter service encounters an error",
 			setup: func(as *mocks.CascadeDeleter) {
 				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(errors.New("some error"))
@@ -59,6 +82,38 @@ func TestHandler_DeleteProject(t *testing.T) {
 			assert.Equal(t, tt.wantErr, err)
 		})
 	}
+
+	t.Run("should return failed precondition with one violation per namespace when resources block", func(t *testing.T) {
+		blocked := &deleter.BlockedError{
+			ProjectID: "some-id",
+			Blockers: []deleter.Blocker{
+				{Type: deleter.BlockerResourcesExist, Subject: "compute/order", SubjectType: deleter.SubjectResourceNamespace, Count: 2},
+			},
+		}
+		mockDeleteSrv := new(mocks.CascadeDeleter)
+		mockDeleteSrv.EXPECT().DeleteProject(mock.Anything, "some-id").Return(blocked)
+		mockDel := &ConnectHandler{deleterService: mockDeleteSrv}
+
+		resp, err := mockDel.DeleteProject(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{
+			Id: "some-id",
+		}))
+		assert.Nil(t, resp)
+
+		var connectErr *connect.Error
+		assert.ErrorAs(t, err, &connectErr)
+		assert.Equal(t, connect.CodeFailedPrecondition, connectErr.Code())
+		assert.Equal(t, "project cannot be deleted yet", connectErr.Message())
+
+		assert.Len(t, connectErr.Details(), 1)
+		detail, detailErr := connectErr.Details()[0].Value()
+		assert.NoError(t, detailErr)
+		failure, ok := detail.(*errdetails.PreconditionFailure)
+		assert.True(t, ok)
+		assert.Len(t, failure.GetViolations(), 1)
+		assert.Equal(t, deleter.BlockerResourcesExist, failure.GetViolations()[0].GetType())
+		assert.Equal(t, "compute/order", failure.GetViolations()[0].GetSubject())
+		assert.Empty(t, failure.GetViolations()[0].GetDescription())
+	})
 }
 
 func TestHandler_DeleteOrganization(t *testing.T) {
@@ -122,6 +177,7 @@ func TestHandler_DeleteOrganization(t *testing.T) {
 			Blockers: []deleter.Blocker{
 				{Type: deleter.BlockerUnpaidInvoice, Subject: "inv-1", Message: "invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete"},
 				{Type: deleter.BlockerNegativeTokenBalance, Subject: "cust-1", Message: "billing account[cust-1] owes 50 tokens: contact support to settle the balance, then retry the delete"},
+				{Type: deleter.BlockerResourcesExist, Subject: "compute/order", SubjectType: deleter.SubjectResourceNamespace, Count: 2},
 			},
 		}
 		mockDelOrg := new(mocks.CascadeDeleter)
@@ -136,19 +192,24 @@ func TestHandler_DeleteOrganization(t *testing.T) {
 		var connectErr *connect.Error
 		assert.ErrorAs(t, err, &connectErr)
 		assert.Equal(t, connect.CodeFailedPrecondition, connectErr.Code())
-		assert.Contains(t, connectErr.Message(), "pay it")
-		assert.Contains(t, connectErr.Message(), "contact support")
+		assert.Equal(t, "organization cannot be deleted yet: "+
+			"invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete; "+
+			"billing account[cust-1] owes 50 tokens: contact support to settle the balance, then retry the delete",
+			connectErr.Message())
 
 		assert.Len(t, connectErr.Details(), 1)
 		detail, detailErr := connectErr.Details()[0].Value()
 		assert.NoError(t, detailErr)
 		failure, ok := detail.(*errdetails.PreconditionFailure)
 		assert.True(t, ok)
-		assert.Len(t, failure.GetViolations(), 2)
+		assert.Len(t, failure.GetViolations(), 3)
 		assert.Equal(t, deleter.BlockerUnpaidInvoice, failure.GetViolations()[0].GetType())
 		assert.Equal(t, "inv-1", failure.GetViolations()[0].GetSubject())
 		assert.Equal(t, deleter.BlockerNegativeTokenBalance, failure.GetViolations()[1].GetType())
 		assert.Equal(t, "cust-1", failure.GetViolations()[1].GetSubject())
+		assert.Equal(t, deleter.BlockerResourcesExist, failure.GetViolations()[2].GetType())
+		assert.Equal(t, "compute/order", failure.GetViolations()[2].GetSubject())
+		assert.Empty(t, failure.GetViolations()[2].GetDescription())
 	})
 }
 
@@ -158,6 +219,7 @@ func TestHandler_CheckOrganizationDelete(t *testing.T) {
 		mockDel.EXPECT().CheckOrganizationDelete(mock.Anything, "some-id").Return([]deleter.Blocker{
 			{Type: deleter.BlockerActiveSubscription, Subject: "sub-1", SubjectType: deleter.SubjectSubscription, Message: "subscription[sub-1] is active on a paid plan: downgrade to the standard plan, then retry the delete"},
 			{Type: deleter.BlockerUnpaidInvoice, Subject: "inv-1", SubjectType: deleter.SubjectInvoice, Message: "invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete"},
+			{Type: deleter.BlockerResourcesExist, Subject: "compute/order", SubjectType: deleter.SubjectResourceNamespace, Count: 2},
 		}, nil)
 		mockDep := &ConnectHandler{deleterService: mockDel}
 
@@ -166,12 +228,16 @@ func TestHandler_CheckOrganizationDelete(t *testing.T) {
 		}))
 		assert.NoError(t, err)
 		assert.False(t, resp.Msg.GetCanDelete())
-		assert.Len(t, resp.Msg.GetBlockers(), 2)
+		assert.Len(t, resp.Msg.GetBlockers(), 3)
 		assert.Equal(t, deleter.BlockerActiveSubscription, resp.Msg.GetBlockers()[0].GetType())
 		assert.Equal(t, "sub-1", resp.Msg.GetBlockers()[0].GetSubject())
 		assert.Equal(t, deleter.SubjectSubscription, resp.Msg.GetBlockers()[0].GetSubjectType())
 		assert.Equal(t, deleter.BlockerUnpaidInvoice, resp.Msg.GetBlockers()[1].GetType())
 		assert.Equal(t, deleter.SubjectInvoice, resp.Msg.GetBlockers()[1].GetSubjectType())
+		assert.Equal(t, deleter.BlockerResourcesExist, resp.Msg.GetBlockers()[2].GetType())
+		assert.Equal(t, "compute/order", resp.Msg.GetBlockers()[2].GetSubject())
+		assert.Equal(t, deleter.SubjectResourceNamespace, resp.Msg.GetBlockers()[2].GetSubjectType())
+		assert.Equal(t, int32(2), resp.Msg.GetBlockers()[2].GetCount())
 	})
 
 	t.Run("should report can_delete true when nothing blocks", func(t *testing.T) {
@@ -197,5 +263,53 @@ func TestHandler_CheckOrganizationDelete(t *testing.T) {
 		}))
 		assert.Nil(t, resp)
 		assert.Equal(t, connect.NewError(connect.CodeNotFound, organization.ErrNotExist), err)
+	})
+}
+
+func TestHandler_CheckProjectDelete(t *testing.T) {
+	t.Run("should report the blockers with their count and can_delete false", func(t *testing.T) {
+		mockDel := new(mocks.CascadeDeleter)
+		mockDel.EXPECT().CheckProjectDelete(mock.Anything, "some-id").Return([]deleter.Blocker{
+			{Type: deleter.BlockerResourcesExist, Subject: "compute/order", SubjectType: deleter.SubjectResourceNamespace, Count: 2},
+		}, nil)
+		mockDep := &ConnectHandler{deleterService: mockDel}
+
+		resp, err := mockDep.CheckProjectDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckProjectDeleteRequest{
+			Id: "some-id",
+		}))
+		assert.NoError(t, err)
+		assert.False(t, resp.Msg.GetCanDelete())
+		assert.Len(t, resp.Msg.GetBlockers(), 1)
+		assert.Equal(t, deleter.BlockerResourcesExist, resp.Msg.GetBlockers()[0].GetType())
+		assert.Equal(t, "compute/order", resp.Msg.GetBlockers()[0].GetSubject())
+		assert.Equal(t, deleter.SubjectResourceNamespace, resp.Msg.GetBlockers()[0].GetSubjectType())
+		assert.Equal(t, int32(2), resp.Msg.GetBlockers()[0].GetCount())
+	})
+
+	t.Run("should report can_delete true when nothing blocks", func(t *testing.T) {
+		mockDel := new(mocks.CascadeDeleter)
+		mockDel.EXPECT().CheckProjectDelete(mock.Anything, "some-id").Return(nil, nil)
+		mockDep := &ConnectHandler{deleterService: mockDel}
+
+		resp, err := mockDep.CheckProjectDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckProjectDeleteRequest{
+			Id: "some-id",
+		}))
+		assert.NoError(t, err)
+		assert.True(t, resp.Msg.GetCanDelete())
+		assert.Empty(t, resp.Msg.GetBlockers())
+	})
+
+	t.Run("should return not found for a missing project or a name", func(t *testing.T) {
+		for _, notFound := range []error{project.ErrNotExist, project.ErrInvalidUUID} {
+			mockDel := new(mocks.CascadeDeleter)
+			mockDel.EXPECT().CheckProjectDelete(mock.Anything, "some-id").Return(nil, notFound)
+			mockDep := &ConnectHandler{deleterService: mockDel}
+
+			resp, err := mockDep.CheckProjectDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckProjectDeleteRequest{
+				Id: "some-id",
+			}))
+			assert.Nil(t, resp)
+			assert.Equal(t, connect.NewError(connect.CodeNotFound, ErrProjectNotFound), err)
+		}
 	})
 }

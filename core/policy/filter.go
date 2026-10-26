@@ -11,6 +11,7 @@ type Filter struct {
 	PrincipalID   string
 	PrincipalIDs  []string
 	ResourceType  string
+	ResourceID    string
 
 	RolePermissions []string
 }

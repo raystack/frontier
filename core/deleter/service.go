@@ -44,6 +44,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/mailer"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 )
 
@@ -71,7 +72,6 @@ type PolicyService interface {
 type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Delete(ctx context.Context, namespaceID, id string) error
-	Purge(ctx context.Context, namespaceID, id string) error
 }
 
 type GroupService interface {
@@ -218,36 +218,66 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 	}
 }
 
+func (d Service) CheckProjectDelete(ctx context.Context, id string) ([]Blocker, error) {
+	if _, err := d.getProject(ctx, id); err != nil {
+		return nil, err
+	}
+	return d.ProjectResourceBlockers(ctx, id)
+}
+
 func (d Service) DeleteProject(ctx context.Context, id string) error {
+	prj, err := d.getProject(ctx, id)
+	if errors.Is(err, project.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	blockers, err := d.ProjectResourceBlockers(ctx, id)
+	if err != nil {
+		return err
+	}
+	if len(blockers) > 0 {
+		return &BlockedError{ProjectID: id, Blockers: blockers}
+	}
+	return d.deleteProject(ctx, prj)
+}
+
+func (d Service) deleteProject(ctx context.Context, prj project.Project) error {
 	// delete all project-level policies (and their rolebinding relations)
 	policies, err := d.policyService.List(ctx, policy.Filter{
-		ProjectID: id,
+		ProjectID: prj.ID,
 	})
 	if err != nil {
 		return err
 	}
 	for _, p := range policies {
-		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+		if err = d.policyService.Delete(ctx, p.ID); err != nil && !errors.Is(err, policy.ErrNotExist) {
 			return fmt.Errorf("failed to delete project while deleting a policy[%s]: %w", p.ID, err)
 		}
 	}
 
-	// TODO(fix): soft-delete the live resources instead of purging every row
-	resources, err := d.resService.List(ctx, resource.Filter{
-		ProjectID:      id,
-		IncludeDeleted: true,
-	})
+	resources, err := d.resService.List(ctx, resource.Filter{ProjectID: prj.ID})
 	if err != nil {
 		return err
 	}
 	for _, r := range resources {
-		if err = d.resService.Purge(ctx, r.NamespaceID, r.ID); err != nil {
+		if err = d.resService.Delete(ctx, r.NamespaceID, r.ID); err != nil {
+			if errors.Is(err, resource.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete project while deleting a resource[%s]: %w", r.Name, err)
 		}
 	}
 
-	if err := d.projService.DeleteModel(ctx, id); err != nil && !errors.Is(err, project.ErrNotExist) {
+	if err := d.projService.DeleteModel(ctx, prj.ID); err != nil {
+		if errors.Is(err, project.ErrNotExist) {
+			return nil
+		}
 		return err
+	}
+	if err := audit.NewLogger(ctx, prj.Organization.ID).Log(audit.ProjectDeletedEvent, audit.ProjectTarget(prj.ID)); err != nil {
+		slog.WarnContext(ctx, "failed to write audit log", "error", err, "event", audit.ProjectDeletedEvent)
 	}
 	return nil
 }
@@ -319,7 +349,7 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return err
 	}
 	for _, p := range projects {
-		if err = d.DeleteProject(ctx, p.ID); err != nil {
+		if err = d.deleteProject(ctx, p); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a project[%s]: %w", p.Name, err)
 		}
 	}
@@ -345,6 +375,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, g := range groups {
 		if err = d.DeleteGroup(ctx, g.ID); err != nil {
+			if errors.Is(err, group.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a group[%s]: %w", g.Name, err)
 		}
 	}
@@ -356,6 +389,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, su := range serviceUsers {
 		if err = d.serviceUserService.Delete(ctx, su.ID); err != nil {
+			if errors.Is(err, serviceuser.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a service user[%s]: %w", su.ID, err)
 		}
 	}
@@ -404,6 +440,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, p := range policies {
 		if err = d.policyService.Delete(ctx, p.ID); err != nil {
+			if errors.Is(err, policy.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a policy[%s]: %w", p.ID, err)
 		}
 	}
@@ -417,6 +456,9 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 	for _, p := range roles {
 		if err = d.roleService.Delete(ctx, p.ID); err != nil {
+			if errors.Is(err, role.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("failed to delete org while deleting a role[%s]: %w", p.Name, err)
 		}
 	}
@@ -536,6 +578,20 @@ func (d Service) listOrgProjects(ctx context.Context, orgID string) ([]project.P
 	return d.projService.List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true})
 }
 
+func (d Service) getProject(ctx context.Context, id string) (project.Project, error) {
+	if !utils.IsValidUUID(id) {
+		return project.Project{}, project.ErrInvalidUUID
+	}
+	projects, err := d.projService.List(ctx, project.Filter{ProjectIDs: []string{id}, IncludeDisabled: true})
+	if err != nil {
+		return project.Project{}, err
+	}
+	if len(projects) == 0 {
+		return project.Project{}, project.ErrNotExist
+	}
+	return projects[0], nil
+}
+
 func (d Service) listOrgGroups(ctx context.Context, orgID string) ([]group.Group, error) {
 	return d.groupService.List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true})
 }
@@ -566,7 +622,7 @@ func (d Service) ensureDeletable(ctx context.Context, id string, customers []cus
 	paidPlans := map[string]bool{}
 
 	// the delete is about to happen, so judge invoices on fresh provider data
-	blockers, err := d.collectBlockers(ctx, customers, true, balances, paidPlans)
+	blockers, err := d.collectBlockers(ctx, id, customers, true, balances, paidPlans)
 	if err != nil {
 		return err
 	}
@@ -657,16 +713,17 @@ func (d Service) CheckOrganizationDelete(ctx context.Context, id string) ([]Bloc
 	if err != nil {
 		return nil, err
 	}
-	return d.collectBlockers(ctx, customers, false, nil, map[string]bool{})
+	return d.collectBlockers(ctx, id, customers, false, nil, map[string]bool{})
 }
 
 // collectBlockers gathers the blockers across the org's billing accounts:
 // running subscriptions on a paid plan, invoices that still ask for money,
-// and token debt. fromProvider judges the invoices on data read straight
+// and token debt. It also adds the resources the deletion config says block
+// an org delete. fromProvider judges the invoices on data read straight
 // from the billing provider instead of the local rows. balances carries
 // account balances the caller already read, nil means read them here; the
 // plan lookups land in the caller's paidPlans cache.
-func (d Service) collectBlockers(ctx context.Context, customers []customer.Customer, fromProvider bool, balances map[string]int64, paidPlans map[string]bool) ([]Blocker, error) {
+func (d Service) collectBlockers(ctx context.Context, orgID string, customers []customer.Customer, fromProvider bool, balances map[string]int64, paidPlans map[string]bool) ([]Blocker, error) {
 	var blockers []Blocker
 	for _, c := range customers {
 		if !c.IsOffline() {
@@ -706,7 +763,12 @@ func (d Service) collectBlockers(ctx context.Context, customers []customer.Custo
 			})
 		}
 	}
-	return blockers, nil
+
+	resourceBlockers, err := d.OrganizationResourceBlockers(ctx, orgID)
+	if err != nil {
+		return nil, err
+	}
+	return append(blockers, resourceBlockers...), nil
 }
 
 // subscriptionBlockers returns a blocker for every running subscription on a

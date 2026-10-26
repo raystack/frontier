@@ -580,46 +580,42 @@ func (s *GroupRepositoryTestSuite) TestSetState() {
 }
 
 func (s *GroupRepositoryTestSuite) TestDelete() {
-	type testCase struct {
-		Description   string
-		GroupID       string
-		ExpectedError error
-	}
+	deleted := s.groups[0]
 
-	var testCases = []testCase{
-		{
-			Description:   "should delete group",
-			GroupID:       s.groups[0].ID,
-			ExpectedError: nil,
-		},
-		{
-			Description:   "should return error if group not exist",
-			GroupID:       "52e4dc5d-eb93-4e0d-bc72-4f24a67d679f",
-			ExpectedError: group.ErrNotExist,
-		},
-		{
-			Description:   "should return error if group id is not uuid",
-			GroupID:       "12345",
-			ExpectedError: group.ErrInvalidUUID,
-		},
-		{
-			Description:   "should return error if group id is empty",
-			ExpectedError: group.ErrInvalidUUID,
-		},
-	}
+	s.Run("keeps the row with deleted_at set and hides it", func() {
+		s.Require().NoError(s.repository.Delete(s.ctx, deleted.ID))
 
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			err := s.repository.Delete(s.ctx, tc.GroupID)
-			if tc.ExpectedError != nil {
-				if !errors.Is(err, tc.ExpectedError) {
-					s.T().Fatalf("got error %v, expected was %v", err, tc.ExpectedError)
-				}
-			} else {
-				s.Assert().NoError(err)
-			}
+		var deletedRows int
+		s.Require().NoError(s.client.QueryRowxContext(s.ctx,
+			"SELECT count(*) FROM groups WHERE id = $1 AND deleted_at IS NOT NULL", deleted.ID).Scan(&deletedRows))
+		s.Assert().Equal(1, deletedRows)
+
+		_, err := s.repository.GetByID(s.ctx, deleted.ID)
+		s.Assert().ErrorIs(err, group.ErrNotExist)
+
+		listed, err := s.repository.List(s.ctx, group.Filter{OrganizationID: deleted.OrganizationID})
+		s.Require().NoError(err)
+		for _, g := range listed {
+			s.Assert().NotEqual(deleted.ID, g.ID)
+		}
+	})
+	s.Run("a second delete returns not found", func() {
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, deleted.ID), group.ErrNotExist)
+	})
+	s.Run("a group that does not exist returns not found", func() {
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, uuid.NewString()), group.ErrNotExist)
+	})
+	s.Run("an id that is not a uuid returns invalid uuid", func() {
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, "12345"), group.ErrInvalidUUID)
+		s.Assert().ErrorIs(s.repository.Delete(s.ctx, ""), group.ErrInvalidUUID)
+	})
+	s.Run("a new group in the same org can take the deleted group's name", func() {
+		_, err := s.repository.Create(s.ctx, group.Group{
+			Name:           deleted.Name,
+			OrganizationID: deleted.OrganizationID,
 		})
-	}
+		s.Assert().NoError(err)
+	})
 }
 
 func TestGroupRepository(t *testing.T) {

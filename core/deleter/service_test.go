@@ -124,75 +124,224 @@ func (m deleterMocks) buildWithNotice(notice billing.OrgDeleteNoticeConfig) *del
 }
 
 func TestDeleteProject(t *testing.T) {
+	projectID := uuid.NewString()
+	expectProject := func(m deleterMocks) {
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{{ID: projectID, Name: "p1"}}, nil)
+	}
+
 	t.Run("deletes policies, resources, then project model", func(t *testing.T) {
 		m := newMocks(t)
 		var steps []string
+		expectProject(m)
 
-		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return([]policy.Policy{{ID: "pol-1"}, {ID: "pol-2"}}, nil)
 		m.polSvc.EXPECT().Delete(mock.Anything, "pol-1").
 			Run(func(_ context.Context, id string) { steps = append(steps, "policy:"+id) }).Return(nil)
 		m.polSvc.EXPECT().Delete(mock.Anything, "pol-2").
 			Run(func(_ context.Context, id string) { steps = append(steps, "policy:"+id) }).Return(nil)
 
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{{ID: "res-1", NamespaceID: "ns-1", Name: "r1"}}, nil)
-		m.resSvc.EXPECT().Purge(mock.Anything, "ns-1", "res-1").
+		m.resSvc.EXPECT().Delete(mock.Anything, "ns-1", "res-1").
 			Run(func(_ context.Context, _ string, id string) { steps = append(steps, "resource:"+id) }).Return(nil)
 
-		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).
 			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
 
-		err := m.build().DeleteProject(context.Background(), "proj-1")
+		err := m.build().DeleteProject(context.Background(), projectID)
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"policy:pol-1", "policy:pol-2", "resource:res-1", "project:proj-1"}, steps)
+		assert.Equal(t, []string{"policy:pol-1", "policy:pol-2", "resource:res-1", "project:" + projectID}, steps)
 	})
 
 	t.Run("a project that is already gone counts as deleted", func(t *testing.T) {
 		m := newMocks(t)
+		expectProject(m)
 
-		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{}, nil)
-		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(project.ErrNotExist)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(project.ErrNotExist)
+		repo := &fakeAuditRepository{}
 
-		err := m.build().DeleteProject(context.Background(), "proj-1")
+		err := m.build().DeleteProject(auditContext(repo), projectID)
+		assert.NoError(t, err)
+		assert.Empty(t, repo.logs)
+	})
+
+	t.Run("publishes the project deleted event with the project's org", func(t *testing.T) {
+		m := newMocks(t)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{{ID: projectID, Name: "p1", Organization: organization.Organization{ID: "org-1"}}}, nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{}, nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
+		repo := &fakeAuditRepository{}
+
+		err := m.build().DeleteProject(auditContext(repo), projectID)
+		assert.NoError(t, err)
+		if assert.Len(t, repo.logs, 1) {
+			assert.Equal(t, audit.ProjectDeletedEvent.String(), repo.logs[0].Action)
+			assert.Equal(t, "org-1", repo.logs[0].OrgID)
+			assert.Equal(t, audit.ProjectTarget(projectID), repo.logs[0].Target)
+		}
+	})
+
+	t.Run("a resource that is already gone does not stop the delete", func(t *testing.T) {
+		m := newMocks(t)
+		expectProject(m)
+
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{{ID: "res-1", NamespaceID: "ns-1", Name: "r1"}}, nil)
+		m.resSvc.EXPECT().Delete(mock.Anything, "ns-1", "res-1").Return(resource.ErrNotExist)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
+
+		err := m.build().DeleteProject(context.Background(), projectID)
 		assert.NoError(t, err)
 	})
 
 	t.Run("returns error when policy list fails", func(t *testing.T) {
 		m := newMocks(t)
+		expectProject(m)
 
-		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return(nil, errors.New("db error"))
 
-		err := m.build().DeleteProject(context.Background(), "proj-1")
+		err := m.build().DeleteProject(context.Background(), projectID)
 		assert.ErrorContains(t, err, "db error")
 	})
 
 	t.Run("returns error when policy delete fails", func(t *testing.T) {
 		m := newMocks(t)
+		expectProject(m)
 
-		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return([]policy.Policy{{ID: "pol-fail"}}, nil)
 		m.polSvc.EXPECT().Delete(mock.Anything, "pol-fail").Return(errors.New("delete error"))
 
-		err := m.build().DeleteProject(context.Background(), "proj-1")
+		err := m.build().DeleteProject(context.Background(), projectID)
 		assert.ErrorContains(t, err, "pol-fail")
+	})
+
+	t.Run("a policy that is already gone does not stop the delete", func(t *testing.T) {
+		m := newMocks(t)
+		expectProject(m)
+
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
+			Return([]policy.Policy{{ID: "pol-gone"}}, nil)
+		m.polSvc.EXPECT().Delete(mock.Anything, "pol-gone").Return(policy.ErrNotExist)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{}, nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
+
+		err := m.build().DeleteProject(context.Background(), projectID)
+		assert.NoError(t, err)
 	})
 
 	t.Run("no policies — still deletes resources and project", func(t *testing.T) {
 		m := newMocks(t)
+		expectProject(m)
 
-		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: projectID}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
 			Return([]resource.Resource{}, nil)
-		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, projectID).Return(nil)
 
-		err := m.build().DeleteProject(context.Background(), "proj-1")
+		err := m.build().DeleteProject(context.Background(), projectID)
 		assert.NoError(t, err)
+	})
+
+	t.Run("refuses while resources block and removes nothing", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		expectProject(m)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{{ID: "m1", NamespaceID: "compute/machine"}}, nil)
+
+		err := m.build().DeleteProject(context.Background(), projectID)
+
+		var blocked *deleter.BlockedError
+		if assert.ErrorAs(t, err, &blocked) {
+			assert.Equal(t, projectID, blocked.ProjectID)
+			assert.Equal(t, []deleter.Blocker{resourcesExist("compute/machine", 1)}, blocked.Blockers)
+		}
+		assert.EqualError(t, err, "project cannot be deleted yet")
+	})
+
+	t.Run("succeeds and removes nothing when no live project has the id", func(t *testing.T) {
+		m := newMocks(t)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{}, nil)
+
+		err := m.build().DeleteProject(context.Background(), projectID)
+		assert.NoError(t, err)
+	})
+
+	t.Run("rejects an id that is not a uuid", func(t *testing.T) {
+		m := newMocks(t)
+
+		err := m.build().DeleteProject(context.Background(), "p1")
+		assert.ErrorIs(t, err, project.ErrInvalidUUID)
+	})
+}
+
+func TestCheckProjectDelete(t *testing.T) {
+	projectID := uuid.NewString()
+	expectProject := func(m deleterMocks) {
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{{ID: projectID, Name: "p1"}}, nil)
+	}
+
+	t.Run("returns the blockers and removes nothing", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		expectProject(m)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{
+				{ID: "m1", NamespaceID: "compute/machine"},
+				{ID: "m2", NamespaceID: "compute/machine"},
+			}, nil)
+
+		blockers, err := m.build().CheckProjectDelete(context.Background(), projectID)
+
+		assert.NoError(t, err)
+		assert.Equal(t, []deleter.Blocker{resourcesExist("compute/machine", 2)}, blockers)
+	})
+
+	t.Run("returns no blockers when nothing blocks", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		expectProject(m)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: projectID}).
+			Return([]resource.Resource{{ID: "f1", NamespaceID: "storage/file"}}, nil)
+
+		blockers, err := m.build().CheckProjectDelete(context.Background(), projectID)
+
+		assert.NoError(t, err)
+		assert.Empty(t, blockers)
+	})
+
+	t.Run("returns not found when the project is gone", func(t *testing.T) {
+		m := newMocks(t)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true}).
+			Return([]project.Project{}, nil)
+
+		_, err := m.build().CheckProjectDelete(context.Background(), projectID)
+		assert.ErrorIs(t, err, project.ErrNotExist)
+	})
+
+	t.Run("rejects an id that is not a uuid", func(t *testing.T) {
+		m := newMocks(t)
+
+		_, err := m.build().CheckProjectDelete(context.Background(), "p1")
+		assert.ErrorIs(t, err, project.ErrInvalidUUID)
 	})
 }
 
@@ -260,7 +409,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-1", Name: "p1"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").Return(nil)
 
@@ -344,7 +493,7 @@ func TestDeleteOrganization(t *testing.T) {
 		for _, id := range []string{"proj-on", "proj-off"} {
 			m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: id}).
 				Return([]policy.Policy{}, nil)
-			m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: id, IncludeDeleted: true}).
+			m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: id}).
 				Return([]resource.Resource{}, nil)
 			m.projSvc.EXPECT().DeleteModel(mock.Anything, id).
 				Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
@@ -369,6 +518,38 @@ func TestDeleteOrganization(t *testing.T) {
 		}, steps)
 	})
 
+	t.Run("a project resource that blocks a project delete does not stop the org delete", func(t *testing.T) {
+		m := newBareMocks(t)
+		m.deletion = blockerConfig()
+		var steps []string
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{{ID: "proj-1", Name: "p1"}}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{{ID: "m1", NamespaceID: "compute/machine", Name: "machine-1"}}, nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-1"}).
+			Return([]policy.Policy{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{{ID: "m1", NamespaceID: "compute/machine", Name: "machine-1"}}, nil)
+		m.resSvc.EXPECT().Delete(mock.Anything, "compute/machine", "m1").Return(nil)
+		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-1").
+			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
+			Return([]group.Group{}, nil)
+
+		expectEmptyOrgTail(m, &steps)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"project:proj-1", "org"}, steps)
+	})
+
 	t.Run("an org with only enabled children lists nothing extra to delete", func(t *testing.T) {
 		m := newBareMocks(t)
 		var steps []string
@@ -381,7 +562,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-on", Name: "on"}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-on"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-on", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-on"}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-on").
 			Run(func(_ context.Context, id string) { steps = append(steps, "project:"+id) }).Return(nil)
@@ -411,7 +592,7 @@ func TestDeleteOrganization(t *testing.T) {
 			Return([]project.Project{{ID: "proj-off", Name: "off", State: project.Disabled}}, nil)
 		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{ProjectID: "proj-off"}).
 			Return([]policy.Policy{}, nil)
-		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-off", IncludeDeleted: true}).
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-off"}).
 			Return([]resource.Resource{}, nil)
 		m.projSvc.EXPECT().DeleteModel(mock.Anything, "proj-off").Return(errors.New("boom"))
 		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
@@ -446,6 +627,31 @@ func TestDeleteOrganization(t *testing.T) {
 		err := m.build().DeleteOrganization(context.Background(), "org-1")
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"resource:res-live", "org"}, steps)
+	})
+
+	t.Run("a group that is already gone is skipped and the rest are deleted before the org row", func(t *testing.T) {
+		m := newBareMocks(t)
+		var steps []string
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
+			Return([]group.Group{{ID: "grp-gone", Name: "gone"}, {ID: "grp-live", Name: "live"}}, nil)
+		m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-gone").Return(group.ErrNotExist)
+		m.mbrSvc.EXPECT().OnGroupDeleted(mock.Anything, "grp-live").Return(nil)
+		m.grpSvc.EXPECT().DeleteModel(mock.Anything, "grp-live").
+			Run(func(_ context.Context, id string) { steps = append(steps, "group:"+id) }).Return(nil)
+		expectEmptyOrgTail(m, &steps)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"group:grp-live", "org"}, steps)
 	})
 
 	t.Run("a failed org resource delete stops before the org row", func(t *testing.T) {
@@ -511,6 +717,57 @@ func TestDeleteOrganization(t *testing.T) {
 			deleter.BlockerUnpaidInvoice,
 			deleter.BlockerNegativeTokenBalance,
 		}, types)
+	})
+
+	t.Run("resources that block an org delete stop it before the subscription is canceled", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-free"}}, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{{ID: "t1", NamespaceID: "storage/transfer"}}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{{ID: "proj-1"}}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{
+				{ID: "m1", NamespaceID: "compute/machine"},
+				{ID: "o1", NamespaceID: "compute/order"},
+			}, nil)
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+
+		var blocked *deleter.BlockedError
+		assert.ErrorAs(t, err, &blocked)
+		assert.Equal(t, "org-1", blocked.OrgID)
+		assert.Equal(t, []deleter.Blocker{
+			resourcesExist("compute/order", 1),
+			resourcesExist("storage/transfer", 1),
+		}, blocked.Blockers)
+		assert.EqualError(t, err, "organization cannot be deleted yet")
+	})
+
+	t.Run("a failed resource check stops the delete before anything changes", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return(nil, errors.New("db error"))
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.ErrorContains(t, err, "failed to list resources of organization[org-1]: db error")
 	})
 
 	t.Run("paid plan subscription blocks until the caller downgrades", func(t *testing.T) {
@@ -1022,6 +1279,51 @@ func TestDeleteOrganization(t *testing.T) {
 		assert.Equal(t, []string{"domain", "pats", "policy", "role", "org"}, steps)
 	})
 
+	t.Run("service users, org policies and roles that are already gone are skipped", func(t *testing.T) {
+		m := newMocks(t)
+		var steps []string
+
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{}, nil)
+		m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).
+			Return([]group.Group{}, nil)
+		m.suSvc.EXPECT().List(mock.Anything, serviceuser.Filter{OrgID: "org-1"}).
+			Return([]serviceuser.ServiceUser{{ID: "su-gone"}, {ID: "su-live"}}, nil)
+		m.suSvc.EXPECT().Delete(mock.Anything, "su-gone").Return(serviceuser.ErrNotExist)
+		m.suSvc.EXPECT().Delete(mock.Anything, "su-live").
+			Run(func(_ context.Context, id string) { steps = append(steps, "serviceuser:"+id) }).Return(nil)
+		m.invSvc.EXPECT().List(mock.Anything, invitation.Filter{OrgID: "org-1"}).
+			Return([]invitation.Invitation{}, nil)
+		m.kycSvc.EXPECT().DeleteKyc(mock.Anything, "org-1").Return(nil)
+		m.domainSvc.EXPECT().List(mock.Anything, domain.Filter{OrgID: "org-1"}).
+			Return([]domain.Domain{}, nil)
+		m.patSvc.EXPECT().DeleteAllByOrg(mock.Anything, "org-1").Return(nil)
+		m.polSvc.EXPECT().List(mock.Anything, policy.Filter{OrgID: "org-1"}).
+			Return([]policy.Policy{{ID: "pol-gone"}, {ID: "pol-live"}}, nil)
+		m.polSvc.EXPECT().Delete(mock.Anything, "pol-gone").Return(policy.ErrNotExist)
+		m.polSvc.EXPECT().Delete(mock.Anything, "pol-live").
+			Run(func(_ context.Context, id string) { steps = append(steps, "policy:"+id) }).Return(nil)
+		m.roleSvc.EXPECT().List(mock.Anything, role.Filter{OrgID: "org-1"}).
+			Return([]role.Role{{ID: "role-gone", Name: "gone"}, {ID: "role-live", Name: "live"}}, nil)
+		m.roleSvc.EXPECT().Delete(mock.Anything, "role-gone").Return(role.ErrNotExist)
+		m.roleSvc.EXPECT().Delete(mock.Anything, "role-live").
+			Run(func(_ context.Context, id string) { steps = append(steps, "role:"+id) }).Return(nil)
+		m.orgSvc.EXPECT().DeleteModel(mock.Anything, "org-1").
+			Run(func(context.Context, string) { steps = append(steps, "org") }).Return(nil)
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+
+		err := m.build().DeleteOrganization(context.Background(), "org-1")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"serviceuser:su-live", "policy:pol-live", "role:role-live", "org"}, steps)
+	})
+
 	t.Run("domain list failure stops before the org policies", func(t *testing.T) {
 		m := newMocks(t)
 
@@ -1182,6 +1484,41 @@ func TestCheckOrganizationDelete(t *testing.T) {
 			deleter.SubjectInvoice,
 			deleter.SubjectBillingAccount,
 		}, subjectTypes)
+	})
+
+	t.Run("reports the resource blockers with their counts after the billing ones", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+
+		c := customer.Customer{ID: "cust-1", ProviderID: "stripe-1"}
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").
+			Return(organization.Organization{ID: "org-1"}, nil)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: "org-1"}).
+			Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: "cust-1"}).
+			Return([]subscription.Subscription{{ID: "sub-1", State: "active", PlanID: "plan-paid"}}, nil)
+		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: "cust-1", NonZeroOnly: true}).
+			Return([]invoice.Invoice{}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(0, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{{ID: "t1", NamespaceID: "storage/transfer"}}, nil)
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).
+			Return([]project.Project{{ID: "proj-1"}}, nil)
+		m.resSvc.EXPECT().List(mock.Anything, resource.Filter{ProjectID: "proj-1"}).
+			Return([]resource.Resource{
+				{ID: "o1", NamespaceID: "compute/order"},
+				{ID: "o2", NamespaceID: "compute/order"},
+			}, nil)
+
+		blockers, err := m.build().CheckOrganizationDelete(context.Background(), "org-1")
+		assert.NoError(t, err)
+		if assert.Len(t, blockers, 3) {
+			assert.Equal(t, deleter.BlockerActiveSubscription, blockers[0].Type)
+			assert.Equal(t, []deleter.Blocker{
+				resourcesExist("compute/order", 2),
+				resourcesExist("storage/transfer", 1),
+			}, blockers[1:])
+		}
 	})
 
 	t.Run("returns empty when there are no blockers", func(t *testing.T) {

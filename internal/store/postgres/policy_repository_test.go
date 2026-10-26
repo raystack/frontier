@@ -379,6 +379,30 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 				ProjectID:     uuid.NewString(),
 			},
 		},
+		{
+			Description: "should get the policies on one resource",
+			ExpectedPolicys: []policy.Policy{
+				{
+					RoleID:        s.roles[0].ID,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+					ResourceID:    s.orgID,
+					ResourceType:  "ns1",
+				},
+			},
+			flt: policy.Filter{
+				ResourceID:   s.orgID,
+				ResourceType: "ns1",
+			},
+		},
+		{
+			Description:     "should get no policies for another resource",
+			ExpectedPolicys: nil,
+			flt: policy.Filter{
+				ResourceID:   uuid.NewString(),
+				ResourceType: "ns1",
+			},
+		},
 	}
 
 	for _, tc := range testCases {

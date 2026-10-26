@@ -113,11 +113,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
 	var fetchedResources []Resource
 
-	sqlStatement := fromLive(TABLE_RESOURCES)
-	if flt.IncludeDeleted {
-		sqlStatement = dialect.From(TABLE_RESOURCES)
-	}
-	sqlStatement = sqlStatement.Order(goqu.C("created_at").Asc())
+	sqlStatement := fromLive(TABLE_RESOURCES).Order(goqu.C("created_at").Asc())
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
@@ -282,27 +278,6 @@ func (r ResourceRepository) Delete(ctx context.Context, id string) error {
 		default:
 			return err
 		}
-	}
-	return nil
-}
-
-// Purge removes the row for good. Only the project delete cascade uses it.
-// TODO(fix): remove once the project delete cascade soft-deletes resources
-func (r ResourceRepository) Purge(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_RESOURCES).Where(
-		goqu.Ex{
-			"id": id,
-		},
-	).ToSQL()
-	if err != nil {
-		return fmt.Errorf("%w: %s", errQuery, err)
-	}
-
-	if err = r.dbc.WithTimeout(ctx, TABLE_RESOURCES, "Purge", func(ctx context.Context) error {
-		_, err := r.dbc.DB.ExecContext(ctx, query, params...)
-		return err
-	}); err != nil {
-		return checkPostgresError(err)
 	}
 	return nil
 }

@@ -41,14 +41,24 @@ type Blocker struct {
 // caller gets one checklist instead of discovering blockers one retry at
 // a time.
 type BlockedError struct {
-	OrgID    string
-	Blockers []Blocker
+	OrgID     string
+	ProjectID string
+	Blockers  []Blocker
 }
 
 func (e *BlockedError) Error() string {
-	msgs := make([]string, 0, len(e.Blockers))
-	for _, b := range e.Blockers {
-		msgs = append(msgs, b.Message)
+	target := "organization"
+	if e.ProjectID != "" {
+		target = "project"
 	}
-	return "organization cannot be deleted yet: " + strings.Join(msgs, "; ")
+	var msgs []string
+	for _, b := range e.Blockers {
+		if b.Message != "" {
+			msgs = append(msgs, b.Message)
+		}
+	}
+	if len(msgs) == 0 {
+		return target + " cannot be deleted yet"
+	}
+	return target + " cannot be deleted yet: " + strings.Join(msgs, "; ")
 }
