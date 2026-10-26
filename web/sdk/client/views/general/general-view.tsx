@@ -30,6 +30,7 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
+import { ORGANIZATION_DISABLED } from '../../utils/delete-blockers';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -180,17 +181,27 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
 
   async function onDeleteClick() {
     if (!organization?.id) return;
+    let check;
     try {
-      const { canDelete, blockers } = await checkOrganizationDelete(
+      check = await checkOrganizationDelete(
         create(CheckOrganizationDeleteRequestSchema, { id: organization.id })
       );
-      if (!canDelete) {
-        deleteBlockersDialogHandle.openWithPayload({ blockers });
-        return;
-      }
-    } catch {
-      // If the check itself fails, go on to the delete dialog: the server
-      // still refuses a blocked delete when the user confirms.
+    } catch (error) {
+      handleConnectError(error, {
+        // The check returns this only when the organization is disabled.
+        FailedPrecondition: () =>
+          deleteBlockersDialogHandle.openWithPayload({
+            blockers: [{ type: ORGANIZATION_DISABLED }]
+          }),
+        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
+        NotFound: () => toastManager.add({ title: 'Not found', description: `This ${orgLabelLower} no longer exists.`, type: 'error' }),
+        Default: () => toastManager.add({ title: 'Something went wrong', description: 'Please try again later or contact support.', type: 'error' }),
+      });
+      return;
+    }
+    if (!check.canDelete) {
+      deleteBlockersDialogHandle.openWithPayload({ blockers: check.blockers });
+      return;
     }
     setShowDeleteDialog(true);
   }
@@ -320,7 +331,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                       onClick={onDeleteClick}
                       disabled={!canDeleteWorkspace || isCheckingDelete}
                       loading={isCheckingDelete}
-                      loaderText="Checking..."
+                      loaderText={`Delete ${orgLabelLower}`}
                       data-test-id="frontier-sdk-delete-organization-btn"
                     >
                       Delete {orgLabelLower}

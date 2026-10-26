@@ -1,6 +1,7 @@
 import { Code, ConnectError } from '@connectrpc/connect';
 import {
   GENERIC_DELETE_BLOCKED_MESSAGE,
+  ORGANIZATION_DISABLED,
   blockerItems,
   deleteBlockedDescription,
   instructionLines
@@ -33,6 +34,16 @@ describe('blockerItems', () => {
         label: 'Negative token balance',
         instruction:
           'Purchase enough tokens to clear your outstanding token balance before deleting this workspace.'
+      }
+    ]);
+  });
+
+  it('names the host app terminology for a disabled organization', () => {
+    expect(blockerItems([{ type: ORGANIZATION_DISABLED }], wording)).toEqual([
+      {
+        label: 'Disabled workspace',
+        instruction:
+          'Contact your administrator to enable this workspace before deleting it.'
       }
     ]);
   });

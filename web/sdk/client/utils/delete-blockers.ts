@@ -11,25 +11,38 @@ const DEFAULT_WORDING: BlockerWording = {
   organizationLabel: 'organization'
 };
 
-// A short label and one sentence per blocker type the server can return.
+// Not a server blocker type. The server refuses the check for a disabled
+// organization with FAILED_PRECONDITION before it runs, and the caller turns
+// that into this blocker so it shows with the others.
+export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
+
+// A short label and one sentence per blocker type.
 const BLOCKERS: Record<
   string,
-  { label: string; instruction: (wording: BlockerWording) => string }
+  {
+    label: (wording: BlockerWording) => string;
+    instruction: (wording: BlockerWording) => string;
+  }
 > = {
+  ORGANIZATION_DISABLED: {
+    label: ({ organizationLabel }) => `Disabled ${organizationLabel}`,
+    instruction: ({ organizationLabel }) =>
+      `Contact your administrator to enable this ${organizationLabel} before deleting it.`
+  },
   ACTIVE_SUBSCRIPTION: {
-    label: 'Active subscription',
+    label: () => 'Active subscription',
     instruction: ({ organizationLabel, basePlanTitle }) =>
       `Downgrade your subscription to the ${
         basePlanTitle || 'standard plan'
       } before deleting this ${organizationLabel}.`
   },
   UNPAID_INVOICE: {
-    label: 'Outstanding invoice',
+    label: () => 'Outstanding invoice',
     instruction: ({ organizationLabel }) =>
       `Pay all outstanding invoices before deleting this ${organizationLabel}.`
   },
   NEGATIVE_TOKEN_BALANCE: {
-    label: 'Negative token balance',
+    label: () => 'Negative token balance',
     instruction: ({ organizationLabel }) =>
       `Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
   }
@@ -56,7 +69,7 @@ export function blockerItems(
     const blocker = BLOCKERS[type];
     if (blocker) {
       items.push({
-        label: blocker.label,
+        label: blocker.label(wording),
         instruction: blocker.instruction(wording)
       });
     } else {
