@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -394,6 +395,14 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateMetadataHandling() {
 		},
 	}
 
+	lastAuditMetadata := func(orgID string) map[string]any {
+		raw := scalarSQL(s.T(), s.ctx, s.client,
+			"SELECT COALESCE(resource_metadata::text, '{}') FROM audit_records WHERE event = 'organization.update' AND resource_id = $1 ORDER BY created_at DESC LIMIT 1", orgID)
+		var out map[string]any
+		s.Require().NoError(json.Unmarshal([]byte(raw), &out))
+		return out
+	}
+
 	for name, update := range updaters {
 		s.Run(name, func() {
 			created, err := s.repository.Create(s.ctx, organization.Organization{
@@ -408,18 +417,26 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateMetadataHandling() {
 				s.Require().NoError(err)
 				s.Equal("after", got.Title)
 				s.Equal(metadata.Metadata{"poc": "owner@example.com", "size": "10"}, got.Metadata)
+
+				recorded := lastAuditMetadata(created.ID)
+				s.Equal("owner@example.com", recorded["poc"])
+				s.Equal("10", recorded["size"])
 			})
 
 			s.Run("replaces stored metadata when metadata is set", func() {
 				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
 				s.Require().NoError(err)
 				s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
+
+				s.Equal(map[string]any{"size": "20"}, lastAuditMetadata(created.ID))
 			})
 
 			s.Run("clears stored metadata when metadata is empty", func() {
 				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{}})
 				s.Require().NoError(err)
 				s.Equal(metadata.Metadata{}, got.Metadata)
+
+				s.Empty(lastAuditMetadata(created.ID))
 			})
 		})
 	}

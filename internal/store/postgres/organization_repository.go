@@ -357,7 +357,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	var orgModel Organization
+	var updatedOrg organization.Organization
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Update", func(ctx context.Context) error {
 			// Fetch title before update
@@ -367,12 +367,18 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 			}
 
 			// Execute update
+			var orgModel Organization
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
 				return err
 			}
+			transformed, err := orgModel.transformToOrg()
+			if err != nil {
+				return fmt.Errorf("%w: %w", errParse, err)
+			}
+			updatedOrg = transformed
 
 			// Create audit record
-			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, org.Metadata)
+			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, updatedOrg.Metadata)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -389,12 +395,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		}
 	}
 
-	org, err = orgModel.transformToOrg()
-	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
-	}
-
-	return org, nil
+	return updatedOrg, nil
 }
 
 func (r OrganizationRepository) UpdateByName(ctx context.Context, org organization.Organization) (organization.Organization, error) {
@@ -423,7 +424,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	var orgModel Organization
+	var updatedOrg organization.Organization
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "UpdateByName", func(ctx context.Context) error {
 			// Fetch title before update
@@ -433,11 +434,17 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 			}
 
 			// Execute update
+			var orgModel Organization
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
 				return err
 			}
+			transformed, err := orgModel.transformToOrg()
+			if err != nil {
+				return fmt.Errorf("%w: %w", errParse, err)
+			}
+			updatedOrg = transformed
 
-			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, org.Metadata)
+			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, updatedOrg.Metadata)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -452,12 +459,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		}
 	}
 
-	org, err = orgModel.transformToOrg()
-	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
-	}
-
-	return org, nil
+	return updatedOrg, nil
 }
 
 func (r OrganizationRepository) SetState(ctx context.Context, id string, state organization.State) error {
