@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/raystack/frontier/core/authenticate"
@@ -66,6 +67,27 @@ func livePoliciesMatching(t require.TestingT, ctx context.Context, cl frontierv1
 	resp, err := cl.ListPolicies(ctx, connect.NewRequest(req))
 	require.NoError(t, err)
 	return resp.Msg.GetPolicies()
+}
+
+func signUpUser(t require.TestingT, cl frontierv1beta1connect.FrontierServiceClient, email string) (string, context.Context) {
+	cookie, err := testbench.AuthenticateUser(context.Background(), cl, email)
+	require.NoError(t, err)
+	ctx := testbench.ContextWithAuth(context.Background(), cookie)
+	resp, err := cl.GetCurrentUser(ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+	require.NoError(t, err)
+	return resp.Msg.GetUser().GetId(), ctx
+}
+
+func requireDeleteRefused(t require.TestingT, err error) (string, []*errdetails.PreconditionFailure_Violation) {
+	var connectErr *connect.Error
+	require.ErrorAs(t, err, &connectErr)
+	require.Equal(t, connect.CodeFailedPrecondition, connectErr.Code())
+	require.Len(t, connectErr.Details(), 1)
+	detail, err := connectErr.Details()[0].Value()
+	require.NoError(t, err)
+	failure, ok := detail.(*errdetails.PreconditionFailure)
+	require.True(t, ok)
+	return connectErr.Message(), failure.GetViolations()
 }
 
 type APIRegressionTestSuite struct {
@@ -1889,6 +1911,280 @@ func (s *APIRegressionTestSuite) TestUserDeleteLeavesNoAccessAndNoLivePolicy() {
 		for _, pair := range resp.Msg.GetRolePairs() {
 			s.Assert().NotEqual(userID, pair.GetUserId())
 		}
+	})
+}
+
+func (s *APIRegressionTestSuite) TestUserDeleteWithOrgs() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createUser := func(name string) string {
+		resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{Email: name + "@raystack.org", Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetUser().GetId()
+	}
+	createOrg := func(ctx context.Context, name string) string {
+		resp, err := s.testBench.Client.CreateOrganization(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{Title: name, Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetOrganization().GetId()
+	}
+	addMember := func(orgID, userID, roleID string) {
+		resp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId:   orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{{UserId: userID, RoleId: roleID}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), resp, err)
+	}
+	deleteUser := func(id string) error {
+		_, err := s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{Id: id}))
+		return err
+	}
+	userExists := func(id string) bool {
+		_, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetUserRequest{Id: id}))
+		if err != nil {
+			s.Require().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		}
+		return err == nil
+	}
+	orgIsLive := func(id string) bool {
+		var count int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+			"SELECT count(*) FROM organizations WHERE id = $1 AND deleted_at IS NULL", id))
+		return count == 1
+	}
+	orgHasUser := func(orgID, userID string) bool {
+		resp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{Id: orgID}))
+		s.Require().NoError(err)
+		return slices.ContainsFunc(resp.Msg.GetUsers(), func(u *frontierv1beta1.User) bool { return u.GetId() == userID })
+	}
+
+	s.Run("an only owner and an org in debt refuse the delete together, and no org is touched until both are cleared", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-owner@raystack.org")
+		aloneOrgID := createOrg(userCtx, "user-delete-check-alone")
+		sharedOrgID := createOrg(userCtx, "user-delete-check-shared")
+		debtOrgID := createOrg(userCtx, "user-delete-check-debt")
+		addMember(sharedOrgID, createUser("user-delete-check-member"), s.orgViewerRole)
+
+		accountResp, err := s.testBench.Client.CreateBillingAccount(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingAccountRequest{
+			OrgId:   debtOrgID,
+			Offline: true,
+			Body:    &frontierv1beta1.BillingAccountRequestBody{Name: "user-delete-check-debt", Email: "user-delete-check-debt@raystack.org", Currency: "usd"},
+		}))
+		s.Require().NoError(err)
+		accountID := accountResp.Msg.GetBillingAccount().GetId()
+		_, err = s.testBench.AdminClient.UpdateBillingAccountDetails(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountDetailsRequest{
+			OrgId:     debtOrgID,
+			Id:        accountID,
+			CreditMin: -100,
+		}))
+		s.Require().NoError(err)
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:  debtOrgID,
+			Usages: []*frontierv1beta1.Usage{{Id: usageID, Source: "user-delete-check", Amount: 30, UserId: userID}},
+		}))
+		s.Require().NoError(err)
+		balance := func() int64 {
+			resp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetBillingBalanceRequest{Id: accountID}))
+			s.Require().NoError(err)
+			return resp.Msg.GetBalance().GetAmount()
+		}
+		s.Require().Equal(int64(-30), balance())
+
+		_, violations := requireDeleteRefused(s.T(), deleteUser(userID))
+		subjectByType := map[string]string{}
+		for _, v := range violations {
+			subjectByType[v.GetType()] = v.GetSubject()
+		}
+		s.Assert().Len(violations, 2)
+		s.Assert().Equal(map[string]string{
+			deleter.BlockerSoleOwnerWithMembers: sharedOrgID,
+			deleter.BlockerNegativeTokenBalance: accountID,
+		}, subjectByType)
+		s.Assert().True(userExists(userID))
+		s.Assert().True(orgIsLive(aloneOrgID))
+		s.Assert().True(orgIsLive(debtOrgID))
+		s.Assert().Equal(int64(-30), balance())
+		s.Assert().True(orgHasUser(sharedOrgID, userID))
+
+		addMember(sharedOrgID, createUser("user-delete-check-second-owner"), s.orgOwnerRole)
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     debtOrgID,
+			BillingId: accountID,
+			UsageId:   usageID,
+			Amount:    30,
+		}))
+		s.Require().NoError(err)
+
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().False(orgIsLive(aloneOrgID))
+		s.Assert().True(orgIsLive(sharedOrgID))
+		s.Assert().False(orgIsLive(debtOrgID))
+	})
+
+	s.Run("a disabled member keeps the only owner from leaving", func() {
+		ownerID, ownerCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-disabled-member-owner@raystack.org")
+		orgID := createOrg(ownerCtx, "user-delete-check-disabled-member-org")
+		memberID := createUser("user-delete-check-disabled-member")
+		addMember(orgID, memberID, s.orgViewerRole)
+		_, err := s.testBench.Client.DisableUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableUserRequest{Id: memberID}))
+		s.Require().NoError(err)
+
+		_, violations := requireDeleteRefused(s.T(), deleteUser(ownerID))
+		s.Require().Len(violations, 1)
+		s.Assert().Equal(deleter.BlockerSoleOwnerWithMembers, violations[0].GetType())
+		s.Assert().Equal(orgID, violations[0].GetSubject())
+		s.Assert().True(userExists(ownerID))
+		s.Assert().True(orgIsLive(orgID))
+	})
+
+	s.Run("every org where the user is the only member is deleted with the user", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-solo@raystack.org")
+		enabledOrgID := createOrg(userCtx, "user-delete-check-solo")
+		disabledOrgID := createOrg(userCtx, "user-delete-check-solo-disabled")
+		serviceUserOrgID := createOrg(userCtx, "user-delete-check-solo-service-user")
+		_, err := s.testBench.Client.DisableOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{Id: disabledOrgID}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.CreateServiceUser(userCtx, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{OrgId: serviceUserOrgID}))
+		s.Require().NoError(err)
+
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().False(orgIsLive(enabledOrgID))
+		s.Assert().False(orgIsLive(disabledOrgID))
+		s.Assert().False(orgIsLive(serviceUserOrgID))
+	})
+
+	s.Run("a disk in an org where the user is the only member refuses the delete, and no org is deleted until the disk is gone", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-disk@raystack.org")
+		emptyOrgID := createOrg(userCtx, "user-delete-check-empty")
+		diskOrgID := createOrg(userCtx, "user-delete-check-disk")
+		projectResp, err := s.testBench.Client.CreateProject(userCtx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: "user-delete-check-disk-project", OrgId: diskOrgID},
+		}))
+		s.Require().NoError(err)
+		projectID := projectResp.Msg.GetProject().GetId()
+		diskResp, err := s.testBench.Client.CreateProjectResource(userCtx, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectID,
+			Body:      &frontierv1beta1.ResourceRequestBody{Name: "user-delete-check-disk", Namespace: computeDiskNamespace},
+		}))
+		s.Require().NoError(err)
+
+		message, violations := requireDeleteRefused(s.T(), deleteUser(userID))
+		s.Assert().Equal("user cannot be deleted yet", message)
+		s.Require().Len(violations, 1)
+		s.Assert().Equal(deleter.BlockerResourcesExist, violations[0].GetType())
+		s.Assert().Equal(computeDiskNamespace, violations[0].GetSubject())
+		s.Assert().True(userExists(userID))
+		s.Assert().True(orgIsLive(emptyOrgID))
+		s.Assert().True(orgIsLive(diskOrgID))
+
+		_, err = s.testBench.Client.DeleteProjectResource(userCtx, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+			ProjectId: projectID,
+			Id:        diskResp.Msg.GetResource().GetId(),
+		}))
+		s.Require().NoError(err)
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().False(orgIsLive(emptyOrgID))
+		s.Assert().False(orgIsLive(diskOrgID))
+	})
+
+	s.Run("a failed step stops the delete, and the next try continues from where it stopped", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-retry@raystack.org")
+		aloneOrgID := createOrg(userCtx, "user-delete-retry-alone")
+		sharedOrgID := createOrg(userCtx, "user-delete-retry-shared")
+		addMember(sharedOrgID, createUser("user-delete-retry-other-owner"), s.orgOwnerRole)
+		projectResp, err := s.testBench.Client.CreateProject(userCtx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: "user-delete-retry-project", OrgId: aloneOrgID},
+		}))
+		s.Require().NoError(err)
+		projectID := projectResp.Msg.GetProject().GetId()
+
+		exec := func(query string) {
+			_, err := s.dbc.ExecContext(context.Background(), query)
+			s.Require().NoError(err)
+		}
+		exec(`
+CREATE OR REPLACE FUNCTION e2e_fail_user_delete_retry_project() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.name = 'user-delete-retry-project' THEN
+        RAISE EXCEPTION 'e2e injected project delete failure';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION e2e_fail_user_delete_retry_leave() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.principal_id = (SELECT id FROM users WHERE email = 'user-delete-retry@raystack.org')
+        AND OLD.resource_id = (SELECT id FROM organizations WHERE name = 'user-delete-retry-shared') THEN
+        RAISE EXCEPTION 'e2e injected policy delete failure';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION e2e_fail_user_delete_retry_user() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.email = 'user-delete-retry@raystack.org' THEN
+        RAISE EXCEPTION 'e2e injected user delete failure';
+    END IF;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;`)
+		defer func() {
+			_, err := s.dbc.ExecContext(context.Background(), `
+DROP TRIGGER IF EXISTS trg_e2e_fail_user_delete_retry ON projects;
+DROP TRIGGER IF EXISTS trg_e2e_fail_user_delete_retry ON policies;
+DROP TRIGGER IF EXISTS trg_e2e_fail_user_delete_retry ON users;
+DROP FUNCTION IF EXISTS e2e_fail_user_delete_retry_project();
+DROP FUNCTION IF EXISTS e2e_fail_user_delete_retry_leave();
+DROP FUNCTION IF EXISTS e2e_fail_user_delete_retry_user();`)
+			s.Assert().NoError(err)
+		}()
+		requireFailedDelete := func() {
+			s.Require().Equal(connect.CodeInternal, connect.CodeOf(deleteUser(userID)))
+		}
+
+		exec(`CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE UPDATE OF deleted_at ON projects
+    FOR EACH ROW EXECUTE FUNCTION e2e_fail_user_delete_retry_project();`)
+		requireFailedDelete()
+		s.Assert().True(userExists(userID))
+		s.Assert().True(orgIsLive(aloneOrgID))
+		var liveProjects int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &liveProjects,
+			"SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NULL", projectID))
+		s.Assert().Equal(1, liveProjects)
+		s.Assert().True(orgHasUser(sharedOrgID, userID))
+
+		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON projects;
+CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE UPDATE OF deleted_at ON policies
+    FOR EACH ROW EXECUTE FUNCTION e2e_fail_user_delete_retry_leave();`)
+		requireFailedDelete()
+		s.Assert().True(userExists(userID))
+		s.Assert().False(orgIsLive(aloneOrgID))
+		s.Assert().True(orgHasUser(sharedOrgID, userID))
+
+		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON policies;
+CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE DELETE OR UPDATE OF deleted_at ON users
+    FOR EACH ROW EXECUTE FUNCTION e2e_fail_user_delete_retry_user();`)
+		requireFailedDelete()
+		s.Assert().True(userExists(userID))
+		s.Assert().False(orgHasUser(sharedOrgID, userID))
+		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
+
+		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON users;`)
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().True(orgIsLive(sharedOrgID))
 	})
 }
 
