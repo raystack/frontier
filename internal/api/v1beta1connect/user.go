@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/membership"
 	"github.com/raystack/frontier/core/organization"
@@ -412,6 +413,10 @@ func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Reques
 	userID := request.Msg.GetId()
 
 	if err := h.deleterService.DeleteUser(ctx, userID); err != nil {
+		var blocked *deleter.BlockedError
+		if errors.As(err, &blocked) {
+			return nil, deleteBlockedError(ctx, blocked)
+		}
 		errorLogger.LogServiceError(ctx, request, "DeleteUser", err,
 			"user_id", userID)
 

@@ -101,10 +101,10 @@ func deleteBlockedError(ctx context.Context, blocked *deleter.BlockedError) *con
 		})
 	}
 	if detail, err := connect.NewErrorDetail(failure); err != nil {
-		slog.WarnContext(ctx, "failed to attach precondition failure details", "error", err, "org_id", blocked.OrgID, "project_id", blocked.ProjectID)
+		slog.WarnContext(ctx, "failed to attach precondition failure details", "error", err, "org_id", blocked.OrgID, "project_id", blocked.ProjectID, "user_id", blocked.UserID)
 	} else {
 		connectErr.AddDetail(detail)
 	}
-	slog.WarnContext(ctx, "delete blocked", "org_id", blocked.OrgID, "project_id", blocked.ProjectID, "blockers", len(blocked.Blockers))
+	slog.WarnContext(ctx, "delete blocked", "org_id", blocked.OrgID, "project_id", blocked.ProjectID, "user_id", blocked.UserID, "blockers", len(blocked.Blockers))
 	return connectErr
 }
