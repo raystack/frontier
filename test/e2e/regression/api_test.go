@@ -4015,6 +4015,7 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteLeavesNoAccessAndNoLivePo
 		"org":              schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
 		"project":          projectResource,
 		"disabled project": schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, disabledProjectID),
+		"group":            schema.JoinNamespaceAndResourceID(schema.GroupNamespace, groupID),
 		"order":            orderResource,
 	}
 	subjects := map[string]string{
@@ -4035,10 +4036,10 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteLeavesNoAccessAndNoLivePo
 		return resp.Msg.GetStatus()
 	}
 	for subject, objectNames := range map[string][]string{
-		"org owner":    {"org", "project", "disabled project", "order"},
+		"org owner":    {"org", "project", "disabled project", "group", "order"},
 		"org member":   {"org"},
 		"project user": {"project"},
-		"group member": {"org", "project"},
+		"group member": {"org", "project", "group"},
 		"service user": {"project"},
 		"order viewer": {"order"},
 	} {
@@ -4046,6 +4047,15 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteLeavesNoAccessAndNoLivePo
 			s.Require().Truef(canGet(subjects[subject], objects[object]), "%s on the %s before the delete", subject, object)
 		}
 	}
+
+	groupRelations := func() []*frontierv1beta1.Relation {
+		resp, err := s.testBench.AdminClient.ListRelations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{Object: objects["group"]}))
+		s.Require().NoError(err)
+		return resp.Msg.GetRelations()
+	}
+	s.Require().Truef(slices.ContainsFunc(groupRelations(), func(r *frontierv1beta1.Relation) bool {
+		return r.GetRelation() == schema.MemberRelationName && r.GetSubject() == subjects["group member"]
+	}), "the group member's %s relation on the group before the delete", schema.MemberRelationName)
 
 	livePoliciesOn := func(id string) int {
 		var n int
@@ -4073,7 +4083,7 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteLeavesNoAccessAndNoLivePo
 	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
 	s.Require().NoError(err)
 
-	s.Run("nobody who had access can get the org, its projects or the order", func() {
+	s.Run("nobody who had access can get the org, its projects, its group or the order", func() {
 		for subject, subjectID := range subjects {
 			for object, objectID := range objects {
 				s.Assert().Falsef(canGet(subjectID, objectID), "%s on the %s after the delete", subject, object)
@@ -4091,6 +4101,10 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteLeavesNoAccessAndNoLivePo
 		for name, id := range policyPrincipals {
 			s.Assert().Zerof(livePoliciesNaming(id), "live policies naming the %s after the delete", name)
 		}
+	})
+
+	s.Run("no relation is left on the deleted group", func() {
+		s.Assert().Empty(groupRelations())
 	})
 
 	s.Run("the org and everything removed with it stay in the database marked deleted", func() {
