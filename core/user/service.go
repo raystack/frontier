@@ -166,6 +166,9 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	}}); err != nil {
 		return err
 	}
+	if err := s.sessionService.DeleteByUserID(ctx, id); err != nil {
+		return err
+	}
 	return s.repository.Delete(ctx, id)
 }
 

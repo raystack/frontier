@@ -1725,6 +1725,36 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Require().Error(err)
 		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
 	})
+	s.Run("13. session is rejected on the next request after the user is deleted", func() {
+		const targetEmail = "delete-session-target@raystack.org"
+
+		createResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Title: "delete session target",
+				Email: targetEmail,
+				Name:  "delete_session_target",
+			},
+		}))
+		s.Require().NoError(err)
+		targetID := createResp.Msg.GetUser().GetId()
+
+		targetCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, targetEmail)
+		s.Require().NoError(err)
+		ctxTarget := testbench.ContextWithAuth(context.Background(), targetCookie)
+
+		meResp, err := s.testBench.Client.GetCurrentUser(ctxTarget, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().NoError(err)
+		s.Assert().Equal(targetEmail, meResp.Msg.GetUser().GetEmail())
+
+		_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{
+			Id: targetID,
+		}))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.GetCurrentUser(ctxTarget, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+	})
 }
 
 func (s *APIRegressionTestSuite) TestUserDeleteLeavesNoAccessAndNoLivePolicy() {
