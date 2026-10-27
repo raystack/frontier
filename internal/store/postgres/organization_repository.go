@@ -311,6 +311,23 @@ func buildOrgUpdateAuditRecord(ctx context.Context, orgBeforeUpdate, orgAfterUpd
 	return auditRecord
 }
 
+func buildOrgUpdateColumns(org organization.Organization) (goqu.Record, error) {
+	record := goqu.Record{
+		"title":      org.Title,
+		"avatar":     org.Avatar,
+		"updated_at": goqu.L("now()"),
+	}
+	if org.Metadata == nil {
+		return record, nil
+	}
+	marshaledMetadata, err := json.Marshal(org.Metadata)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", errParse, err)
+	}
+	record["metadata"] = marshaledMetadata
+	return record, nil
+}
+
 func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization.Organization) (organization.Organization, error) {
 	if strings.TrimSpace(org.ID) == "" {
 		return organization.Organization{}, organization.ErrInvalidID
@@ -320,9 +337,9 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
 
-	marshaledMetadata, err := json.Marshal(org.Metadata)
+	updateRecord, err := buildOrgUpdateColumns(org)
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
+		return organization.Organization{}, err
 	}
 
 	// Query to fetch org title before update
@@ -333,20 +350,14 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
-		goqu.Record{
-			"title":      org.Title,
-			"avatar":     org.Avatar,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{
+	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": org.ID,
 	}).Returning(&Organization{}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	var orgModel Organization
+	var updatedOrg organization.Organization
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Update", func(ctx context.Context) error {
 			// Fetch title before update
@@ -356,12 +367,18 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 			}
 
 			// Execute update
+			var orgModel Organization
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
 				return err
 			}
+			transformed, err := orgModel.transformToOrg()
+			if err != nil {
+				return fmt.Errorf("%w: %w", errParse, err)
+			}
+			updatedOrg = transformed
 
 			// Create audit record
-			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, org.Metadata)
+			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, updatedOrg.Metadata)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -378,12 +395,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		}
 	}
 
-	org, err = orgModel.transformToOrg()
-	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
-	}
-
-	return org, nil
+	return updatedOrg, nil
 }
 
 func (r OrganizationRepository) UpdateByName(ctx context.Context, org organization.Organization) (organization.Organization, error) {
@@ -391,9 +403,9 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	marshaledMetadata, err := json.Marshal(org.Metadata)
+	updateRecord, err := buildOrgUpdateColumns(org)
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
+		return organization.Organization{}, err
 	}
 
 	// Query to fetch org data before update
@@ -404,13 +416,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
-		goqu.Record{
-			"title":      org.Title,
-			"avatar":     org.Avatar,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(
+	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(updateRecord).Where(
 		goqu.Ex{
 			"name": org.Name,
 		}).Returning(&Organization{}).ToSQL()
@@ -418,7 +424,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
 
-	var orgModel Organization
+	var updatedOrg organization.Organization
 	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "UpdateByName", func(ctx context.Context) error {
 			// Fetch title before update
@@ -428,11 +434,17 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 			}
 
 			// Execute update
+			var orgModel Organization
 			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
 				return err
 			}
+			transformed, err := orgModel.transformToOrg()
+			if err != nil {
+				return fmt.Errorf("%w: %w", errParse, err)
+			}
+			updatedOrg = transformed
 
-			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, org.Metadata)
+			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, updatedOrg.Metadata)
 			return InsertAuditRecordInTx(ctx, tx, auditRecord)
 		})
 	}); err != nil {
@@ -447,12 +459,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		}
 	}
 
-	org, err = orgModel.transformToOrg()
-	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errParse, err)
-	}
-
-	return org, nil
+	return updatedOrg, nil
 }
 
 func (r OrganizationRepository) SetState(ctx context.Context, id string, state organization.State) error {

@@ -140,6 +140,7 @@ export function EditOrganizationPanel({ open = false, onClose }: { open?: boolea
         name: data.name,
         title: data.title,
         metadata: {
+          ...organization?.metadata,
           size: data.size.toString(),
           type: data.otherType
             ? `${otherTypePrefix}${data.otherType}`
