@@ -400,6 +400,19 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 	return principal, nil
 }
 
+// getLoggedInUser returns the authenticated principal, rejecting service users
+// and PATs. Use this for endpoints that act on the user's own account.
+func (h *ConnectHandler) getLoggedInUser(ctx context.Context) (authenticate.Principal, error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return principal, err
+	}
+	if principal.Type != schema.UserPrincipal {
+		return principal, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
+	}
+	return principal, nil
+}
+
 func (h *ConnectHandler) ListAuthStrategies(ctx context.Context, request *connect.Request[frontierv1beta1.ListAuthStrategiesRequest]) (*connect.Response[frontierv1beta1.ListAuthStrategiesResponse], error) {
 	var pbstrategy []*frontierv1beta1.AuthStrategy
 	for _, strategy := range h.authnService.SupportedStrategies() {

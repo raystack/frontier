@@ -861,6 +861,43 @@ func (s *PATRegressionTestSuite) TestPATOfDeletedOrgStopsAuthenticating() {
 	})
 }
 
+func (s *PATRegressionTestSuite) TestPATCannotCheckOrDeleteItsOwnersAccount() {
+	_, userCtx := signUpUser(s.T(), s.testBench.Client, "pat-account-delete@raystack.org")
+	orgResp, err := s.testBench.Client.CreateOrganization(userCtx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Name: "org-pat-account-delete"},
+	}))
+	s.Require().NoError(err)
+	_, patToken := s.createPAT(userCtx, orgResp.Msg.GetOrganization().GetId(), "pat-account-delete", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+	})
+	patCtx := getPATCtx(patToken)
+	_, err = s.testBench.Client.GetCurrentUser(patCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+	s.Require().NoError(err)
+
+	s.Run("the token is refused for both calls", func() {
+		_, err := s.testBench.Client.CheckCurrentUserDelete(patCtx, connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+		s.Assert().ErrorContains(err, "personal access token")
+		_, err = s.testBench.Client.DeleteCurrentUser(patCtx, connect.NewRequest(&frontierv1beta1.DeleteCurrentUserRequest{}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+		s.Assert().ErrorContains(err, "personal access token")
+	})
+
+	s.Run("the check counts the token", func() {
+		resp, err := s.testBench.Client.CheckCurrentUserDelete(userCtx, connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+		s.Require().NoError(err)
+		s.Assert().Equal(int32(1), resp.Msg.GetPatCount())
+	})
+
+	s.Run("the token stops working once its owner deletes the account", func() {
+		_, err := s.testBench.Client.DeleteCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.DeleteCurrentUserRequest{}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.GetCurrentUser(patCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+	})
+}
+
 func TestEndToEndPATRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(PATRegressionTestSuite))
 }

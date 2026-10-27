@@ -22,6 +22,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -910,6 +911,8 @@ func TestConnectHandler_DeleteUser(t *testing.T) {
 			if tt.err == connect.Code(0) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, resp.Msg)
+				// the admin's own session cookie stays
+				assert.Empty(t, resp.Header().Get(consts.SessionDeleteGatewayKey))
 			} else {
 				assert.Nil(t, resp)
 				assert.Equal(t, tt.err, connect.CodeOf(err))
@@ -953,6 +956,194 @@ func TestConnectHandler_DeleteUser(t *testing.T) {
 		assert.Equal(t, deleter.BlockerSoleOwnerWithMembers, failure.GetViolations()[0].GetType())
 		assert.Equal(t, "org-1", failure.GetViolations()[0].GetSubject())
 	})
+}
+
+func TestConnectHandler_CheckCurrentUserDelete(t *testing.T) {
+	userID := uuid.New().String()
+	currentUser := authenticate.Principal{ID: userID, Type: schema.UserPrincipal, User: &user.User{ID: userID}}
+	solo := organization.Organization{ID: uuid.New().String(), Name: "solo", Title: "Solo"}
+	debt := organization.Organization{ID: uuid.New().String(), Name: "debt", Title: "Debt"}
+	shared := organization.Organization{ID: uuid.New().String(), Name: "shared", Title: "Shared"}
+	unpaid := deleter.Blocker{Type: deleter.BlockerUnpaidInvoice, Subject: "inv-1", SubjectType: deleter.SubjectInvoice, Message: "invoice[inv-1] is unpaid"}
+	soleOwner := deleter.Blocker{Type: deleter.BlockerSoleOwnerWithMembers, Subject: shared.ID, SubjectType: deleter.SubjectOrganization, Message: "organization[shared] has other members and this user is its only owner"}
+
+	tests := []struct {
+		title string
+		setup func(*mocks.AuthnService, *mocks.CascadeDeleter)
+		want  *frontierv1beta1.CheckCurrentUserDeleteResponse
+		err   connect.Code
+	}{
+		{
+			title: "should list the orgs deleted with the user and the orgs it leaves, each with its blockers",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(currentUser, nil)
+				cd.EXPECT().CheckUserDelete(mock.Anything, userID).Return(deleter.UserDeleteCheck{
+					OrganizationsToDelete: []deleter.OrganizationToDelete{
+						{Organization: solo},
+						{Organization: debt, Blockers: []deleter.Blocker{unpaid}},
+					},
+					OrganizationsToLeave: []deleter.OrganizationToLeave{
+						{Organization: shared, RoleTitle: "Owner", Blockers: []deleter.Blocker{soleOwner}},
+					},
+					PATCount: 2,
+				}, nil)
+			},
+			want: &frontierv1beta1.CheckCurrentUserDeleteResponse{
+				CanDelete: false,
+				OrganizationsToDelete: []*frontierv1beta1.CheckCurrentUserDeleteResponse_OrganizationToDelete{
+					{Id: solo.ID, Name: "solo", Title: "Solo", CanDelete: true},
+					{Id: debt.ID, Name: "debt", Title: "Debt", CanDelete: false, Blockers: []*frontierv1beta1.Blocker{
+						{Type: deleter.BlockerUnpaidInvoice, Subject: "inv-1", SubjectType: deleter.SubjectInvoice, Message: "invoice[inv-1] is unpaid"},
+					}},
+				},
+				OrganizationsToLeave: []*frontierv1beta1.CheckCurrentUserDeleteResponse_OrganizationToLeave{
+					{Id: shared.ID, Name: "shared", Title: "Shared", Role: "Owner", Blockers: []*frontierv1beta1.Blocker{
+						{Type: deleter.BlockerSoleOwnerWithMembers, Subject: shared.ID, SubjectType: deleter.SubjectOrganization, Message: "organization[shared] has other members and this user is its only owner"},
+					}},
+				},
+				PatCount: 2,
+			},
+		},
+		{
+			title: "should allow the delete when nothing blocks it",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(currentUser, nil)
+				cd.EXPECT().CheckUserDelete(mock.Anything, userID).Return(deleter.UserDeleteCheck{
+					OrganizationsToLeave: []deleter.OrganizationToLeave{{Organization: shared, RoleTitle: "Member"}},
+				}, nil)
+			},
+			want: &frontierv1beta1.CheckCurrentUserDeleteResponse{
+				CanDelete: true,
+				OrganizationsToLeave: []*frontierv1beta1.CheckCurrentUserDeleteResponse_OrganizationToLeave{
+					{Id: shared.ID, Name: "shared", Title: "Shared", Role: "Member"},
+				},
+			},
+		},
+		{
+			title: "should return internal error when the check fails",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(currentUser, nil)
+				cd.EXPECT().CheckUserDelete(mock.Anything, userID).Return(deleter.UserDeleteCheck{}, errors.New("read failed"))
+			},
+			err: connect.CodeInternal,
+		},
+		{
+			title: "should return unauthenticated when nobody is logged in",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			err: connect.CodeUnauthenticated,
+		},
+		{
+			title: "should return permission denied for a service user",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{ID: "sv-1", Type: schema.ServiceUserPrincipal}, nil)
+			},
+			err: connect.CodePermissionDenied,
+		},
+		{
+			title: "should return permission denied for a PAT",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{ID: "pat-1", Type: schema.PATPrincipal, User: &user.User{ID: userID}}, nil)
+			},
+			err: connect.CodePermissionDenied,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			as := mocks.NewAuthnService(t)
+			cd := mocks.NewCascadeDeleter(t)
+			tt.setup(as, cd)
+			handler := &ConnectHandler{authnService: as, deleterService: cd}
+
+			resp, err := handler.CheckCurrentUserDelete(context.Background(), connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+			if tt.err != connect.Code(0) {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.want, resp.Msg)
+		})
+	}
+}
+
+func TestConnectHandler_DeleteCurrentUser(t *testing.T) {
+	userID := uuid.New().String()
+	currentUser := authenticate.Principal{ID: userID, Type: schema.UserPrincipal, User: &user.User{ID: userID}}
+
+	tests := []struct {
+		title string
+		setup func(*mocks.AuthnService, *mocks.CascadeDeleter)
+		err   connect.Code
+	}{
+		{
+			title: "should delete the logged-in user and clear the session cookie",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(currentUser, nil)
+				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(nil)
+			},
+		},
+		{
+			title: "should return failed precondition when the delete is blocked",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(currentUser, nil)
+				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(&deleter.BlockedError{
+					UserID:   userID,
+					Blockers: []deleter.Blocker{{Type: deleter.BlockerSoleOwnerWithMembers, Subject: "org-1"}},
+				})
+			},
+			err: connect.CodeFailedPrecondition,
+		},
+		{
+			title: "should return internal error when the delete fails",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(currentUser, nil)
+				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(errors.New("spicedb unavailable"))
+			},
+			err: connect.CodeInternal,
+		},
+		{
+			title: "should return unauthenticated when nobody is logged in",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+			},
+			err: connect.CodeUnauthenticated,
+		},
+		{
+			title: "should return permission denied for a service user",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{ID: "sv-1", Type: schema.ServiceUserPrincipal}, nil)
+			},
+			err: connect.CodePermissionDenied,
+		},
+		{
+			title: "should return permission denied for a PAT",
+			setup: func(as *mocks.AuthnService, cd *mocks.CascadeDeleter) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{ID: "pat-1", Type: schema.PATPrincipal, User: &user.User{ID: userID}}, nil)
+			},
+			err: connect.CodePermissionDenied,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			as := mocks.NewAuthnService(t)
+			cd := mocks.NewCascadeDeleter(t)
+			tt.setup(as, cd)
+			handler := &ConnectHandler{authnService: as, deleterService: cd}
+
+			resp, err := handler.DeleteCurrentUser(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteCurrentUserRequest{}))
+			if tt.err != connect.Code(0) {
+				assert.Nil(t, resp)
+				assert.Equal(t, tt.err, connect.CodeOf(err))
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, "true", resp.Header().Get(consts.SessionDeleteGatewayKey))
+		})
+	}
 }
 
 func TestConnectHandler_ListUserGroups(t *testing.T) {
