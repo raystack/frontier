@@ -556,7 +556,7 @@ func (r UserRepository) SetState(ctx context.Context, id string, state user.Stat
 }
 
 func (r UserRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_USERS).Where(
+	query, params, err := softDelete(TABLE_USERS).Where(
 		goqu.Ex{
 			"id": id,
 		},
@@ -572,7 +572,7 @@ func (r UserRepository) Delete(ctx context.Context, id string) error {
 		}); err != nil {
 			return err
 		}
-		return InsertAuditRecordInTx(ctx, tx, buildUserAuditRecord(ctx, auditrecord.UserDeletedEvent, userModel, time.Now().UTC()))
+		return InsertAuditRecordInTx(ctx, tx, buildUserAuditRecord(ctx, auditrecord.UserDeletedEvent, userModel, userModel.DeletedAt.Time))
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

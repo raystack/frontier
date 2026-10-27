@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const liveOwnerJoin = `INNER JOIN "users" AS "u" ON (("p"."user_id" = "u"."id") AND ("u"."deleted_at" IS NULL))`
+
 func TestOrgPATsRepository_buildCountQuery(t *testing.T) {
 	r := OrgPATsRepository{}
 
@@ -66,6 +68,7 @@ func TestOrgPATsRepository_buildCountQuery(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotEmpty(t, sql)
 			assert.Contains(t, sql, "COUNT(*)")
+			assert.Contains(t, sql, liveOwnerJoin)
 			assert.NotContains(t, sql, "ORDER BY")
 			assert.NotEmpty(t, params)
 		})
@@ -135,6 +138,7 @@ func TestOrgPATsRepository_buildDataQuery(t *testing.T) {
 			assert.Contains(t, sql, "pat_id")
 			assert.Contains(t, sql, "created_by_title")
 			assert.Contains(t, sql, "pol")
+			assert.Contains(t, sql, liveOwnerJoin)
 			assert.NotEmpty(t, params)
 
 			// the live filter sits in the policies join, not in a WHERE clause
