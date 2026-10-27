@@ -46,7 +46,6 @@ dockers:
       - frontier
     dockerfile: Dockerfile
     image_templates:
-      - "docker.io/raystack/{{.ProjectName}}:latest"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}"
       - "docker.io/raystack/{{.ProjectName}}:{{ .Tag }}-amd64"
 
