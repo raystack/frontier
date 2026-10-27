@@ -1727,6 +1727,141 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 	})
 }
 
+func (s *APIRegressionTestSuite) TestUserDeleteLeavesNoAccessAndNoLivePolicy() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrg := func(name string) string {
+		resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{Title: name, Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetOrganization().GetId()
+	}
+	createProject := func(orgID, name string) string {
+		resp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: name, OrgId: orgID},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetProject().GetId()
+	}
+
+	memberOrgID := createOrg("user-delete-member-org")
+	otherOrgID := createOrg("user-delete-other-org")
+	disabledProjectID := createProject(memberOrgID, "user-delete-disabled-project")
+	otherOrgProjectID := createProject(otherOrgID, "user-delete-other-org-project")
+
+	orderResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+		ProjectId: disabledProjectID,
+		Body:      &frontierv1beta1.ResourceRequestBody{Name: "user-delete-order", Namespace: computeOrderNamespace},
+	}))
+	s.Require().NoError(err)
+	orderID := orderResp.Msg.GetResource().GetId()
+
+	groupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+		OrgId: memberOrgID,
+		Body:  &frontierv1beta1.GroupRequestBody{Name: "user-delete-disabled-group"},
+	}))
+	s.Require().NoError(err)
+	disabledGroupID := groupResp.Msg.GetGroup().GetId()
+
+	userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+		Body: &frontierv1beta1.UserRequestBody{Email: "user-delete-target@raystack.org", Name: "user-delete-target"},
+	}))
+	s.Require().NoError(err)
+	userID := userResp.Msg.GetUser().GetId()
+	userSubject := schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userID)
+
+	addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+		OrgId:   memberOrgID,
+		Members: []*frontierv1beta1.OrgMemberEntry{{UserId: userID, RoleId: s.orgViewerRole}},
+	}))
+	requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
+	_, err = s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+		GroupId:       disabledGroupID,
+		PrincipalId:   userID,
+		PrincipalType: schema.UserPrincipal,
+		RoleId:        s.groupMemberRole,
+	}))
+	s.Require().NoError(err)
+
+	disabledProject := schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, disabledProjectID)
+	otherOrgProject := schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, otherOrgProjectID)
+	order := schema.JoinNamespaceAndResourceID(computeOrderNamespace, orderID)
+	for _, grant := range []struct{ role, resource string }{
+		{schema.RoleProjectViewer, disabledProject},
+		{schema.RoleProjectViewer, otherOrgProject},
+		{computeViewerRoleName, order},
+	} {
+		_, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{RoleId: grant.role, Resource: grant.resource, Principal: userSubject},
+		}))
+		s.Require().NoError(err)
+	}
+
+	_, err = s.testBench.Client.DisableProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableProjectRequest{Id: disabledProjectID}))
+	s.Require().NoError(err)
+	_, err = s.testBench.Client.DisableGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableGroupRequest{Id: disabledGroupID}))
+	s.Require().NoError(err)
+
+	resources := []struct {
+		name     string
+		id       string
+		resource string
+	}{
+		{"the org it is a member of", memberOrgID, schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, memberOrgID)},
+		{"a disabled project", disabledProjectID, disabledProject},
+		{"a disabled group", disabledGroupID, schema.JoinNamespaceAndResourceID(schema.GroupNamespace, disabledGroupID)},
+		{"a project in an org it is not a member of", otherOrgProjectID, otherOrgProject},
+		{"an order in a disabled project", orderID, order},
+	}
+	livePolicies := func(resourceID string) int {
+		var count int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+			"SELECT count(*) FROM policies WHERE principal_id = $1 AND resource_id = $2 AND deleted_at IS NULL", userID, resourceID))
+		return count
+	}
+	canGet := func(resource string) bool {
+		resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   resource,
+			Permission: schema.GetPermission,
+			Subject:    userSubject,
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetStatus()
+	}
+	for _, r := range resources {
+		s.Require().Equalf(1, livePolicies(r.id), "live policy on %s before the delete", r.name)
+		s.Require().Truef(canGet(r.resource), "access to %s before the delete", r.name)
+	}
+
+	_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{Id: userID}))
+	s.Require().NoError(err)
+
+	s.Run("no live policy names the deleted user", func() {
+		for _, r := range resources {
+			s.Assert().Zerof(livePolicies(r.id), "live policy on %s", r.name)
+		}
+		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
+	})
+
+	s.Run("the deleted user can no longer get anything it had access to", func() {
+		for _, r := range resources {
+			s.Assert().Falsef(canGet(r.resource), "access to %s", r.name)
+		}
+	})
+
+	s.Run("org users names the deleted user in neither users nor role pairs", func() {
+		resp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{Id: memberOrgID}))
+		s.Require().NoError(err)
+		for _, u := range resp.Msg.GetUsers() {
+			s.Assert().NotEqual(userID, u.GetId())
+		}
+		for _, pair := range resp.Msg.GetRolePairs() {
+			s.Assert().NotEqual(userID, pair.GetUserId())
+		}
+	})
+}
+
 func (s *APIRegressionTestSuite) TestRelationAPI() {
 	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
 
