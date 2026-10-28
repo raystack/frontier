@@ -1958,7 +1958,8 @@ func (s *APIRegressionTestSuite) TestUserDeleteWithOrgs() {
 	orgHasUser := func(orgID, userID string) bool {
 		resp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{Id: orgID}))
 		s.Require().NoError(err)
-		return slices.ContainsFunc(resp.Msg.GetUsers(), func(u *frontierv1beta1.User) bool { return u.GetId() == userID })
+		return slices.ContainsFunc(resp.Msg.GetUsers(), func(u *frontierv1beta1.User) bool { return u.GetId() == userID }) ||
+			slices.ContainsFunc(resp.Msg.GetRolePairs(), func(p *frontierv1beta1.ListOrganizationUsersResponse_RolePair) bool { return p.GetUserId() == userID })
 	}
 
 	s.Run("an only owner and an org in debt refuse the delete together, and no org is touched until both are cleared", func() {
@@ -2023,6 +2024,7 @@ func (s *APIRegressionTestSuite) TestUserDeleteWithOrgs() {
 		s.Assert().False(userExists(userID))
 		s.Assert().False(orgIsLive(aloneOrgID))
 		s.Assert().True(orgIsLive(sharedOrgID))
+		s.Assert().False(orgHasUser(sharedOrgID, userID))
 		s.Assert().False(orgIsLive(debtOrgID))
 	})
 
@@ -2059,6 +2061,26 @@ func (s *APIRegressionTestSuite) TestUserDeleteWithOrgs() {
 		s.Assert().False(orgIsLive(serviceUserOrgID))
 	})
 
+	s.Run("a member of a disabled org leaves it, and the org stays", func() {
+		userID := createUser("user-delete-check-disabled-org-member")
+		orgID := createOrg(ctxOrgAdminAuth, "user-delete-check-disabled-org")
+		addMember(orgID, userID, s.orgViewerRole)
+		_, err := s.testBench.Client.DisableOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{Id: orgID}))
+		s.Require().NoError(err)
+		userPolicies := func() int {
+			var count int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+				"SELECT count(*) FROM policies WHERE resource_id = $1 AND principal_id = $2 AND deleted_at IS NULL", orgID, userID))
+			return count
+		}
+		s.Require().Equal(1, userPolicies())
+
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().True(orgIsLive(orgID))
+		s.Assert().Zero(userPolicies())
+	})
+
 	s.Run("a disk in an org where the user is the only member refuses the delete, and no org is deleted until the disk is gone", func() {
 		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-disk@raystack.org")
 		emptyOrgID := createOrg(userCtx, "user-delete-check-empty")
@@ -2075,7 +2097,7 @@ func (s *APIRegressionTestSuite) TestUserDeleteWithOrgs() {
 		s.Require().NoError(err)
 
 		message, violations := requireDeleteRefused(s.T(), deleteUser(userID))
-		s.Assert().Equal("user cannot be deleted yet", message)
+		s.Assert().Equal("user cannot be deleted yet: organization[user-delete-check-disk]: RESOURCES_EXIST", message)
 		s.Require().Len(violations, 1)
 		s.Assert().Equal(deleter.BlockerResourcesExist, violations[0].GetType())
 		s.Assert().Equal(computeDiskNamespace, violations[0].GetSubject())
@@ -2104,6 +2126,13 @@ func (s *APIRegressionTestSuite) TestUserDeleteWithOrgs() {
 		}))
 		s.Require().NoError(err)
 		projectID := projectResp.Msg.GetProject().GetId()
+		projectPolicies := func() int {
+			var count int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+				"SELECT count(*) FROM policies WHERE resource_id = $1 AND deleted_at IS NULL", projectID))
+			return count
+		}
+		s.Require().Equal(1, projectPolicies())
 
 		exec := func(query string) {
 			_, err := s.dbc.ExecContext(context.Background(), query)
@@ -2163,6 +2192,7 @@ DROP FUNCTION IF EXISTS e2e_fail_user_delete_retry_user();`)
 		s.Require().NoError(s.dbc.GetContext(context.Background(), &liveProjects,
 			"SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NULL", projectID))
 		s.Assert().Equal(1, liveProjects)
+		s.Assert().Zero(projectPolicies())
 		s.Assert().True(orgHasUser(sharedOrgID, userID))
 
 		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON projects;
@@ -2172,6 +2202,8 @@ CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE UPDATE OF deleted_at ON pol
 		s.Assert().True(userExists(userID))
 		s.Assert().False(orgIsLive(aloneOrgID))
 		s.Assert().True(orgHasUser(sharedOrgID, userID))
+		_, err = s.testBench.Client.GetCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Assert().NoError(err)
 
 		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON policies;
 CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE DELETE OR UPDATE OF deleted_at ON users
@@ -2180,6 +2212,8 @@ CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE DELETE OR UPDATE OF deleted
 		s.Assert().True(userExists(userID))
 		s.Assert().False(orgHasUser(sharedOrgID, userID))
 		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
+		_, err = s.testBench.Client.GetCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
 
 		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON users;`)
 		s.Require().NoError(deleteUser(userID))

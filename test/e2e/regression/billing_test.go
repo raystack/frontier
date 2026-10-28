@@ -1575,8 +1575,6 @@ func (s *BillingRegressionTestSuite) TestUserDeleteRefusedWhileAnOrgHasAPaidSubs
 
 	_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{Id: userID}))
 	_, violations := requireDeleteRefused(s.T(), err)
-	// stripe-mock answers every invoice list with the same draft invoice, so
-	// UNPAID_INVOICE violations come along with this one
 	s.Assert().True(slices.ContainsFunc(violations, func(v *errdetails.PreconditionFailure_Violation) bool {
 		return v.GetType() == deleter.BlockerActiveSubscription && v.GetSubject() == subscriptionID
 	}))
