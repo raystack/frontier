@@ -364,10 +364,12 @@ func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Reques
 	}
 
 	resp := connect.NewResponse(&frontierv1beta1.AuthLogoutResponse{})
-
-	// instruct interceptor to invalidate cookie
-	resp.Header().Set(consts.SessionDeleteGatewayKey, "true")
+	clearSessionCookie(resp)
 	return resp, nil
+}
+
+func clearSessionCookie(resp connect.AnyResponse) {
+	resp.Header().Set(consts.SessionDeleteGatewayKey, "true")
 }
 
 func (h *ConnectHandler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
@@ -400,8 +402,6 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 	return principal, nil
 }
 
-// getLoggedInUser returns the authenticated principal, rejecting service users
-// and PATs. Use this for endpoints that act on the user's own account.
 func (h *ConnectHandler) getLoggedInUser(ctx context.Context) (authenticate.Principal, error) {
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {

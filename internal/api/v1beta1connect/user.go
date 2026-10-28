@@ -22,7 +22,6 @@ import (
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/pagination"
-	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -417,12 +416,15 @@ func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Reques
 }
 
 func (h *ConnectHandler) CheckCurrentUserDelete(ctx context.Context, request *connect.Request[frontierv1beta1.CheckCurrentUserDeleteRequest]) (*connect.Response[frontierv1beta1.CheckCurrentUserDeleteResponse], error) {
+	errorLogger := NewErrorLogger()
+
 	principal, err := h.getLoggedInUser(ctx)
 	if err != nil {
 		return nil, err
 	}
 	check, err := h.deleterService.CheckUserDelete(ctx, principal.ID)
 	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CheckCurrentUserDelete", err, "user_id", principal.ID)
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckCurrentUserDelete: user_id=%s: %w", principal.ID, err))
 	}
 	return connect.NewResponse(transformUserDeleteCheckToPB(check)), nil
@@ -437,8 +439,7 @@ func (h *ConnectHandler) DeleteCurrentUser(ctx context.Context, request *connect
 		return nil, err
 	}
 	resp := connect.NewResponse(&frontierv1beta1.DeleteCurrentUserResponse{})
-	// instruct interceptor to invalidate cookie
-	resp.Header().Set(consts.SessionDeleteGatewayKey, "true")
+	clearSessionCookie(resp)
 	return resp, nil
 }
 

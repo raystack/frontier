@@ -678,9 +678,7 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 	return d.userService.Delete(ctx, userID)
 }
 
-// leaveOrg runs after the check, and the org can change in between. A user who
-// is no longer a member, or an org that is gone, counts as done, and a user who
-// is now the last owner blocks the delete.
+// leaveOrg runs after the check, and the org can change in between.
 func (d Service) leaveOrg(ctx context.Context, userID string, org organization.Organization) error {
 	err := d.membershipService.RemoveOrganizationMemberOnDelete(ctx, org.ID, userID, schema.UserPrincipal)
 	switch {
