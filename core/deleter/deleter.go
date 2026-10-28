@@ -25,6 +25,7 @@ const (
 	SubjectInvoice           = "billing_invoice"
 	SubjectBillingAccount    = "billing_account"
 	SubjectResourceNamespace = "resource_namespace"
+	SubjectOrganization      = "organization"
 )
 
 // Blocker is one reason a project, an organization or a user cannot be deleted right now.
@@ -34,8 +35,8 @@ type Blocker struct {
 	// Subject is the id of the entity behind the reason, or the namespace
 	// for BlockerResourcesExist.
 	Subject string
-	// SubjectType is one of the Subject* constants, or the organization
-	// namespace, and says what kind of entity the Subject id refers to.
+	// SubjectType is one of the Subject* constants and says what kind of
+	// entity the Subject id refers to.
 	SubjectType string
 	// Count is the number of blocking resources, for BlockerResourcesExist.
 	Count int

@@ -926,7 +926,7 @@ func TestConnectHandler_DeleteUser(t *testing.T) {
 			Blockers: []deleter.Blocker{{
 				Type:        deleter.BlockerSoleOwnerWithMembers,
 				Subject:     "org-1",
-				SubjectType: schema.OrganizationNamespace,
+				SubjectType: deleter.SubjectOrganization,
 				Message:     "organization[acme] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete",
 			}},
 		})

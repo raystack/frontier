@@ -629,7 +629,7 @@ func (d Service) checkUserOrg(ctx context.Context, userID, orgID string, fromPro
 			toLeave.Blockers = []Blocker{{
 				Type:        BlockerSoleOwnerWithMembers,
 				Subject:     org.ID,
-				SubjectType: schema.OrganizationNamespace,
+				SubjectType: SubjectOrganization,
 				Message:     fmt.Sprintf("organization[%s] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete", org.Name),
 			}}
 		}

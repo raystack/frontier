@@ -1864,7 +1864,7 @@ func soleOwnerBlocker(org organization.Organization) deleter.Blocker {
 	return deleter.Blocker{
 		Type:        deleter.BlockerSoleOwnerWithMembers,
 		Subject:     org.ID,
-		SubjectType: schema.OrganizationNamespace,
+		SubjectType: deleter.SubjectOrganization,
 		Message:     "organization[" + org.Name + "] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete",
 	}
 }
