@@ -1926,14 +1926,37 @@ func TestDeleteUser(t *testing.T) {
 					Type:        deleter.BlockerUnpaidInvoice,
 					Subject:     "inv-1",
 					SubjectType: deleter.SubjectInvoice,
-					Message:     "invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete",
+					Message:     "organization[solo]: invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete",
 				},
 				soleOwnerBlocker(shared),
 			},
 		}, err)
 		assert.EqualError(t, err, "user cannot be deleted yet: "+
-			"invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete; "+
+			"organization[solo]: invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete; "+
 			"organization[shared] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete")
+	})
+
+	t.Run("labels the same blocker in two orgs that go with the user with each org's name", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		other := organization.Organization{ID: "org-3", Name: "other"}
+
+		expectUserOrgs(m, solo.ID, other.ID)
+		for _, org := range []organization.Organization{solo, other} {
+			expectUserOrg(m, org, []membership.Member{orgMember(userID, orgOwner)}, userID)
+			expectNoBillingAccounts(m, org.ID)
+			m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: org.ID}).
+				Return([]resource.Resource{{ID: "t-" + org.ID, NamespaceID: "storage/transfer"}}, nil)
+			m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: org.ID, IncludeDisabled: true}).Return(nil, nil)
+		}
+
+		err := m.build().DeleteUser(context.Background(), userID)
+		inSolo := resourcesExist("storage/transfer", 1)
+		inSolo.Message = "organization[solo]: RESOURCES_EXIST"
+		inOther := resourcesExist("storage/transfer", 1)
+		inOther.Message = "organization[other]: RESOURCES_EXIST"
+		assert.Equal(t, &deleter.BlockedError{UserID: userID, Blockers: []deleter.Blocker{inSolo, inOther}}, err)
+		assert.EqualError(t, err, "user cannot be deleted yet: organization[solo]: RESOURCES_EXIST; organization[other]: RESOURCES_EXIST")
 	})
 
 	t.Run("a failed org delete stops before the user leaves the other orgs", func(t *testing.T) {

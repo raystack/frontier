@@ -1,6 +1,7 @@
 package deleter
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -39,7 +40,7 @@ type Blocker struct {
 	// Count is the number of blocking resources, for BlockerResourcesExist.
 	Count int
 	// Message says what blocks the delete and how to clear it. Empty for
-	// BlockerResourcesExist.
+	// BlockerResourcesExist, except in a refused user delete.
 	Message string
 }
 
@@ -68,12 +69,23 @@ func (c UserDeleteCheck) CanDelete() bool {
 func (c UserDeleteCheck) allBlockers() []Blocker {
 	blockers := slices.Clone(c.Blockers)
 	for _, o := range c.OrganizationsToDelete {
-		blockers = append(blockers, o.Blockers...)
+		for _, b := range o.Blockers {
+			blockers = append(blockers, labelWithOrg(o.Organization.Name, b))
+		}
 	}
 	for _, o := range c.OrganizationsToLeave {
 		blockers = append(blockers, o.Blockers...)
 	}
 	return blockers
+}
+
+func labelWithOrg(orgName string, b Blocker) Blocker {
+	text := b.Message
+	if text == "" {
+		text = b.Type
+	}
+	b.Message = fmt.Sprintf("organization[%s]: %s", orgName, text)
+	return b
 }
 
 // BlockedError carries every blocker the up-front check found, so the
