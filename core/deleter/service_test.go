@@ -1994,7 +1994,6 @@ func TestDeleteUser(t *testing.T) {
 		expectUserOrg(m, shared, []membership.Member{orgMember(userID, orgOwner), orgMember("user-2", orgOwner)}, userID, "user-2")
 		m.mbrSvc.EXPECT().RemoveOrganizationMemberOnDelete(mock.Anything, shared.ID, userID, schema.UserPrincipal).
 			Return(membership.ErrLastOwnerRole)
-		// RemovePrincipalPolicies, PAT cleanup and usrSvc.Delete must NOT be called — strict mocks fail on unexpected calls.
 
 		err := m.build().DeleteUser(context.Background(), userID)
 		var blocked *deleter.BlockedError

@@ -2413,6 +2413,29 @@ func (s *APIRegressionTestSuite) TestDeleteCurrentUser() {
 		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
 	})
 
+	s.Run("the delete writes one app.user.deleted log and one user.deleted record", func() {
+		var logs, records int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &logs,
+			"SELECT count(*) FROM auditlogs WHERE action = $1 AND org_id = $2 AND target->>'ID' = $3",
+			"app.user.deleted", schema.PlatformOrgID.String(), userID))
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &records,
+			"SELECT count(*) FROM audit_records WHERE event = $1 AND target_id = $2", "user.deleted", userID))
+		s.Assert().Equal(1, logs)
+		s.Assert().Equal(1, records)
+	})
+
+	s.Run("the same email signs up again as a new user", func() {
+		newID, newCtx := signUpUser(s.T(), s.testBench.Client, "delete-current-user@raystack.org")
+		s.Assert().NotEqual(userID, newID)
+		_, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetUserRequest{Id: userID}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		resp, err := s.testBench.Client.CheckCurrentUserDelete(newCtx, connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+		s.Require().NoError(err)
+		s.Assert().Empty(resp.Msg.GetOrganizationsToDelete())
+		s.Assert().Empty(resp.Msg.GetOrganizationsToLeave())
+	})
+
 	s.Run("a service user can neither check nor delete an account", func() {
 		serviceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{OrgId: memberOrgID}))
 		s.Require().NoError(err)

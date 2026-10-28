@@ -911,8 +911,7 @@ func TestConnectHandler_DeleteUser(t *testing.T) {
 			if tt.err == connect.Code(0) {
 				assert.NoError(t, err)
 				assert.EqualValues(t, tt.want, resp.Msg)
-				// the admin's own session cookie stays
-				assert.Empty(t, resp.Header().Get(consts.SessionDeleteGatewayKey))
+				assert.Empty(t, resp.Header().Get(consts.SessionDeleteGatewayKey), "the admin's own session cookie stays")
 			} else {
 				assert.Nil(t, resp)
 				assert.Equal(t, tt.err, connect.CodeOf(err))
