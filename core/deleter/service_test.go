@@ -1827,63 +1827,431 @@ func TestRemoveUsersFromOrg(t *testing.T) {
 	})
 }
 
+var (
+	orgOwner  = role.Role{Name: schema.RoleOrganizationOwner, Title: "Owner"}
+	orgViewer = role.Role{Name: schema.RoleOrganizationViewer, Title: "Member"}
+)
+
+func orgMember(id string, r role.Role) membership.Member {
+	return membership.Member{PrincipalID: id, PrincipalType: schema.UserPrincipal, Roles: []role.Role{r}}
+}
+
+func expectUserOrgs(m deleterMocks, orgIDs ...string) {
+	m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
+		Return(orgIDs, nil)
+}
+
+func expectUserOrg(m deleterMocks, org organization.Organization, members []membership.Member, existing ...string) {
+	m.orgSvc.EXPECT().GetRaw(mock.Anything, org.ID).Return(org, nil).Once()
+	m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, org.ID, schema.OrganizationNamespace,
+		membership.MemberFilter{PrincipalType: schema.UserPrincipal}).Return(members, nil)
+	ids := make([]string, 0, len(members))
+	for _, mb := range members {
+		ids = append(ids, mb.PrincipalID)
+	}
+	users := make([]user.User, 0, len(existing))
+	for _, id := range existing {
+		users = append(users, user.User{ID: id})
+	}
+	m.usrSvc.EXPECT().GetByIDsIncludingDisabled(mock.Anything, ids).Return(users, nil)
+}
+
+func expectNoBillingAccounts(m deleterMocks, orgID string) {
+	m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: orgID}).Return(nil, nil)
+}
+
+func soleOwnerBlocker(org organization.Organization) deleter.Blocker {
+	return deleter.Blocker{
+		Type:        deleter.BlockerSoleOwnerWithMembers,
+		Subject:     org.ID,
+		SubjectType: deleter.SubjectOrganization,
+		Message:     "organization[" + org.Name + "] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete",
+	}
+}
+
+func expectEmptyOrgDelete(m deleterMocks, steps *[]string) {
+	m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").Return(organization.Organization{ID: "org-1"}, nil).Once()
+	m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: "org-1", IncludeDisabled: true}).Return(nil, nil)
+	m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).Return(nil, nil)
+	m.grpSvc.EXPECT().List(mock.Anything, group.Filter{OrganizationID: "org-1", IncludeDisabled: true}).Return(nil, nil)
+	expectEmptyOrgTail(m, steps)
+}
+
 func TestDeleteUser(t *testing.T) {
-	t.Run("removes the user from each org, then every policy it still holds, then its PATs, then the user", func(t *testing.T) {
+	const userID = "user-1"
+	solo := organization.Organization{ID: "org-1", Name: "solo", State: organization.Disabled}
+	shared := organization.Organization{ID: "org-2", Name: "shared"}
+
+	t.Run("deletes the orgs that go with the user, leaves the others, then removes every policy it still holds, its PATs, and the user", func(t *testing.T) {
 		m := newMocks(t)
 		var steps []string
 
-		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
-			Return([]string{"org-1", "org-2"}, nil)
-		m.mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, mock.Anything, "user-1", schema.UserPrincipal).
-			Run(func(_ context.Context, orgID, _, _ string) { steps = append(steps, "org:"+orgID) }).Return(nil)
-		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, "user-1", schema.UserPrincipal).
+		expectUserOrgs(m, solo.ID, shared.ID)
+		expectUserOrg(m, solo, []membership.Member{orgMember(userID, orgOwner)}, userID)
+		expectNoBillingAccounts(m, solo.ID)
+		expectUserOrg(m, shared, []membership.Member{orgMember(userID, orgViewer), orgMember("user-2", orgOwner)}, userID, "user-2")
+		expectEmptyOrgDelete(m, &steps)
+		m.mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, shared.ID, userID, schema.UserPrincipal).
+			Run(func(_ context.Context, orgID, _, _ string) { steps = append(steps, "leave:"+orgID) }).Return(nil)
+		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, userID, schema.UserPrincipal).
 			Run(func(context.Context, string, string) { steps = append(steps, "policies") }).Return(nil)
-		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, "user-1").
+		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, userID).
 			Run(func(context.Context, string) { steps = append(steps, "pats") }).Return(nil)
-		m.usrSvc.EXPECT().Delete(mock.Anything, "user-1").
+		m.usrSvc.EXPECT().Delete(mock.Anything, userID).
 			Run(func(context.Context, string) { steps = append(steps, "user") }).Return(nil)
 
-		err := m.build().DeleteUser(context.Background(), "user-1")
+		err := m.build().DeleteUser(context.Background(), userID)
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"org:org-1", "org:org-2", "policies", "pats", "user"}, steps)
+		assert.Equal(t, []string{"org", "leave:org-2", "policies", "pats", "user"}, steps)
+	})
+
+	t.Run("refuses with every blocker, judging invoices on provider data, before changing anything", func(t *testing.T) {
+		m := newMocks(t)
+		c := customer.Customer{ID: "cust-1", OrgID: solo.ID, ProviderID: "stripe-1"}
+
+		expectUserOrgs(m, solo.ID, shared.ID)
+		expectUserOrg(m, solo, []membership.Member{orgMember(userID, orgOwner)}, userID)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: solo.ID}).Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: c.ID}).Return(nil, nil)
+		m.invocSvc.EXPECT().ListPayableOnProvider(mock.Anything, c).
+			Return([]invoice.Invoice{{ID: "inv-1", State: invoice.OpenState}}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, c.ID).Return(0, nil)
+		expectUserOrg(m, shared, []membership.Member{orgMember(userID, orgOwner), orgMember("user-2", orgViewer)}, userID, "user-2")
+
+		err := m.build().DeleteUser(context.Background(), userID)
+		assert.Equal(t, &deleter.BlockedError{
+			UserID: userID,
+			Blockers: []deleter.Blocker{
+				{
+					Type:        deleter.BlockerUnpaidInvoice,
+					Subject:     "inv-1",
+					SubjectType: deleter.SubjectInvoice,
+					Message:     "organization[solo]: invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete",
+				},
+				soleOwnerBlocker(shared),
+			},
+		}, err)
+		assert.EqualError(t, err, "user cannot be deleted yet: "+
+			"organization[solo]: invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete; "+
+			"organization[shared] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete")
+	})
+
+	t.Run("labels the same blocker in two orgs that go with the user with each org's name", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion = blockerConfig()
+		other := organization.Organization{ID: "org-3", Name: "other"}
+
+		expectUserOrgs(m, solo.ID, other.ID)
+		for _, org := range []organization.Organization{solo, other} {
+			expectUserOrg(m, org, []membership.Member{orgMember(userID, orgOwner)}, userID)
+			expectNoBillingAccounts(m, org.ID)
+			m.resSvc.EXPECT().List(mock.Anything, resource.Filter{OrgID: org.ID}).
+				Return([]resource.Resource{{ID: "t-" + org.ID, NamespaceID: "storage/transfer"}}, nil)
+			m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: org.ID, IncludeDisabled: true}).Return(nil, nil)
+		}
+
+		err := m.build().DeleteUser(context.Background(), userID)
+		inSolo := resourcesExist("storage/transfer", 1)
+		inSolo.Message = "organization[solo]: RESOURCES_EXIST"
+		inOther := resourcesExist("storage/transfer", 1)
+		inOther.Message = "organization[other]: RESOURCES_EXIST"
+		assert.Equal(t, &deleter.BlockedError{UserID: userID, Blockers: []deleter.Blocker{inSolo, inOther}}, err)
+		assert.EqualError(t, err, "user cannot be deleted yet: organization[solo]: RESOURCES_EXIST; organization[other]: RESOURCES_EXIST")
+	})
+
+	t.Run("a failed org delete stops before the user leaves the other orgs", func(t *testing.T) {
+		m := newMocks(t)
+
+		expectUserOrgs(m, solo.ID, shared.ID)
+		expectUserOrg(m, solo, []membership.Member{orgMember(userID, orgOwner)}, userID)
+		expectNoBillingAccounts(m, solo.ID)
+		expectUserOrg(m, shared, []membership.Member{orgMember(userID, orgViewer), orgMember("user-2", orgOwner)}, userID, "user-2")
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, solo.ID).Return(solo, nil).Once()
+		m.roleSvc.EXPECT().Get(mock.Anything, schema.RoleOrganizationOwner).
+			Return(role.Role{}, errors.New("no owners in this test"))
+		m.projSvc.EXPECT().List(mock.Anything, project.Filter{OrgID: solo.ID, IncludeDisabled: true}).
+			Return(nil, errors.New("read failed"))
+
+		err := m.build().DeleteUser(context.Background(), userID)
+		assert.EqualError(t, err, "failed to delete org[org-1]: read failed")
+	})
+
+	t.Run("an org deleted since the check does not stop the delete", func(t *testing.T) {
+		m := newMocks(t)
+		var steps []string
+
+		expectUserOrgs(m, solo.ID)
+		expectUserOrg(m, solo, []membership.Member{orgMember(userID, orgOwner)}, userID)
+		expectNoBillingAccounts(m, solo.ID)
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, solo.ID).Return(organization.Organization{}, organization.ErrNotExist).Once()
+		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, userID, schema.UserPrincipal).
+			Run(func(context.Context, string, string) { steps = append(steps, "policies") }).Return(nil)
+		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, userID).
+			Run(func(context.Context, string) { steps = append(steps, "pats") }).Return(nil)
+		m.usrSvc.EXPECT().Delete(mock.Anything, userID).
+			Run(func(context.Context, string) { steps = append(steps, "user") }).Return(nil)
+
+		err := m.build().DeleteUser(context.Background(), userID)
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"policies", "pats", "user"}, steps)
 	})
 
 	t.Run("an org removal failure stops the delete before the remaining policies", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
-			Return([]string{"org-1"}, nil)
-		m.mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, "org-1", "user-1", schema.UserPrincipal).
+		expectUserOrgs(m, shared.ID)
+		expectUserOrg(m, shared, []membership.Member{orgMember(userID, orgViewer), orgMember("user-2", orgOwner)}, userID, "user-2")
+		m.mbrSvc.EXPECT().ForceRemoveOrganizationMember(mock.Anything, shared.ID, userID, schema.UserPrincipal).
 			Return(errors.New("cascade boom"))
 
-		err := m.build().DeleteUser(context.Background(), "user-1")
+		err := m.build().DeleteUser(context.Background(), userID)
 		assert.ErrorContains(t, err, "cascade boom")
 	})
 
 	t.Run("a policy removal failure stops the delete before the PATs and the user", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
-			Return(nil, nil)
-		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, "user-1", schema.UserPrincipal).
+		expectUserOrgs(m)
+		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, userID, schema.UserPrincipal).
 			Return(errors.New("spicedb unavailable"))
 
-		err := m.build().DeleteUser(context.Background(), "user-1")
+		err := m.build().DeleteUser(context.Background(), userID)
 		assert.ErrorContains(t, err, "spicedb unavailable")
 	})
 
 	t.Run("aborts before userService.Delete when PAT cleanup fails", func(t *testing.T) {
 		m := newMocks(t)
 
-		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
-			Return(nil, nil)
-		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, "user-1", schema.UserPrincipal).Return(nil)
-		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, "user-1").Return(errors.New("pat cleanup boom"))
+		expectUserOrgs(m)
+		m.mbrSvc.EXPECT().RemovePrincipalPolicies(mock.Anything, userID, schema.UserPrincipal).Return(nil)
+		m.patSvc.EXPECT().DeleteAllByUser(mock.Anything, userID).Return(errors.New("pat cleanup boom"))
 		// usrSvc.Delete must NOT be called — strict mock fails on unexpected call.
 
-		err := m.build().DeleteUser(context.Background(), "user-1")
+		err := m.build().DeleteUser(context.Background(), userID)
 		assert.ErrorContains(t, err, "pat cleanup boom")
 	})
+
+	t.Run("a failed check stops the delete before anything changes", func(t *testing.T) {
+		m := newMocks(t)
+
+		m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
+			Return(nil, errors.New("read failed"))
+
+		err := m.build().DeleteUser(context.Background(), userID)
+		assert.EqualError(t, err, "read failed")
+	})
+}
+
+func TestCheckUserDelete(t *testing.T) {
+	const userID = "user-1"
+
+	t.Run("sorts each org by who else is in it", func(t *testing.T) {
+		m := newMocks(t)
+		solo := organization.Organization{ID: "org-solo", Name: "solo", State: organization.Disabled}
+		shared := organization.Organization{ID: "org-shared", Name: "shared"}
+		viewing := organization.Organization{ID: "org-viewing", Name: "viewing"}
+		blocked := organization.Organization{ID: "org-blocked", Name: "blocked"}
+
+		expectUserOrgs(m, solo.ID, shared.ID, viewing.ID, blocked.ID)
+		expectUserOrg(m, solo, []membership.Member{orgMember(userID, orgOwner)}, userID)
+		expectNoBillingAccounts(m, solo.ID)
+		expectUserOrg(m, shared, []membership.Member{orgMember(userID, orgOwner), orgMember("user-2", orgOwner)}, userID, "user-2")
+		expectUserOrg(m, viewing, []membership.Member{orgMember(userID, orgViewer), orgMember("user-3", orgOwner)}, userID, "user-3")
+		expectUserOrg(m, blocked, []membership.Member{orgMember(userID, orgOwner), orgMember("user-4", orgViewer)}, userID, "user-4")
+		m.patSvc.EXPECT().CountByUser(mock.Anything, userID).Return(3, nil)
+
+		got, err := m.build().CheckUserDelete(context.Background(), userID)
+		assert.NoError(t, err)
+		assert.Equal(t, deleter.UserDeleteCheck{
+			OrganizationsToDelete: []deleter.OrganizationToDelete{{Organization: solo}},
+			OrganizationsToLeave: []deleter.OrganizationToLeave{
+				{Organization: shared, RoleTitle: "Owner"},
+				{Organization: viewing, RoleTitle: "Member"},
+				{Organization: blocked, RoleTitle: "Owner", Blockers: []deleter.Blocker{soleOwnerBlocker(blocked)}},
+			},
+			PATCount: 3,
+		}, got)
+		assert.False(t, got.CanDelete())
+	})
+
+	t.Run("a disabled member counts, a member whose user row is gone does not", func(t *testing.T) {
+		m := newMocks(t)
+		withDisabled := organization.Organization{ID: "org-with-disabled", Name: "with-disabled"}
+		withGhost := organization.Organization{ID: "org-with-ghost", Name: "with-ghost"}
+
+		expectUserOrgs(m, withDisabled.ID, withGhost.ID)
+		expectUserOrg(m, withDisabled, []membership.Member{orgMember(userID, orgOwner), orgMember("disabled-user", orgViewer)}, userID, "disabled-user")
+		expectUserOrg(m, withGhost, []membership.Member{orgMember(userID, orgOwner), orgMember("ghost-user", orgViewer)}, userID)
+		expectNoBillingAccounts(m, withGhost.ID)
+		m.patSvc.EXPECT().CountByUser(mock.Anything, userID).Return(0, nil)
+
+		got, err := m.build().CheckUserDelete(context.Background(), userID)
+		assert.NoError(t, err)
+		assert.Empty(t, got.Blockers)
+		assert.Equal(t, []deleter.OrganizationToLeave{
+			{Organization: withDisabled, RoleTitle: "Owner", Blockers: []deleter.Blocker{soleOwnerBlocker(withDisabled)}},
+		}, got.OrganizationsToLeave)
+		assert.Equal(t, []deleter.OrganizationToDelete{{Organization: withGhost}}, got.OrganizationsToDelete)
+	})
+
+	t.Run("reports the blockers of an org that goes with the user", func(t *testing.T) {
+		m := newMocks(t)
+		solo := organization.Organization{ID: "org-solo", Name: "solo"}
+
+		expectUserOrgs(m, solo.ID)
+		expectUserOrg(m, solo, []membership.Member{orgMember(userID, orgOwner)}, userID)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: solo.ID}).
+			Return([]customer.Customer{{ID: "cust-1", OrgID: solo.ID}}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, "cust-1").Return(-5, nil)
+		m.patSvc.EXPECT().CountByUser(mock.Anything, userID).Return(0, nil)
+
+		got, err := m.build().CheckUserDelete(context.Background(), userID)
+		assert.NoError(t, err)
+		assert.Equal(t, []deleter.OrganizationToDelete{{
+			Organization: solo,
+			Blockers: []deleter.Blocker{{
+				Type:        deleter.BlockerNegativeTokenBalance,
+				Subject:     "cust-1",
+				SubjectType: deleter.SubjectBillingAccount,
+				Message:     "billing account[cust-1] owes 5 tokens: contact support to settle the balance, then retry the delete",
+			}},
+		}}, got.OrganizationsToDelete)
+		assert.Empty(t, got.Blockers)
+		assert.False(t, got.CanDelete())
+	})
+
+	t.Run("judges the invoices of an org that goes with the user on the local rows", func(t *testing.T) {
+		m := newMocks(t)
+		solo := organization.Organization{ID: "org-solo", Name: "solo"}
+		c := customer.Customer{ID: "cust-1", OrgID: solo.ID, ProviderID: "stripe-1"}
+
+		expectUserOrgs(m, solo.ID)
+		expectUserOrg(m, solo, []membership.Member{orgMember(userID, orgOwner)}, userID)
+		m.custSvc.EXPECT().List(mock.Anything, customer.Filter{OrgID: solo.ID}).Return([]customer.Customer{c}, nil)
+		m.subSvc.EXPECT().List(mock.Anything, subscription.Filter{CustomerID: c.ID}).Return(nil, nil)
+		m.invocSvc.EXPECT().List(mock.Anything, invoice.Filter{CustomerID: c.ID, NonZeroOnly: true}).
+			Return([]invoice.Invoice{{ID: "inv-1", State: invoice.OpenState}}, nil)
+		m.creditSvc.EXPECT().GetBalance(mock.Anything, c.ID).Return(0, nil)
+		m.patSvc.EXPECT().CountByUser(mock.Anything, userID).Return(0, nil)
+
+		got, err := m.build().CheckUserDelete(context.Background(), userID)
+		assert.NoError(t, err)
+		assert.Equal(t, []deleter.OrganizationToDelete{{
+			Organization: solo,
+			Blockers: []deleter.Blocker{{
+				Type:        deleter.BlockerUnpaidInvoice,
+				Subject:     "inv-1",
+				SubjectType: deleter.SubjectInvoice,
+				Message:     "invoice[inv-1] is unpaid: pay it via its hosted payment page, then retry the delete",
+			}},
+		}}, got.OrganizationsToDelete)
+	})
+
+	t.Run("can delete when the user only leaves orgs that keep an owner", func(t *testing.T) {
+		m := newMocks(t)
+		shared := organization.Organization{ID: "org-shared", Name: "shared"}
+
+		expectUserOrgs(m, shared.ID)
+		expectUserOrg(m, shared, []membership.Member{orgMember(userID, orgViewer), orgMember("user-2", orgOwner)}, userID, "user-2")
+		m.patSvc.EXPECT().CountByUser(mock.Anything, userID).Return(1, nil)
+
+		got, err := m.build().CheckUserDelete(context.Background(), userID)
+		assert.NoError(t, err)
+		assert.True(t, got.CanDelete())
+	})
+
+	t.Run("skips an org that no longer exists", func(t *testing.T) {
+		m := newMocks(t)
+		expectUserOrgs(m, "org-gone")
+		m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-gone").Return(organization.Organization{}, organization.ErrNotExist)
+		m.patSvc.EXPECT().CountByUser(mock.Anything, userID).Return(0, nil)
+
+		got, err := m.build().CheckUserDelete(context.Background(), userID)
+		assert.NoError(t, err)
+		assert.Equal(t, deleter.UserDeleteCheck{}, got)
+	})
+
+	failures := []struct {
+		name  string
+		setup func(m deleterMocks)
+	}{
+		{
+			name: "the org list",
+			setup: func(m deleterMocks) {
+				m.mbrSvc.EXPECT().ListResourcesByPrincipal(mock.Anything, mock.Anything, schema.OrganizationNamespace, mock.Anything).
+					Return(nil, errors.New("read failed"))
+			},
+		},
+		{
+			name: "the member list",
+			setup: func(m deleterMocks) {
+				expectUserOrgs(m, "org-1")
+				m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").Return(organization.Organization{ID: "org-1"}, nil)
+				m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, mock.Anything).
+					Return(nil, errors.New("read failed"))
+			},
+		},
+		{
+			name: "the user lookup",
+			setup: func(m deleterMocks) {
+				expectUserOrgs(m, "org-1")
+				m.orgSvc.EXPECT().GetRaw(mock.Anything, "org-1").Return(organization.Organization{ID: "org-1"}, nil)
+				m.mbrSvc.EXPECT().ListPrincipalsByResource(mock.Anything, "org-1", schema.OrganizationNamespace, mock.Anything).
+					Return([]membership.Member{orgMember(userID, orgOwner)}, nil)
+				m.usrSvc.EXPECT().GetByIDsIncludingDisabled(mock.Anything, mock.Anything).Return(nil, errors.New("read failed"))
+			},
+		},
+		{
+			name: "the PAT count",
+			setup: func(m deleterMocks) {
+				expectUserOrgs(m)
+				m.patSvc.EXPECT().CountByUser(mock.Anything, userID).Return(0, errors.New("read failed"))
+			},
+		},
+	}
+	for _, tc := range failures {
+		t.Run("a failed read of "+tc.name+" stops the check", func(t *testing.T) {
+			m := newMocks(t)
+			tc.setup(m)
+			_, err := m.build().CheckUserDelete(context.Background(), userID)
+			assert.ErrorContains(t, err, "read failed")
+		})
+	}
+}
+
+func TestUserDeleteCheck_CanDelete(t *testing.T) {
+	blocker := []deleter.Blocker{{Type: deleter.BlockerSoleOwnerWithMembers}}
+	tests := []struct {
+		name  string
+		check deleter.UserDeleteCheck
+		want  bool
+	}{
+		{
+			name: "nothing blocks",
+			check: deleter.UserDeleteCheck{
+				OrganizationsToDelete: []deleter.OrganizationToDelete{{}},
+				OrganizationsToLeave:  []deleter.OrganizationToLeave{{}},
+			},
+			want: true,
+		},
+		{
+			name:  "a blocker on the user",
+			check: deleter.UserDeleteCheck{Blockers: blocker},
+		},
+		{
+			name:  "a blocker on an org that goes with the user",
+			check: deleter.UserDeleteCheck{OrganizationsToDelete: []deleter.OrganizationToDelete{{}, {Blockers: blocker}}},
+		},
+		{
+			name:  "a blocker on an org the user leaves",
+			check: deleter.UserDeleteCheck{OrganizationsToLeave: []deleter.OrganizationToLeave{{}, {Blockers: blocker}}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.check.CanDelete())
+		})
+	}
 }
 
 func blockerConfig() deleter.Config {

@@ -324,6 +324,31 @@ func (s *UserRepositoryTestSuite) TestGetByIDs() {
 	}
 }
 
+func (s *UserRepositoryTestSuite) TestGetByIDsIncludingDisabled() {
+	enabled, disabled := s.users[0], s.users[1]
+	s.Require().NoError(s.repository.SetState(s.ctx, disabled.ID, user.Disabled))
+	deleted, err := s.repository.Create(s.ctx, user.User{Name: "deleted_user_slug", Email: "deleted-user@raystack.org"})
+	s.Require().NoError(err)
+	execSQL(s.T(), s.ctx, s.client, "UPDATE users SET deleted_at = now() WHERE id = $1", deleted.ID)
+	lookup := []string{enabled.ID, disabled.ID, deleted.ID}
+
+	ids := func(users []user.User) []string {
+		out := make([]string, 0, len(users))
+		for _, u := range users {
+			out = append(out, u.ID)
+		}
+		return out
+	}
+
+	got, err := s.repository.GetByIDs(s.ctx, lookup)
+	s.Require().NoError(err)
+	s.Assert().ElementsMatch([]string{enabled.ID}, ids(got))
+
+	got, err = s.repository.GetByIDsIncludingDisabled(s.ctx, lookup)
+	s.Require().NoError(err)
+	s.Assert().ElementsMatch([]string{enabled.ID, disabled.ID}, ids(got))
+}
+
 func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 	type testCase struct {
 		Description  string

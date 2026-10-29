@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/permission"
@@ -24,6 +25,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -874,6 +876,20 @@ func TestConnectHandler_DeleteUser(t *testing.T) {
 			want: nil,
 			err:  connect.CodeInternal,
 		},
+		{
+			title: "should return failed precondition if an org that goes with the user cannot be deleted",
+			setup: func(cd *mocks.CascadeDeleter) {
+				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(fmt.Errorf("failed to delete org[org-1]: %w", &deleter.BlockedError{
+					OrgID:    "org-1",
+					Blockers: []deleter.Blocker{{Type: deleter.BlockerUnpaidInvoice, Subject: "inv-1"}},
+				}))
+			},
+			req: &frontierv1beta1.DeleteUserRequest{
+				Id: userID,
+			},
+			want: nil,
+			err:  connect.CodeFailedPrecondition,
+		},
 	}
 
 	for _, tt := range tests {
@@ -902,6 +918,41 @@ func TestConnectHandler_DeleteUser(t *testing.T) {
 			mockDeleterSrv.AssertExpectations(t)
 		})
 	}
+
+	t.Run("should return failed precondition with one violation per blocker when the delete is blocked", func(t *testing.T) {
+		mockDeleterSrv := new(mocks.CascadeDeleter)
+		mockDeleterSrv.EXPECT().DeleteUser(mock.Anything, userID).Return(&deleter.BlockedError{
+			UserID: userID,
+			Blockers: []deleter.Blocker{{
+				Type:        deleter.BlockerSoleOwnerWithMembers,
+				Subject:     "org-1",
+				SubjectType: deleter.SubjectOrganization,
+				Message:     "organization[acme] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete",
+			}},
+		})
+		handler := &ConnectHandler{deleterService: mockDeleterSrv}
+
+		resp, err := handler.DeleteUser(context.Background(), connect.NewRequest(&frontierv1beta1.DeleteUserRequest{
+			Id: userID,
+		}))
+		assert.Nil(t, resp)
+
+		var connectErr *connect.Error
+		assert.ErrorAs(t, err, &connectErr)
+		assert.Equal(t, connect.CodeFailedPrecondition, connectErr.Code())
+		assert.Equal(t, "user cannot be deleted yet: "+
+			"organization[acme] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete",
+			connectErr.Message())
+
+		assert.Len(t, connectErr.Details(), 1)
+		detail, detailErr := connectErr.Details()[0].Value()
+		assert.NoError(t, detailErr)
+		failure, ok := detail.(*errdetails.PreconditionFailure)
+		assert.True(t, ok)
+		assert.Len(t, failure.GetViolations(), 1)
+		assert.Equal(t, deleter.BlockerSoleOwnerWithMembers, failure.GetViolations()[0].GetType())
+		assert.Equal(t, "org-1", failure.GetViolations()[0].GetSubject())
+	})
 }
 
 func TestConnectHandler_ListUserGroups(t *testing.T) {

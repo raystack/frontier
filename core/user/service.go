@@ -77,6 +77,10 @@ func (s Service) GetByIDs(ctx context.Context, userIDs []string) ([]User, error)
 	return s.repository.GetByIDs(ctx, userIDs)
 }
 
+func (s Service) GetByIDsIncludingDisabled(ctx context.Context, userIDs []string) ([]User, error) {
+	return s.repository.GetByIDsIncludingDisabled(ctx, userIDs)
+}
+
 func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 	email = strings.ToLower(email)
 	return s.repository.GetByEmail(ctx, email)
