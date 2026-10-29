@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"testing"
 	"time"
 
@@ -15,12 +16,14 @@ import (
 	"github.com/google/uuid"
 
 	"connectrpc.com/connect"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/core/authenticate"
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
+	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/server"
@@ -1540,6 +1543,49 @@ func (s *BillingRegressionTestSuite) TestBillingWebhookCallbackAPI() {
 		s.Assert().Error(err)
 		s.Assert().Equal(connect.CodeInternal, connect.CodeOf(err))
 	})
+}
+
+func (s *BillingRegressionTestSuite) TestUserDeleteRefusedWhileAnOrgHasAPaidSubscription() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-paid-plan@raystack.org")
+	orgResp, err := s.testBench.Client.CreateOrganization(userCtx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Title: "user-delete-paid-plan", Name: "user-delete-paid-plan"},
+	}))
+	s.Require().NoError(err)
+	orgID := orgResp.Msg.GetOrganization().GetId()
+
+	var accountID string
+	s.Require().Eventually(func() bool {
+		resp, err := s.testBench.Client.ListBillingAccounts(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListBillingAccountsRequest{OrgId: orgID}))
+		if err != nil || len(resp.Msg.GetBillingAccounts()) == 0 {
+			return false
+		}
+		accountID = resp.Msg.GetBillingAccounts()[0].GetId()
+		return true
+	}, 2*time.Second, 20*time.Millisecond)
+
+	checkoutResp, err := s.testBench.AdminClient.DelegatedCheckout(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DelegatedCheckoutRequest{
+		OrgId:            orgID,
+		BillingId:        accountID,
+		SubscriptionBody: &frontierv1beta1.CheckoutSubscriptionBody{Plan: "enterprise_yearly"},
+	}))
+	s.Require().NoError(err)
+	subscriptionID := checkoutResp.Msg.GetSubscription().GetId()
+
+	_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{Id: userID}))
+	_, violations := requireDeleteRefused(s.T(), err)
+	s.Assert().True(slices.ContainsFunc(violations, func(v *errdetails.PreconditionFailure_Violation) bool {
+		return v.GetType() == deleter.BlockerActiveSubscription && v.GetSubject() == subscriptionID
+	}))
+
+	_, err = s.testBench.Client.GetUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetUserRequest{Id: userID}))
+	s.Assert().NoError(err)
+	_, err = s.testBench.Client.GetOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetOrganizationRequest{Id: orgID}))
+	s.Assert().NoError(err)
+	subResp, err := s.testBench.Client.GetSubscription(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetSubscriptionRequest{Id: subscriptionID}))
+	s.Require().NoError(err)
+	s.Assert().Equal("active", subResp.Msg.GetSubscription().GetState())
 }
 
 func TestEndToEndBillingRegressionTestSuite(t *testing.T) {
