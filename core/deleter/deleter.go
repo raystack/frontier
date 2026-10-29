@@ -89,9 +89,8 @@ func labelWithOrg(orgName string, b Blocker) Blocker {
 	return b
 }
 
-// BlockedError carries every blocker the up-front check found, so the
-// caller gets one checklist instead of discovering blockers one retry at
-// a time.
+// BlockedError carries the blockers that stop a delete, so the caller gets
+// one checklist instead of discovering blockers one retry at a time.
 type BlockedError struct {
 	OrgID     string
 	ProjectID string

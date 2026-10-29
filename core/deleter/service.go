@@ -84,7 +84,7 @@ type MembershipService interface {
 	OnGroupDeleted(ctx context.Context, groupID string) error
 	ListResourcesByPrincipal(ctx context.Context, principal authenticate.Principal, resourceType string, filter membership.ResourceFilter) ([]string, error)
 	ListPrincipalsByResource(ctx context.Context, resourceID, resourceType string, filter membership.MemberFilter) ([]membership.Member, error)
-	ForceRemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error
+	RemoveOrganizationMemberOnDelete(ctx context.Context, orgID, principalID, principalType string) error
 	RemovePrincipalPolicies(ctx context.Context, principalID, principalType string) error
 }
 
@@ -542,21 +542,6 @@ func (d Service) deleteCustomers(ctx context.Context, id string, customers []cus
 	return nil
 }
 
-// RemoveUsersFromOrg removes users from an organization as members. The policy
-// and relation cleanup — org, project, group, and custom resource — is
-// delegated to membership.ForceRemoveOrganizationMember. It uses the force
-// variant because a deletion cascade must succeed even when the user is the
-// org's last owner.
-func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error {
-	var errs error
-	for _, userID := range userIDs {
-		if memberErr := d.membershipService.ForceRemoveOrganizationMember(ctx, orgID, userID, schema.UserPrincipal); memberErr != nil {
-			errs = errors.Join(errs, memberErr)
-		}
-	}
-	return errs
-}
-
 func (d Service) CheckUserDelete(ctx context.Context, userID string) (UserDeleteCheck, error) {
 	check, err := d.checkUser(ctx, userID, false)
 	if err != nil {
@@ -626,16 +611,20 @@ func (d Service) checkUserOrg(ctx context.Context, userID, orgID string, fromPro
 			toLeave.RoleTitle = self.Roles[0].Title
 		}
 		if isOrgOwner(*self) && otherOwners == 0 {
-			toLeave.Blockers = []Blocker{{
-				Type:        BlockerSoleOwnerWithMembers,
-				Subject:     org.ID,
-				SubjectType: SubjectOrganization,
-				Message:     fmt.Sprintf("organization[%s] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete", org.Name),
-			}}
+			toLeave.Blockers = []Blocker{soleOwnerBlocker(org)}
 		}
 		check.OrganizationsToLeave = append(check.OrganizationsToLeave, toLeave)
 	}
 	return nil
+}
+
+func soleOwnerBlocker(org organization.Organization) Blocker {
+	return Blocker{
+		Type:        BlockerSoleOwnerWithMembers,
+		Subject:     org.ID,
+		SubjectType: SubjectOrganization,
+		Message:     fmt.Sprintf("organization[%s] has other members and this user is its only owner: make another member an owner or remove the other members, then retry the delete", org.Name),
+	}
 }
 
 func (d Service) existingOrgUsers(ctx context.Context, orgID string) ([]membership.Member, error) {
@@ -660,8 +649,8 @@ func isOrgOwner(m membership.Member) bool {
 	return slices.ContainsFunc(m.Roles, func(r role.Role) bool { return r.Name == schema.RoleOrganizationOwner })
 }
 
-// DeleteUser visits every org the user has a policy on (disabled orgs too),
-// otherwise userService.Delete would leave orphan policy rows behind.
+// DeleteUser stops on any blocker the check finds. Otherwise it deletes the orgs
+// where the user is the only member and leaves the others, disabled orgs too.
 func (d Service) DeleteUser(ctx context.Context, userID string) error {
 	check, err := d.checkUser(ctx, userID, true)
 	if err != nil {
@@ -676,7 +665,7 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 		}
 	}
 	for _, o := range check.OrganizationsToLeave {
-		if err := d.RemoveUsersFromOrg(ctx, o.Organization.ID, []string{userID}); err != nil {
+		if err := d.leaveOrg(ctx, userID, o.Organization); err != nil {
 			return fmt.Errorf("failed to delete user from org[%s]: %w", o.Organization.ID, err)
 		}
 	}
@@ -687,6 +676,18 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 		return fmt.Errorf("failed to delete user PATs: %w", err)
 	}
 	return d.userService.Delete(ctx, userID)
+}
+
+// leaveOrg runs after the check, and the org can change in between.
+func (d Service) leaveOrg(ctx context.Context, userID string, org organization.Organization) error {
+	err := d.membershipService.RemoveOrganizationMemberOnDelete(ctx, org.ID, userID, schema.UserPrincipal)
+	switch {
+	case errors.Is(err, membership.ErrNotMember), errors.Is(err, organization.ErrNotExist):
+		return nil
+	case errors.Is(err, membership.ErrLastOwnerRole):
+		return &BlockedError{UserID: userID, Blockers: []Blocker{soleOwnerBlocker(org)}}
+	}
+	return err
 }
 
 func (d Service) listOrgProjects(ctx context.Context, orgID string) ([]project.Project, error) {

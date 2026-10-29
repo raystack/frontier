@@ -574,7 +574,7 @@ func (s Service) RemovePrincipalAccess(ctx context.Context, principalID, princip
 	var errs error
 	for _, pol := range policies {
 		if _, ok := resourceIDs[pol.ResourceID]; ok {
-			if err := s.policyService.Delete(ctx, pol.ID); err != nil {
+			if err := s.policyService.Delete(ctx, pol.ID); err != nil && !errors.Is(err, policy.ErrNotExist) {
 				errs = errors.Join(errs, fmt.Errorf("delete resource policy %s: %w", pol.ID, err))
 			}
 		}

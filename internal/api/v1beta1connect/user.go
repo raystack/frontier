@@ -409,32 +409,93 @@ func (h *ConnectHandler) DisableUser(ctx context.Context, request *connect.Reque
 }
 
 func (h *ConnectHandler) DeleteUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteUserRequest]) (*connect.Response[frontierv1beta1.DeleteUserResponse], error) {
+	if err := h.deleteUser(ctx, request, "DeleteUser", request.Msg.GetId()); err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&frontierv1beta1.DeleteUserResponse{}), nil
+}
+
+func (h *ConnectHandler) CheckCurrentUserDelete(ctx context.Context, request *connect.Request[frontierv1beta1.CheckCurrentUserDeleteRequest]) (*connect.Response[frontierv1beta1.CheckCurrentUserDeleteResponse], error) {
 	errorLogger := NewErrorLogger()
-	userID := request.Msg.GetId()
+
+	principal, err := h.getLoggedInUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	check, err := h.deleterService.CheckUserDelete(ctx, principal.ID)
+	if err != nil {
+		errorLogger.LogServiceError(ctx, request, "CheckCurrentUserDelete", err, "user_id", principal.ID)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("CheckCurrentUserDelete: user_id=%s: %w", principal.ID, err))
+	}
+	return connect.NewResponse(transformUserDeleteCheckToPB(check)), nil
+}
+
+func (h *ConnectHandler) DeleteCurrentUser(ctx context.Context, request *connect.Request[frontierv1beta1.DeleteCurrentUserRequest]) (*connect.Response[frontierv1beta1.DeleteCurrentUserResponse], error) {
+	principal, err := h.getLoggedInUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := h.deleteUser(ctx, request, "DeleteCurrentUser", principal.ID); err != nil {
+		return nil, err
+	}
+	resp := connect.NewResponse(&frontierv1beta1.DeleteCurrentUserResponse{})
+	clearSessionCookie(resp)
+	return resp, nil
+}
+
+func (h *ConnectHandler) deleteUser(ctx context.Context, request connect.AnyRequest, operation, userID string) error {
+	errorLogger := NewErrorLogger()
 
 	if err := h.deleterService.DeleteUser(ctx, userID); err != nil {
 		var blocked *deleter.BlockedError
 		if errors.As(err, &blocked) {
-			return nil, deleteBlockedError(ctx, blocked)
+			return deleteBlockedError(ctx, blocked)
 		}
-		errorLogger.LogServiceError(ctx, request, "DeleteUser", err,
+		errorLogger.LogServiceError(ctx, request, operation, err,
 			"user_id", userID)
 
 		switch {
 		case errors.Is(err, user.ErrNotExist):
-			return nil, connect.NewError(connect.CodeNotFound, ErrUserNotExist)
+			return connect.NewError(connect.CodeNotFound, ErrUserNotExist)
 		case errors.Is(err, user.ErrInvalidID):
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
+			return connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("DeleteUser: user_id=%s: %w", userID, err))
+			return connect.NewError(connect.CodeInternal, fmt.Errorf("%s: user_id=%s: %w", operation, userID, err))
 		}
 	}
 
-	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.Msg.GetId())); err != nil {
-		errorLogger.LogServiceError(ctx, request, "DeleteUser.AuditLog", err,
+	if err := audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(userID)); err != nil {
+		errorLogger.LogServiceError(ctx, request, operation+".AuditLog", err,
 			"user_id", userID)
 	}
-	return connect.NewResponse(&frontierv1beta1.DeleteUserResponse{}), nil
+	return nil
+}
+
+func transformUserDeleteCheckToPB(check deleter.UserDeleteCheck) *frontierv1beta1.CheckCurrentUserDeleteResponse {
+	resp := &frontierv1beta1.CheckCurrentUserDeleteResponse{
+		CanDelete: check.CanDelete(),
+		Blockers:  transformBlockersToPB(check.Blockers),
+		PatCount:  int32(check.PATCount),
+	}
+	for _, o := range check.OrganizationsToDelete {
+		resp.OrganizationsToDelete = append(resp.OrganizationsToDelete, &frontierv1beta1.CheckCurrentUserDeleteResponse_OrganizationToDelete{
+			Id:        o.Organization.ID,
+			Name:      o.Organization.Name,
+			Title:     o.Organization.Title,
+			CanDelete: len(o.Blockers) == 0,
+			Blockers:  transformBlockersToPB(o.Blockers),
+		})
+	}
+	for _, o := range check.OrganizationsToLeave {
+		resp.OrganizationsToLeave = append(resp.OrganizationsToLeave, &frontierv1beta1.CheckCurrentUserDeleteResponse_OrganizationToLeave{
+			Id:       o.Organization.ID,
+			Name:     o.Organization.Name,
+			Title:    o.Organization.Title,
+			Role:     o.RoleTitle,
+			Blockers: transformBlockersToPB(o.Blockers),
+		})
+	}
+	return resp
 }
 
 func (h *ConnectHandler) ListUserGroups(ctx context.Context, request *connect.Request[frontierv1beta1.ListUserGroupsRequest]) (*connect.Response[frontierv1beta1.ListUserGroupsResponse], error) {

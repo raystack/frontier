@@ -400,6 +400,7 @@ type CascadeDeleter interface {
 	CheckOrganizationDelete(ctx context.Context, id string) ([]deleter.Blocker, error)
 	DeleteGroup(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, userID string) error
+	CheckUserDelete(ctx context.Context, userID string) (deleter.UserDeleteCheck, error)
 }
 
 type AuditRecordService interface {
