@@ -188,6 +188,18 @@ function DeleteDomainContent({
           </Flex>
         </AlertDialog.Body>
         <AlertDialog.Footer>
+          <AlertDialog.Close
+            render={
+              <Button
+                variant="outline"
+                color="neutral"
+                disabled={isPending}
+                data-test-id="frontier-sdk-delete-domain-cancel-btn"
+              >
+                Cancel
+              </Button>
+            }
+          />
           {isDomainLoading ? (
             <Skeleton height={32} width={120} />
           ) : (
