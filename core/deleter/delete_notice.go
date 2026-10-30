@@ -202,23 +202,11 @@ func (d Service) sendDeleteNotices(ctx context.Context, org organization.Organiz
 		slog.WarnContext(ctx, "the organization was deleted but no owner could be notified", "org_id", org.ID, "amount", notice.Amount, "purchased", notice.Purchased)
 		return
 	}
-	subjectTpl := d.deleteNoticeConfig.Subject
-	if subjectTpl == "" {
-		subjectTpl = defaultDeleteNoticeSubject
-	}
-	bodyTpl := d.deleteNoticeConfig.Body
-	if bodyTpl == "" {
-		bodyTpl = defaultDeleteNoticeBody
-	}
 	// the templates are the same for every owner; parse them once
-	subjectTmpl, err := texttemplate.New("subject").Parse(subjectTpl)
+	tmpl, err := parseMailTemplate(d.deleteNoticeConfig.Subject, d.deleteNoticeConfig.Body,
+		defaultDeleteNoticeSubject, defaultDeleteNoticeBody)
 	if err != nil {
-		slog.WarnContext(ctx, "failed to parse the delete notice subject template", "org_id", org.ID, "error", err)
-		return
-	}
-	bodyTmpl, err := htmltemplate.New("body").Parse(bodyTpl)
-	if err != nil {
-		slog.WarnContext(ctx, "failed to parse the delete notice body template", "org_id", org.ID, "error", err)
+		slog.WarnContext(ctx, "failed to parse the delete notice template", "org_id", org.ID, "error", err)
 		return
 	}
 
@@ -231,27 +219,51 @@ func (d Service) sendDeleteNotices(ctx context.Context, org organization.Organiz
 			Org:       org,
 			DeletedBy: deletedBy,
 		}
-		var subject, body bytes.Buffer
-		if err := subjectTmpl.Execute(&subject, data); err != nil {
-			slog.WarnContext(ctx, "failed to render the delete notice subject", "org_id", org.ID, "user_email", owner.Email, "error", err)
-			continue
-		}
-		if err := bodyTmpl.Execute(&body, data); err != nil {
-			slog.WarnContext(ctx, "failed to render the delete notice body", "org_id", org.ID, "user_email", owner.Email, "error", err)
-			continue
-		}
-
-		msg := mail.NewMessage()
-		msg.SetHeader("From", d.mailDialer.FromHeader())
-		msg.SetHeader("To", owner.Email)
-		msg.SetHeader("Subject", subject.String())
-		msg.SetBody("text/html", body.String())
-		if err := d.mailDialer.DialAndSend(msg); err != nil {
+		if err := d.sendMail(tmpl, owner.Email, data); err != nil {
 			slog.WarnContext(ctx, "failed to send the delete notice", "org_id", org.ID, "user_email", owner.Email, "error", err)
 			continue
 		}
 		slog.InfoContext(ctx, "sent the organization delete notice", "org_id", org.ID, "user_email", owner.Email, "amount", notice.Amount)
 	}
+}
+
+type mailTemplate struct {
+	subject *texttemplate.Template
+	body    *htmltemplate.Template
+}
+
+func parseMailTemplate(subject, body, defaultSubject, defaultBody string) (mailTemplate, error) {
+	if subject == "" {
+		subject = defaultSubject
+	}
+	if body == "" {
+		body = defaultBody
+	}
+	subjectTmpl, err := texttemplate.New("subject").Parse(subject)
+	if err != nil {
+		return mailTemplate{}, fmt.Errorf("failed to parse the subject template: %w", err)
+	}
+	bodyTmpl, err := htmltemplate.New("body").Parse(body)
+	if err != nil {
+		return mailTemplate{}, fmt.Errorf("failed to parse the body template: %w", err)
+	}
+	return mailTemplate{subject: subjectTmpl, body: bodyTmpl}, nil
+}
+
+func (d Service) sendMail(tmpl mailTemplate, to string, data any) error {
+	var subject, body bytes.Buffer
+	if err := tmpl.subject.Execute(&subject, data); err != nil {
+		return fmt.Errorf("failed to render the subject: %w", err)
+	}
+	if err := tmpl.body.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to render the body: %w", err)
+	}
+	msg := mail.NewMessage()
+	msg.SetHeader("From", d.mailDialer.FromHeader())
+	msg.SetHeader("To", to)
+	msg.SetHeader("Subject", subject.String())
+	msg.SetBody("text/html", body.String())
+	return d.mailDialer.DialAndSend(msg)
 }
 
 // deletedByFromContext names the caller who ran the delete, when the
