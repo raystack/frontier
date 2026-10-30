@@ -28,7 +28,14 @@ const forfeitRecordsLimit = 1000
 const (
 	defaultDeleteNoticeSubject = "Your organization was deleted"
 	defaultDeleteNoticeBody    = `{{if .User.Title}}Hi {{.User.Title}},{{else}}Hi,{{end}}<br><br>Your organization <b>{{if .Org.Title}}{{.Org.Title}}{{else}}{{.Org.Name}}{{end}}</b> was deleted{{if .DeletedBy}} by <b>{{.DeletedBy}}</b>{{end}}.{{if .Purchased}} Unused purchased tokens will be settled by the support team.{{end}}`
+
+	defaultUserDeleteNoticeSubject = "Your account was deleted"
+	defaultUserDeleteNoticeBody    = `{{if .User.Title}}Hi {{.User.Title}},{{else}}Hi,{{end}}<br><br>Your account <b>{{.User.Email}}</b> was deleted.`
 )
+
+type userDeleteNoticeData struct {
+	User user.User
+}
 
 type deleteNoticeData struct {
 	// Amount is the total number of tokens the delete forfeited.
@@ -225,6 +232,25 @@ func (d Service) sendDeleteNotices(ctx context.Context, org organization.Organiz
 		}
 		slog.InfoContext(ctx, "sent the organization delete notice", "org_id", org.ID, "user_email", owner.Email, "amount", notice.Amount)
 	}
+}
+
+func (d Service) sendUserDeleteNotice(ctx context.Context, usr user.User) {
+	if d.mailDialer == nil {
+		slog.WarnContext(ctx, "no mail dialer configured, skipping the user delete notice", "user_id", usr.ID)
+		return
+	}
+	notice := d.deletionConfig.UserDeleteNotice
+	tmpl, err := parseMailTemplate(notice.Subject, notice.Body,
+		defaultUserDeleteNoticeSubject, defaultUserDeleteNoticeBody)
+	if err != nil {
+		slog.WarnContext(ctx, "failed to parse the user delete notice template", "user_id", usr.ID, "error", err)
+		return
+	}
+	if err := d.sendMail(tmpl, usr.Email, userDeleteNoticeData{User: usr}); err != nil {
+		slog.WarnContext(ctx, "failed to send the user delete notice", "user_id", usr.ID, "error", err)
+		return
+	}
+	slog.InfoContext(ctx, "sent the user delete notice", "user_id", usr.ID)
 }
 
 type mailTemplate struct {

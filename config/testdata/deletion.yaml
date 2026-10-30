@@ -7,3 +7,6 @@ app:
       compute/machine: { project: block, organization: allow }
       compute/order: { project: block_unless_deletable, organization: block_unless_deletable }
       storage/file: { organization: allow }
+    user_delete_notice:
+      subject: "Your account was deleted"
+      body: "<p>Hi {{.User.Title}}</p>"
