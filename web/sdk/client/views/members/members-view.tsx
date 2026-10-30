@@ -187,7 +187,7 @@ export function MembersView({ showTeamField = true }: MembersViewProps) {
               <EmptyState
                 icon={<ExclamationTriangleIcon />}
                 heading="No members found"
-                subHeading="Get started by adding your first member"
+                subHeading="No members match the selected filters. Try adjusting or clearing your filters."
               />
             }
             classNames={{
