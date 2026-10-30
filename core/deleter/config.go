@@ -31,6 +31,13 @@ type Rules map[Parent]Rule
 type Config struct {
 	Enabled   bool             `yaml:"enabled" mapstructure:"enabled" default:"false"`
 	Resources map[string]Rules `yaml:"resources" mapstructure:"resources"`
+	// sent whether or not Enabled is set
+	UserDeleteNotice UserDeleteNoticeConfig `yaml:"user_delete_notice" mapstructure:"user_delete_notice"`
+}
+
+type UserDeleteNoticeConfig struct {
+	Subject string `yaml:"subject" mapstructure:"subject"`
+	Body    string `yaml:"body" mapstructure:"body"`
 }
 
 func (c Config) Validate() error {

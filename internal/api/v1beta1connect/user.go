@@ -457,7 +457,7 @@ func (h *ConnectHandler) deleteUser(ctx context.Context, request connect.AnyRequ
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return connect.NewError(connect.CodeNotFound, ErrUserNotExist)
-		case errors.Is(err, user.ErrInvalidID):
+		case errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		default:
 			return connect.NewError(connect.CodeInternal, fmt.Errorf("%s: user_id=%s: %w", operation, userID, err))

@@ -243,6 +243,10 @@ app:
       compute/machine: { project: block, organization: allow }
       compute/order: { project: block_unless_deletable, organization: block_unless_deletable }
       storage/file: { organization: allow }
+    # emailed after an account delete, even when enabled is false
+    user_delete_notice:
+      subject: "Your account was deleted"
+      body: "Hi {{.User.Title}},<br><br>Your account <b>{{.User.Email}}</b> was deleted."
 
   # metaschema cache configuration
   metaschema:
