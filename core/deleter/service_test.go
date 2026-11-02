@@ -2132,6 +2132,17 @@ func TestDeleteUser(t *testing.T) {
 		assert.NoError(t, m.build().DeleteUser(context.Background(), userID))
 	})
 
+	t.Run("a broken configured template still deletes the user, without an email", func(t *testing.T) {
+		m := newMocks(t)
+		m.deletion.UserDeleteNotice = deleter.UserDeleteNoticeConfig{Body: "{{.User.Email"}
+
+		expectUserRead(m, userID)
+		expectUserOrgs(m)
+		expectUserTeardown(m, userID)
+
+		assert.NoError(t, m.build().DeleteUser(context.Background(), userID))
+	})
+
 	t.Run("a disabled user gets the email too", func(t *testing.T) {
 		m := newMocks(t)
 

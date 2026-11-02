@@ -131,10 +131,19 @@ func TestSendMail(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("a template that fails to render sends nothing", func(t *testing.T) {
+	t.Run("a subject that fails to render sends nothing", func(t *testing.T) {
 		dialer := mailermocks.NewDialer(t)
 
 		err := Service{mailDialer: dialer}.sendMail(tmpl, "maya@example.com", struct{}{})
 		assert.ErrorContains(t, err, "subject")
+	})
+
+	t.Run("a body that fails to render sends nothing", func(t *testing.T) {
+		bodyFails, err := parseMailTemplate("Hi", "<b>{{.Name}}</b>", "", "")
+		assert.NoError(t, err)
+		dialer := mailermocks.NewDialer(t)
+
+		err = Service{mailDialer: dialer}.sendMail(bodyFails, "maya@example.com", struct{}{})
+		assert.ErrorContains(t, err, "body")
 	})
 }
