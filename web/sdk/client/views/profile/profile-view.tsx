@@ -216,11 +216,14 @@ export function ProfileView({
                     its data.
                   </Text>
                   <DeleteUserDialog
-                    trigger={({ onClick }) => (
+                    trigger={({ onClick, loading }) => (
                       <Button
                         variant="solid"
                         color="danger"
                         onClick={onClick}
+                        disabled={loading}
+                        loading={loading}
+                        loaderText="Delete Account"
                         data-test-id="frontier-sdk-delete-account-open-btn"
                       >
                         Delete Account
