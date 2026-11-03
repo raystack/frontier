@@ -30,17 +30,17 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
-import { ORGANIZATION_DISABLED } from '../../utils/delete-blockers';
+import { useDeleteFlow } from '../../hooks/useDeleteFlow';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { ImageUpload } from '../../components/image-upload';
-import { DeleteOrganizationDialog } from './components/delete-organization-dialog';
 import {
-  DeleteBlockersDialog,
-  type DeleteBlockersPayload
-} from './components/delete-blockers-dialog';
+  DeleteBlockedDialogHost,
+  type DeleteBlockedPayload
+} from '../../components/delete-blocked-dialog';
+import { DeleteOrganizationDialog } from './components/delete-organization-dialog';
 import styles from './general-view.module.css';
 import { handleConnectError } from '~/utils/error';
 
@@ -54,9 +54,9 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
-const deleteBlockersDialogHandle =
-  AlertDialog.createHandle<DeleteBlockersPayload>();
-const deleteOrganizationDialogHandle = AlertDialog.createHandle();
+const deleteOrganizationDialogHandle = AlertDialog.createHandle<null>();
+const deleteBlockedDialogHandle =
+  AlertDialog.createHandle<DeleteBlockedPayload>();
 
 export interface GeneralViewProps {
   onDeleteSuccess?: () => void;
@@ -108,8 +108,24 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
 
   const isLoading = !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
 
-  const { mutateAsync: checkOrganizationDelete, isPending: isCheckingDelete } =
-    useMutation(FrontierServiceQueries.checkOrganizationDelete);
+  const { mutateAsync: checkOrganizationDelete } = useMutation(
+    FrontierServiceQueries.checkOrganizationDelete
+  );
+  const {
+    startDelete,
+    isChecking: isCheckingDelete,
+    handleDeleteError
+  } = useDeleteFlow({
+    entity: 'organization',
+    check: () =>
+      checkOrganizationDelete(
+        create(CheckOrganizationDeleteRequestSchema, {
+          id: organization?.id ?? ''
+        })
+      ),
+    confirmDialogHandle: deleteOrganizationDialogHandle,
+    blockedDialogHandle: deleteBlockedDialogHandle
+  });
 
   // Update organization form
   const { mutateAsync: updateOrganization } = useMutation(
@@ -174,32 +190,6 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
         Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
       });
     }
-  }
-
-  async function onDeleteClick() {
-    if (!organization?.id) return;
-    let check;
-    try {
-      check = await checkOrganizationDelete(
-        create(CheckOrganizationDeleteRequestSchema, { id: organization.id })
-      );
-    } catch (error) {
-      handleConnectError(error, {
-        FailedPrecondition: () =>
-          deleteBlockersDialogHandle.openWithPayload({
-            blockers: [{ type: ORGANIZATION_DISABLED }]
-          }),
-        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        NotFound: () => toastManager.add({ title: 'Not found', description: `This ${orgLabelLower} no longer exists.`, type: 'error' }),
-        Default: () => toastManager.add({ title: 'Something went wrong', description: 'Please try again later or contact support.', type: 'error' }),
-      });
-      return;
-    }
-    if (!check.canDelete) {
-      deleteBlockersDialogHandle.openWithPayload({ blockers: check.blockers });
-      return;
-    }
-    deleteOrganizationDialogHandle.open(null);
   }
 
   const orgLabel = t.organization({ case: 'capital' });
@@ -324,7 +314,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                     <Button
                       variant="solid"
                       color="danger"
-                      onClick={onDeleteClick}
+                      onClick={() => startDelete(null)}
                       disabled={!canDeleteWorkspace || isCheckingDelete}
                       loading={isCheckingDelete}
                       loaderText={`Delete ${orgLabelLower}`}
@@ -344,11 +334,12 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
       </form>
       {canDeleteWorkspace && (
         <>
-          <DeleteBlockersDialog handle={deleteBlockersDialogHandle} />
           <DeleteOrganizationDialog
             handle={deleteOrganizationDialogHandle}
             onDeleteSuccess={onDeleteSuccess}
+            onDeleteError={handleDeleteError}
           />
+          <DeleteBlockedDialogHost handle={deleteBlockedDialogHandle} />
         </>
       )}
     </ViewContainer>

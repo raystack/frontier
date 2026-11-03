@@ -1,4 +1,18 @@
 import { ConnectError } from '@connectrpc/connect';
+import type { DeleteBlocker } from '../../shared/types';
+
+// A request on a disabled organization fails with failed_precondition and
+// carries no PreconditionFailure. The SDK gives that case its own blocker
+// type, so it shows in the same dialog as the other blockers.
+export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
+
+// A PreconditionFailure whose violations cannot be read. It has no line, so
+// the dialog shows the generic one.
+export const UNKNOWN_BLOCKER = 'UNKNOWN';
+
+// Used once for all blockers that have no line.
+export const GENERIC_DELETE_BLOCKED_MESSAGE =
+  'Something is blocking the delete right now. Please try again later or contact support.';
 
 // Words that come from the host app: what it calls an organization
 // and what it calls its base plan.
@@ -7,110 +21,80 @@ export interface BlockerWording {
   basePlanTitle?: string;
 }
 
-const DEFAULT_WORDING: BlockerWording = {
-  organizationLabel: 'organization'
+const DEFAULT_LINES: Record<string, (wording: BlockerWording) => string> = {
+  [ORGANIZATION_DISABLED]: ({ organizationLabel }) =>
+    `Disabled ${organizationLabel}: Contact your administrator to enable this ${organizationLabel} before deleting it.`,
+  ACTIVE_SUBSCRIPTION: ({ organizationLabel, basePlanTitle }) =>
+    `Active subscription: Downgrade your subscription to the ${
+      basePlanTitle || 'standard plan'
+    } before deleting this ${organizationLabel}.`,
+  UNPAID_INVOICE: ({ organizationLabel }) =>
+    `Outstanding invoice: Pay all outstanding invoices before deleting this ${organizationLabel}.`,
+  NEGATIVE_TOKEN_BALANCE: ({ organizationLabel }) =>
+    `Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
 };
 
-export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
-
-const BLOCKERS: Record<
-  string,
-  {
-    label: (wording: BlockerWording) => string;
-    instruction: (wording: BlockerWording) => string;
-  }
-> = {
-  ORGANIZATION_DISABLED: {
-    label: ({ organizationLabel }) => `Disabled ${organizationLabel}`,
-    instruction: ({ organizationLabel }) =>
-      `Contact your administrator to enable this ${organizationLabel} before deleting it.`
-  },
-  ACTIVE_SUBSCRIPTION: {
-    label: () => 'Active subscription',
-    instruction: ({ organizationLabel, basePlanTitle }) =>
-      `Downgrade your subscription to the ${
-        basePlanTitle || 'standard plan'
-      } before deleting this ${organizationLabel}.`
-  },
-  UNPAID_INVOICE: {
-    label: () => 'Outstanding invoice',
-    instruction: ({ organizationLabel }) =>
-      `Pay all outstanding invoices before deleting this ${organizationLabel}.`
-  },
-  NEGATIVE_TOKEN_BALANCE: {
-    label: () => 'Negative token balance',
-    instruction: ({ organizationLabel }) =>
-      `Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
-  }
-};
-
-// Used for blocker types this version does not know.
-export const GENERIC_DELETE_BLOCKED_MESSAGE =
-  'Something is blocking the delete right now. Please try again later or contact support.';
-
-export interface BlockerItem {
-  label?: string;
-  instruction: string;
-}
-
-export function blockerItems(
-  blockers: { type: string }[],
-  wording: BlockerWording = DEFAULT_WORDING
-): BlockerItem[] {
-  const items: BlockerItem[] = [];
+// Returns one line per blocker: messages[subject], else messages[type],
+// else the SDK line for the type. Identical lines show once.
+export function blockerLines(
+  blockers: DeleteBlocker[],
+  messages: Record<string, string>,
+  wording: BlockerWording
+): string[] {
+  const lines = new Set<string>();
   let hasUnknown = false;
-  for (const type of new Set(blockers.map(blocker => blocker.type))) {
-    const blocker = BLOCKERS[type];
-    if (blocker) {
-      items.push({
-        label: blocker.label(wording),
-        instruction: blocker.instruction(wording)
-      });
+  for (const { type, subject } of blockers) {
+    const line =
+      messages[subject] ?? messages[type] ?? DEFAULT_LINES[type]?.(wording);
+    if (line) {
+      lines.add(line);
     } else {
       hasUnknown = true;
     }
   }
-  if (hasUnknown || items.length === 0) {
-    items.push({ instruction: GENERIC_DELETE_BLOCKED_MESSAGE });
+  if (hasUnknown) {
+    lines.add(GENERIC_DELETE_BLOCKED_MESSAGE);
   }
-  return items;
+  return [...lines];
 }
 
-export function instructionLines(
-  blockers: { type: string }[],
-  wording: BlockerWording = DEFAULT_WORDING
-): string[] {
-  return blockerItems(blockers, wording).map(item => item.instruction);
+export function toDeleteBlockers(blockers: DeleteBlocker[]): DeleteBlocker[] {
+  return blockers.map(({ type, subject, count }) => ({ type, subject, count }));
 }
 
-// Reads the blockers from a failed_precondition error and returns the
-// sentences as one string. The server sends them as a
-// google.rpc.PreconditionFailure detail, which Connect exposes in the
-// detail's debug field.
-export function deleteBlockedDescription(
-  err: ConnectError,
-  wording: BlockerWording = DEFAULT_WORDING
-): string {
-  for (const detail of err.details) {
-    if (!('type' in detail) || detail.type !== 'google.rpc.PreconditionFailure') {
-      continue;
-    }
-    const debug = (detail as { debug?: unknown }).debug;
-    if (typeof debug !== 'object' || debug === null) {
-      continue;
-    }
-    const violations = (debug as { violations?: unknown }).violations;
-    if (!Array.isArray(violations)) {
-      continue;
-    }
-    const blockers = violations
-      .filter(
-        (violation): violation is { type: string } =>
-          typeof violation === 'object' &&
-          violation !== null &&
-          typeof (violation as { type?: unknown }).type === 'string'
-      );
-    return instructionLines(blockers, wording).join(' ');
+// Reads the blockers from a failed_precondition error. A refused delete
+// sends them as google.rpc.PreconditionFailure violations, which Connect
+// exposes in the detail's debug field. Violations carry no count.
+export function blockersFromError(err: ConnectError): DeleteBlocker[] {
+  const failures = err.details.filter(
+    detail =>
+      'type' in detail && detail.type === 'google.rpc.PreconditionFailure'
+  );
+  if (failures.length === 0) {
+    return [{ type: ORGANIZATION_DISABLED, subject: '', count: 0 }];
   }
-  return GENERIC_DELETE_BLOCKED_MESSAGE;
+  const blockers = failures.flatMap(detail => {
+    const debug = (detail as { debug?: { violations?: unknown } }).debug;
+    const violations = debug?.violations;
+    return Array.isArray(violations)
+      ? violations.filter(isViolation).map(({ type, subject }) => ({
+          type,
+          subject: subject ?? '',
+          count: 0
+        }))
+      : [];
+  });
+  return blockers.length > 0
+    ? blockers
+    : [{ type: UNKNOWN_BLOCKER, subject: '', count: 0 }];
+}
+
+function isViolation(
+  violation: unknown
+): violation is { type: string; subject?: string } {
+  return (
+    typeof violation === 'object' &&
+    violation !== null &&
+    typeof (violation as { type?: unknown }).type === 'string'
+  );
 }
