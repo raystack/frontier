@@ -69,7 +69,7 @@ export type CustomHeaderValue = string | (() => string);
 export interface DeleteBlocker {
   type: string;
   subject: string;
-  count: number;
+  count?: number;
 }
 
 export type DeleteBlockedPayload = {

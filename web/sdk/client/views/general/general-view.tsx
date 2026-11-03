@@ -36,10 +36,8 @@ import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { ImageUpload } from '../../components/image-upload';
-import {
-  DeleteBlockedDialogHost,
-  type DeleteBlockedPayload
-} from '../../components/delete-blocked-dialog';
+import { DeleteBlockedDialogHost } from '../../components/delete-blocked-dialog';
+import type { DeleteBlockedPayload } from '../../../shared/types';
 import { DeleteOrganizationDialog } from './components/delete-organization-dialog';
 import styles from './general-view.module.css';
 import { handleConnectError } from '~/utils/error';

@@ -9,7 +9,7 @@ import {
 
 const wording = { organizationLabel: 'workspace', basePlanTitle: 'Standard Plan' };
 
-const blocker = (type: string, subject = '') => ({ type, subject, count: 0 });
+const blocker = (type: string, subject = '') => ({ type, subject });
 
 describe('blockerLines', () => {
   it('writes the SDK line for each known type', () => {
@@ -18,6 +18,7 @@ describe('blockerLines', () => {
         blocker('ACTIVE_SUBSCRIPTION'),
         blocker('UNPAID_INVOICE'),
         blocker('NEGATIVE_TOKEN_BALANCE'),
+        blocker('RESOURCES_EXIST', 'app/thing'),
         blocker(ORGANIZATION_DISABLED)
       ],
       {},
@@ -27,6 +28,7 @@ describe('blockerLines', () => {
       'Active subscription: Downgrade your subscription to the Standard Plan before deleting this workspace.',
       'Outstanding invoice: Pay all outstanding invoices before deleting this workspace.',
       'Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting this workspace.',
+      'Existing resources: Delete the remaining resources, then try again.',
       'Disabled workspace: Contact your administrator to enable this workspace before deleting it.'
     ]);
   });
@@ -70,7 +72,7 @@ describe('blockerLines', () => {
   it('adds the generic line once, last, for blockers with no line', () => {
     const lines = blockerLines(
       [
-        blocker('RESOURCES_EXIST', 'app/thing'),
+        blocker('SOMETHING_ELSE', 'app/thing'),
         blocker('UNPAID_INVOICE'),
         blocker('SOMETHING_NEW')
       ],
@@ -103,15 +105,15 @@ describe('blockersFromError', () => {
       }
     });
     expect(blockersFromError(err)).toEqual([
-      { type: 'ACTIVE_SUBSCRIPTION', subject: 'sub-1', count: 0 },
-      { type: 'RESOURCES_EXIST', subject: 'app/thing', count: 0 }
+      { type: 'ACTIVE_SUBSCRIPTION', subject: 'sub-1' },
+      { type: 'RESOURCES_EXIST', subject: 'app/thing' }
     ]);
   });
 
   it('treats an error with no precondition failure as a disabled organization', () => {
     const err = new ConnectError('org is disabled', Code.FailedPrecondition);
     expect(blockersFromError(err)).toEqual([
-      { type: ORGANIZATION_DISABLED, subject: '', count: 0 }
+      { type: ORGANIZATION_DISABLED, subject: '' }
     ]);
   });
 
@@ -122,7 +124,7 @@ describe('blockersFromError', () => {
       value: new Uint8Array()
     });
     const blockers = blockersFromError(err);
-    expect(blockers).toEqual([{ type: UNKNOWN_BLOCKER, subject: '', count: 0 }]);
+    expect(blockers).toEqual([{ type: UNKNOWN_BLOCKER, subject: '' }]);
     expect(blockerLines(blockers, {}, wording)).toEqual([
       GENERIC_DELETE_BLOCKED_MESSAGE
     ]);

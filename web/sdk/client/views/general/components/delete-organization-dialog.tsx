@@ -21,6 +21,7 @@ import {
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
 import { useTokens } from '../../../hooks/useTokens';
+import styles from '../general-view.module.css';
 
 const deleteOrgSchema = yup
   .object({
@@ -40,7 +41,7 @@ export const DeleteOrganizationDialog = ({
   onDeleteError
 }: DeleteOrganizationDialogProps) => (
   <AlertDialog handle={handle}>
-    <AlertDialog.Content width={480}>
+    <AlertDialog.Content className={styles.deleteDialog}>
       <DeleteOrganizationForm
         onDeleteSuccess={() => {
           handle.close();

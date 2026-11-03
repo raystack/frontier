@@ -1,4 +1,5 @@
 import { ConnectError } from '@connectrpc/connect';
+import type { Blocker } from '@raystack/proton/frontier';
 import type { DeleteBlocker } from '../../shared/types';
 
 export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
@@ -25,7 +26,9 @@ const DEFAULT_LINES: Record<string, (wording: BlockerWording) => string> = {
   UNPAID_INVOICE: ({ organizationLabel }) =>
     `Outstanding invoice: Pay all outstanding invoices before deleting this ${organizationLabel}.`,
   NEGATIVE_TOKEN_BALANCE: ({ organizationLabel }) =>
-    `Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
+    `Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`,
+  RESOURCES_EXIST: () =>
+    'Existing resources: Delete the remaining resources, then try again.'
 };
 
 export function blockerLines(
@@ -50,7 +53,7 @@ export function blockerLines(
   return [...lines];
 }
 
-export function toDeleteBlockers(blockers: DeleteBlocker[]): DeleteBlocker[] {
+export function toDeleteBlockers(blockers: Blocker[]): DeleteBlocker[] {
   return blockers.map(({ type, subject, count }) => ({ type, subject, count }));
 }
 
@@ -60,7 +63,7 @@ export function blockersFromError(err: ConnectError): DeleteBlocker[] {
       'type' in detail && detail.type === 'google.rpc.PreconditionFailure'
   );
   if (failures.length === 0) {
-    return [{ type: ORGANIZATION_DISABLED, subject: '', count: 0 }];
+    return [{ type: ORGANIZATION_DISABLED, subject: '' }];
   }
   const blockers = failures.flatMap(detail => {
     const debug = (detail as { debug?: { violations?: unknown } }).debug;
@@ -68,14 +71,13 @@ export function blockersFromError(err: ConnectError): DeleteBlocker[] {
     return Array.isArray(violations)
       ? violations.filter(isViolation).map(({ type, subject }) => ({
           type,
-          subject: subject ?? '',
-          count: 0
+          subject: subject ?? ''
         }))
       : [];
   });
   return blockers.length > 0
     ? blockers
-    : [{ type: UNKNOWN_BLOCKER, subject: '', count: 0 }];
+    : [{ type: UNKNOWN_BLOCKER, subject: '' }];
 }
 
 function isViolation(

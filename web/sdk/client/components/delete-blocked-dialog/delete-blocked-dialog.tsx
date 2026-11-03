@@ -12,8 +12,6 @@ import { useTerminology } from '../../hooks/useTerminology';
 import { blockerLines } from '../../utils/delete-blockers';
 import styles from './delete-blocked-dialog.module.css';
 
-export type { DeleteBlockedPayload };
-
 export type DeleteBlockedDialogHandle = ReturnType<
   typeof AlertDialog.createHandle<DeleteBlockedPayload>
 >;
@@ -28,7 +26,7 @@ const DEFAULT_COPY: Record<
   })
 };
 
-const OpenDeleteBlockedContext = createContext<DeleteBlockedContext | null>(
+const DeleteBlockedDialogContext = createContext<DeleteBlockedContext | null>(
   null
 );
 
@@ -70,9 +68,9 @@ function DeleteBlockedBody({
   const body = slots.deleteBlockedDialog?.(context);
   const isEmpty = body == null || typeof body === 'boolean';
   return (
-    <OpenDeleteBlockedContext.Provider value={context}>
+    <DeleteBlockedDialogContext.Provider value={context}>
       {isEmpty ? <DeleteBlockedDialog /> : body}
-    </OpenDeleteBlockedContext.Provider>
+    </DeleteBlockedDialogContext.Provider>
   );
 }
 
@@ -89,7 +87,7 @@ export function DeleteBlockedDialog({
   blockers,
   messages = {}
 }: DeleteBlockedDialogProps) {
-  const context = useContext(OpenDeleteBlockedContext);
+  const context = useContext(DeleteBlockedDialogContext);
   const t = useTerminology();
   const { basePlan } = useFrontier();
   if (!context) {

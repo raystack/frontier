@@ -14,3 +14,7 @@
 .fitContent {
   width: fit-content;
 }
+
+.deleteDialog {
+  width: 480px !important;
+}

@@ -4,6 +4,5 @@ export {
 } from './delete-blocked-dialog';
 export type {
   DeleteBlockedDialogProps,
-  DeleteBlockedDialogHandle,
-  DeleteBlockedPayload
+  DeleteBlockedDialogHandle
 } from './delete-blocked-dialog';
