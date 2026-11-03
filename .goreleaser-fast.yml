@@ -2,6 +2,7 @@ project_name: frontier
 
 release:
   prerelease: auto
+  make_latest: false
 
 before:
   hooks:
