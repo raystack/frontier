@@ -1,16 +1,10 @@
 import { ConnectError } from '@connectrpc/connect';
 import type { DeleteBlocker } from '../../shared/types';
 
-// A request on a disabled organization fails with failed_precondition and
-// carries no PreconditionFailure. The SDK gives that case its own blocker
-// type, so it shows in the same dialog as the other blockers.
 export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
 
-// A PreconditionFailure whose violations cannot be read. It has no line, so
-// the dialog shows the generic one.
 export const UNKNOWN_BLOCKER = 'UNKNOWN';
 
-// Used once for all blockers that have no line.
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
@@ -34,8 +28,6 @@ const DEFAULT_LINES: Record<string, (wording: BlockerWording) => string> = {
     `Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
 };
 
-// Returns one line per blocker: messages[subject], else messages[type],
-// else the SDK line for the type. Identical lines show once.
 export function blockerLines(
   blockers: DeleteBlocker[],
   messages: Record<string, string>,
@@ -62,9 +54,6 @@ export function toDeleteBlockers(blockers: DeleteBlocker[]): DeleteBlocker[] {
   return blockers.map(({ type, subject, count }) => ({ type, subject, count }));
 }
 
-// Reads the blockers from a failed_precondition error. A refused delete
-// sends them as google.rpc.PreconditionFailure violations, which Connect
-// exposes in the detail's debug field. Violations carry no count.
 export function blockersFromError(err: ConnectError): DeleteBlocker[] {
   const failures = err.details.filter(
     detail =>

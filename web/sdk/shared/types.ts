@@ -66,37 +66,23 @@ export interface InitialState {
 
 export type CustomHeaderValue = string | (() => string);
 
-/**
- * One reason a delete is blocked. A delete check and a refused delete both
- * give this shape. It leaves out the server's message, which is written for
- * developers.
- */
 export interface DeleteBlocker {
-  /** ACTIVE_SUBSCRIPTION, UNPAID_INVOICE, NEGATIVE_TOKEN_BALANCE, RESOURCES_EXIST, ... */
   type: string;
-  /** The resource namespace for RESOURCES_EXIST, otherwise an id. */
   subject: string;
-  /** How many exist. 0 when it comes from a refused delete. */
   count: number;
 }
 
-// What blocks a delete, for each entity.
 export type DeleteBlockedPayload = {
   entity: 'organization';
   blockers: DeleteBlocker[];
 };
 
 export type DeleteBlockedContext = DeleteBlockedPayload & {
-  /** What the host app calls the entity, in lower case. */
   entityLabel: string;
   close: () => void;
 };
 
 export interface FrontierProviderSlots {
-  /**
-   * Words the dialog that says why a delete is blocked. Return a
-   * `DeleteBlockedDialog`, or nothing to show the SDK's own dialog.
-   */
   deleteBlockedDialog?: Slot<DeleteBlockedContext>;
 }
 

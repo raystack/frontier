@@ -18,10 +18,6 @@ export interface UseDeleteFlowOptions<TPayload> {
   blockedDialogHandle: DeleteBlockedDialogHandle;
 }
 
-// Runs a delete in two dialogs. startDelete checks first, then opens the
-// confirmation, or the blocked dialog when something blocks the delete.
-// Pass handleDeleteError the error of the delete itself: a refused delete
-// closes the confirmation and opens the blocked dialog.
 export function useDeleteFlow<TPayload>({
   entity,
   check,

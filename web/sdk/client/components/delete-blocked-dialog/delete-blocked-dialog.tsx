@@ -36,8 +36,6 @@ export interface DeleteBlockedDialogHostProps {
   handle: DeleteBlockedDialogHandle;
 }
 
-// The dialog the SDK opens when a delete is blocked. Its body comes from the
-// deleteBlockedDialog slot on FrontierProvider, or DeleteBlockedDialog.
 export function DeleteBlockedDialogHost({ handle }: DeleteBlockedDialogHostProps) {
   return (
     <AlertDialog handle={handle}>
@@ -55,7 +53,6 @@ export function DeleteBlockedDialogHost({ handle }: DeleteBlockedDialogHostProps
   );
 }
 
-// Calls the slot inside a component of its own, so the slot can use hooks.
 function DeleteBlockedBody({
   payload,
   close
@@ -71,7 +68,6 @@ function DeleteBlockedBody({
     close
   };
   const body = slots.deleteBlockedDialog?.(context);
-  // A slot that renders nothing would leave an empty modal with no Close.
   const isEmpty = body == null || typeof body === 'boolean';
   return (
     <OpenDeleteBlockedContext.Provider value={context}>
@@ -81,21 +77,12 @@ function DeleteBlockedBody({
 }
 
 export interface DeleteBlockedDialogProps {
-  /** Default: the SDK title for the entity. */
   title?: string;
-  /** Default: the SDK intro for the entity. */
   description?: string;
-  /** Default: the open dialog's blockers. Pass `[]` for no bullets. */
   blockers?: DeleteBlocker[];
-  /** One line per resource namespace or blocker type. Missing keys use the SDK line. */
   messages?: Record<string, string>;
 }
 
-/**
- * The body of the dialog that says why a delete is blocked. Return it from
- * the `deleteBlockedDialog` slot on FrontierProvider. It renders only inside
- * the dialog the SDK has open.
- */
 export function DeleteBlockedDialog({
   title,
   description,

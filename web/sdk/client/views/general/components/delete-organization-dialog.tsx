@@ -43,8 +43,6 @@ export const DeleteOrganizationDialog = ({
     <AlertDialog.Content width={480}>
       <DeleteOrganizationForm
         onDeleteSuccess={() => {
-          // The handle keeps its open state after this view unmounts, so
-          // close it before the host app navigates away.
           handle.close();
           onDeleteSuccess?.();
         }}
