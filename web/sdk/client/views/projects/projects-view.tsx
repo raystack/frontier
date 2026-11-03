@@ -28,16 +28,14 @@ import { AuthTooltipMessage } from '../../utils';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
-import {
-  DeleteBlockedDialogHost,
-  type DeleteBlockedPayload
-} from '../../components/delete-blocked-dialog';
+import { DeleteBlockedDialogHost } from '../../components/delete-blocked-dialog';
+import type { DeleteBlockedPayload } from '../../../shared/types';
 import { getColumns, type ProjectMenuPayload } from './components/project-columns';
 import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
 import { DeleteProjectDialog, type DeleteProjectPayload } from './components/delete-project-dialog';
 import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
-import { useProjectDeleteFlow } from './hooks/useProjectDeleteFlow';
+import { useProjectDeleteCheck } from './hooks/useProjectDeleteCheck';
 import { AddMemberMenuContent } from './components/add-member-menu';
 import styles from './projects-view.module.css';
 import { useTerminology } from '~/client/hooks/useTerminology';
@@ -81,7 +79,7 @@ export function ProjectsView({
 
   const { activeOrganization: organization } = useFrontier();
   const t = useTerminology();
-  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteFlow({
+  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteCheck({
     menuHandle: projectMenuHandle,
     confirmDialogHandle: deleteProjectDialogHandle,
     blockedDialogHandle: deleteBlockedDialogHandle

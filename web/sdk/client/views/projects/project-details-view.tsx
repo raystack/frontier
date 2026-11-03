@@ -37,10 +37,8 @@ import { usePermissions } from '../../hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
-import {
-  DeleteBlockedDialogHost,
-  type DeleteBlockedPayload
-} from '../../components/delete-blocked-dialog';
+import { DeleteBlockedDialogHost } from '../../components/delete-blocked-dialog';
+import type { DeleteBlockedPayload } from '../../../shared/types';
 import {
   EditProjectDialog,
   type EditProjectPayload
@@ -50,7 +48,7 @@ import {
   type DeleteProjectPayload
 } from './components/delete-project-dialog';
 import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
-import { useProjectDeleteFlow } from './hooks/useProjectDeleteFlow';
+import { useProjectDeleteCheck } from './hooks/useProjectDeleteCheck';
 import {
   RemoveMemberDialog,
   type RemoveMemberPayload
@@ -296,7 +294,7 @@ export function ProjectDetailsView({
     onDeleteSuccess?.();
   }, [onDeleteSuccess]);
 
-  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteFlow({
+  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteCheck({
     menuHandle: projectActionsMenuHandle,
     confirmDialogHandle: deleteProjectDialogHandle,
     blockedDialogHandle: deleteBlockedDialogHandle

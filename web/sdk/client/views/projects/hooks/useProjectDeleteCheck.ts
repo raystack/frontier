@@ -5,27 +5,27 @@ import {
   FrontierServiceQueries
 } from '@raystack/proton/frontier';
 import {
-  useDeleteFlow,
-  type UseDeleteFlowOptions
-} from '../../../hooks/useDeleteFlow';
+  useDeleteCheck,
+  type UseDeleteCheckOptions
+} from '../../../hooks/useDeleteCheck';
 import type { DeleteProjectPayload } from '../components/delete-project-dialog';
 
-export interface UseProjectDeleteFlowOptions
+export interface UseProjectDeleteCheckOptions
   extends Pick<
-    UseDeleteFlowOptions<DeleteProjectPayload>,
+    UseDeleteCheckOptions<DeleteProjectPayload>,
     'confirmDialogHandle' | 'blockedDialogHandle'
   > {
   menuHandle: { close: () => void };
 }
 
-export function useProjectDeleteFlow({
+export function useProjectDeleteCheck({
   menuHandle,
   ...handles
-}: UseProjectDeleteFlowOptions) {
+}: UseProjectDeleteCheckOptions) {
   const { mutateAsync: checkProjectDelete } = useMutation(
     FrontierServiceQueries.checkProjectDelete
   );
-  const { startDelete, ...flow } = useDeleteFlow({
+  const { startDelete, ...deleteCheck } = useDeleteCheck({
     entity: 'project',
     check: ({ projectId }) =>
       checkProjectDelete(
@@ -39,5 +39,5 @@ export function useProjectDeleteFlow({
     menuHandle.close();
   }
 
-  return { ...flow, startDelete: startDeleteFromMenu };
+  return { ...deleteCheck, startDelete: startDeleteFromMenu };
 }
