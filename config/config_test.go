@@ -69,7 +69,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoadDeletion(t *testing.T) {
-	t.Run("reads namespace keys and rules", func(t *testing.T) {
+	t.Run("reads namespace keys, rules and the user delete email", func(t *testing.T) {
 		want := deleter.Config{
 			Enabled: true,
 			Resources: map[string]deleter.Rules{
@@ -84,6 +84,10 @@ func TestLoadDeletion(t *testing.T) {
 				"storage/file": {
 					deleter.ParentOrganization: deleter.RuleAllow,
 				},
+			},
+			UserDeleteNotice: deleter.UserDeleteNoticeConfig{
+				Subject: "Your account was deleted",
+				Body:    "<p>Hi {{.User.Title}}</p>",
 			},
 		}
 

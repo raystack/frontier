@@ -867,6 +867,17 @@ func TestConnectHandler_DeleteUser(t *testing.T) {
 			err:  connect.CodeInvalidArgument,
 		},
 		{
+			title: "should return invalid argument error for a user ID that is not a uuid",
+			setup: func(cd *mocks.CascadeDeleter) {
+				cd.EXPECT().DeleteUser(mock.Anything, "not-a-uuid").Return(user.ErrInvalidUUID)
+			},
+			req: &frontierv1beta1.DeleteUserRequest{
+				Id: "not-a-uuid",
+			},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
+		},
+		{
 			title: "should return internal error if deleter service returns unexpected error",
 			setup: func(cd *mocks.CascadeDeleter) {
 				cd.EXPECT().DeleteUser(mock.Anything, userID).Return(errors.New("unexpected error"))
