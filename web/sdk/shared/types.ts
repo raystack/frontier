@@ -73,7 +73,7 @@ export interface DeleteBlocker {
 }
 
 export type DeleteBlockedPayload = {
-  entity: 'organization';
+  entity: 'organization' | 'project';
   blockers: DeleteBlocker[];
 };
 

@@ -19,7 +19,6 @@ import {
   Menu,
   Select
 } from '@raystack/apsara';
-import deleteIcon from '../../assets/delete.svg';
 import inboxStackIcon from '../../assets/inbox-stack.svg';
 import { toastManager } from '@raystack/apsara';
 import { useFrontier } from '../../contexts/FrontierContext';
@@ -29,10 +28,16 @@ import { AuthTooltipMessage } from '../../utils';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
+import {
+  DeleteBlockedDialogHost,
+  type DeleteBlockedPayload
+} from '../../components/delete-blocked-dialog';
 import { getColumns, type ProjectMenuPayload } from './components/project-columns';
 import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
 import { DeleteProjectDialog, type DeleteProjectPayload } from './components/delete-project-dialog';
+import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
+import { useProjectDeleteFlow } from './hooks/useProjectDeleteFlow';
 import { AddMemberMenuContent } from './components/add-member-menu';
 import styles from './projects-view.module.css';
 import { useTerminology } from '~/client/hooks/useTerminology';
@@ -46,6 +51,8 @@ const projectMenuHandle = Menu.createHandle<ProjectMenuPayload>();
 const addProjectDialogHandle = Dialog.createHandle();
 const editProjectDialogHandle = Dialog.createHandle<EditProjectPayload>();
 const deleteProjectDialogHandle = AlertDialog.createHandle<DeleteProjectPayload>();
+const deleteBlockedDialogHandle =
+  AlertDialog.createHandle<DeleteBlockedPayload>();
 
 export interface ProjectsViewProps {
   title?: string;
@@ -74,6 +81,11 @@ export function ProjectsView({
 
   const { activeOrganization: organization } = useFrontier();
   const t = useTerminology();
+  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteFlow({
+    menuHandle: projectMenuHandle,
+    confirmDialogHandle: deleteProjectDialogHandle,
+    blockedDialogHandle: deleteBlockedDialogHandle
+  });
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
@@ -303,19 +315,16 @@ export function ProjectsView({
                 </Menu.Submenu>
               )}
               {payload?.canDelete && (
-                <Menu.Item
-                  leadingIcon={<Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />}
+                <DeleteProjectMenuItem
+                  isChecking={isChecking}
                   onClick={() =>
-                    deleteProjectDialogHandle.openWithPayload({
+                    startDelete({
                       projectId: payload.projectId,
                       projectName: payload.title
                     })
                   }
                   data-test-id="delete-project-dropdown-item"
-                  style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
-                >
-                  Delete project
-                </Menu.Item>
+                />
               )}
             </Menu.Content>
           );
@@ -324,7 +333,12 @@ export function ProjectsView({
 
       <AddProjectDialog handle={addProjectDialogHandle} refetch={refetch} />
       <EditProjectDialog handle={editProjectDialogHandle} refetch={refetch} />
-      <DeleteProjectDialog handle={deleteProjectDialogHandle} refetch={refetch} />
+      <DeleteProjectDialog
+        handle={deleteProjectDialogHandle}
+        refetch={refetch}
+        onDeleteError={handleDeleteError}
+      />
+      <DeleteBlockedDialogHost handle={deleteBlockedDialogHandle} />
     </ViewContainer>
   );
 }

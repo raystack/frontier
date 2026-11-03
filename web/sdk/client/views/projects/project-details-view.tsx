@@ -38,6 +38,10 @@ import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import {
+  DeleteBlockedDialogHost,
+  type DeleteBlockedPayload
+} from '../../components/delete-blocked-dialog';
+import {
   EditProjectDialog,
   type EditProjectPayload
 } from './components/edit-project-dialog';
@@ -45,6 +49,8 @@ import {
   DeleteProjectDialog,
   type DeleteProjectPayload
 } from './components/delete-project-dialog';
+import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
+import { useProjectDeleteFlow } from './hooks/useProjectDeleteFlow';
 import {
   RemoveMemberDialog,
   type RemoveMemberPayload
@@ -75,6 +81,9 @@ const memberMenuHandle = Menu.createHandle<MemberMenuPayload>();
 const editProjectDialogHandle = Dialog.createHandle<EditProjectPayload>();
 const deleteProjectDialogHandle =
   AlertDialog.createHandle<DeleteProjectPayload>();
+const deleteBlockedDialogHandle =
+  AlertDialog.createHandle<DeleteBlockedPayload>();
+const projectActionsMenuHandle = Menu.createHandle();
 const removeMemberDialogHandle =
   AlertDialog.createHandle<RemoveMemberPayload>();
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
@@ -287,6 +296,12 @@ export function ProjectDetailsView({
     onDeleteSuccess?.();
   }, [onDeleteSuccess]);
 
+  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteFlow({
+    menuHandle: projectActionsMenuHandle,
+    confirmDialogHandle: deleteProjectDialogHandle,
+    blockedDialogHandle: deleteBlockedDialogHandle
+  });
+
   const projectTitle = project?.title || '';
   const projectName = project?.name || '';
 
@@ -319,6 +334,10 @@ export function ProjectDetailsView({
             projectTitle={projectTitle}
             canUpdate={canUpdateProject}
             canDelete={canDeleteProject}
+            isCheckingDelete={isChecking}
+            onDelete={() =>
+              startDelete({ projectId, projectName: projectTitle })
+            }
           />
         )}
       </ViewHeader>
@@ -437,7 +456,9 @@ export function ProjectDetailsView({
       <DeleteProjectDialog
         handle={deleteProjectDialogHandle}
         refetch={handleDeleteSuccess}
+        onDeleteError={handleDeleteError}
       />
+      <DeleteBlockedDialogHost handle={deleteBlockedDialogHandle} />
       <RemoveMemberDialog
         handle={removeMemberDialogHandle}
         refetch={refetchMembers}
@@ -457,16 +478,18 @@ interface ProjectActionsMenuProps {
   projectTitle: string;
   canUpdate: boolean;
   canDelete: boolean;
+  isCheckingDelete: boolean;
+  onDelete: () => void;
 }
-
-const projectActionsMenuHandle = Menu.createHandle();
 
 function ProjectActionsMenu({
   projectId,
   projectName,
   projectTitle,
   canUpdate,
-  canDelete
+  canDelete,
+  isCheckingDelete,
+  onDelete
 }: ProjectActionsMenuProps) {
   return (
     <>
@@ -500,19 +523,11 @@ function ProjectActionsMenu({
             </Menu.Item>
           )}
           {canDelete && (
-            <Menu.Item
-              leadingIcon={<Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />}
-              onClick={() =>
-                deleteProjectDialogHandle.openWithPayload({
-                  projectId,
-                  projectName: projectTitle
-                })
-              }
+            <DeleteProjectMenuItem
+              isChecking={isCheckingDelete}
+              onClick={onDelete}
               data-test-id="frontier-sdk-delete-project-details-btn"
-              style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
-            >
-              Delete project
-            </Menu.Item>
+            />
           )}
         </Menu.Content>
       </Menu>
