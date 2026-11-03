@@ -2,9 +2,11 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -322,6 +324,31 @@ func (s *UserRepositoryTestSuite) TestGetByIDs() {
 	}
 }
 
+func (s *UserRepositoryTestSuite) TestGetByIDsIncludingDisabled() {
+	enabled, disabled := s.users[0], s.users[1]
+	s.Require().NoError(s.repository.SetState(s.ctx, disabled.ID, user.Disabled))
+	deleted, err := s.repository.Create(s.ctx, user.User{Name: "deleted_user_slug", Email: "deleted-user@raystack.org"})
+	s.Require().NoError(err)
+	execSQL(s.T(), s.ctx, s.client, "UPDATE users SET deleted_at = now() WHERE id = $1", deleted.ID)
+	lookup := []string{enabled.ID, disabled.ID, deleted.ID}
+
+	ids := func(users []user.User) []string {
+		out := make([]string, 0, len(users))
+		for _, u := range users {
+			out = append(out, u.ID)
+		}
+		return out
+	}
+
+	got, err := s.repository.GetByIDs(s.ctx, lookup)
+	s.Require().NoError(err)
+	s.Assert().ElementsMatch([]string{enabled.ID}, ids(got))
+
+	got, err = s.repository.GetByIDsIncludingDisabled(s.ctx, lookup)
+	s.Require().NoError(err)
+	s.Assert().ElementsMatch([]string{enabled.ID, disabled.ID}, ids(got))
+}
+
 func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 	type testCase struct {
 		Description  string
@@ -504,6 +531,32 @@ func (s *UserRepositoryTestSuite) TestDelete() {
 			}
 		})
 	}
+}
+
+func (s *UserRepositoryTestSuite) TestDeleteKeepsTheRow() {
+	deleted := s.users[0]
+
+	s.Require().NoError(s.repository.Delete(s.ctx, deleted.ID))
+
+	var deletedAt sql.NullTime
+	s.Require().NoError(s.client.GetContext(s.ctx, &deletedAt, "SELECT deleted_at FROM users WHERE id = $1", deleted.ID))
+	s.Require().True(deletedAt.Valid)
+
+	var occurredAt time.Time
+	s.Require().NoError(s.client.GetContext(s.ctx, &occurredAt,
+		"SELECT occurred_at FROM audit_records WHERE event = $1 AND target_id = $2",
+		pkgAuditRecord.UserDeletedEvent.String(), deleted.ID))
+	s.Assert().WithinDuration(deletedAt.Time, occurredAt, 0)
+
+	_, err := s.repository.GetByID(s.ctx, deleted.ID)
+	s.Assert().ErrorIs(err, user.ErrNotExist)
+
+	s.Assert().ErrorIs(s.repository.Delete(s.ctx, deleted.ID), user.ErrNotExist)
+	s.assertAudited(pkgAuditRecord.UserDeletedEvent.String(), deleted.ID, uuid.Nil.String())
+
+	again, err := s.repository.Create(s.ctx, user.User{Name: deleted.Name, Email: deleted.Email})
+	s.Require().NoError(err)
+	s.Assert().NotEqual(deleted.ID, again.ID)
 }
 
 func (s *UserRepositoryTestSuite) TestSetState() {

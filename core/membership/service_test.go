@@ -32,6 +32,17 @@ func TestService_RemovePrincipalPolicies(t *testing.T) {
 		assert.NoError(t, svc.RemovePrincipalPolicies(ctx, serviceUserID, schema.ServiceUserPrincipal))
 	})
 
+	t.Run("should skip a policy that is already gone", func(t *testing.T) {
+		mockPolicySvc := mocks.NewPolicyService(t)
+
+		mockPolicySvc.EXPECT().List(ctx, filter).Return([]policy.Policy{{ID: "p1"}, {ID: "p2"}}, nil)
+		mockPolicySvc.EXPECT().Delete(ctx, "p1").Return(policy.ErrNotExist)
+		mockPolicySvc.EXPECT().Delete(ctx, "p2").Return(nil)
+
+		svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), mockPolicySvc, mocks.NewRelationService(t), mocks.NewRoleService(t), mocks.NewOrgService(t), mocks.NewUserService(t), mocks.NewProjectService(t), mocks.NewGroupService(t), mocks.NewServiceuserService(t), mocks.NewAuditRecordRepository(t))
+		assert.NoError(t, svc.RemovePrincipalPolicies(ctx, serviceUserID, schema.ServiceUserPrincipal))
+	})
+
 	t.Run("should surface policy delete errors", func(t *testing.T) {
 		mockPolicySvc := mocks.NewPolicyService(t)
 

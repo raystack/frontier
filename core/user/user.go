@@ -24,6 +24,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id string) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
 	GetByIDs(ctx context.Context, userIds []string) ([]User, error)
+	GetByIDsIncludingDisabled(ctx context.Context, userIDs []string) ([]User, error)
 	GetByName(ctx context.Context, name string) (User, error)
 	Create(ctx context.Context, user User) (User, error)
 	CreateWithConsent(ctx context.Context, user User, cnst consent.Consent) (User, consent.Consent, error)

@@ -77,6 +77,10 @@ func (s Service) GetByIDs(ctx context.Context, userIDs []string) ([]User, error)
 	return s.repository.GetByIDs(ctx, userIDs)
 }
 
+func (s Service) GetByIDsIncludingDisabled(ctx context.Context, userIDs []string) ([]User, error) {
+	return s.repository.GetByIDsIncludingDisabled(ctx, userIDs)
+}
+
 func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 	email = strings.ToLower(email)
 	return s.repository.GetByEmail(ctx, email)
@@ -164,6 +168,9 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		ID:        id,
 		Namespace: schema.UserPrincipal,
 	}}); err != nil {
+		return err
+	}
+	if err := s.sessionService.DeleteByUserID(ctx, id); err != nil {
 		return err
 	}
 	return s.repository.Delete(ctx, id)

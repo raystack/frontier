@@ -279,6 +279,70 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
 		},
 		{
+			name: "should not touch metadata or validate it when metadata is not set in the request",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					ID:       someOrgID,
+					Name:     "new-org",
+					Metadata: nil,
+				}).Return(organization.Organization{
+					ID:       someOrgID,
+					Name:     "new-org",
+					Metadata: metadata.Metadata{"poc": "owner@example.com"},
+					State:    organization.Enabled,
+				}, nil)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+				Id:   someOrgID,
+				Body: &frontierv1beta1.OrganizationRequestBody{Name: "new-org"},
+			}),
+			want: connect.NewResponse(&frontierv1beta1.UpdateOrganizationResponse{
+				Organization: &frontierv1beta1.Organization{
+					Id:   someOrgID,
+					Name: "new-org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{"poc": structpb.NewStringValue("owner@example.com")},
+					},
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+					State:     "enabled",
+				},
+			}),
+			wantErr: nil,
+		},
+		{
+			name: "should not touch metadata when it is not set and the org is addressed by name",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					Name:     "new-org",
+					Metadata: nil,
+				}).Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+				Id:   "org-slug",
+				Body: &frontierv1beta1.OrganizationRequestBody{Name: "new-org"},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", "org-slug", "new-org", "", errors.New("test error"))),
+		},
+		{
+			name: "should pass empty metadata through when metadata is set to an empty object",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(metadata.Metadata{}, orgMetaSchema).Return(nil)
+				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					ID:       someOrgID,
+					Name:     "new-org",
+					Metadata: metadata.Metadata{},
+				}).Return(organization.Organization{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+				Id:   someOrgID,
+				Body: &frontierv1beta1.OrganizationRequestBody{Name: "new-org", Metadata: &structpb.Struct{}},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", someOrgID, "new-org", "", errors.New("test error"))),
+		},
+		{
 			name: "should return error if meta schema service gives error",
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(errors.New("meta schema error"))

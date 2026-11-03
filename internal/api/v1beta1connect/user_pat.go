@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/core/userpat"
 	paterrors "github.com/raystack/frontier/core/userpat/errors"
 	"github.com/raystack/frontier/core/userpat/models"
-	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -61,12 +60,9 @@ func mapPATError(err error) *connect.Error {
 func (h *ConnectHandler) CreateCurrentUserPAT(ctx context.Context, request *connect.Request[frontierv1beta1.CreateCurrentUserPATRequest]) (*connect.Response[frontierv1beta1.CreateCurrentUserPATResponse], error) {
 	errorLogger := NewErrorLogger()
 
-	principal, err := h.GetLoggedInPrincipal(ctx)
+	principal, err := h.getLoggedInUser(ctx)
 	if err != nil {
 		return nil, err
-	}
-	if principal.Type != schema.UserPrincipal {
-		return nil, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 
 	if err := h.userPATService.ValidateExpiry(request.Msg.GetExpiresAt().AsTime()); err != nil {

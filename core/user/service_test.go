@@ -592,6 +592,23 @@ func TestService_Enable(t *testing.T) {
 }
 
 func TestService_Delete(t *testing.T) {
+	t.Run("removes the relations, then ends the sessions, then removes the user", func(t *testing.T) {
+		repo, relationService, sessionService, auditRecordRepository := mockService(t)
+		var steps []string
+		relationService.EXPECT().Delete(mock.Anything, relation.Relation{Subject: relation.Subject{
+			ID:        "test-id",
+			Namespace: schema.UserPrincipal,
+		}}).Run(func(context.Context, relation.Relation) { steps = append(steps, "relations") }).Return(nil)
+		sessionService.EXPECT().DeleteByUserID(mock.Anything, "test-id").
+			Run(func(context.Context, string) { steps = append(steps, "sessions") }).Return(nil)
+		repo.EXPECT().Delete(mock.Anything, "test-id").
+			Run(func(context.Context, string) { steps = append(steps, "user") }).Return(nil)
+
+		err := user.NewService(repo, relationService, sessionService, auditRecordRepository).Delete(context.Background(), "test-id")
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"relations", "sessions", "user"}, steps)
+	})
+
 	tests := []struct {
 		name    string
 		id      string
@@ -599,21 +616,7 @@ func TestService_Delete(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "while deleting user, delete it's relations",
-			id:      "test-id",
-			wantErr: false,
-			setup: func() *user.Service {
-				repo, relationService, sessionService, auditRecordRepository := mockService(t)
-				relationService.EXPECT().Delete(mock.Anything, relation.Relation{Subject: relation.Subject{
-					ID:        "test-id",
-					Namespace: schema.UserPrincipal,
-				}}).Return(nil)
-				repo.EXPECT().Delete(mock.Anything, "test-id").Return(nil)
-				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
-			},
-		},
-		{
-			name:    "fail on delete relations shouldn't remove user",
+			name:    "fail on delete relations shouldn't end sessions or remove user",
 			id:      "test-id",
 			wantErr: true,
 			setup: func() *user.Service {
@@ -622,6 +625,20 @@ func TestService_Delete(t *testing.T) {
 					ID:        "test-id",
 					Namespace: schema.UserPrincipal,
 				}}).Return(errors.New("failed to delete relation"))
+				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
+			},
+		},
+		{
+			name:    "fail on ending sessions shouldn't remove user",
+			id:      "test-id",
+			wantErr: true,
+			setup: func() *user.Service {
+				repo, relationService, sessionService, auditRecordRepository := mockService(t)
+				relationService.EXPECT().Delete(mock.Anything, relation.Relation{Subject: relation.Subject{
+					ID:        "test-id",
+					Namespace: schema.UserPrincipal,
+				}}).Return(nil)
+				sessionService.EXPECT().DeleteByUserID(mock.Anything, "test-id").Return(errors.New("failed to end sessions"))
 				return user.NewService(repo, relationService, sessionService, auditRecordRepository)
 			},
 		},

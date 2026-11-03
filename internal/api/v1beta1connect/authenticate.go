@@ -364,10 +364,12 @@ func (h *ConnectHandler) AuthLogout(ctx context.Context, request *connect.Reques
 	}
 
 	resp := connect.NewResponse(&frontierv1beta1.AuthLogoutResponse{})
-
-	// instruct interceptor to invalidate cookie
-	resp.Header().Set(consts.SessionDeleteGatewayKey, "true")
+	clearSessionCookie(resp)
 	return resp, nil
+}
+
+func clearSessionCookie(resp connect.AnyResponse) {
+	resp.Header().Set(consts.SessionDeleteGatewayKey, "true")
 }
 
 func (h *ConnectHandler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
@@ -396,6 +398,17 @@ func (h *ConnectHandler) GetLoggedInPrincipal(ctx context.Context, via ...authen
 		default:
 			return principal, connect.NewError(connect.CodeInternal, fmt.Errorf("GetLoggedInPrincipal: %w", err))
 		}
+	}
+	return principal, nil
+}
+
+func (h *ConnectHandler) getLoggedInUser(ctx context.Context) (authenticate.Principal, error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return principal, err
+	}
+	if principal.Type != schema.UserPrincipal {
+		return principal, connect.NewError(connect.CodePermissionDenied, ErrUnauthenticated)
 	}
 	return principal, nil
 }

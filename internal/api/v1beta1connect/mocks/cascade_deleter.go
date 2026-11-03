@@ -140,6 +140,63 @@ func (_c *CascadeDeleter_CheckProjectDelete_Call) RunAndReturn(run func(context.
 	return _c
 }
 
+// CheckUserDelete provides a mock function with given fields: ctx, userID
+func (_m *CascadeDeleter) CheckUserDelete(ctx context.Context, userID string) (deleter.UserDeleteCheck, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckUserDelete")
+	}
+
+	var r0 deleter.UserDeleteCheck
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (deleter.UserDeleteCheck, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) deleter.UserDeleteCheck); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(deleter.UserDeleteCheck)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CascadeDeleter_CheckUserDelete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckUserDelete'
+type CascadeDeleter_CheckUserDelete_Call struct {
+	*mock.Call
+}
+
+// CheckUserDelete is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *CascadeDeleter_Expecter) CheckUserDelete(ctx interface{}, userID interface{}) *CascadeDeleter_CheckUserDelete_Call {
+	return &CascadeDeleter_CheckUserDelete_Call{Call: _e.mock.On("CheckUserDelete", ctx, userID)}
+}
+
+func (_c *CascadeDeleter_CheckUserDelete_Call) Run(run func(ctx context.Context, userID string)) *CascadeDeleter_CheckUserDelete_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CascadeDeleter_CheckUserDelete_Call) Return(_a0 deleter.UserDeleteCheck, _a1 error) *CascadeDeleter_CheckUserDelete_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CascadeDeleter_CheckUserDelete_Call) RunAndReturn(run func(context.Context, string) (deleter.UserDeleteCheck, error)) *CascadeDeleter_CheckUserDelete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteGroup provides a mock function with given fields: ctx, id
 func (_m *CascadeDeleter) DeleteGroup(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)

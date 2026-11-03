@@ -118,6 +118,8 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByCurrentUser": true,
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser":      true,
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations":     true,
+	"/raystack.frontier.v1beta1.FrontierService/CheckCurrentUserDelete":         true,
+	"/raystack.frontier.v1beta1.FrontierService/DeleteCurrentUser":              true,
 
 	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization":   true,
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization": true,
@@ -157,6 +159,8 @@ var patDeniedEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/PingUserSession":              true,
 	"/raystack.frontier.v1beta1.FrontierService/RevokeSession":                true,
 	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPAT":         true,
+	"/raystack.frontier.v1beta1.FrontierService/CheckCurrentUserDelete":       true,
+	"/raystack.frontier.v1beta1.FrontierService/DeleteCurrentUser":            true,
 }
 
 // authorizationValidationMap stores path to validation function

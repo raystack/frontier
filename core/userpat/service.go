@@ -184,6 +184,14 @@ func (s *Service) DeleteAllByUser(ctx context.Context, userID string) error {
 	return nil
 }
 
+func (s *Service) CountByUser(ctx context.Context, userID string) (int, error) {
+	pats, err := s.repo.ListByUser(ctx, userID)
+	if err != nil {
+		return 0, fmt.Errorf("listing PATs for user: %w", err)
+	}
+	return len(pats), nil
+}
+
 func (s *Service) DeleteAllByOrg(ctx context.Context, orgID string) error {
 	pats, err := s.repo.ListAllByOrg(ctx, orgID)
 	if err != nil {

@@ -1000,23 +1000,26 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 	}
 }
 
-func TestService_ForceRemoveOrganizationMember(t *testing.T) {
+func TestService_RemoveOrganizationMemberOnDelete(t *testing.T) {
 	ctx := context.Background()
 	orgID := uuid.New().String()
 	userID := uuid.New().String()
 	ownerRoleID := uuid.New().String()
 
-	enabledOrg := organization.Organization{ID: orgID, Title: "Test Org"}
-
 	type testDeps struct {
 		policySvc *mocks.PolicyService
-		relSvc    *mocks.RelationService
 		roleSvc   *mocks.RoleService
 		orgSvc    *mocks.OrgService
 		projSvc   *mocks.ProjectService
 		grpSvc    *mocks.GroupService
 		resSvc    *mocks.ResourceService
 		auditRepo *mocks.AuditRecordRepository
+	}
+	expectDisabledOrgOwner := func(d testDeps, owners []policy.Policy) {
+		d.orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{}, organization.ErrDisabled)
+		d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: ownerRoleID}}, nil)
+		d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+		d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return(owners, nil)
 	}
 
 	tests := []struct {
@@ -1025,51 +1028,49 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "removes the org's last owner without the guard",
+			name: "removes an owner from a disabled org with the owner guard",
 			setup: func(d testDeps) {
-				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
-				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: ownerRoleID}}, nil)
-				// no roleSvc.Get / owner-count query: the guard is skipped entirely
+				expectDisabledOrgOwner(d, []policy.Policy{{ID: "org-p1"}, {ID: "other-owner-p"}})
 				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
 				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
 				}, nil)
-				// plain delete, not DeleteWithMinRoleGuard
-				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				d.policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "org-p1", ownerRoleID).Return(nil)
 				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},
 		{
-			name: "does not return ErrNotMember when principal has no org policies and still cascades",
+			name: "skips policies that are already gone",
 			setup: func(d testDeps) {
-				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
-				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
+				expectDisabledOrgOwner(d, []policy.Policy{{ID: "org-p1"}, {ID: "other-owner-p"}})
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: "proj-1"}}, nil)
 				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
-				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
+					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
+					{ID: "proj-p1", ResourceType: schema.ProjectNamespace, ResourceID: "proj-1"},
+				}, nil)
+				d.policySvc.EXPECT().DeleteWithMinRoleGuard(ctx, "org-p1", ownerRoleID).Return(policy.ErrNotExist)
+				d.policySvc.EXPECT().Delete(ctx, "proj-p1").Return(policy.ErrNotExist)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{"proj-1"}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
 			},
 		},
 		{
-			name: "proceeds with the cascade when the org is disabled",
+			name: "refuses the last owner of a disabled org",
 			setup: func(d testDeps) {
-				// Get discards the org payload on ErrDisabled; the force path
-				// must reconstruct the org from the input ID and continue —
-				// the deleter visits disabled orgs deliberately
+				expectDisabledOrgOwner(d, []policy.Policy{{ID: "org-p1"}})
+			},
+			wantErr: membership.ErrLastOwnerRole,
+		},
+		{
+			name: "returns ErrNotMember when the principal has no org policies",
+			setup: func(d testDeps) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{}, organization.ErrDisabled)
-				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: ownerRoleID}}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
-				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
-					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
-				}, nil)
-				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
-				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
-				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
 			},
+			wantErr: membership.ErrNotMember,
 		},
 		{
 			name: "propagates org lookup failure",
@@ -1084,7 +1085,6 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := testDeps{
 				policySvc: mocks.NewPolicyService(t),
-				relSvc:    mocks.NewRelationService(t),
 				roleSvc:   mocks.NewRoleService(t),
 				orgSvc:    mocks.NewOrgService(t),
 				projSvc:   mocks.NewProjectService(t),
@@ -1092,14 +1092,12 @@ func TestService_ForceRemoveOrganizationMember(t *testing.T) {
 				resSvc:    mocks.NewResourceService(t),
 				auditRepo: mocks.NewAuditRecordRepository(t),
 			}
-			if tt.setup != nil {
-				tt.setup(d)
-			}
+			tt.setup(d)
 
-			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo)
+			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, mocks.NewRelationService(t), d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo)
 			svc.SetResourceService(d.resSvc)
 
-			err := svc.ForceRemoveOrganizationMember(ctx, orgID, userID, schema.UserPrincipal)
+			err := svc.RemoveOrganizationMemberOnDelete(ctx, orgID, userID, schema.UserPrincipal)
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
 			} else {

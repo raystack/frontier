@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/raystack/frontier/core/authenticate"
@@ -66,6 +68,27 @@ func livePoliciesMatching(t require.TestingT, ctx context.Context, cl frontierv1
 	resp, err := cl.ListPolicies(ctx, connect.NewRequest(req))
 	require.NoError(t, err)
 	return resp.Msg.GetPolicies()
+}
+
+func signUpUser(t require.TestingT, cl frontierv1beta1connect.FrontierServiceClient, email string) (string, context.Context) {
+	cookie, err := testbench.AuthenticateUser(context.Background(), cl, email)
+	require.NoError(t, err)
+	ctx := testbench.ContextWithAuth(context.Background(), cookie)
+	resp, err := cl.GetCurrentUser(ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+	require.NoError(t, err)
+	return resp.Msg.GetUser().GetId(), ctx
+}
+
+func requireDeleteRefused(t require.TestingT, err error) (string, []*errdetails.PreconditionFailure_Violation) {
+	var connectErr *connect.Error
+	require.ErrorAs(t, err, &connectErr)
+	require.Equal(t, connect.CodeFailedPrecondition, connectErr.Code())
+	require.Len(t, connectErr.Details(), 1)
+	detail, err := connectErr.Details()[0].Value()
+	require.NoError(t, err)
+	failure, ok := detail.(*errdetails.PreconditionFailure)
+	require.True(t, ok)
+	return connectErr.Message(), failure.GetViolations()
 }
 
 type APIRegressionTestSuite struct {
@@ -1724,6 +1747,714 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		_, err = s.testBench.Client.GetCurrentUser(ctxTarget, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
 		s.Require().Error(err)
 		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+	})
+	s.Run("13. session is rejected on the next request after the user is deleted", func() {
+		const targetEmail = "delete-session-target@raystack.org"
+
+		createResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Title: "delete session target",
+				Email: targetEmail,
+				Name:  "delete_session_target",
+			},
+		}))
+		s.Require().NoError(err)
+		targetID := createResp.Msg.GetUser().GetId()
+
+		targetCookie, err := testbench.AuthenticateUser(context.Background(), s.testBench.Client, targetEmail)
+		s.Require().NoError(err)
+		ctxTarget := testbench.ContextWithAuth(context.Background(), targetCookie)
+
+		meResp, err := s.testBench.Client.GetCurrentUser(ctxTarget, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().NoError(err)
+		s.Assert().Equal(targetEmail, meResp.Msg.GetUser().GetEmail())
+
+		_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{
+			Id: targetID,
+		}))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.GetCurrentUser(ctxTarget, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+	})
+}
+
+func (s *APIRegressionTestSuite) TestUserDeleteLeavesNoAccessAndNoLivePolicy() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrg := func(name string) string {
+		resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{Title: name, Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetOrganization().GetId()
+	}
+	createProject := func(orgID, name string) string {
+		resp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: name, OrgId: orgID},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetProject().GetId()
+	}
+
+	memberOrgID := createOrg("user-delete-member-org")
+	otherOrgID := createOrg("user-delete-other-org")
+	disabledProjectID := createProject(memberOrgID, "user-delete-disabled-project")
+	otherOrgProjectID := createProject(otherOrgID, "user-delete-other-org-project")
+
+	orderResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+		ProjectId: disabledProjectID,
+		Body:      &frontierv1beta1.ResourceRequestBody{Name: "user-delete-order", Namespace: computeOrderNamespace},
+	}))
+	s.Require().NoError(err)
+	orderID := orderResp.Msg.GetResource().GetId()
+
+	groupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+		OrgId: memberOrgID,
+		Body:  &frontierv1beta1.GroupRequestBody{Name: "user-delete-disabled-group"},
+	}))
+	s.Require().NoError(err)
+	disabledGroupID := groupResp.Msg.GetGroup().GetId()
+
+	userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+		Body: &frontierv1beta1.UserRequestBody{Email: "user-delete-target@raystack.org", Name: "user-delete-target"},
+	}))
+	s.Require().NoError(err)
+	userID := userResp.Msg.GetUser().GetId()
+	userSubject := schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userID)
+
+	addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+		OrgId:   memberOrgID,
+		Members: []*frontierv1beta1.OrgMemberEntry{{UserId: userID, RoleId: s.orgViewerRole}},
+	}))
+	requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
+	_, err = s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+		GroupId:       disabledGroupID,
+		PrincipalId:   userID,
+		PrincipalType: schema.UserPrincipal,
+		RoleId:        s.groupMemberRole,
+	}))
+	s.Require().NoError(err)
+
+	disabledProject := schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, disabledProjectID)
+	otherOrgProject := schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, otherOrgProjectID)
+	order := schema.JoinNamespaceAndResourceID(computeOrderNamespace, orderID)
+	for _, grant := range []struct{ role, resource string }{
+		{schema.RoleProjectViewer, disabledProject},
+		{schema.RoleProjectViewer, otherOrgProject},
+		{computeViewerRoleName, order},
+	} {
+		_, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{RoleId: grant.role, Resource: grant.resource, Principal: userSubject},
+		}))
+		s.Require().NoError(err)
+	}
+
+	_, err = s.testBench.Client.DisableProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableProjectRequest{Id: disabledProjectID}))
+	s.Require().NoError(err)
+	_, err = s.testBench.Client.DisableGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableGroupRequest{Id: disabledGroupID}))
+	s.Require().NoError(err)
+
+	resources := []struct {
+		name     string
+		id       string
+		resource string
+	}{
+		{"the org it is a member of", memberOrgID, schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, memberOrgID)},
+		{"a disabled project", disabledProjectID, disabledProject},
+		{"a disabled group", disabledGroupID, schema.JoinNamespaceAndResourceID(schema.GroupNamespace, disabledGroupID)},
+		{"a project in an org it is not a member of", otherOrgProjectID, otherOrgProject},
+		{"an order in a disabled project", orderID, order},
+	}
+	livePolicies := func(resourceID string) int {
+		var count int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+			"SELECT count(*) FROM policies WHERE principal_id = $1 AND resource_id = $2 AND deleted_at IS NULL", userID, resourceID))
+		return count
+	}
+	canGet := func(resource string) bool {
+		resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   resource,
+			Permission: schema.GetPermission,
+			Subject:    userSubject,
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetStatus()
+	}
+	for _, r := range resources {
+		s.Require().Equalf(1, livePolicies(r.id), "live policy on %s before the delete", r.name)
+		s.Require().Truef(canGet(r.resource), "access to %s before the delete", r.name)
+	}
+
+	_, err = s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{Id: userID}))
+	s.Require().NoError(err)
+
+	s.Run("no live policy names the deleted user", func() {
+		for _, r := range resources {
+			s.Assert().Zerof(livePolicies(r.id), "live policy on %s", r.name)
+		}
+		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
+	})
+
+	s.Run("the deleted user can no longer get anything it had access to", func() {
+		for _, r := range resources {
+			s.Assert().Falsef(canGet(r.resource), "access to %s", r.name)
+		}
+	})
+
+	s.Run("org users names the deleted user in neither users nor role pairs", func() {
+		resp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{Id: memberOrgID}))
+		s.Require().NoError(err)
+		for _, u := range resp.Msg.GetUsers() {
+			s.Assert().NotEqual(userID, u.GetId())
+		}
+		for _, pair := range resp.Msg.GetRolePairs() {
+			s.Assert().NotEqual(userID, pair.GetUserId())
+		}
+	})
+}
+
+func (s *APIRegressionTestSuite) TestUserDeleteWithOrgs() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createUser := func(name string) string {
+		resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{Email: name + "@raystack.org", Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetUser().GetId()
+	}
+	createOrg := func(ctx context.Context, name string) string {
+		resp, err := s.testBench.Client.CreateOrganization(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{Title: name, Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetOrganization().GetId()
+	}
+	addMember := func(orgID, userID, roleID string) {
+		resp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId:   orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{{UserId: userID, RoleId: roleID}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), resp, err)
+	}
+	deleteUser := func(id string) error {
+		_, err := s.testBench.Client.DeleteUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteUserRequest{Id: id}))
+		return err
+	}
+	userExists := func(id string) bool {
+		_, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetUserRequest{Id: id}))
+		if err != nil {
+			s.Require().Equal(connect.CodeNotFound, connect.CodeOf(err))
+		}
+		return err == nil
+	}
+	orgIsLive := func(id string) bool {
+		var count int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+			"SELECT count(*) FROM organizations WHERE id = $1 AND deleted_at IS NULL", id))
+		return count == 1
+	}
+	orgHasUser := func(orgID, userID string) bool {
+		resp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{Id: orgID}))
+		s.Require().NoError(err)
+		return slices.ContainsFunc(resp.Msg.GetUsers(), func(u *frontierv1beta1.User) bool { return u.GetId() == userID }) ||
+			slices.ContainsFunc(resp.Msg.GetRolePairs(), func(p *frontierv1beta1.ListOrganizationUsersResponse_RolePair) bool { return p.GetUserId() == userID })
+	}
+
+	s.Run("an only owner and an org in debt refuse the delete together, and no org is touched until both are cleared", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-owner@raystack.org")
+		aloneOrgID := createOrg(userCtx, "user-delete-check-alone")
+		sharedOrgID := createOrg(userCtx, "user-delete-check-shared")
+		debtOrgID := createOrg(userCtx, "user-delete-check-debt")
+		addMember(sharedOrgID, createUser("user-delete-check-member"), s.orgViewerRole)
+
+		accountResp, err := s.testBench.Client.CreateBillingAccount(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingAccountRequest{
+			OrgId:   debtOrgID,
+			Offline: true,
+			Body:    &frontierv1beta1.BillingAccountRequestBody{Name: "user-delete-check-debt", Email: "user-delete-check-debt@raystack.org", Currency: "usd"},
+		}))
+		s.Require().NoError(err)
+		accountID := accountResp.Msg.GetBillingAccount().GetId()
+		_, err = s.testBench.AdminClient.UpdateBillingAccountDetails(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.UpdateBillingAccountDetailsRequest{
+			OrgId:     debtOrgID,
+			Id:        accountID,
+			CreditMin: -100,
+		}))
+		s.Require().NoError(err)
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:  debtOrgID,
+			Usages: []*frontierv1beta1.Usage{{Id: usageID, Source: "user-delete-check", Amount: 30, UserId: userID}},
+		}))
+		s.Require().NoError(err)
+		balance := func() int64 {
+			resp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetBillingBalanceRequest{Id: accountID}))
+			s.Require().NoError(err)
+			return resp.Msg.GetBalance().GetAmount()
+		}
+		s.Require().Equal(int64(-30), balance())
+
+		_, violations := requireDeleteRefused(s.T(), deleteUser(userID))
+		subjectByType := map[string]string{}
+		for _, v := range violations {
+			subjectByType[v.GetType()] = v.GetSubject()
+		}
+		s.Assert().Len(violations, 2)
+		s.Assert().Equal(map[string]string{
+			deleter.BlockerSoleOwnerWithMembers: sharedOrgID,
+			deleter.BlockerNegativeTokenBalance: accountID,
+		}, subjectByType)
+		s.Assert().True(userExists(userID))
+		s.Assert().True(orgIsLive(aloneOrgID))
+		s.Assert().True(orgIsLive(debtOrgID))
+		s.Assert().Equal(int64(-30), balance())
+		s.Assert().True(orgHasUser(sharedOrgID, userID))
+
+		addMember(sharedOrgID, createUser("user-delete-check-second-owner"), s.orgOwnerRole)
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     debtOrgID,
+			BillingId: accountID,
+			UsageId:   usageID,
+			Amount:    30,
+		}))
+		s.Require().NoError(err)
+
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().False(orgIsLive(aloneOrgID))
+		s.Assert().True(orgIsLive(sharedOrgID))
+		s.Assert().False(orgHasUser(sharedOrgID, userID))
+		s.Assert().False(orgIsLive(debtOrgID))
+	})
+
+	s.Run("a disabled member keeps the only owner from leaving", func() {
+		ownerID, ownerCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-disabled-member-owner@raystack.org")
+		orgID := createOrg(ownerCtx, "user-delete-check-disabled-member-org")
+		memberID := createUser("user-delete-check-disabled-member")
+		addMember(orgID, memberID, s.orgViewerRole)
+		_, err := s.testBench.Client.DisableUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableUserRequest{Id: memberID}))
+		s.Require().NoError(err)
+
+		_, violations := requireDeleteRefused(s.T(), deleteUser(ownerID))
+		s.Require().Len(violations, 1)
+		s.Assert().Equal(deleter.BlockerSoleOwnerWithMembers, violations[0].GetType())
+		s.Assert().Equal(orgID, violations[0].GetSubject())
+		s.Assert().True(userExists(ownerID))
+		s.Assert().True(orgIsLive(orgID))
+	})
+
+	s.Run("every org where the user is the only member is deleted with the user", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-solo@raystack.org")
+		enabledOrgID := createOrg(userCtx, "user-delete-check-solo")
+		disabledOrgID := createOrg(userCtx, "user-delete-check-solo-disabled")
+		serviceUserOrgID := createOrg(userCtx, "user-delete-check-solo-service-user")
+		_, err := s.testBench.Client.DisableOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{Id: disabledOrgID}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.CreateServiceUser(userCtx, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{OrgId: serviceUserOrgID}))
+		s.Require().NoError(err)
+
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().False(orgIsLive(enabledOrgID))
+		s.Assert().False(orgIsLive(disabledOrgID))
+		s.Assert().False(orgIsLive(serviceUserOrgID))
+	})
+
+	s.Run("a member of a disabled org leaves it, and the org stays", func() {
+		userID := createUser("user-delete-check-disabled-org-member")
+		orgID := createOrg(ctxOrgAdminAuth, "user-delete-check-disabled-org")
+		addMember(orgID, userID, s.orgViewerRole)
+		_, err := s.testBench.Client.DisableOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{Id: orgID}))
+		s.Require().NoError(err)
+		userPolicies := func() int {
+			var count int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+				"SELECT count(*) FROM policies WHERE resource_id = $1 AND principal_id = $2 AND deleted_at IS NULL", orgID, userID))
+			return count
+		}
+		s.Require().Equal(1, userPolicies())
+
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().True(orgIsLive(orgID))
+		s.Assert().Zero(userPolicies())
+	})
+
+	s.Run("a disk in an org where the user is the only member refuses the delete, and no org is deleted until the disk is gone", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-check-disk@raystack.org")
+		emptyOrgID := createOrg(userCtx, "user-delete-check-empty")
+		diskOrgID := createOrg(userCtx, "user-delete-check-disk")
+		projectResp, err := s.testBench.Client.CreateProject(userCtx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: "user-delete-check-disk-project", OrgId: diskOrgID},
+		}))
+		s.Require().NoError(err)
+		projectID := projectResp.Msg.GetProject().GetId()
+		diskResp, err := s.testBench.Client.CreateProjectResource(userCtx, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectID,
+			Body:      &frontierv1beta1.ResourceRequestBody{Name: "user-delete-check-disk", Namespace: computeDiskNamespace},
+		}))
+		s.Require().NoError(err)
+
+		message, violations := requireDeleteRefused(s.T(), deleteUser(userID))
+		s.Assert().Equal("user cannot be deleted yet: organization[user-delete-check-disk]: RESOURCES_EXIST", message)
+		s.Require().Len(violations, 1)
+		s.Assert().Equal(deleter.BlockerResourcesExist, violations[0].GetType())
+		s.Assert().Equal(computeDiskNamespace, violations[0].GetSubject())
+		s.Assert().True(userExists(userID))
+		s.Assert().True(orgIsLive(emptyOrgID))
+		s.Assert().True(orgIsLive(diskOrgID))
+
+		_, err = s.testBench.Client.DeleteProjectResource(userCtx, connect.NewRequest(&frontierv1beta1.DeleteProjectResourceRequest{
+			ProjectId: projectID,
+			Id:        diskResp.Msg.GetResource().GetId(),
+		}))
+		s.Require().NoError(err)
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().False(orgIsLive(emptyOrgID))
+		s.Assert().False(orgIsLive(diskOrgID))
+	})
+
+	s.Run("a failed step stops the delete, and the next try continues from where it stopped", func() {
+		userID, userCtx := signUpUser(s.T(), s.testBench.Client, "user-delete-retry@raystack.org")
+		aloneOrgID := createOrg(userCtx, "user-delete-retry-alone")
+		sharedOrgID := createOrg(userCtx, "user-delete-retry-shared")
+		addMember(sharedOrgID, createUser("user-delete-retry-other-owner"), s.orgOwnerRole)
+		projectResp, err := s.testBench.Client.CreateProject(userCtx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: "user-delete-retry-project", OrgId: aloneOrgID},
+		}))
+		s.Require().NoError(err)
+		projectID := projectResp.Msg.GetProject().GetId()
+		projectPolicies := func() int {
+			var count int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+				"SELECT count(*) FROM policies WHERE resource_id = $1 AND deleted_at IS NULL", projectID))
+			return count
+		}
+		s.Require().Equal(1, projectPolicies())
+
+		exec := func(query string) {
+			_, err := s.dbc.ExecContext(context.Background(), query)
+			s.Require().NoError(err)
+		}
+		exec(`
+CREATE OR REPLACE FUNCTION e2e_fail_user_delete_retry_project() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.name = 'user-delete-retry-project' THEN
+        RAISE EXCEPTION 'e2e injected project delete failure';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION e2e_fail_user_delete_retry_leave() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.principal_id = (SELECT id FROM users WHERE email = 'user-delete-retry@raystack.org')
+        AND OLD.resource_id = (SELECT id FROM organizations WHERE name = 'user-delete-retry-shared') THEN
+        RAISE EXCEPTION 'e2e injected policy delete failure';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION e2e_fail_user_delete_retry_user() RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.email = 'user-delete-retry@raystack.org' THEN
+        RAISE EXCEPTION 'e2e injected user delete failure';
+    END IF;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;`)
+		defer func() {
+			_, err := s.dbc.ExecContext(context.Background(), `
+DROP TRIGGER IF EXISTS trg_e2e_fail_user_delete_retry ON projects;
+DROP TRIGGER IF EXISTS trg_e2e_fail_user_delete_retry ON policies;
+DROP TRIGGER IF EXISTS trg_e2e_fail_user_delete_retry ON users;
+DROP FUNCTION IF EXISTS e2e_fail_user_delete_retry_project();
+DROP FUNCTION IF EXISTS e2e_fail_user_delete_retry_leave();
+DROP FUNCTION IF EXISTS e2e_fail_user_delete_retry_user();`)
+			s.Assert().NoError(err)
+		}()
+		requireFailedDelete := func() {
+			s.Require().Equal(connect.CodeInternal, connect.CodeOf(deleteUser(userID)))
+		}
+
+		exec(`CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE UPDATE OF deleted_at ON projects
+    FOR EACH ROW EXECUTE FUNCTION e2e_fail_user_delete_retry_project();`)
+		requireFailedDelete()
+		s.Assert().True(userExists(userID))
+		s.Assert().True(orgIsLive(aloneOrgID))
+		var liveProjects int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &liveProjects,
+			"SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NULL", projectID))
+		s.Assert().Equal(1, liveProjects)
+		s.Assert().Zero(projectPolicies())
+		s.Assert().True(orgHasUser(sharedOrgID, userID))
+
+		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON projects;
+CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE UPDATE OF deleted_at ON policies
+    FOR EACH ROW EXECUTE FUNCTION e2e_fail_user_delete_retry_leave();`)
+		requireFailedDelete()
+		s.Assert().True(userExists(userID))
+		s.Assert().False(orgIsLive(aloneOrgID))
+		s.Assert().True(orgHasUser(sharedOrgID, userID))
+		_, err = s.testBench.Client.GetCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Assert().NoError(err)
+
+		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON policies;
+CREATE TRIGGER trg_e2e_fail_user_delete_retry BEFORE DELETE OR UPDATE OF deleted_at ON users
+    FOR EACH ROW EXECUTE FUNCTION e2e_fail_user_delete_retry_user();`)
+		requireFailedDelete()
+		s.Assert().True(userExists(userID))
+		s.Assert().False(orgHasUser(sharedOrgID, userID))
+		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
+		_, err = s.testBench.Client.GetCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+
+		exec(`DROP TRIGGER trg_e2e_fail_user_delete_retry ON users;`)
+		s.Require().NoError(deleteUser(userID))
+		s.Assert().False(userExists(userID))
+		s.Assert().True(orgIsLive(sharedOrgID))
+	})
+}
+
+func (s *APIRegressionTestSuite) TestDeleteCurrentUser() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrg := func(ctx context.Context, name string) string {
+		resp, err := s.testBench.Client.CreateOrganization(ctx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{Title: name, Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetOrganization().GetId()
+	}
+	createProject := func(ctx context.Context, orgID, name string) string {
+		resp, err := s.testBench.Client.CreateProject(ctx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: name, OrgId: orgID},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetProject().GetId()
+	}
+	addMember := func(orgID, userID, roleID string) {
+		resp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId:   orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{{UserId: userID, RoleId: roleID}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), resp, err)
+	}
+	canGet := func(subject, resource string) bool {
+		resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   resource,
+			Permission: schema.GetPermission,
+			Subject:    subject,
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetStatus()
+	}
+	orgIsLive := func(id string) bool {
+		var count int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+			"SELECT count(*) FROM organizations WHERE id = $1 AND deleted_at IS NULL", id))
+		return count == 1
+	}
+	listedInOrgUsers := func(orgID, userID string) (bool, bool) {
+		resp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListOrganizationUsersRequest{Id: orgID}))
+		s.Require().NoError(err)
+		inUsers := slices.ContainsFunc(resp.Msg.GetUsers(), func(u *frontierv1beta1.User) bool { return u.GetId() == userID })
+		inRolePairs := slices.ContainsFunc(resp.Msg.GetRolePairs(), func(p *frontierv1beta1.ListOrganizationUsersResponse_RolePair) bool {
+			return p.GetUserId() == userID
+		})
+		return inUsers, inRolePairs
+	}
+
+	userID, userCtx := signUpUser(s.T(), s.testBench.Client, "delete-current-user@raystack.org")
+	userSubject := schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userID)
+	otherResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+		Body: &frontierv1beta1.UserRequestBody{Email: "delete-current-user-other@raystack.org", Name: "delete-current-user-other"},
+	}))
+	s.Require().NoError(err)
+	otherID := otherResp.Msg.GetUser().GetId()
+
+	aloneOrgID := createOrg(userCtx, "delete-current-user-alone")
+	aloneProjectID := createProject(userCtx, aloneOrgID, "delete-current-user-alone-project")
+	sharedOrgID := createOrg(userCtx, "delete-current-user-shared")
+	sharedProjectID := createProject(userCtx, sharedOrgID, "delete-current-user-shared-project")
+	addMember(sharedOrgID, otherID, s.orgViewerRole)
+	memberOrgID := createOrg(ctxOrgAdminAuth, "delete-current-user-member")
+	memberProjectID := createProject(ctxOrgAdminAuth, memberOrgID, "delete-current-user-member-project")
+	addMember(memberOrgID, userID, s.orgViewerRole)
+	_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+		Body: &frontierv1beta1.PolicyRequestBody{
+			RoleId:    schema.RoleProjectViewer,
+			Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, memberProjectID),
+			Principal: userSubject,
+		},
+	}))
+	s.Require().NoError(err)
+
+	resources := []struct{ name, resource string }{
+		{"the org that goes with the user", schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, aloneOrgID)},
+		{"a project in the org that goes with the user", schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, aloneProjectID)},
+		{"the org it owns with another member", schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, sharedOrgID)},
+		{"a project in the org it owns with another member", schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, sharedProjectID)},
+		{"the org it is a member of", schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, memberOrgID)},
+		{"a project it was given in that org", schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, memberProjectID)},
+	}
+	for _, r := range resources {
+		s.Require().Truef(canGet(userSubject, r.resource), "access to %s before the delete", r.name)
+	}
+	for _, orgID := range []string{sharedOrgID, memberOrgID} {
+		inUsers, inRolePairs := listedInOrgUsers(orgID, userID)
+		s.Require().Truef(inUsers && inRolePairs, "listed in the users and role pairs of org %s before the delete", orgID)
+	}
+
+	s.Run("the check lists the org that goes with the user and the orgs it leaves, and the only owner blocks the delete", func() {
+		resp, err := s.testBench.Client.CheckCurrentUserDelete(userCtx, connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+		s.Require().NoError(err)
+		s.Assert().False(resp.Msg.GetCanDelete())
+		s.Assert().Empty(resp.Msg.GetBlockers())
+		s.Assert().Zero(resp.Msg.GetPatCount())
+
+		s.Require().Len(resp.Msg.GetOrganizationsToDelete(), 1)
+		toDelete := resp.Msg.GetOrganizationsToDelete()[0]
+		s.Assert().Equal(aloneOrgID, toDelete.GetId())
+		s.Assert().Equal("delete-current-user-alone", toDelete.GetName())
+		s.Assert().Equal("delete-current-user-alone", toDelete.GetTitle())
+		s.Assert().True(toDelete.GetCanDelete())
+
+		toLeave := map[string]*frontierv1beta1.CheckCurrentUserDeleteResponse_OrganizationToLeave{}
+		for _, o := range resp.Msg.GetOrganizationsToLeave() {
+			toLeave[o.GetId()] = o
+		}
+		s.Require().Len(toLeave, 2)
+		s.Assert().Equal("Owner", toLeave[sharedOrgID].GetRole())
+		s.Require().Len(toLeave[sharedOrgID].GetBlockers(), 1)
+		s.Assert().Equal(deleter.BlockerSoleOwnerWithMembers, toLeave[sharedOrgID].GetBlockers()[0].GetType())
+		s.Assert().Equal(sharedOrgID, toLeave[sharedOrgID].GetBlockers()[0].GetSubject())
+		s.Assert().Equal("Member", toLeave[memberOrgID].GetRole())
+		s.Assert().Empty(toLeave[memberOrgID].GetBlockers())
+	})
+
+	s.Run("a blocked delete fails with the blocker and changes nothing", func() {
+		_, err := s.testBench.Client.DeleteCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.DeleteCurrentUserRequest{}))
+		message, violations := requireDeleteRefused(s.T(), err)
+		s.Assert().True(strings.HasPrefix(message, "user cannot be deleted yet"), message)
+		s.Require().Len(violations, 1)
+		s.Assert().Equal(deleter.BlockerSoleOwnerWithMembers, violations[0].GetType())
+		s.Assert().Equal(sharedOrgID, violations[0].GetSubject())
+
+		_, err = s.testBench.Client.GetCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().NoError(err)
+		s.Assert().True(orgIsLive(aloneOrgID))
+		for _, r := range resources {
+			s.Assert().Truef(canGet(userSubject, r.resource), "access to %s", r.name)
+		}
+	})
+
+	s.Run("making the other member an owner clears the blocker", func() {
+		_, err := s.testBench.Client.SetOrganizationMemberRole(userCtx, connect.NewRequest(&frontierv1beta1.SetOrganizationMemberRoleRequest{
+			OrgId:  sharedOrgID,
+			UserId: otherID,
+			RoleId: s.orgOwnerRole,
+		}))
+		s.Require().NoError(err)
+
+		resp, err := s.testBench.Client.CheckCurrentUserDelete(userCtx, connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+		s.Require().NoError(err)
+		s.Assert().True(resp.Msg.GetCanDelete())
+	})
+
+	s.Run("the delete goes through and clears the session cookie", func() {
+		resp, err := s.testBench.Client.DeleteCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.DeleteCurrentUserRequest{}))
+		s.Require().NoError(err)
+		setCookie := resp.Header().Get("Set-Cookie")
+		s.Assert().True(strings.HasPrefix(setCookie, consts.SessionRequestKey+"=;"), setCookie)
+		s.Assert().Contains(setCookie, "Max-Age=0")
+	})
+
+	s.Run("the old session cookie is rejected as unauthenticated", func() {
+		_, err := s.testBench.Client.GetCurrentUser(userCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Require().Error(err)
+		s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err))
+	})
+
+	s.Run("the deleted user has no access left in any org or project it belonged to", func() {
+		for _, r := range resources {
+			s.Assert().Falsef(canGet(userSubject, r.resource), "access to %s", r.name)
+		}
+	})
+
+	s.Run("no live policy names the deleted user", func() {
+		s.Assert().Empty(livePoliciesMatching(s.T(), ctxOrgAdminAuth, s.testBench.Client, &frontierv1beta1.ListPoliciesRequest{UserId: userID}))
+		var count int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &count,
+			"SELECT count(*) FROM policies WHERE principal_id = $1 AND deleted_at IS NULL", userID))
+		s.Assert().Zero(count)
+	})
+
+	s.Run("org users names the deleted user in neither users nor role pairs", func() {
+		for _, orgID := range []string{sharedOrgID, memberOrgID} {
+			inUsers, inRolePairs := listedInOrgUsers(orgID, userID)
+			s.Assert().Falsef(inUsers, "listed in the users of org %s", orgID)
+			s.Assert().Falsef(inRolePairs, "listed in the role pairs of org %s", orgID)
+		}
+	})
+
+	s.Run("the org that went with the user is deleted, and the orgs it left stay", func() {
+		s.Assert().False(orgIsLive(aloneOrgID))
+		s.Assert().True(orgIsLive(sharedOrgID))
+		s.Assert().True(orgIsLive(memberOrgID))
+		_, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetUserRequest{Id: userID}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+
+	s.Run("the delete writes one app.user.deleted log and one user.deleted record", func() {
+		var logs, records int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &logs,
+			"SELECT count(*) FROM auditlogs WHERE action = $1 AND org_id = $2 AND target->>'ID' = $3",
+			"app.user.deleted", schema.PlatformOrgID.String(), userID))
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &records,
+			"SELECT count(*) FROM audit_records WHERE event = $1 AND target_id = $2", "user.deleted", userID))
+		s.Assert().Equal(1, logs)
+		s.Assert().Equal(1, records)
+	})
+
+	s.Run("the same email signs up again as a new user", func() {
+		newID, newCtx := signUpUser(s.T(), s.testBench.Client, "delete-current-user@raystack.org")
+		s.Assert().NotEqual(userID, newID)
+		_, err := s.testBench.Client.GetUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.GetUserRequest{Id: userID}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		resp, err := s.testBench.Client.CheckCurrentUserDelete(newCtx, connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+		s.Require().NoError(err)
+		s.Assert().Empty(resp.Msg.GetOrganizationsToDelete())
+		s.Assert().Empty(resp.Msg.GetOrganizationsToLeave())
+	})
+
+	s.Run("a service user can neither check nor delete an account", func() {
+		serviceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{OrgId: memberOrgID}))
+		s.Require().NoError(err)
+		credentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id:    serviceUserResp.Msg.GetServiceuser().GetId(),
+			OrgId: memberOrgID,
+		}))
+		s.Require().NoError(err)
+		secret := credentialResp.Msg.GetSecret()
+		serviceUserCtx := testbench.ContextWithHeaders(context.Background(), map[string]string{
+			"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(secret.GetId()+":"+secret.GetSecret())),
+		})
+
+		_, err = s.testBench.Client.CheckCurrentUserDelete(serviceUserCtx, connect.NewRequest(&frontierv1beta1.CheckCurrentUserDeleteRequest{}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+		_, err = s.testBench.Client.DeleteCurrentUser(serviceUserCtx, connect.NewRequest(&frontierv1beta1.DeleteCurrentUserRequest{}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+		_, err = s.testBench.Client.GetCurrentUser(serviceUserCtx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+		s.Assert().NoError(err)
 	})
 }
 
@@ -3922,6 +4653,204 @@ func (s *APIRegressionTestSuite) TestOrganizationDeleteAlsoDeletesDisabledProjec
 		_, err := s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
 		s.Require().Error(err)
 		s.Assert().Contains([]connect.Code{connect.CodeNotFound, connect.CodePermissionDenied}, connect.CodeOf(err))
+	})
+}
+
+func (s *APIRegressionTestSuite) TestOrganizationDeleteLeavesNoAccessAndNoLivePolicy() {
+	ctxOrgAdminAuth := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Title: "org delete access", Name: "org-delete-access"},
+	}))
+	s.Require().NoError(err)
+	orgID := createOrgResp.Msg.GetOrganization().GetId()
+
+	createProject := func(name string) string {
+		resp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{Name: name, OrgId: orgID},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetProject().GetId()
+	}
+	projectID := createProject("org-delete-access-project")
+	disabledProjectID := createProject("org-delete-access-disabled-project")
+
+	createOrderResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateProjectResourceRequest{
+		ProjectId: projectID,
+		Body:      &frontierv1beta1.ResourceRequestBody{Name: "org-delete-access-order", Namespace: computeOrderNamespace},
+	}))
+	s.Require().NoError(err)
+	orderID := createOrderResp.Msg.GetResource().GetId()
+
+	createUser := func(name string) string {
+		resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{Email: name + "@raystack.org", Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetUser().GetId()
+	}
+	ownerID := createUser("org-delete-access-owner")
+	memberID := createUser("org-delete-access-member")
+	projectUserID := createUser("org-delete-access-project-user")
+	groupMemberID := createUser("org-delete-access-group-member")
+	orderViewerID := createUser("org-delete-access-order-viewer")
+
+	addOrgMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+		OrgId: orgID,
+		Members: []*frontierv1beta1.OrgMemberEntry{
+			{UserId: ownerID, RoleId: s.orgOwnerRole},
+			{UserId: memberID, RoleId: s.orgViewerRole},
+			{UserId: groupMemberID, RoleId: s.orgViewerRole},
+		},
+	}))
+	requireAddOrgMembersSuccess(s.T(), addOrgMembersResp, err)
+
+	createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+		OrgId: orgID,
+		Body:  &frontierv1beta1.GroupRequestBody{Name: "org-delete-access-group"},
+	}))
+	s.Require().NoError(err)
+	groupID := createGroupResp.Msg.GetGroup().GetId()
+	_, err = s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+		GroupId:       groupID,
+		PrincipalId:   groupMemberID,
+		PrincipalType: schema.UserPrincipal,
+		RoleId:        s.groupMemberRole,
+	}))
+	s.Require().NoError(err)
+
+	createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateServiceUserRequest{
+		OrgId: orgID,
+	}))
+	s.Require().NoError(err)
+	serviceUserID := createServiceUserResp.Msg.GetServiceuser().GetId()
+
+	projectResource := schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID)
+	orderResource := schema.JoinNamespaceAndResourceID(computeOrderNamespace, orderID)
+	for _, p := range []struct{ role, resource, principal string }{
+		{schema.RoleProjectViewer, projectResource, schema.JoinNamespaceAndResourceID(schema.UserPrincipal, projectUserID)},
+		{schema.RoleProjectViewer, projectResource, schema.JoinNamespaceAndResourceID(schema.GroupPrincipal, groupID)},
+		{schema.RoleProjectViewer, projectResource, schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, serviceUserID)},
+		{computeViewerRoleName, orderResource, schema.JoinNamespaceAndResourceID(schema.UserPrincipal, orderViewerID)},
+	} {
+		_, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{RoleId: p.role, Resource: p.resource, Principal: p.principal},
+		}))
+		s.Require().NoError(err)
+	}
+
+	_, err = s.testBench.Client.DisableProject(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DisableProjectRequest{Id: disabledProjectID}))
+	s.Require().NoError(err)
+
+	objects := map[string]string{
+		"org":              schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
+		"project":          projectResource,
+		"disabled project": schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, disabledProjectID),
+		"group":            schema.JoinNamespaceAndResourceID(schema.GroupNamespace, groupID),
+		"order":            orderResource,
+	}
+	subjects := map[string]string{
+		"org owner":    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, ownerID),
+		"org member":   schema.JoinNamespaceAndResourceID(schema.UserPrincipal, memberID),
+		"project user": schema.JoinNamespaceAndResourceID(schema.UserPrincipal, projectUserID),
+		"group member": schema.JoinNamespaceAndResourceID(schema.UserPrincipal, groupMemberID),
+		"service user": schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, serviceUserID),
+		"order viewer": schema.JoinNamespaceAndResourceID(schema.UserPrincipal, orderViewerID),
+	}
+	canGet := func(subject, object string) bool {
+		resp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   object,
+			Permission: schema.GetPermission,
+			Subject:    subject,
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetStatus()
+	}
+	for subject, objectNames := range map[string][]string{
+		"org owner":    {"org", "project", "disabled project", "group", "order"},
+		"org member":   {"org"},
+		"project user": {"project"},
+		"group member": {"org", "project", "group"},
+		"service user": {"project"},
+		"order viewer": {"order"},
+	} {
+		for _, object := range objectNames {
+			s.Require().Truef(canGet(subjects[subject], objects[object]), "%s on the %s before the delete", subject, object)
+		}
+	}
+
+	groupRelations := func() []*frontierv1beta1.Relation {
+		resp, err := s.testBench.AdminClient.ListRelations(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRelationsRequest{Object: objects["group"]}))
+		s.Require().NoError(err)
+		return resp.Msg.GetRelations()
+	}
+	s.Require().Truef(slices.ContainsFunc(groupRelations(), func(r *frontierv1beta1.Relation) bool {
+		return r.GetRelation() == schema.MemberRelationName && r.GetSubject() == subjects["group member"]
+	}), "the group member's %s relation on the group before the delete", schema.MemberRelationName)
+
+	livePoliciesOn := func(id string) int {
+		var n int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &n,
+			"SELECT count(*) FROM policies WHERE resource_id = $1 AND deleted_at IS NULL", id))
+		return n
+	}
+	livePoliciesNaming := func(id string) int {
+		var n int
+		s.Require().NoError(s.dbc.GetContext(context.Background(), &n,
+			"SELECT count(*) FROM policies WHERE principal_id = $1 AND deleted_at IS NULL", id))
+		return n
+	}
+	policyResources := map[string]string{
+		"org": orgID, "project": projectID, "disabled project": disabledProjectID, "group": groupID, "order": orderID,
+	}
+	policyPrincipals := map[string]string{"group": groupID, "service user": serviceUserID}
+	for name, id := range policyResources {
+		s.Require().Positivef(livePoliciesOn(id), "live policies on the %s before the delete", name)
+	}
+	for name, id := range policyPrincipals {
+		s.Require().Positivef(livePoliciesNaming(id), "live policies naming the %s before the delete", name)
+	}
+
+	_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.DeleteOrganizationRequest{Id: orgID}))
+	s.Require().NoError(err)
+
+	s.Run("nobody who had access can get the org, its projects, its group or the order", func() {
+		for subject, subjectID := range subjects {
+			for object, objectID := range objects {
+				s.Assert().Falsef(canGet(subjectID, objectID), "%s on the %s after the delete", subject, object)
+			}
+		}
+	})
+
+	s.Run("no live policy is left on the org, its projects, its group or the order", func() {
+		for name, id := range policyResources {
+			s.Assert().Zerof(livePoliciesOn(id), "live policies on the %s after the delete", name)
+		}
+	})
+
+	s.Run("no live policy names the deleted group or service user", func() {
+		for name, id := range policyPrincipals {
+			s.Assert().Zerof(livePoliciesNaming(id), "live policies naming the %s after the delete", name)
+		}
+	})
+
+	s.Run("no relation is left on the deleted group", func() {
+		s.Assert().Empty(groupRelations())
+	})
+
+	s.Run("the org and everything removed with it stay in the database marked deleted", func() {
+		for _, row := range []struct{ name, query, id string }{
+			{"org", "SELECT count(*) FROM organizations WHERE id = $1 AND deleted_at IS NOT NULL", orgID},
+			{"project", "SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NOT NULL", projectID},
+			{"disabled project", "SELECT count(*) FROM projects WHERE id = $1 AND deleted_at IS NOT NULL", disabledProjectID},
+			{"group", "SELECT count(*) FROM groups WHERE id = $1 AND deleted_at IS NOT NULL", groupID},
+			{"service user", "SELECT count(*) FROM serviceusers WHERE id = $1 AND deleted_at IS NOT NULL", serviceUserID},
+			{"order", "SELECT count(*) FROM resources WHERE id = $1 AND deleted_at IS NOT NULL", orderID},
+		} {
+			var n int
+			s.Require().NoError(s.dbc.GetContext(context.Background(), &n, row.query, row.id))
+			s.Assert().Equalf(1, n, "the %s row is kept and marked deleted", row.name)
+		}
 	})
 }
 

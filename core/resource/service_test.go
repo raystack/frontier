@@ -946,6 +946,20 @@ func TestRemovePrincipalAccess(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	t.Run("a policy that is already gone counts as deleted", func(t *testing.T) {
+		repo, _, _, _, _, _, _, policySvc, svc := newTestService(t)
+
+		policySvc.EXPECT().List(mock.Anything, mock.Anything).Return([]policy.Policy{
+			{ID: "store-p1", ResourceType: "resource/store", ResourceID: "store-1"},
+		}, nil)
+		repo.EXPECT().List(mock.Anything, resource.Filter{OrgID: "org-1"}).
+			Return([]resource.Resource{{ID: "store-1"}}, nil)
+		policySvc.EXPECT().Delete(mock.Anything, "store-p1").Return(policy.ErrNotExist)
+
+		err := svc.RemovePrincipalAccess(context.Background(), userID, schema.UserPrincipal, "org-1", nil)
+		assert.NoError(t, err)
+	})
+
 	t.Run("aggregates delete errors and keeps going", func(t *testing.T) {
 		repo, _, _, _, _, _, _, policySvc, svc := newTestService(t)
 

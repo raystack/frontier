@@ -293,15 +293,27 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 }
 
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
+	return r.getByIDs(ctx, userIDs, false)
+}
+
+func (r UserRepository) GetByIDsIncludingDisabled(ctx context.Context, userIDs []string) ([]user.User, error) {
+	return r.getByIDs(ctx, userIDs, true)
+}
+
+func (r UserRepository) getByIDs(ctx context.Context, userIDs []string, includeDisabled bool) ([]user.User, error) {
 	if len(userIDs) == 0 {
 		return []user.User{}, nil
 	}
 	var fetchedUsers []User
 
-	query, params, err := fromLive(TABLE_USERS).Select("id", "name", "email", "title", "avatar", "state").Where(
+	stmt := fromLive(TABLE_USERS).Select("id", "name", "email", "title", "avatar", "state").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
-		}).Where(notDisabledUserExp).ToSQL()
+		})
+	if !includeDisabled {
+		stmt = stmt.Where(notDisabledUserExp)
+	}
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %w", errQuery, err)
 	}
@@ -556,7 +568,7 @@ func (r UserRepository) SetState(ctx context.Context, id string, state user.Stat
 }
 
 func (r UserRepository) Delete(ctx context.Context, id string) error {
-	query, params, err := dialect.Delete(TABLE_USERS).Where(
+	query, params, err := softDelete(TABLE_USERS).Where(
 		goqu.Ex{
 			"id": id,
 		},
@@ -572,7 +584,7 @@ func (r UserRepository) Delete(ctx context.Context, id string) error {
 		}); err != nil {
 			return err
 		}
-		return InsertAuditRecordInTx(ctx, tx, buildUserAuditRecord(ctx, auditrecord.UserDeletedEvent, userModel, time.Now().UTC()))
+		return InsertAuditRecordInTx(ctx, tx, buildUserAuditRecord(ctx, auditrecord.UserDeletedEvent, userModel, userModel.DeletedAt.Time))
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

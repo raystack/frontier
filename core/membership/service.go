@@ -146,13 +146,14 @@ func (s *Service) RemovePrincipalPolicies(ctx context.Context, principalID, prin
 }
 
 // removePoliciesByFilter lists policies matching the filter and deletes them.
+// A policy that is already gone counts as deleted.
 func (s *Service) removePoliciesByFilter(ctx context.Context, filter policy.Filter) (int, error) {
 	policies, err := s.policyService.List(ctx, filter)
 	if err != nil {
 		return 0, fmt.Errorf("list policies: %w", err)
 	}
 	for _, p := range policies {
-		if err := s.policyService.Delete(ctx, p.ID); err != nil {
+		if err := s.policyService.Delete(ctx, p.ID); err != nil && !errors.Is(err, policy.ErrNotExist) {
 			return 0, fmt.Errorf("delete policy %s: %w", p.ID, err)
 		}
 	}

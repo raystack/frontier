@@ -205,20 +205,17 @@ func (s *Service) SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleI
 // relations. Returns ErrNotMember if the principal has no policies on this org,
 // and ErrLastOwnerRole when removing the org's last owner.
 func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error {
-	return s.removeOrganizationMember(ctx, orgID, principalID, principalType, true)
-}
-
-// ForceRemoveOrganizationMember is RemoveOrganizationMember without the
-// member-and-owner guards: it does not fail when the principal has no
-// org-level policies and it removes the org's last owner without complaint.
-// It exists for deletion cascades (see core/deleter), where the principal is
-// leaving the system entirely and the org may legitimately be left ownerless.
-// Anything user-initiated should go through RemoveOrganizationMember instead.
-func (s *Service) ForceRemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error {
 	return s.removeOrganizationMember(ctx, orgID, principalID, principalType, false)
 }
 
-func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principalID, principalType string, guarded bool) error {
+// RemoveOrganizationMemberOnDelete is RemoveOrganizationMember for deleting a
+// user. It also works on a disabled org, because the user has to leave every
+// org before the account can go.
+func (s *Service) RemoveOrganizationMemberOnDelete(ctx context.Context, orgID, principalID, principalType string) error {
+	return s.removeOrganizationMember(ctx, orgID, principalID, principalType, true)
+}
+
+func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principalID, principalType string, allowDisabledOrg bool) error {
 	targetAuditType, err := principalTypeToAuditType(principalType)
 	if err != nil {
 		return err
@@ -226,11 +223,9 @@ func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principal
 
 	org, err := s.orgService.Get(ctx, orgID)
 	if err != nil {
-		// deletion cascades must keep working on disabled orgs — the deleter
-		// visits them deliberately so user deletion doesn't leave orphan
-		// policies behind. Get discards the org payload on ErrDisabled, so
-		// reconstruct the minimal org the cascade needs.
-		if guarded || !errors.Is(err, organization.ErrDisabled) {
+		// a user delete leaves disabled orgs too. Get discards the org payload
+		// on ErrDisabled, so reconstruct the minimal org the cascade needs.
+		if !allowDisabledOrg || !errors.Is(err, organization.ErrDisabled) {
 			return err
 		}
 		org = organization.Organization{ID: orgID}
@@ -245,19 +240,17 @@ func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principal
 	if err != nil {
 		return fmt.Errorf("list existing policies: %w", err)
 	}
+	if len(orgPolicies) == 0 {
+		return ErrNotMember
+	}
 
 	// only humans can be the last owner — skip for service users and PATs.
 	// an empty ownerRoleID makes the cascade delete owner policies unguarded.
 	var ownerRoleID string
-	if guarded {
-		if len(orgPolicies) == 0 {
-			return ErrNotMember
-		}
-		if principalType == schema.UserPrincipal {
-			ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
-			if err != nil {
-				return err
-			}
+	if principalType == schema.UserPrincipal {
+		ownerRoleID, err = s.validateMinOwnerConstraint(ctx, orgID, "", orgPolicies)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -336,6 +329,9 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 			if errors.Is(err, policy.ErrLastRoleGuard) {
 				return ErrLastOwnerRole
 			}
+			if errors.Is(err, policy.ErrNotExist) {
+				continue
+			}
 			return fmt.Errorf("delete org policy %s: %w", pol.ID, err)
 		}
 	}
@@ -343,7 +339,7 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 	// guard passed — delete sub-resource policies
 	var errs error
 	for _, pol := range subResourcePolicies {
-		if err := s.policyService.Delete(ctx, pol.ID); err != nil {
+		if err := s.policyService.Delete(ctx, pol.ID); err != nil && !errors.Is(err, policy.ErrNotExist) {
 			errs = errors.Join(errs, fmt.Errorf("delete sub-resource policy %s: %w", pol.ID, err))
 		}
 	}

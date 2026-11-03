@@ -128,6 +128,65 @@ func (_c *UserService_GetByIDs_Call) RunAndReturn(run func(context.Context, []st
 	return _c
 }
 
+// GetByIDsIncludingDisabled provides a mock function with given fields: ctx, userIDs
+func (_m *UserService) GetByIDsIncludingDisabled(ctx context.Context, userIDs []string) ([]user.User, error) {
+	ret := _m.Called(ctx, userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByIDsIncludingDisabled")
+	}
+
+	var r0 []user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]user.User, error)); ok {
+		return rf(ctx, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []user.User); ok {
+		r0 = rf(ctx, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]user.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, userIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_GetByIDsIncludingDisabled_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByIDsIncludingDisabled'
+type UserService_GetByIDsIncludingDisabled_Call struct {
+	*mock.Call
+}
+
+// GetByIDsIncludingDisabled is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userIDs []string
+func (_e *UserService_Expecter) GetByIDsIncludingDisabled(ctx interface{}, userIDs interface{}) *UserService_GetByIDsIncludingDisabled_Call {
+	return &UserService_GetByIDsIncludingDisabled_Call{Call: _e.mock.On("GetByIDsIncludingDisabled", ctx, userIDs)}
+}
+
+func (_c *UserService_GetByIDsIncludingDisabled_Call) Run(run func(ctx context.Context, userIDs []string)) *UserService_GetByIDsIncludingDisabled_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *UserService_GetByIDsIncludingDisabled_Call) Return(_a0 []user.User, _a1 error) *UserService_GetByIDsIncludingDisabled_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_GetByIDsIncludingDisabled_Call) RunAndReturn(run func(context.Context, []string) ([]user.User, error)) *UserService_GetByIDsIncludingDisabled_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewUserService creates a new instance of UserService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUserService(t interface {

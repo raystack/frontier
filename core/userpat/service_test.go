@@ -1968,6 +1968,30 @@ func TestService_DeleteAllByUser(t *testing.T) {
 	})
 }
 
+func TestService_CountByUser(t *testing.T) {
+	t.Run("counts the user's live PATs across orgs", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().ListByUser(mock.Anything, "user-1").Return([]models.PAT{
+			{ID: "pat-1", UserID: "user-1", OrgID: "org-1"},
+			{ID: "pat-2", UserID: "user-1", OrgID: "org-2"},
+		}, nil)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig,
+			mocks.NewOrganizationService(t), nil, nil, nil, mocks.NewAuditRecordRepository(t))
+		count, err := svc.CountByUser(context.Background(), "user-1")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, count)
+	})
+
+	t.Run("returns error when repo list fails", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().ListByUser(mock.Anything, "user-1").Return(nil, errors.New("db down"))
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig,
+			mocks.NewOrganizationService(t), nil, nil, nil, mocks.NewAuditRecordRepository(t))
+		_, err := svc.CountByUser(context.Background(), "user-1")
+		assert.ErrorContains(t, err, "db down")
+	})
+}
+
 func TestService_DeleteAllByOrg(t *testing.T) {
 	newService := func(t *testing.T) (*userpat.Service, *mocks.Repository, *mocks.MembershipService, *mocks.AuditRecordRepository) {
 		t.Helper()
