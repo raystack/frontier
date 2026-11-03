@@ -56,8 +56,8 @@ function defaultContent(
       if (context.soleOwnerOf.length > 0) {
         return {
           title: `Transfer ${org} ownership`,
-          description: `You're the only owner of one or more ${t.organization({ case: 'lower', plural: true })}. Before deleting your account, transfer ownership of each affected ${org} to another member. Once ownership has been transferred, you can proceed with account deletion.`,
-          groups: [{ lines: context.soleOwnerOf.map(({ title }) => title) }]
+          description: `You’re the only owner of one or more ${t.organization({ case: 'lower', plural: true })}. Before deleting your account, transfer ownership of each affected ${org} to another member.\n\nOnce ownership has been transferred, you can proceed with account deletion.`,
+          groups: []
         };
       }
       return {
@@ -161,7 +161,11 @@ export function DeleteBlockedDialog({
       </AlertDialog.Header>
       <AlertDialog.Body>
         <Flex direction="column" gap={5}>
-          <Text size="small" variant="secondary">
+          <Text
+            size="small"
+            variant="secondary"
+            className={styles.description}
+          >
             {description ?? content.description}
           </Text>
           {groups.map(({ title: groupTitle, lines }, index) => (

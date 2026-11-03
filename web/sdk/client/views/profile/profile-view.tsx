@@ -58,11 +58,16 @@ const profileSchema = yup
 type FormData = yup.InferType<typeof profileSchema>;
 
 export interface ProfileViewProps {
-  /** Shows the Delete account section. Called after the account is deleted. */
+  /** Shows the Delete Account section. Off by default. */
+  enableUserDelete?: boolean;
+  /** Called after the account is deleted. The host app decides where to go. */
   onAccountDeleted?: () => void;
 }
 
-export function ProfileView({ onAccountDeleted }: ProfileViewProps = {}) {
+export function ProfileView({
+  enableUserDelete = false,
+  onAccountDeleted
+}: ProfileViewProps = {}) {
   const { user, isUserLoading: isLoading } = useFrontier();
   const queryClient = useQueryClient();
 
@@ -197,7 +202,7 @@ export function ProfileView({ onAccountDeleted }: ProfileViewProps = {}) {
           </Flex>
 
           {/* Delete section */}
-          {onAccountDeleted && (
+          {enableUserDelete && (
             <Flex direction="column" align="start" gap={5} className={styles.section}>
               {isLoading ? (
                 <>
@@ -218,10 +223,10 @@ export function ProfileView({ onAccountDeleted }: ProfileViewProps = {}) {
                         onClick={onClick}
                         data-test-id="frontier-sdk-delete-account-open-btn"
                       >
-                        Delete account
+                        Delete Account
                       </Button>
                     )}
-                    onDeleted={onAccountDeleted}
+                    onDeleted={() => onAccountDeleted?.()}
                   />
                 </>
               )}

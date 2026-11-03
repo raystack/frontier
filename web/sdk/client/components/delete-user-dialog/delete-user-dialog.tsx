@@ -188,13 +188,12 @@ function DeleteUserForm({ onDeleted, onDeleteRefused }: DeleteUserFormProps) {
             This action is irreversible. Deleting your account will permanently
             remove your account and associated data. Do you want to continue?
           </Text>
-          <Field label="Please type your email to confirm.">
+          <Field label="Please type your email id.">
             <Input
               size="large"
               type="email"
               value={email}
               onChange={event => setEmail(event.target.value)}
-              placeholder="Provide your email"
               data-test-id="frontier-sdk-delete-account-email-input"
             />
           </Field>
@@ -205,8 +204,8 @@ function DeleteUserForm({ onDeleted, onDeleteRefused }: DeleteUserFormProps) {
               data-test-id="frontier-sdk-delete-account-checkbox"
             />
             <Text size="small" variant="secondary">
-              I acknowledge I understand that my account and its data will be
-              deleted and want to proceed.
+              I acknowledge that I understand my account and associated data
+              will be permanently deleted and want to proceed
             </Text>
           </Flex>
         </Flex>
