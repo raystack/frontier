@@ -28,9 +28,6 @@ interface BulletGroup {
   lines: string[];
 }
 
-// The SDK's own title, intro and bullets for the open dialog. An account
-// delete asks for the ownership transfer first, then for the blockers of
-// the organizations that would be deleted with it.
 function defaultContent(
   context: DeleteBlockedContext,
   t: TerminologyMap,

@@ -38,11 +38,9 @@ type DeleteUserPayload =
     };
 
 export interface DeleteUserDialogHandle {
-  /** Runs the delete check, then opens the matching dialog. */
   open: () => void;
 }
 
-// Each handle starts the delete of the DeleteUserDialog it is passed to.
 const deleteStarters = new WeakMap<DeleteUserDialogHandle, () => void>();
 
 const createDeleteUserDialogHandle = (): DeleteUserDialogHandle => {
@@ -53,19 +51,11 @@ const createDeleteUserDialogHandle = (): DeleteUserDialogHandle => {
 };
 
 export interface DeleteUserDialogProps {
-  /** A trigger that stays mounted. `loading` is true while the delete check runs. */
   trigger?: Slot<{ onClick: () => void; loading: boolean }>;
-  /** Starts the delete from elsewhere, such as a menu that unmounts when it closes. */
   handle?: DeleteUserDialogHandle;
-  /** Called after the account is deleted. The host app decides where to go. */
   onDeleted: () => void;
 }
 
-/**
- * The whole account delete flow. A click runs the delete check, then opens
- * the ownership, blocked or confirmation dialog. It never shows the
- * confirmation while the delete is blocked.
- */
 export function DeleteUserDialog({
   trigger,
   handle,
@@ -77,8 +67,6 @@ export function DeleteUserDialog({
   const { mutateAsync: checkCurrentUserDelete, isPending: isChecking } =
     useMutation(FrontierServiceQueries.checkCurrentUserDelete);
 
-  // Opens the dialog for what the check found. Returns whether nothing
-  // blocks the delete.
   const checkAndOpen = useCallback(async () => {
     try {
       const check = await checkCurrentUserDelete({});
@@ -107,7 +95,6 @@ export function DeleteUserDialog({
     };
   }, [handle, startDelete]);
 
-  // A refused delete has no grouping by organization, so check again.
   async function onDeleteRefused() {
     if (await checkAndOpen()) {
       toastManager.add({
