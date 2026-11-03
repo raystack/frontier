@@ -79,7 +79,8 @@ nfpms:
       - rpm
 
 scoops:
-  - homepage: "https://github.com/raystack/frontier"
+  - skip_upload: true
+    homepage: "https://github.com/raystack/frontier"
     description: "Identity and authorization system"
     license: Apache 2.0
     repository:
@@ -88,6 +89,7 @@ scoops:
 
 brews:
   - name: frontier
+    skip_upload: true
     homepage: "https://github.com/raystack/frontier"
     description: "Identity and authorization system"
     repository:
