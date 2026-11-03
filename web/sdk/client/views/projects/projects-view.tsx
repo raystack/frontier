@@ -45,12 +45,8 @@ const projectsFilterOptions = [
   { value: 'all-projects', label: 'All Projects' }
 ];
 
-const projectMenuHandle = Menu.createHandle<ProjectMenuPayload>();
 const addProjectDialogHandle = Dialog.createHandle();
 const editProjectDialogHandle = Dialog.createHandle<EditProjectPayload>();
-const deleteProjectDialogHandle = AlertDialog.createHandle<DeleteProjectPayload>();
-const deleteBlockedDialogHandle =
-  AlertDialog.createHandle<DeleteBlockedPayload>();
 
 export interface ProjectsViewProps {
   title?: string;
@@ -79,6 +75,18 @@ export function ProjectsView({
 
   const { activeOrganization: organization } = useFrontier();
   const t = useTerminology();
+  // Created per mount: a module-level handle keeps a dialog open across
+  // remounts (https://github.com/mui/base-ui/issues/4951).
+  // TODO @rohanchkrabrty: This is fixed in Base UI v1.7.0. We can update this after Apsara updates
+  const [projectMenuHandle] = useState(() =>
+    Menu.createHandle<ProjectMenuPayload>()
+  );
+  const [deleteProjectDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteProjectPayload>()
+  );
+  const [deleteBlockedDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteBlockedPayload>()
+  );
   const { startDelete, isChecking, handleDeleteError } = useProjectDeleteCheck({
     menuHandle: projectMenuHandle,
     confirmDialogHandle: deleteProjectDialogHandle,
@@ -146,7 +154,7 @@ export function ProjectsView({
         userAccessOnProject,
         menuHandle: projectMenuHandle
       }),
-    [userAccessOnProject]
+    [userAccessOnProject, projectMenuHandle]
   );
 
   if (hasNoProjects) {

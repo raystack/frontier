@@ -77,11 +77,6 @@ interface ProjectUserRolePair {
 
 const memberMenuHandle = Menu.createHandle<MemberMenuPayload>();
 const editProjectDialogHandle = Dialog.createHandle<EditProjectPayload>();
-const deleteProjectDialogHandle =
-  AlertDialog.createHandle<DeleteProjectPayload>();
-const deleteBlockedDialogHandle =
-  AlertDialog.createHandle<DeleteBlockedPayload>();
-const projectActionsMenuHandle = Menu.createHandle();
 const removeMemberDialogHandle =
   AlertDialog.createHandle<RemoveMemberPayload>();
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
@@ -100,6 +95,16 @@ export function ProjectDetailsView({
   onDeleteSuccess
 }: ProjectDetailsViewProps) {
   const { activeOrganization: organization } = useFrontier();
+  // Created per mount: a module-level handle keeps a dialog open across
+  // remounts (https://github.com/mui/base-ui/issues/4951).
+  // TODO @rohanchkrabrty: This is fixed in Base UI v1.7.0. We can update this after Apsara updates
+  const [projectActionsMenuHandle] = useState(() => Menu.createHandle());
+  const [deleteProjectDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteProjectPayload>()
+  );
+  const [deleteBlockedDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteBlockedPayload>()
+  );
 
   const {
     data: project,
@@ -327,6 +332,7 @@ export function ProjectDetailsView({
       >
         {!isLoading && (canUpdateProject || canDeleteProject) && (
           <ProjectActionsMenu
+            menuHandle={projectActionsMenuHandle}
             projectId={projectId}
             projectName={projectName}
             projectTitle={projectTitle}
@@ -471,6 +477,7 @@ export function ProjectDetailsView({
 }
 
 interface ProjectActionsMenuProps {
+  menuHandle: ReturnType<typeof Menu.createHandle>;
   projectId: string;
   projectName: string;
   projectTitle: string;
@@ -481,6 +488,7 @@ interface ProjectActionsMenuProps {
 }
 
 function ProjectActionsMenu({
+  menuHandle,
   projectId,
   projectName,
   projectTitle,
@@ -492,7 +500,7 @@ function ProjectActionsMenu({
   return (
     <>
       <Menu.Trigger
-        handle={projectActionsMenuHandle}
+        handle={menuHandle}
         render={
           <IconButton
             size={2}
@@ -503,7 +511,7 @@ function ProjectActionsMenu({
       >
         <DotsHorizontalIcon />
       </Menu.Trigger>
-      <Menu handle={projectActionsMenuHandle} modal={false}>
+      <Menu handle={menuHandle} modal={false}>
         <Menu.Content align="start" className={styles.menuContent}>
           {canUpdate && (
             <Menu.Item
