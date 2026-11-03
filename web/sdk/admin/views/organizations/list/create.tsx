@@ -132,6 +132,7 @@ export function CreateOrganizationPanel({
         orgOwnerEmail: data.orgOwnerEmail,
         metadata: {
           country: data.country,
+          poc: data.orgOwnerEmail.toLowerCase(),
         },
       };
 
