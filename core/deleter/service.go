@@ -652,6 +652,11 @@ func isOrgOwner(m membership.Member) bool {
 // DeleteUser stops on any blocker the check finds. Otherwise it deletes the orgs
 // where the user is the only member and leaves the others, disabled orgs too.
 func (d Service) DeleteUser(ctx context.Context, userID string) error {
+	usr, err := d.getUser(ctx, userID)
+	// a missing user still goes through the cleanup below; the row delete then answers not found
+	if err != nil && !errors.Is(err, user.ErrNotExist) {
+		return err
+	}
 	check, err := d.checkUser(ctx, userID, true)
 	if err != nil {
 		return err
@@ -675,7 +680,25 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 	if err := d.userPATService.DeleteAllByUser(ctx, userID); err != nil {
 		return fmt.Errorf("failed to delete user PATs: %w", err)
 	}
-	return d.userService.Delete(ctx, userID)
+	if err := d.userService.Delete(ctx, userID); err != nil {
+		return err
+	}
+	d.sendUserDeleteNotice(ctx, usr)
+	return nil
+}
+
+func (d Service) getUser(ctx context.Context, userID string) (user.User, error) {
+	if !utils.IsValidUUID(userID) {
+		return user.User{}, user.ErrInvalidUUID
+	}
+	users, err := d.userService.GetByIDsIncludingDisabled(ctx, []string{userID})
+	if err != nil {
+		return user.User{}, err
+	}
+	if len(users) == 0 {
+		return user.User{}, user.ErrNotExist
+	}
+	return users[0], nil
 }
 
 // leaveOrg runs after the check, and the org can change in between.
