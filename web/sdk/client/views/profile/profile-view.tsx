@@ -16,12 +16,14 @@ import {
   Field,
   Input,
   Skeleton,
+  Text,
   toastManager
 } from '@raystack/apsara';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { ImageUpload } from '../../components/image-upload';
+import { DeleteUserDialog } from '../../components/delete-user-dialog';
 import styles from './profile-view.module.css';
 
 import { handleConnectError } from '~/utils/error';
@@ -55,7 +57,12 @@ const profileSchema = yup
 
 type FormData = yup.InferType<typeof profileSchema>;
 
-export function ProfileView() {
+export interface ProfileViewProps {
+  /** Shows the Delete account section. Called after the account is deleted. */
+  onAccountDeleted?: () => void;
+}
+
+export function ProfileView({ onAccountDeleted }: ProfileViewProps = {}) {
   const { user, isUserLoading: isLoading } = useFrontier();
   const queryClient = useQueryClient();
 
@@ -188,6 +195,38 @@ export function ProfileView() {
               </Button>
             )}
           </Flex>
+
+          {/* Delete section */}
+          {onAccountDeleted && (
+            <Flex direction="column" align="start" gap={5} className={styles.section}>
+              {isLoading ? (
+                <>
+                  <Skeleton height="20px" width="50%" />
+                  <Skeleton height="32px" width="120px" />
+                </>
+              ) : (
+                <>
+                  <Text size="regular" variant="secondary">
+                    If you want to permanently delete your account and all of
+                    its data.
+                  </Text>
+                  <DeleteUserDialog
+                    trigger={({ onClick }) => (
+                      <Button
+                        variant="solid"
+                        color="danger"
+                        onClick={onClick}
+                        data-test-id="frontier-sdk-delete-account-open-btn"
+                      >
+                        Delete account
+                      </Button>
+                    )}
+                    onDeleted={onAccountDeleted}
+                  />
+                </>
+              )}
+            </Flex>
+          )}
         </Flex>
       </form>
     </ViewContainer>

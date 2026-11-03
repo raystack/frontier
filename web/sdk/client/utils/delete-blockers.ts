@@ -1,6 +1,8 @@
 import { ConnectError } from '@connectrpc/connect';
 import type { Blocker } from '@raystack/proton/frontier';
-import type { DeleteBlocker } from '../../shared/types';
+import type { DeleteBlocker, DeleteBlockedPayload } from '../../shared/types';
+
+export const SOLE_OWNER_WITH_MEMBERS = 'SOLE_OWNER_WITH_MEMBERS';
 
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
@@ -49,6 +51,32 @@ export function blockerLines(
 
 export function toDeleteBlockers(blockers: Blocker[]): DeleteBlocker[] {
   return blockers.map(({ type, subject, count }) => ({ type, subject, count }));
+}
+
+interface UserDeleteCheck {
+  organizationsToDelete: { id: string; title: string; blockers: Blocker[] }[];
+  organizationsToLeave: { id: string; title: string; blockers: Blocker[] }[];
+}
+
+export function toUserDeleteBlocked({
+  organizationsToDelete,
+  organizationsToLeave
+}: UserDeleteCheck): Extract<DeleteBlockedPayload, { entity: 'user' }> {
+  return {
+    entity: 'user',
+    organizationsToDelete: organizationsToDelete
+      .filter(org => org.blockers.length > 0)
+      .map(({ id, title, blockers }) => ({
+        id,
+        title,
+        blockers: toDeleteBlockers(blockers)
+      })),
+    soleOwnerOf: organizationsToLeave
+      .filter(org =>
+        org.blockers.some(({ type }) => type === SOLE_OWNER_WITH_MEMBERS)
+      )
+      .map(({ id, title }) => ({ id, title }))
+  };
 }
 
 function preconditionFailures(err: ConnectError) {
