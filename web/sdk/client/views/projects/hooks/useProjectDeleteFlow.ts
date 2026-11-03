@@ -18,8 +18,6 @@ export interface UseProjectDeleteFlowOptions
   menuHandle: { close: () => void };
 }
 
-// The project delete flow for a menu item. The menu stays open while the
-// check runs and closes when the next dialog opens.
 export function useProjectDeleteFlow({
   menuHandle,
   ...handles

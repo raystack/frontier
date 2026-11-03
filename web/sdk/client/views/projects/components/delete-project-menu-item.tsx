@@ -9,7 +9,6 @@ export interface DeleteProjectMenuItemProps {
   'data-test-id': string;
 }
 
-// Stays open with a spinner while the delete check runs.
 export function DeleteProjectMenuItem({
   isChecking,
   ...props
