@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -52,10 +52,6 @@ const generalSchema = yup
 
 type FormData = yup.InferType<typeof generalSchema>;
 
-const deleteOrganizationDialogHandle = AlertDialog.createHandle<null>();
-const deleteBlockedDialogHandle =
-  AlertDialog.createHandle<DeleteBlockedPayload>();
-
 export interface GeneralViewProps {
   onDeleteSuccess?: () => void;
   urlPrefix?: string;
@@ -70,6 +66,16 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
   } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
+
+  // Created per mount: a module-level handle keeps a dialog open across
+  // remounts (https://github.com/mui/base-ui/issues/4951).
+  // TODO @rohanchkrabrty: This is fixed in Base UI v1.7.0. We can update this after Apsara updates
+  const [deleteOrganizationDialogHandle] = useState(() =>
+    AlertDialog.createHandle<null>()
+  );
+  const [deleteBlockedDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteBlockedPayload>()
+  );
 
   const resource = `app/organization:${organization?.id}`;
 
