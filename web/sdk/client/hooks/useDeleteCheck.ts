@@ -7,7 +7,7 @@ import { blockersFromError, toDeleteBlockers } from '../utils/delete-blockers';
 import { useTerminology } from './useTerminology';
 import { handleConnectError } from '~/utils/error';
 
-export interface UseDeleteFlowOptions<TPayload> {
+export interface UseDeleteCheckOptions<TPayload> {
   entity: DeleteBlockedPayload['entity'];
   check: (
     payload: TPayload
@@ -16,12 +16,12 @@ export interface UseDeleteFlowOptions<TPayload> {
   blockedDialogHandle: DeleteBlockedDialogHandle;
 }
 
-export function useDeleteFlow<TPayload>({
+export function useDeleteCheck<TPayload>({
   entity,
   check,
   confirmDialogHandle,
   blockedDialogHandle
-}: UseDeleteFlowOptions<TPayload>) {
+}: UseDeleteCheckOptions<TPayload>) {
   const t = useTerminology();
   const [isChecking, setIsChecking] = useState(false);
 

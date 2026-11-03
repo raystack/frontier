@@ -30,7 +30,7 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
-import { useDeleteFlow } from '../../hooks/useDeleteFlow';
+import { useDeleteCheck } from '../../hooks/useDeleteCheck';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -113,7 +113,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
     startDelete,
     isChecking: isCheckingDelete,
     handleDeleteError
-  } = useDeleteFlow({
+  } = useDeleteCheck({
     entity: 'organization',
     check: () =>
       checkOrganizationDelete(
