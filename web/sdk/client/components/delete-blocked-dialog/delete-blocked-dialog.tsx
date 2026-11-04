@@ -30,27 +30,28 @@ const DeleteBlockedDialogContext = createContext<DeleteBlockedContext | null>(
   null
 );
 
-export interface DeleteBlockedDialogHostProps {
+export interface DeleteBlockedDialogRootProps {
   handle: DeleteBlockedDialogHandle;
 }
 
-export function DeleteBlockedDialogHost({
+export function DeleteBlockedDialogRoot({
   handle
-}: DeleteBlockedDialogHostProps) {
+}: DeleteBlockedDialogRootProps) {
   return (
     <AlertDialog handle={handle}>
       {({ payload }) =>
         payload ? (
-          <AlertDialog.Content className={styles.content}>
-            <DeleteBlockedBody payload={payload} close={() => handle.close()} />
-          </AlertDialog.Content>
+          <DeleteBlockedContent
+            payload={payload}
+            close={() => handle.close()}
+          />
         ) : null
       }
     </AlertDialog>
   );
 }
 
-function DeleteBlockedBody({
+function DeleteBlockedContent({
   payload,
   close
 }: {
@@ -102,7 +103,7 @@ export function DeleteBlockedDialog({
   });
 
   return (
-    <>
+    <AlertDialog.Content className={styles.content}>
       <AlertDialog.Header>
         <AlertDialog.Title>{title ?? copy.title}</AlertDialog.Title>
       </AlertDialog.Header>
@@ -137,6 +138,6 @@ export function DeleteBlockedDialog({
           }
         />
       </AlertDialog.Footer>
-    </>
+    </AlertDialog.Content>
   );
 }

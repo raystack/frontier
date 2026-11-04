@@ -1,6 +1,6 @@
 export {
   DeleteBlockedDialog,
-  DeleteBlockedDialogHost
+  DeleteBlockedDialogRoot
 } from './delete-blocked-dialog';
 export type {
   DeleteBlockedDialogProps,

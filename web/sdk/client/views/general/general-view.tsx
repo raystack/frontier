@@ -36,7 +36,7 @@ import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { ImageUpload } from '../../components/image-upload';
-import { DeleteBlockedDialogHost } from '../../components/delete-blocked-dialog';
+import { DeleteBlockedDialogRoot } from '../../components/delete-blocked-dialog';
 import type { DeleteBlockedPayload } from '../../../shared/types';
 import { DeleteOrganizationDialog } from './components/delete-organization-dialog';
 import styles from './general-view.module.css';
@@ -343,7 +343,7 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
             onDeleteSuccess={onDeleteSuccess}
             onDeleteError={handleDeleteError}
           />
-          <DeleteBlockedDialogHost handle={deleteBlockedDialogHandle} />
+          <DeleteBlockedDialogRoot handle={deleteBlockedDialogHandle} />
         </>
       )}
     </ViewContainer>
