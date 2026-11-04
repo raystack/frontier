@@ -53,13 +53,17 @@ function defaultContent(
       if (context.soleOwnerOf.length > 0) {
         return {
           title: `Transfer ${org} ownership`,
-          description: `You’re the only owner of one or more ${t.organization({ case: 'lower', plural: true })}. Before deleting your account, transfer ownership of each affected ${org} to another member.\n\nOnce ownership has been transferred, you can proceed with account deletion.`,
+          description: `You’re the only owner of one or more ${t.organization({
+            case: 'lower',
+            plural: true
+          })}. Before deleting your account, transfer ownership of each affected ${org} to another member.\n\nOnce ownership has been transferred, you can proceed with account deletion.`,
           groups: []
         };
       }
       return {
         title: 'Unable to delete account',
-        description: 'Please resolve the following issues before deleting your account:',
+        description:
+          'Please resolve the following issues before deleting your account:',
         groups:
           context.organizationsToDelete.length > 0
             ? context.organizationsToDelete.map(({ title, blockers }) => ({
@@ -120,10 +124,16 @@ export function DeleteBlockedContent({
   );
 }
 
+interface DeleteBlockerGroup {
+  title?: string;
+  blockers: DeleteBlocker[];
+}
+
 export interface DeleteBlockedDialogProps {
   title?: string;
   description?: string;
   blockers?: DeleteBlocker[];
+  groups?: DeleteBlockerGroup[];
   messages?: Record<string, string>;
 }
 
@@ -131,6 +141,7 @@ export function DeleteBlockedDialog({
   title,
   description,
   blockers,
+  groups,
   messages = {}
 }: DeleteBlockedDialogProps) {
   const context = useContext(DeleteBlockedDialogContext);
@@ -147,8 +158,13 @@ export function DeleteBlockedDialog({
     basePlanTitle: basePlan?.title
   };
   const content = defaultContent(context, t, messages, wording);
-  const groups = blockers
-    ? [{ lines: blockerLines(blockers, messages, wording) }]
+  const custom: DeleteBlockerGroup[] | undefined =
+    groups ?? (blockers && [{ blockers }]);
+  const bulletGroups = custom
+    ? custom.map(group => ({
+        title: group.title,
+        lines: blockerLines(group.blockers, messages, wording)
+      }))
     : content.groups;
 
   return (
@@ -158,14 +174,10 @@ export function DeleteBlockedDialog({
       </AlertDialog.Header>
       <AlertDialog.Body>
         <Flex direction="column" gap={5}>
-          <Text
-            size="small"
-            variant="secondary"
-            className={styles.description}
-          >
+          <Text size="small" variant="secondary" className={styles.description}>
             {description ?? content.description}
           </Text>
-          {groups.map(({ title: groupTitle, lines }, index) => (
+          {bulletGroups.map(({ title: groupTitle, lines }, index) => (
             <Flex key={index} direction="column" gap={2}>
               {groupTitle && (
                 <Text size="small" weight="medium">
