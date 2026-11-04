@@ -4,8 +4,6 @@ import type { DeleteBlocker } from '../../shared/types';
 
 export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
 
-export const UNKNOWN_BLOCKER = 'UNKNOWN';
-
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
@@ -65,7 +63,7 @@ export function blockersFromError(err: ConnectError): DeleteBlocker[] {
   if (failures.length === 0) {
     return [{ type: ORGANIZATION_DISABLED, subject: '' }];
   }
-  const blockers = failures.flatMap(detail => {
+  return failures.flatMap(detail => {
     const debug = (detail as { debug?: { violations?: unknown } }).debug;
     const violations = debug?.violations;
     return Array.isArray(violations)
@@ -75,9 +73,6 @@ export function blockersFromError(err: ConnectError): DeleteBlocker[] {
         }))
       : [];
   });
-  return blockers.length > 0
-    ? blockers
-    : [{ type: UNKNOWN_BLOCKER, subject: '' }];
 }
 
 function isViolation(

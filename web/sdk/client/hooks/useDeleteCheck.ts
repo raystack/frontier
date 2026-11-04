@@ -3,7 +3,11 @@ import { AlertDialog, toastManager } from '@raystack/apsara';
 import type { Blocker } from '@raystack/proton/frontier';
 import type { DeleteBlocker, DeleteBlockedPayload } from '../../shared/types';
 import type { DeleteBlockedDialogHandle } from '../components/delete-blocked-dialog';
-import { blockersFromError, toDeleteBlockers } from '../utils/delete-blockers';
+import {
+  GENERIC_DELETE_BLOCKED_MESSAGE,
+  blockersFromError,
+  toDeleteBlockers
+} from '../utils/delete-blockers';
 import { useTerminology } from './useTerminology';
 import { handleConnectError } from '~/utils/error';
 
@@ -32,7 +36,18 @@ export function useDeleteCheck<TPayload>({
 
   function handleDeleteError(error: unknown) {
     handleConnectError(error, {
-      FailedPrecondition: err => showBlocked(blockersFromError(err)),
+      FailedPrecondition: err => {
+        const blockers = blockersFromError(err);
+        if (blockers.length > 0) {
+          showBlocked(blockers);
+        } else {
+          toastManager.add({
+            title: `Unable to delete ${t[entity]({ case: 'lower' })}`,
+            description: GENERIC_DELETE_BLOCKED_MESSAGE,
+            type: 'error'
+          });
+        }
+      },
       PermissionDenied: () =>
         toastManager.add({
           title: "You don't have permission to perform this action",
