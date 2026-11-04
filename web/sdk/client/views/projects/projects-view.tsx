@@ -19,11 +19,18 @@ import {
   Menu,
   Select
 } from '@raystack/apsara';
+import { create } from '@bufbuild/protobuf';
+import { useMutation } from '@connectrpc/connect-query';
+import {
+  CheckProjectDeleteRequestSchema,
+  FrontierServiceQueries
+} from '@raystack/proton/frontier';
 import inboxStackIcon from '../../assets/inbox-stack.svg';
 import { toastManager } from '@raystack/apsara';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useOrganizationProjects } from '../../hooks/useOrganizationProjects';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useDeleteCheck } from '../../hooks/useDeleteCheck';
 import { AuthTooltipMessage } from '../../utils';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -35,7 +42,6 @@ import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
 import { DeleteProjectDialog, type DeleteProjectPayload } from './components/delete-project-dialog';
 import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
-import { useProjectDeleteCheck } from './hooks/useProjectDeleteCheck';
 import { AddMemberMenuContent } from './components/add-member-menu';
 import styles from './projects-view.module.css';
 import { useTerminology } from '~/client/hooks/useTerminology';
@@ -87,8 +93,15 @@ export function ProjectsView({
   const [deleteBlockedDialogHandle] = useState(() =>
     AlertDialog.createHandle<DeleteBlockedPayload>()
   );
-  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteCheck({
-    menuHandle: projectMenuHandle,
+  const { mutateAsync: checkProjectDelete } = useMutation(
+    FrontierServiceQueries.checkProjectDelete
+  );
+  const { startDelete, isChecking, handleDeleteError } = useDeleteCheck({
+    entity: 'project',
+    check: ({ projectId }) =>
+      checkProjectDelete(
+        create(CheckProjectDeleteRequestSchema, { id: projectId })
+      ),
     confirmDialogHandle: deleteProjectDialogHandle,
     blockedDialogHandle: deleteBlockedDialogHandle
   });
@@ -323,12 +336,13 @@ export function ProjectsView({
               {payload?.canDelete && (
                 <DeleteProjectMenuItem
                   isChecking={isChecking}
-                  onClick={() =>
-                    startDelete({
+                  onClick={async () => {
+                    await startDelete({
                       projectId: payload.projectId,
                       projectName: payload.title
-                    })
-                  }
+                    });
+                    projectMenuHandle.close();
+                  }}
                   data-test-id="delete-project-dropdown-item"
                 />
               )}

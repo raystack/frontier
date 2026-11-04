@@ -22,8 +22,9 @@ import {
 } from '@raystack/apsara';
 import deleteIcon from '../../assets/delete.svg';
 import { toastManager } from '@raystack/apsara';
-import { useQuery } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import {
+  CheckProjectDeleteRequestSchema,
   FrontierServiceQueries,
   ListProjectGroupsRequestSchema,
   ListProjectUsersRequestSchema,
@@ -34,6 +35,7 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useDeleteCheck } from '../../hooks/useDeleteCheck';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
@@ -48,7 +50,6 @@ import {
   type DeleteProjectPayload
 } from './components/delete-project-dialog';
 import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
-import { useProjectDeleteCheck } from './hooks/useProjectDeleteCheck';
 import {
   RemoveMemberDialog,
   type RemoveMemberPayload
@@ -299,8 +300,15 @@ export function ProjectDetailsView({
     onDeleteSuccess?.();
   }, [onDeleteSuccess]);
 
-  const { startDelete, isChecking, handleDeleteError } = useProjectDeleteCheck({
-    menuHandle: projectActionsMenuHandle,
+  const { mutateAsync: checkProjectDelete } = useMutation(
+    FrontierServiceQueries.checkProjectDelete
+  );
+  const { startDelete, isChecking, handleDeleteError } = useDeleteCheck({
+    entity: 'project',
+    check: ({ projectId }) =>
+      checkProjectDelete(
+        create(CheckProjectDeleteRequestSchema, { id: projectId })
+      ),
     confirmDialogHandle: deleteProjectDialogHandle,
     blockedDialogHandle: deleteBlockedDialogHandle
   });
@@ -339,9 +347,10 @@ export function ProjectDetailsView({
             canUpdate={canUpdateProject}
             canDelete={canDeleteProject}
             isCheckingDelete={isChecking}
-            onDelete={() =>
-              startDelete({ projectId, projectName: projectTitle })
-            }
+            onDelete={async () => {
+              await startDelete({ projectId, projectName: projectTitle });
+              projectActionsMenuHandle.close();
+            }}
           />
         )}
       </ViewHeader>
