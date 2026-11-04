@@ -35,7 +35,7 @@ import { AuthTooltipMessage } from '../../utils';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
-import { DeleteBlockedDialogHost } from '../../components/delete-blocked-dialog';
+import { DeleteBlockedDialogRoot } from '../../components/delete-blocked-dialog';
 import type { DeleteBlockedPayload } from '../../../shared/types';
 import { getColumns, type ProjectMenuPayload } from './components/project-columns';
 import { AddProjectDialog } from './components/add-project-dialog';
@@ -358,7 +358,7 @@ export function ProjectsView({
         refetch={refetch}
         onDeleteError={handleDeleteError}
       />
-      <DeleteBlockedDialogHost handle={deleteBlockedDialogHandle} />
+      <DeleteBlockedDialogRoot handle={deleteBlockedDialogHandle} />
     </ViewContainer>
   );
 }
