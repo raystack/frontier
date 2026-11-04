@@ -112,23 +112,19 @@ function DeleteOrganizationForm({
       <AlertDialog.Body>
         <Flex direction="column" gap={6}>
           <Text size="small" variant="secondary">
-            This action can not be undone. This will permanently
-            delete all the projects and resources in {organization?.title}.
+            This action can not be undone. This will permanently delete all the
+            projects and resources in {organization?.title}.
           </Text>
           {tokenBalance > 0 ? (
             <Text size="small" variant="danger">
-              This {orgLabelLower} still has unused tokens, and deleting
-              it forfeits them. If any of them were purchased, our
-              support team will reach out to you to settle them.
+              This {orgLabelLower} still has unused tokens, and deleting it
+              forfeits them. If any of them were purchased, our support team
+              will reach out to you to settle them.
             </Text>
           ) : null}
           <Field
             label={`Please type name of the ${orgLabel} to confirm.`}
-            error={
-              errors.title
-                ? String(errors.title.message)
-                : undefined
-            }
+            error={errors.title ? String(errors.title.message) : undefined}
           >
             <Input
               size="large"
@@ -143,8 +139,8 @@ function DeleteOrganizationForm({
               data-test-id="frontier-sdk-delete-organization-checkbox"
             />
             <Text size="small" variant="secondary">
-              I acknowledge I understand that all of the{' '}
-              {orgLabel} data will be deleted and want to proceed.
+              I acknowledge I understand that all of the {orgLabel} data will be
+              deleted and want to proceed.
             </Text>
           </Flex>
         </Flex>
@@ -167,10 +163,7 @@ function DeleteOrganizationForm({
           color="danger"
           type="submit"
           disabled={
-            !deleteTitle ||
-            !isAcknowledged ||
-            isSubmitting ||
-            isTokensFetching
+            !deleteTitle || !isAcknowledged || isSubmitting || isTokensFetching
           }
           data-test-id="frontier-sdk-delete-organization-btn"
           loading={isSubmitting}

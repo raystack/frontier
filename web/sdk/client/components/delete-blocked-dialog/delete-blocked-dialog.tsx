@@ -34,16 +34,15 @@ export interface DeleteBlockedDialogHostProps {
   handle: DeleteBlockedDialogHandle;
 }
 
-export function DeleteBlockedDialogHost({ handle }: DeleteBlockedDialogHostProps) {
+export function DeleteBlockedDialogHost({
+  handle
+}: DeleteBlockedDialogHostProps) {
   return (
     <AlertDialog handle={handle}>
       {({ payload }) =>
         payload ? (
           <AlertDialog.Content className={styles.content}>
-            <DeleteBlockedBody
-              payload={payload as DeleteBlockedPayload}
-              close={() => handle.close()}
-            />
+            <DeleteBlockedBody payload={payload} close={() => handle.close()} />
           </AlertDialog.Content>
         ) : null
       }

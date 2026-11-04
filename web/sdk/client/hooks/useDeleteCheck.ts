@@ -33,9 +33,23 @@ export function useDeleteCheck<TPayload>({
   function handleDeleteError(error: unknown) {
     handleConnectError(error, {
       FailedPrecondition: err => showBlocked(blockersFromError(err)),
-      PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-      NotFound: () => toastManager.add({ title: 'Not found', description: `This ${t[entity]({ case: 'lower' })} no longer exists.`, type: 'error' }),
-      Default: () => toastManager.add({ title: 'Something went wrong', description: 'Please try again later or contact support.', type: 'error' }),
+      PermissionDenied: () =>
+        toastManager.add({
+          title: "You don't have permission to perform this action",
+          type: 'error'
+        }),
+      NotFound: () =>
+        toastManager.add({
+          title: 'Not found',
+          description: `This ${t[entity]({ case: 'lower' })} no longer exists.`,
+          type: 'error'
+        }),
+      Default: () =>
+        toastManager.add({
+          title: 'Something went wrong',
+          description: 'Please try again later or contact support.',
+          type: 'error'
+        })
     });
   }
 
