@@ -112,22 +112,20 @@ export function DeleteUserDialog({
         {({ payload: rawPayload }) => {
           const payload = rawPayload as DeleteUserPayload | undefined;
           if (!payload) return null;
-          return (
+          return payload.step === 'blocked' ? (
+            <DeleteBlockedContent
+              payload={payload.blocked}
+              close={() => dialogHandle.close()}
+            />
+          ) : (
             <AlertDialog.Content className={styles.content}>
-              {payload.step === 'blocked' ? (
-                <DeleteBlockedContent
-                  payload={payload.blocked}
-                  close={() => dialogHandle.close()}
-                />
-              ) : (
-                <DeleteUserForm
-                  onDeleted={() => {
-                    dialogHandle.close();
-                    onDeleted();
-                  }}
-                  onDeleteRefused={onDeleteRefused}
-                />
-              )}
+              <DeleteUserForm
+                onDeleted={() => {
+                  dialogHandle.close();
+                  onDeleted();
+                }}
+                onDeleteRefused={onDeleteRefused}
+              />
             </AlertDialog.Content>
           );
         }}
