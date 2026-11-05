@@ -114,18 +114,14 @@ function DeleteOrganizationForm({
         <Flex direction="column" gap={5}>
           <Flex direction="column" gap={6}>
             <Text size="small" variant="secondary">
-              This action can not be undone. This will permanently delete all
-              the projects and resources in {organization?.title}.
+              This action cannot be undone. All projects and resources in{' '}
+              {organization?.title} will be permanently deleted.
             </Text>
             <Field
               label={`Please type name of the ${orgLabel} to confirm.`}
               error={errors.title ? String(errors.title.message) : undefined}
             >
-              <Input
-                size="large"
-                {...register('title')}
-                placeholder={`Provide the ${orgLabel} name`}
-              />
+              <Input size="large" {...register('title')} />
             </Field>
             <Flex gap={3} align="start">
               <Checkbox
@@ -136,8 +132,8 @@ function DeleteOrganizationForm({
                 data-test-id="frontier-sdk-delete-organization-checkbox"
               />
               <Text size="small" variant="secondary">
-                I acknowledge I understand that all of the {orgLabel} data will
-                be deleted and want to proceed.
+                I understand that all data and resources in this {orgLabelLower}{' '}
+                will be permanently deleted, and I want to proceed.
               </Text>
             </Flex>
           </Flex>
