@@ -3,6 +3,8 @@ export { ViewContainer } from './components/view-container';
 export { ViewHeader } from './components/view-header';
 export { AuthContainer } from './components/auth-container';
 export { AuthHeader } from './components/auth-header';
+export { DeleteBlockedDialog } from './components/delete-blocked-dialog';
+export type { DeleteBlockedDialogProps } from './components/delete-blocked-dialog';
 export { describeAuthError } from './utils/auth-error';
 export type { AuthRejection } from './utils/auth-error';
 
@@ -44,7 +46,10 @@ export { usePreferences } from './hooks/usePreferences';
 export type {
   FrontierClientOptions,
   FrontierClientBillingOptions,
-  FrontierClientCustomizationOptions
+  FrontierClientCustomizationOptions,
+  FrontierProviderSlots,
+  DeleteBlocker,
+  DeleteBlockedContext
 } from '../shared/types';
 
 export { PREFERENCE_OPTIONS } from './utils/constants';

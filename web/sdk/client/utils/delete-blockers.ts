@@ -1,4 +1,9 @@
 import { ConnectError } from '@connectrpc/connect';
+import type { Blocker } from '@raystack/proton/frontier';
+import type { DeleteBlocker } from '../../shared/types';
+
+export const GENERIC_DELETE_BLOCKED_MESSAGE =
+  'Something is blocking the delete right now. Please try again later or contact support.';
 
 // Words that come from the host app: what it calls an organization
 // and what it calls its base plan.
@@ -7,87 +12,75 @@ export interface BlockerWording {
   basePlanTitle?: string;
 }
 
-const DEFAULT_WORDING: BlockerWording = {
-  organizationLabel: 'organization'
-};
-
-// One sentence per blocker type the server can return.
-const BLOCKER_INSTRUCTIONS: Record<
-  string,
-  (count: number, wording: BlockerWording) => string
-> = {
-  ACTIVE_SUBSCRIPTION: (_, { organizationLabel, basePlanTitle }) =>
-    `Downgrade your current subscription and switch to the ${
+const DEFAULT_LINES: Record<string, (wording: BlockerWording) => string> = {
+  ACTIVE_SUBSCRIPTION: ({ organizationLabel, basePlanTitle }) =>
+    `Active subscription: Downgrade your subscription to the ${
       basePlanTitle || 'standard plan'
     } before deleting this ${organizationLabel}.`,
-  UNPAID_INVOICE: (count, { organizationLabel }) =>
-    count > 1
-      ? `Please pay your ${count} outstanding invoices before deleting this ${organizationLabel}.`
-      : `Please pay your outstanding invoice before deleting this ${organizationLabel}.`,
-  NEGATIVE_TOKEN_BALANCE: (_, { organizationLabel }) =>
-    `Please purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`
+  UNPAID_INVOICE: ({ organizationLabel }) =>
+    `Outstanding invoice: Pay all outstanding invoices before deleting this ${organizationLabel}.`,
+  NEGATIVE_TOKEN_BALANCE: ({ organizationLabel }) =>
+    `Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`,
+  RESOURCES_EXIST: () =>
+    'Existing resources: Delete the remaining resources, then try again.'
 };
 
-// Used for blocker types this version does not know.
-export const GENERIC_DELETE_BLOCKED_MESSAGE =
-  'Something is blocking the delete right now. Please try again later or contact support.';
-
-// Returns one sentence per blocker type. Same-type blockers are counted.
-export function instructionLines(
-  blockers: { type: string }[],
-  wording: BlockerWording = DEFAULT_WORDING
+export function blockerLines(
+  blockers: DeleteBlocker[],
+  messages: Record<string, string>,
+  wording: BlockerWording
 ): string[] {
-  const counts = new Map<string, number>();
-  for (const blocker of blockers) {
-    counts.set(blocker.type, (counts.get(blocker.type) ?? 0) + 1);
-  }
-  const lines: string[] = [];
+  const lines = new Set<string>();
   let hasUnknown = false;
-  for (const [type, count] of counts) {
-    const instruction = BLOCKER_INSTRUCTIONS[type];
-    if (instruction) {
-      lines.push(instruction(count, wording));
+  for (const { type, subject } of blockers) {
+    const line =
+      messages[subject] ?? messages[type] ?? DEFAULT_LINES[type]?.(wording);
+    if (line) {
+      lines.add(line);
     } else {
       hasUnknown = true;
     }
   }
   if (hasUnknown) {
-    lines.push(GENERIC_DELETE_BLOCKED_MESSAGE);
+    lines.add(GENERIC_DELETE_BLOCKED_MESSAGE);
   }
-  return lines;
+  return [...lines];
 }
 
-// Reads the blockers from a failed_precondition error and returns the
-// sentences as one string. The server sends them as a
-// google.rpc.PreconditionFailure detail, which Connect exposes in the
-// detail's debug field.
-export function deleteBlockedDescription(
-  err: ConnectError,
-  wording: BlockerWording = DEFAULT_WORDING
-): string {
-  for (const detail of err.details) {
-    if (!('type' in detail) || detail.type !== 'google.rpc.PreconditionFailure') {
-      continue;
-    }
-    const debug = (detail as { debug?: unknown }).debug;
-    if (typeof debug !== 'object' || debug === null) {
-      continue;
-    }
-    const violations = (debug as { violations?: unknown }).violations;
-    if (!Array.isArray(violations)) {
-      continue;
-    }
-    const blockers = violations
-      .filter(
-        (violation): violation is { type: string } =>
-          typeof violation === 'object' &&
-          violation !== null &&
-          typeof (violation as { type?: unknown }).type === 'string'
-      );
-    const lines = instructionLines(blockers, wording);
-    if (lines.length > 0) {
-      return lines.join(' ');
-    }
-  }
-  return GENERIC_DELETE_BLOCKED_MESSAGE;
+export function toDeleteBlockers(blockers: Blocker[]): DeleteBlocker[] {
+  return blockers.map(({ type, subject, count }) => ({ type, subject, count }));
+}
+
+function preconditionFailures(err: ConnectError) {
+  return err.details.filter(
+    detail =>
+      'type' in detail && detail.type === 'google.rpc.PreconditionFailure'
+  );
+}
+
+export function isOrganizationDisabled(err: ConnectError): boolean {
+  return preconditionFailures(err).length === 0;
+}
+
+export function blockersFromError(err: ConnectError): DeleteBlocker[] {
+  return preconditionFailures(err).flatMap(detail => {
+    const debug = (detail as { debug?: { violations?: unknown } }).debug;
+    const violations = debug?.violations;
+    return Array.isArray(violations)
+      ? violations.filter(isViolation).map(({ type, subject }) => ({
+          type,
+          subject: subject ?? ''
+        }))
+      : [];
+  });
+}
+
+function isViolation(
+  violation: unknown
+): violation is { type: string; subject?: string } {
+  return (
+    typeof violation === 'object' &&
+    violation !== null &&
+    typeof (violation as { type?: unknown }).type === 'string'
+  );
 }

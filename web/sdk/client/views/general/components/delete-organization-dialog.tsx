@@ -11,6 +11,7 @@ import {
 import {
   AlertDialog,
   Button,
+  Callout,
   Checkbox,
   Field,
   Flex,
@@ -21,8 +22,7 @@ import {
 import { useFrontier } from '../../../contexts/FrontierContext';
 import { useTerminology } from '../../../hooks/useTerminology';
 import { useTokens } from '../../../hooks/useTokens';
-import { deleteBlockedDescription } from '../../../utils/delete-blockers';
-import { handleConnectError } from '~/utils/error';
+import styles from '../general-view.module.css';
 
 const deleteOrgSchema = yup
   .object({
@@ -31,25 +31,39 @@ const deleteOrgSchema = yup
   .required();
 
 export interface DeleteOrganizationDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  handle: ReturnType<typeof AlertDialog.createHandle<null>>;
   onDeleteSuccess?: () => void;
+  onDeleteError: (error: unknown) => void;
 }
 
 export const DeleteOrganizationDialog = ({
-  open,
-  onOpenChange,
-  onDeleteSuccess
-}: DeleteOrganizationDialogProps) => {
+  handle,
+  onDeleteSuccess,
+  onDeleteError
+}: DeleteOrganizationDialogProps) => (
+  <AlertDialog handle={handle}>
+    <AlertDialog.Content className={styles.deleteDialog}>
+      <DeleteOrganizationForm
+        onDeleteSuccess={() => {
+          handle.close();
+          onDeleteSuccess?.();
+        }}
+        onDeleteError={onDeleteError}
+      />
+    </AlertDialog.Content>
+  </AlertDialog>
+);
+
+function DeleteOrganizationForm({
+  onDeleteSuccess,
+  onDeleteError
+}: Omit<DeleteOrganizationDialogProps, 'handle'>) {
   const t = useTerminology();
-  const { activeOrganization: organization, basePlan } = useFrontier();
+  const { activeOrganization: organization } = useFrontier();
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
   const [isAcknowledged, setIsAcknowledged] = useState(false);
-  // The balance is fetched only while the dialog is open. The confirm
-  // button below stays disabled until the fetch finishes, so the user
-  // cannot confirm before the token warning had a chance to appear.
-  const { tokenBalance, isTokensFetching } = useTokens({ enabled: open });
+  const { tokenBalance, isTokensFetching } = useTokens();
 
   const { mutateAsync: deleteOrganization } = useMutation(
     FrontierServiceQueries.deleteOrganization
@@ -87,102 +101,78 @@ export const DeleteOrganizationDialog = ({
       });
       onDeleteSuccess?.();
     } catch (error) {
-      handleConnectError(error, {
-        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        FailedPrecondition: (err) =>
-          toastManager.add({
-            title: `Cannot delete this ${orgLabelLower} yet`,
-            description: deleteBlockedDescription(err, {
-              organizationLabel: orgLabelLower,
-              basePlanTitle: basePlan?.title
-            }),
-            type: 'error'
-          }),
-        NotFound: () => toastManager.add({ title: 'Not found', description: `This ${orgLabelLower} no longer exists.`, type: 'error' }),
-        Default: () => toastManager.add({ title: 'Something went wrong', description: 'Please try again later or contact support.', type: 'error' }),
-      });
+      onDeleteError(error);
     }
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialog.Content width={480}>
-        <form noValidate onSubmit={handleSubmit(onDeleteSubmit)}>
-          <AlertDialog.Header>
-            <AlertDialog.Title>Delete {orgLabel}</AlertDialog.Title>
-          </AlertDialog.Header>
-          <AlertDialog.Body>
-            <Flex direction="column" gap={6}>
-              <Text size="small" variant="secondary">
-                This action can not be undone. This will permanently
-                delete all the projects and resources in {organization?.title}.
-              </Text>
-              {tokenBalance > 0 ? (
-                <Text size="small" variant="danger">
-                  This {orgLabelLower} still has unused tokens, and deleting
-                  it forfeits them. If any of them were purchased, our
-                  support team will reach out to you to settle them.
-                </Text>
-              ) : null}
-              <Field
-                label={`Please type name of the ${orgLabel} to confirm.`}
-                error={
-                  errors.title
-                    ? String(errors.title.message)
-                    : undefined
-                }
-              >
-                <Input
-                  size="large"
-                  {...register('title')}
-                  placeholder={`Provide the ${orgLabel} name`}
-                />
-              </Field>
-              <Flex gap={3} align="start">
-                <Checkbox
-                  checked={isAcknowledged}
-                  onCheckedChange={(checked: boolean) => setIsAcknowledged(checked)}
-                  data-test-id="frontier-sdk-delete-organization-checkbox"
-                />
-                <Text size="small" variant="secondary">
-                  I acknowledge I understand that all of the{' '}
-                  {orgLabel} data will be deleted and want to proceed.
-                </Text>
-              </Flex>
-            </Flex>
-          </AlertDialog.Body>
-          <AlertDialog.Footer>
-            <AlertDialog.Close
-              render={
-                <Button
-                  variant="outline"
-                  color="neutral"
-                  disabled={isSubmitting}
-                  data-test-id="frontier-sdk-delete-organization-cancel-btn"
-                >
-                  Cancel
-                </Button>
-              }
-            />
-            <Button
-              variant="solid"
-              color="danger"
-              type="submit"
-              disabled={
-                !deleteTitle ||
-                !isAcknowledged ||
-                isSubmitting ||
-                isTokensFetching
-              }
-              data-test-id="frontier-sdk-delete-organization-btn"
-              loading={isSubmitting}
-              loaderText="Deleting..."
+    <form noValidate onSubmit={handleSubmit(onDeleteSubmit)}>
+      <AlertDialog.Header>
+        <AlertDialog.Title>Delete {orgLabel}</AlertDialog.Title>
+      </AlertDialog.Header>
+      <AlertDialog.Body>
+        <Flex direction="column" gap={5}>
+          <Flex direction="column" gap={6}>
+            <Text size="small" variant="secondary">
+              This action cannot be undone. All projects and resources in{' '}
+              {organization?.title} will be permanently deleted.
+            </Text>
+            <Field
+              label={`Please type name of the ${orgLabel} to confirm.`}
+              error={errors.title ? String(errors.title.message) : undefined}
             >
-              Delete
+              <Input size="large" {...register('title')} />
+            </Field>
+            <Flex gap={3} align="start">
+              <Checkbox
+                checked={isAcknowledged}
+                onCheckedChange={(checked: boolean) =>
+                  setIsAcknowledged(checked)
+                }
+                data-test-id="frontier-sdk-delete-organization-checkbox"
+              />
+              <Text size="small" variant="secondary">
+                I understand that all data and resources in this {orgLabelLower}{' '}
+                will be permanently deleted, and I want to proceed.
+              </Text>
+            </Flex>
+          </Flex>
+          {tokenBalance > 0 ? (
+            <Callout variant="outline" className={styles.callout}>
+              Any unused complimentary tokens will be forfeited. Purchased but
+              unused tokens will be refunded to your original payment method
+              within 15–30 days after {orgLabelLower} deletion.
+            </Callout>
+          ) : null}
+        </Flex>
+      </AlertDialog.Body>
+      <AlertDialog.Footer>
+        <AlertDialog.Close
+          render={
+            <Button
+              variant="outline"
+              color="neutral"
+              disabled={isSubmitting}
+              data-test-id="frontier-sdk-delete-organization-cancel-btn"
+            >
+              Cancel
             </Button>
-          </AlertDialog.Footer>
-        </form>
-      </AlertDialog.Content>
-    </AlertDialog>
+          }
+        />
+        <Button
+          variant="solid"
+          color="danger"
+          type="submit"
+          disabled={
+            !deleteTitle || !isAcknowledged || isSubmitting || isTokensFetching
+          }
+          data-test-id="frontier-sdk-delete-organization-btn"
+          loading={isSubmitting}
+          loaderText="Deleting..."
+        >
+          Delete
+        </Button>
+      </AlertDialog.Footer>
+    </form>
   );
-};
+}

@@ -12,7 +12,8 @@ import { FrontierServiceQueries } from '~hooks';
 
 import {
   FrontierClientOptions,
-  FrontierProviderProps
+  FrontierProviderProps,
+  FrontierProviderSlots
 } from '../../shared/types';
 
 import {
@@ -46,6 +47,8 @@ import { useLastActiveTracker } from '../hooks/useLastActiveTracker';
 
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
+
+  slots: FrontierProviderSlots;
 
   organizations: Organization[];
 
@@ -123,6 +126,8 @@ const defaultConfig: FrontierClientOptions = {
 const initialValues: FrontierContextProviderProps = {
   config: defaultConfig,
 
+  slots: {},
+
   organizations: [],
 
   groups: [],
@@ -175,7 +180,8 @@ FrontierContext.displayName = 'FrontierContext ';
 
 export const FrontierContextProvider = ({
   children,
-  config
+  config,
+  slots = {}
 }: FrontierProviderProps) => {
   const [activeOrganization, setActiveOrganization] = useState<Organization>();
   const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
@@ -322,6 +328,7 @@ export const FrontierContextProvider = ({
           ...config,
           billing: { ...defaultConfig.billing, ...config.billing }
         },
+        slots,
         organizations,
         groups,
         user,

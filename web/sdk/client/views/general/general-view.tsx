@@ -8,7 +8,6 @@ import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
-  useQuery,
   useTransport
 } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,6 +17,7 @@ import {
   CheckOrganizationDeleteRequestSchema
 } from '@raystack/proton/frontier';
 import {
+  AlertDialog,
   Button,
   Tooltip,
   Skeleton,
@@ -30,12 +30,14 @@ import {
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
-import { instructionLines } from '../../utils/delete-blockers';
+import { useDeleteCheck } from '../../hooks/useDeleteCheck';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
 import { ImageUpload } from '../../components/image-upload';
+import { DeleteBlockedDialogRoot } from '../../components/delete-blocked-dialog';
+import type { DeleteBlockedPayload } from '../../../shared/types';
 import { DeleteOrganizationDialog } from './components/delete-organization-dialog';
 import styles from './general-view.module.css';
 import { handleConnectError } from '~/utils/error';
@@ -60,11 +62,20 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
   const {
     activeOrganization: organization,
     isActiveOrganizationLoading,
-    setActiveOrganization,
-    basePlan
+    setActiveOrganization
   } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
+
+  // Created per mount: a module-level handle keeps a dialog open across
+  // remounts (https://github.com/mui/base-ui/issues/4951).
+  // TODO @rohanchkrabrty: This is fixed in Base UI v1.7.0. We can update this after Apsara updates
+  const [deleteOrganizationDialogHandle] = useState(() =>
+    AlertDialog.createHandle<null>()
+  );
+  const [deleteBlockedDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteBlockedPayload>()
+  );
 
   const resource = `app/organization:${organization?.id}`;
 
@@ -101,29 +112,24 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
 
   const isLoading = !organization?.id || isActiveOrganizationLoading || isPermissionsFetching;
 
-  // Ask the server whether a delete would go through right now. While the
-  // answer is loading, the delete button stays disabled. If this check
-  // itself fails, the button stays enabled: the server still refuses a
-  // blocked delete when the user actually clicks.
-  const { data: deleteCheck, isLoading: isDeleteCheckLoading } = useQuery(
-    FrontierServiceQueries.checkOrganizationDelete,
-    create(CheckOrganizationDeleteRequestSchema, {
-      id: organization?.id ?? ''
-    }),
-    {
-      enabled: canDeleteWorkspace && !!organization?.id,
-      retry: false
-    }
+  const { mutateAsync: checkOrganizationDelete } = useMutation(
+    FrontierServiceQueries.checkOrganizationDelete
   );
-  const isDeleteBlocked = !!deleteCheck && !deleteCheck.canDelete;
-  const blockerLines = useMemo(
-    () =>
-      instructionLines(deleteCheck?.blockers ?? [], {
-        organizationLabel: t.organization({ case: 'lower' }),
-        basePlanTitle: basePlan?.title
-      }),
-    [deleteCheck, t, basePlan]
-  );
+  const {
+    startDelete,
+    isChecking: isCheckingDelete,
+    handleDeleteError
+  } = useDeleteCheck({
+    entity: 'organization',
+    check: () =>
+      checkOrganizationDelete(
+        create(CheckOrganizationDeleteRequestSchema, {
+          id: organization?.id ?? ''
+        })
+      ),
+    confirmDialogHandle: deleteOrganizationDialogHandle,
+    blockedDialogHandle: deleteBlockedDialogHandle
+  });
 
   // Update organization form
   const { mutateAsync: updateOrganization } = useMutation(
@@ -189,8 +195,6 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
       });
     }
   }
-
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const orgLabel = t.organization({ case: 'capital' });
   const orgLabelLower = t.organization({ case: 'lower' });
@@ -308,34 +312,24 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                 </Text>
                 <Tooltip>
                   <Tooltip.Trigger
-                    disabled={canDeleteWorkspace && !isDeleteBlocked}
+                    disabled={canDeleteWorkspace}
                     render={<span className={styles.fitContent} />}
                   >
                     <Button
                       variant="solid"
                       color="danger"
-                      onClick={() => setShowDeleteDialog(true)}
-                      disabled={
-                        !canDeleteWorkspace ||
-                        isDeleteBlocked ||
-                        isDeleteCheckLoading
-                      }
+                      onClick={() => startDelete(null)}
+                      disabled={!canDeleteWorkspace || isCheckingDelete}
+                      loading={isCheckingDelete}
+                      loaderText={`Delete ${orgLabelLower}`}
                       data-test-id="frontier-sdk-delete-organization-btn"
                     >
                       Delete {orgLabelLower}
                     </Button>
                   </Tooltip.Trigger>
-                  {!canDeleteWorkspace ? (
+                  {!canDeleteWorkspace && (
                     <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
-                  ) : isDeleteBlocked ? (
-                    <Tooltip.Content>
-                      <Flex direction="column" gap={2}>
-                        {blockerLines.map(line => (
-                          <Text key={line}>{line}</Text>
-                        ))}
-                      </Flex>
-                    </Tooltip.Content>
-                  ) : null}
+                  )}
                 </Tooltip>
               </>
             )}
@@ -343,11 +337,14 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
         </Flex>
       </form>
       {canDeleteWorkspace && (
-        <DeleteOrganizationDialog
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          onDeleteSuccess={onDeleteSuccess}
-        />
+        <>
+          <DeleteOrganizationDialog
+            handle={deleteOrganizationDialogHandle}
+            onDeleteSuccess={onDeleteSuccess}
+            onDeleteError={handleDeleteError}
+          />
+          <DeleteBlockedDialogRoot handle={deleteBlockedDialogHandle} />
+        </>
       )}
     </ViewContainer>
   );

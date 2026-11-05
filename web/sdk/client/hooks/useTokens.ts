@@ -14,13 +14,7 @@ interface UseTokensReturn {
   fetchTokenBalance: () => Promise<any>;
 }
 
-export interface UseTokensOptions {
-  // Set this to false to skip fetching the balance. The delete dialog uses
-  // it so the balance is only fetched while the dialog is open.
-  enabled?: boolean;
-}
-
-export const useTokens = (options: UseTokensOptions = {}): UseTokensReturn => {
+export const useTokens = (): UseTokensReturn => {
   const { billingAccount } = useFrontier();
 
   const {
@@ -35,7 +29,7 @@ export const useTokens = (options: UseTokensOptions = {}): UseTokensReturn => {
       id: billingAccount?.id ?? ''
     }),
     {
-      enabled: !!billingAccount?.id && (options.enabled ?? true),
+      enabled: !!billingAccount?.id,
       retry: false
     }
   );

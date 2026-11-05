@@ -1,0 +1,9 @@
+.content {
+  width: 480px !important;
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--rs-space-5);
+  list-style-type: disc;
+}

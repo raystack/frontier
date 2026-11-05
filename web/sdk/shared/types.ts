@@ -66,6 +66,26 @@ export interface InitialState {
 
 export type CustomHeaderValue = string | (() => string);
 
+export interface DeleteBlocker {
+  type: string;
+  subject: string;
+  count?: number;
+}
+
+export type DeleteBlockedPayload = {
+  entity: 'organization';
+  blockers: DeleteBlocker[];
+};
+
+export type DeleteBlockedContext = DeleteBlockedPayload & {
+  entityLabel: string;
+  close: () => void;
+};
+
+export interface FrontierProviderSlots {
+  deleteBlockedDialog?: Slot<DeleteBlockedContext>;
+}
+
 export interface FrontierProviderProps {
   config: FrontierClientOptions;
   children: React.ReactNode;
@@ -74,4 +94,5 @@ export interface FrontierProviderProps {
   theme?: ThemeProviderProps;
   renderToastProvider?: boolean;
   renderThemeProvider?: boolean;
+  slots?: FrontierProviderSlots;
 }
