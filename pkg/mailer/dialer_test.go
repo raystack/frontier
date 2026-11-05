@@ -37,11 +37,14 @@ func TestDialerImpl_DialAndSend_SilentServer(t *testing.T) {
 	msg.SetBody("text/plain", "hi")
 
 	done := make(chan error, 1)
+	start := time.Now()
 	go func() { done <- d.DialAndSend(msg) }()
 
 	select {
 	case err := <-done:
 		assert.Error(t, err)
+		// 200ms timeout plus room for a slow CI machine.
+		assert.Less(t, time.Since(start), time.Second, "send should fail soon after the 200ms dialer timeout")
 	case <-time.After(3 * time.Second):
 		t.Fatal("DialAndSend still blocked after 3s: no deadline on the greeting read")
 	}
