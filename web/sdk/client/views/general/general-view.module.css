@@ -23,3 +23,7 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+.callout > :first-child > :last-child:empty {
+  display: none;
+}
