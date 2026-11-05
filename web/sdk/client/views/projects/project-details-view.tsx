@@ -441,7 +441,7 @@ export function ProjectDetailsView({
                 </Menu.Item>
               ))}
               <Menu.Item
-                leadingIcon={<Image src={deleteIcon as unknown as string} alt="Remove" width={16} height={16} />}
+                leadingIcon={<Image src={deleteIcon as unknown as string} alt="" width={16} height={16} />}
                 onClick={() =>
                   payload &&
                   removeMemberDialogHandle.openWithPayload({
@@ -543,7 +543,7 @@ function ProjectActionsMenu({
                 isCheckingDelete ? (
                   <Spinner size={2} color="danger" />
                 ) : (
-                  <Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />
+                  <Image src={deleteIcon as unknown as string} alt="" width={16} height={16} />
                 )
               }
               closeOnClick={false}

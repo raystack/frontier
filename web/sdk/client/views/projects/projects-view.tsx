@@ -340,7 +340,7 @@ export function ProjectsView({
                     isChecking ? (
                       <Spinner size={2} color="danger" />
                     ) : (
-                      <Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />
+                      <Image src={deleteIcon as unknown as string} alt="" width={16} height={16} />
                     )
                   }
                   closeOnClick={false}
