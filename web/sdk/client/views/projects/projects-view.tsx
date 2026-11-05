@@ -17,7 +17,8 @@ import {
   AlertDialog,
   Image,
   Menu,
-  Select
+  Select,
+  Spinner
 } from '@raystack/apsara';
 import { create } from '@bufbuild/protobuf';
 import { useMutation } from '@connectrpc/connect-query';
@@ -25,6 +26,7 @@ import {
   CheckProjectDeleteRequestSchema,
   FrontierServiceQueries
 } from '@raystack/proton/frontier';
+import deleteIcon from '../../assets/delete.svg';
 import inboxStackIcon from '../../assets/inbox-stack.svg';
 import { toastManager } from '@raystack/apsara';
 import { useFrontier } from '../../contexts/FrontierContext';
@@ -41,7 +43,6 @@ import { getColumns, type ProjectMenuPayload } from './components/project-column
 import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
 import { DeleteProjectDialog, type DeleteProjectPayload } from './components/delete-project-dialog';
-import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
 import { AddMemberMenuContent } from './components/add-member-menu';
 import styles from './projects-view.module.css';
 import { useTerminology } from '~/client/hooks/useTerminology';
@@ -334,8 +335,16 @@ export function ProjectsView({
                 </Menu.Submenu>
               )}
               {payload?.canDelete && (
-                <DeleteProjectMenuItem
-                  isChecking={isChecking}
+                <Menu.Item
+                  leadingIcon={
+                    isChecking ? (
+                      <Spinner size={2} color="danger" />
+                    ) : (
+                      <Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />
+                    )
+                  }
+                  closeOnClick={false}
+                  disabled={isChecking}
                   onClick={async () => {
                     await startDelete({
                       projectId: payload.projectId,
@@ -344,7 +353,10 @@ export function ProjectsView({
                     projectMenuHandle.close();
                   }}
                   data-test-id="delete-project-dropdown-item"
-                />
+                  style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
+                >
+                  Delete project
+                </Menu.Item>
               )}
             </Menu.Content>
           );

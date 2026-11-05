@@ -18,7 +18,8 @@ import {
   Dialog,
   IconButton,
   Image,
-  Select
+  Select,
+  Spinner
 } from '@raystack/apsara';
 import deleteIcon from '../../assets/delete.svg';
 import { toastManager } from '@raystack/apsara';
@@ -49,7 +50,6 @@ import {
   DeleteProjectDialog,
   type DeleteProjectPayload
 } from './components/delete-project-dialog';
-import { DeleteProjectMenuItem } from './components/delete-project-menu-item';
 import {
   RemoveMemberDialog,
   type RemoveMemberPayload
@@ -538,11 +538,22 @@ function ProjectActionsMenu({
             </Menu.Item>
           )}
           {canDelete && (
-            <DeleteProjectMenuItem
-              isChecking={isCheckingDelete}
+            <Menu.Item
+              leadingIcon={
+                isCheckingDelete ? (
+                  <Spinner size={2} color="danger" />
+                ) : (
+                  <Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />
+                )
+              }
+              closeOnClick={false}
+              disabled={isCheckingDelete}
               onClick={onDelete}
               data-test-id="frontier-sdk-delete-project-details-btn"
-            />
+              style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
+            >
+              Delete project
+            </Menu.Item>
           )}
         </Menu.Content>
       </Menu>
