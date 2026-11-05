@@ -18,12 +18,14 @@ import {
   Dialog,
   IconButton,
   Image,
-  Select
+  Select,
+  Spinner
 } from '@raystack/apsara';
 import deleteIcon from '../../assets/delete.svg';
 import { toastManager } from '@raystack/apsara';
-import { useQuery } from '@connectrpc/connect-query';
+import { useMutation, useQuery } from '@connectrpc/connect-query';
 import {
+  CheckProjectDeleteRequestSchema,
   FrontierServiceQueries,
   ListProjectGroupsRequestSchema,
   ListProjectUsersRequestSchema,
@@ -34,9 +36,12 @@ import {
 import { create } from '@bufbuild/protobuf';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useDeleteCheck } from '../../hooks/useDeleteCheck';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
+import { DeleteBlockedDialogRoot } from '../../components/delete-blocked-dialog';
+import type { DeleteBlockedPayload } from '../../../shared/types';
 import {
   EditProjectDialog,
   type EditProjectPayload
@@ -73,8 +78,6 @@ interface ProjectUserRolePair {
 
 const memberMenuHandle = Menu.createHandle<MemberMenuPayload>();
 const editProjectDialogHandle = Dialog.createHandle<EditProjectPayload>();
-const deleteProjectDialogHandle =
-  AlertDialog.createHandle<DeleteProjectPayload>();
 const removeMemberDialogHandle =
   AlertDialog.createHandle<RemoveMemberPayload>();
 const updateRoleDialogHandle = AlertDialog.createHandle<UpdateRolePayload>();
@@ -93,6 +96,16 @@ export function ProjectDetailsView({
   onDeleteSuccess
 }: ProjectDetailsViewProps) {
   const { activeOrganization: organization } = useFrontier();
+  // Created per mount: a module-level handle keeps a dialog open across
+  // remounts (https://github.com/mui/base-ui/issues/4951).
+  // TODO @rohanchkrabrty: This is fixed in Base UI v1.7.0. We can update this after Apsara updates
+  const [projectActionsMenuHandle] = useState(() => Menu.createHandle());
+  const [deleteProjectDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteProjectPayload>()
+  );
+  const [deleteBlockedDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteBlockedPayload>()
+  );
 
   const {
     data: project,
@@ -287,6 +300,19 @@ export function ProjectDetailsView({
     onDeleteSuccess?.();
   }, [onDeleteSuccess]);
 
+  const { mutateAsync: checkProjectDelete } = useMutation(
+    FrontierServiceQueries.checkProjectDelete
+  );
+  const { startDelete, isChecking, handleDeleteError } = useDeleteCheck({
+    entity: 'project',
+    check: ({ projectId }) =>
+      checkProjectDelete(
+        create(CheckProjectDeleteRequestSchema, { id: projectId })
+      ),
+    confirmDialogHandle: deleteProjectDialogHandle,
+    blockedDialogHandle: deleteBlockedDialogHandle
+  });
+
   const projectTitle = project?.title || '';
   const projectName = project?.name || '';
 
@@ -314,11 +340,17 @@ export function ProjectDetailsView({
       >
         {!isLoading && (canUpdateProject || canDeleteProject) && (
           <ProjectActionsMenu
+            menuHandle={projectActionsMenuHandle}
             projectId={projectId}
             projectName={projectName}
             projectTitle={projectTitle}
             canUpdate={canUpdateProject}
             canDelete={canDeleteProject}
+            isCheckingDelete={isChecking}
+            onDelete={async () => {
+              await startDelete({ projectId, projectName: projectTitle });
+              projectActionsMenuHandle.close();
+            }}
           />
         )}
       </ViewHeader>
@@ -409,7 +441,7 @@ export function ProjectDetailsView({
                 </Menu.Item>
               ))}
               <Menu.Item
-                leadingIcon={<Image src={deleteIcon as unknown as string} alt="Remove" width={16} height={16} />}
+                leadingIcon={<Image src={deleteIcon as unknown as string} alt="" width={16} height={16} />}
                 onClick={() =>
                   payload &&
                   removeMemberDialogHandle.openWithPayload({
@@ -437,7 +469,9 @@ export function ProjectDetailsView({
       <DeleteProjectDialog
         handle={deleteProjectDialogHandle}
         refetch={handleDeleteSuccess}
+        onDeleteError={handleDeleteError}
       />
+      <DeleteBlockedDialogRoot handle={deleteBlockedDialogHandle} />
       <RemoveMemberDialog
         handle={removeMemberDialogHandle}
         refetch={refetchMembers}
@@ -452,26 +486,30 @@ export function ProjectDetailsView({
 }
 
 interface ProjectActionsMenuProps {
+  menuHandle: ReturnType<typeof Menu.createHandle>;
   projectId: string;
   projectName: string;
   projectTitle: string;
   canUpdate: boolean;
   canDelete: boolean;
+  isCheckingDelete: boolean;
+  onDelete: () => void;
 }
 
-const projectActionsMenuHandle = Menu.createHandle();
-
 function ProjectActionsMenu({
+  menuHandle,
   projectId,
   projectName,
   projectTitle,
   canUpdate,
-  canDelete
+  canDelete,
+  isCheckingDelete,
+  onDelete
 }: ProjectActionsMenuProps) {
   return (
     <>
       <Menu.Trigger
-        handle={projectActionsMenuHandle}
+        handle={menuHandle}
         render={
           <IconButton
             size={2}
@@ -482,7 +520,7 @@ function ProjectActionsMenu({
       >
         <DotsHorizontalIcon />
       </Menu.Trigger>
-      <Menu handle={projectActionsMenuHandle} modal={false}>
+      <Menu handle={menuHandle} modal={false}>
         <Menu.Content align="start" className={styles.menuContent}>
           {canUpdate && (
             <Menu.Item
@@ -501,13 +539,16 @@ function ProjectActionsMenu({
           )}
           {canDelete && (
             <Menu.Item
-              leadingIcon={<Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />}
-              onClick={() =>
-                deleteProjectDialogHandle.openWithPayload({
-                  projectId,
-                  projectName: projectTitle
-                })
+              leadingIcon={
+                isCheckingDelete ? (
+                  <Spinner size={2} color="danger" />
+                ) : (
+                  <Image src={deleteIcon as unknown as string} alt="" width={16} height={16} />
+                )
               }
+              closeOnClick={false}
+              disabled={isCheckingDelete}
+              onClick={onDelete}
               data-test-id="frontier-sdk-delete-project-details-btn"
               style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
             >

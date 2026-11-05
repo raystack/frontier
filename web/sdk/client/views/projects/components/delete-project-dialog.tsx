@@ -14,7 +14,6 @@ import {
   DeleteProjectRequestSchema
 } from '@raystack/proton/frontier';
 import { create } from '@bufbuild/protobuf';
-import { handleConnectError } from '~/utils/error';
 
 export interface DeleteProjectPayload {
   projectId: string;
@@ -26,9 +25,14 @@ type AlertDialogHandle = ReturnType<typeof AlertDialog.createHandle<DeleteProjec
 export interface DeleteProjectDialogProps {
   handle: AlertDialogHandle;
   refetch: () => void;
+  onDeleteError: (error: unknown) => void;
 }
 
-export function DeleteProjectDialog({ handle, refetch }: DeleteProjectDialogProps) {
+export function DeleteProjectDialog({
+  handle,
+  refetch,
+  onDeleteError
+}: DeleteProjectDialogProps) {
   const { activeOrganization: organization } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,11 +51,7 @@ export function DeleteProjectDialog({ handle, refetch }: DeleteProjectDialogProp
       refetch();
       handle.close();
     } catch (error) {
-      handleConnectError(error, {
-        PermissionDenied: () => toastManager.add({ title: "You don't have permission to perform this action", type: 'error' }),
-        NotFound: (err) => toastManager.add({ title: 'Not found', description: err.message, type: 'error' }),
-        Default: (err) => toastManager.add({ title: 'Something went wrong', description: err.message, type: 'error' }),
-      });
+      onDeleteError(error);
     } finally {
       setIsLoading(false);
     }

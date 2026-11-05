@@ -23,6 +23,10 @@ const DEFAULT_COPY: Record<
   organization: entityLabel => ({
     title: `Unable to delete ${entityLabel}`,
     description: `Please resolve the following issues before deleting this ${entityLabel}:`
+  }),
+  project: entityLabel => ({
+    title: `Unable to delete ${entityLabel}`,
+    description: `This ${entityLabel} cannot be deleted because it contains resources that need to be addressed first.`
   })
 };
 

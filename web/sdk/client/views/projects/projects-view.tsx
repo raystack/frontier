@@ -17,18 +17,28 @@ import {
   AlertDialog,
   Image,
   Menu,
-  Select
+  Select,
+  Spinner
 } from '@raystack/apsara';
+import { create } from '@bufbuild/protobuf';
+import { useMutation } from '@connectrpc/connect-query';
+import {
+  CheckProjectDeleteRequestSchema,
+  FrontierServiceQueries
+} from '@raystack/proton/frontier';
 import deleteIcon from '../../assets/delete.svg';
 import inboxStackIcon from '../../assets/inbox-stack.svg';
 import { toastManager } from '@raystack/apsara';
 import { useFrontier } from '../../contexts/FrontierContext';
 import { useOrganizationProjects } from '../../hooks/useOrganizationProjects';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useDeleteCheck } from '../../hooks/useDeleteCheck';
 import { AuthTooltipMessage } from '../../utils';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { ViewContainer } from '../../components/view-container';
 import { ViewHeader } from '../../components/view-header';
+import { DeleteBlockedDialogRoot } from '../../components/delete-blocked-dialog';
+import type { DeleteBlockedPayload } from '../../../shared/types';
 import { getColumns, type ProjectMenuPayload } from './components/project-columns';
 import { AddProjectDialog } from './components/add-project-dialog';
 import { EditProjectDialog, type EditProjectPayload } from './components/edit-project-dialog';
@@ -42,10 +52,8 @@ const projectsFilterOptions = [
   { value: 'all-projects', label: 'All Projects' }
 ];
 
-const projectMenuHandle = Menu.createHandle<ProjectMenuPayload>();
 const addProjectDialogHandle = Dialog.createHandle();
 const editProjectDialogHandle = Dialog.createHandle<EditProjectPayload>();
-const deleteProjectDialogHandle = AlertDialog.createHandle<DeleteProjectPayload>();
 
 export interface ProjectsViewProps {
   title?: string;
@@ -74,6 +82,30 @@ export function ProjectsView({
 
   const { activeOrganization: organization } = useFrontier();
   const t = useTerminology();
+  // Created per mount: a module-level handle keeps a dialog open across
+  // remounts (https://github.com/mui/base-ui/issues/4951).
+  // TODO @rohanchkrabrty: This is fixed in Base UI v1.7.0. We can update this after Apsara updates
+  const [projectMenuHandle] = useState(() =>
+    Menu.createHandle<ProjectMenuPayload>()
+  );
+  const [deleteProjectDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteProjectPayload>()
+  );
+  const [deleteBlockedDialogHandle] = useState(() =>
+    AlertDialog.createHandle<DeleteBlockedPayload>()
+  );
+  const { mutateAsync: checkProjectDelete } = useMutation(
+    FrontierServiceQueries.checkProjectDelete
+  );
+  const { startDelete, isChecking, handleDeleteError } = useDeleteCheck({
+    entity: 'project',
+    check: ({ projectId }) =>
+      checkProjectDelete(
+        create(CheckProjectDeleteRequestSchema, { id: projectId })
+      ),
+    confirmDialogHandle: deleteProjectDialogHandle,
+    blockedDialogHandle: deleteBlockedDialogHandle
+  });
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
@@ -136,7 +168,7 @@ export function ProjectsView({
         userAccessOnProject,
         menuHandle: projectMenuHandle
       }),
-    [userAccessOnProject]
+    [userAccessOnProject, projectMenuHandle]
   );
 
   if (hasNoProjects) {
@@ -304,13 +336,22 @@ export function ProjectsView({
               )}
               {payload?.canDelete && (
                 <Menu.Item
-                  leadingIcon={<Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />}
-                  onClick={() =>
-                    deleteProjectDialogHandle.openWithPayload({
+                  leadingIcon={
+                    isChecking ? (
+                      <Spinner size={2} color="danger" />
+                    ) : (
+                      <Image src={deleteIcon as unknown as string} alt="" width={16} height={16} />
+                    )
+                  }
+                  closeOnClick={false}
+                  disabled={isChecking}
+                  onClick={async () => {
+                    await startDelete({
                       projectId: payload.projectId,
                       projectName: payload.title
-                    })
-                  }
+                    });
+                    projectMenuHandle.close();
+                  }}
                   data-test-id="delete-project-dropdown-item"
                   style={{ color: 'var(--rs-color-foreground-danger-primary)' }}
                 >
@@ -324,7 +365,12 @@ export function ProjectsView({
 
       <AddProjectDialog handle={addProjectDialogHandle} refetch={refetch} />
       <EditProjectDialog handle={editProjectDialogHandle} refetch={refetch} />
-      <DeleteProjectDialog handle={deleteProjectDialogHandle} refetch={refetch} />
+      <DeleteProjectDialog
+        handle={deleteProjectDialogHandle}
+        refetch={refetch}
+        onDeleteError={handleDeleteError}
+      />
+      <DeleteBlockedDialogRoot handle={deleteBlockedDialogHandle} />
     </ViewContainer>
   );
 }
