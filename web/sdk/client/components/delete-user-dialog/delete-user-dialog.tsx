@@ -109,8 +109,7 @@ export function DeleteUserDialog({
     <>
       {trigger?.({ onClick: startDelete, loading: isChecking })}
       <AlertDialog handle={dialogHandle}>
-        {({ payload: rawPayload }) => {
-          const payload = rawPayload as DeleteUserPayload | undefined;
+        {({ payload }) => {
           if (!payload) return null;
           return payload.step === 'blocked' ? (
             <DeleteBlockedContent
