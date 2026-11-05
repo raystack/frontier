@@ -59,12 +59,12 @@ type FormData = yup.InferType<typeof profileSchema>;
 
 export interface ProfileViewProps {
   enableUserDelete?: boolean;
-  onAccountDeleted?: () => void;
+  onDeleteSuccess?: () => void;
 }
 
 export function ProfileView({
   enableUserDelete = false,
-  onAccountDeleted
+  onDeleteSuccess
 }: ProfileViewProps = {}) {
   const { user, isUserLoading: isLoading } = useFrontier();
   const queryClient = useQueryClient();
@@ -226,7 +226,7 @@ export function ProfileView({
                         Delete Account
                       </Button>
                     )}
-                    onDeleted={() => onAccountDeleted?.()}
+                    onDeleted={() => onDeleteSuccess?.()}
                   />
                 </>
               )}
