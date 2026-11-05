@@ -11,6 +11,7 @@ import {
 import {
   AlertDialog,
   Button,
+  Callout,
   Checkbox,
   Field,
   Flex,
@@ -110,39 +111,43 @@ function DeleteOrganizationForm({
         <AlertDialog.Title>Delete {orgLabel}</AlertDialog.Title>
       </AlertDialog.Header>
       <AlertDialog.Body>
-        <Flex direction="column" gap={6}>
-          <Text size="small" variant="secondary">
-            This action can not be undone. This will permanently delete all the
-            projects and resources in {organization?.title}.
-          </Text>
-          {tokenBalance > 0 ? (
-            <Text size="small" variant="danger">
-              This {orgLabelLower} still has unused tokens, and deleting it
-              forfeits them. If any of them were purchased, our support team
-              will reach out to you to settle them.
-            </Text>
-          ) : null}
-          <Field
-            label={`Please type name of the ${orgLabel} to confirm.`}
-            error={errors.title ? String(errors.title.message) : undefined}
-          >
-            <Input
-              size="large"
-              {...register('title')}
-              placeholder={`Provide the ${orgLabel} name`}
-            />
-          </Field>
-          <Flex gap={3} align="start">
-            <Checkbox
-              checked={isAcknowledged}
-              onCheckedChange={(checked: boolean) => setIsAcknowledged(checked)}
-              data-test-id="frontier-sdk-delete-organization-checkbox"
-            />
+        <Flex direction="column" gap={5}>
+          <Flex direction="column" gap={6}>
             <Text size="small" variant="secondary">
-              I acknowledge I understand that all of the {orgLabel} data will be
-              deleted and want to proceed.
+              This action can not be undone. This will permanently delete all
+              the projects and resources in {organization?.title}.
             </Text>
+            <Field
+              label={`Please type name of the ${orgLabel} to confirm.`}
+              error={errors.title ? String(errors.title.message) : undefined}
+            >
+              <Input
+                size="large"
+                {...register('title')}
+                placeholder={`Provide the ${orgLabel} name`}
+              />
+            </Field>
+            <Flex gap={3} align="start">
+              <Checkbox
+                checked={isAcknowledged}
+                onCheckedChange={(checked: boolean) =>
+                  setIsAcknowledged(checked)
+                }
+                data-test-id="frontier-sdk-delete-organization-checkbox"
+              />
+              <Text size="small" variant="secondary">
+                I acknowledge I understand that all of the {orgLabel} data will
+                be deleted and want to proceed.
+              </Text>
+            </Flex>
           </Flex>
+          {tokenBalance > 0 ? (
+            <Callout variant="outline" className={styles.callout}>
+              Any unused complimentary tokens will be forfeited. Purchased but
+              unused tokens will be refunded to your original payment method
+              within 15–30 days after {orgLabelLower} deletion.
+            </Callout>
+          ) : null}
         </Flex>
       </AlertDialog.Body>
       <AlertDialog.Footer>

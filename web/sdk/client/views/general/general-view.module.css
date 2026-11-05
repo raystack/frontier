@@ -18,3 +18,8 @@
 .deleteDialog {
   width: 480px !important;
 }
+
+.callout {
+  width: 100%;
+  box-sizing: border-box;
+}
