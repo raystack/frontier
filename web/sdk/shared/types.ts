@@ -72,10 +72,17 @@ export interface DeleteBlocker {
   count?: number;
 }
 
-export type DeleteBlockedPayload = {
-  entity: 'organization' | 'project';
-  blockers: DeleteBlocker[];
-};
+export type DeleteBlockedPayload =
+  | { entity: 'organization' | 'project'; blockers: DeleteBlocker[] }
+  | {
+      entity: 'user';
+      organizationsToDelete: {
+        id: string;
+        title: string;
+        blockers: DeleteBlocker[];
+      }[];
+      soleOwnerOf: { id: string; title: string }[];
+    };
 
 export type DeleteBlockedContext = DeleteBlockedPayload & {
   entityLabel: string;

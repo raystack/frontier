@@ -8,27 +8,71 @@ import type {
   DeleteBlockedPayload
 } from '../../../shared/types';
 import { useFrontier } from '../../contexts/FrontierContext';
-import { useTerminology } from '../../hooks/useTerminology';
-import { blockerLines } from '../../utils/delete-blockers';
+import {
+  useTerminology,
+  type TerminologyMap
+} from '../../hooks/useTerminology';
+import {
+  GENERIC_DELETE_BLOCKED_MESSAGE,
+  blockerLines,
+  type BlockerWording
+} from '../../utils/delete-blockers';
 import styles from './delete-blocked-dialog.module.css';
 
 export type DeleteBlockedDialogHandle = ReturnType<
   typeof AlertDialog.createHandle<DeleteBlockedPayload>
 >;
 
-const DEFAULT_COPY: Record<
-  DeleteBlockedPayload['entity'],
-  (entityLabel: string) => { title: string; description: string }
-> = {
-  organization: entityLabel => ({
-    title: `Unable to delete ${entityLabel}`,
-    description: `Please resolve the following issues before deleting this ${entityLabel}:`
-  }),
-  project: entityLabel => ({
-    title: `Unable to delete ${entityLabel}`,
-    description: `This ${entityLabel} cannot be deleted because it contains resources that need to be addressed first.`
-  })
-};
+function defaultContent(
+  context: DeleteBlockedContext,
+  t: TerminologyMap,
+  messages: Record<string, string>,
+  wording: BlockerWording
+): { title: string; description: string; lines: string[] } {
+  const { entityLabel } = context;
+  switch (context.entity) {
+    case 'organization':
+      return {
+        title: `Unable to delete ${entityLabel}`,
+        description: `Please resolve the following issues before deleting this ${entityLabel}:`,
+        lines: blockerLines(context.blockers, messages, wording)
+      };
+    case 'project':
+      return {
+        title: `Unable to delete ${entityLabel}`,
+        description: `This ${entityLabel} cannot be deleted because it contains resources that need to be addressed first.`,
+        lines: blockerLines(context.blockers, messages, wording)
+      };
+    case 'user': {
+      const org = t.organization({ case: 'lower' });
+      const blockers = context.organizationsToDelete.flatMap(
+        organization => organization.blockers
+      );
+      if (blockers.length === 0 && context.soleOwnerOf.length > 0) {
+        return {
+          title: `Transfer ${org} ownership`,
+          description: `You’re the only owner of one or more ${t.organization({
+            case: 'lower',
+            plural: true
+          })}. Before deleting your account, transfer ownership of each affected ${org} to another member.\n\nOnce ownership has been transferred, you can proceed with account deletion.`,
+          lines: []
+        };
+      }
+      const orgs = t.organization({
+        case: 'lower',
+        plural: context.organizationsToDelete.length > 1
+      });
+      return {
+        title: 'Unable to delete account',
+        description: `Please resolve the following issues in your ${orgs} before deleting your account:`,
+        lines:
+          blockers.length > 0
+            ? blockerLines(blockers, messages, wording)
+            : [GENERIC_DELETE_BLOCKED_MESSAGE]
+      };
+    }
+  }
+}
 
 const DeleteBlockedDialogContext = createContext<DeleteBlockedContext | null>(
   null
@@ -55,7 +99,7 @@ export function DeleteBlockedDialogRoot({
   );
 }
 
-function DeleteBlockedContent({
+export function DeleteBlockedContent({
   payload,
   close
 }: {
@@ -100,21 +144,28 @@ export function DeleteBlockedDialog({
     );
   }
 
-  const copy = DEFAULT_COPY[context.entity](context.entityLabel);
-  const lines = blockerLines(blockers ?? context.blockers, messages, {
-    organizationLabel: t.organization({ case: 'lower' }),
+  const severalOrgs =
+    context.entity === 'user' && context.organizationsToDelete.length > 1;
+  const wording = {
+    organizationRef: severalOrgs
+      ? `your ${t.organization({ case: 'lower', plural: true })}`
+      : `this ${t.organization({ case: 'lower' })}`,
     basePlanTitle: basePlan?.title
-  });
+  };
+  const content = defaultContent(context, t, messages, wording);
+  const lines = blockers
+    ? blockerLines(blockers, messages, wording)
+    : content.lines;
 
   return (
     <AlertDialog.Content className={styles.content}>
       <AlertDialog.Header>
-        <AlertDialog.Title>{title ?? copy.title}</AlertDialog.Title>
+        <AlertDialog.Title>{title ?? content.title}</AlertDialog.Title>
       </AlertDialog.Header>
       <AlertDialog.Body>
         <Flex direction="column" gap={5}>
-          <Text size="small" variant="secondary">
-            {description ?? copy.description}
+          <Text size="small" variant="secondary" className={styles.description}>
+            {description ?? content.description}
           </Text>
           {lines.length > 0 && (
             <Text

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AlertDialog, toastManager } from '@raystack/apsara';
 import type { Blocker } from '@raystack/proton/frontier';
-import type { DeleteBlocker, DeleteBlockedPayload } from '../../shared/types';
+import type { DeleteBlocker } from '../../shared/types';
 import type { DeleteBlockedDialogHandle } from '../components/delete-blocked-dialog';
 import {
   GENERIC_DELETE_BLOCKED_MESSAGE,
@@ -13,7 +13,7 @@ import { useTerminology } from './useTerminology';
 import { handleConnectError } from '~/utils/error';
 
 export interface UseDeleteCheckOptions<TPayload> {
-  entity: DeleteBlockedPayload['entity'];
+  entity: 'organization' | 'project';
   check: (
     payload: TPayload
   ) => Promise<{ canDelete: boolean; blockers: Blocker[] }>;

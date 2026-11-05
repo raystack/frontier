@@ -2,6 +2,10 @@
   width: 480px !important;
 }
 
+.description {
+  white-space: pre-line;
+}
+
 .list {
   margin: 0;
   padding-left: var(--rs-space-5);
