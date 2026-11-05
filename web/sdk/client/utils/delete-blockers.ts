@@ -2,8 +2,6 @@ import { ConnectError } from '@connectrpc/connect';
 import type { Blocker } from '@raystack/proton/frontier';
 import type { DeleteBlocker } from '../../shared/types';
 
-export const ORGANIZATION_DISABLED = 'ORGANIZATION_DISABLED';
-
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
@@ -15,8 +13,6 @@ export interface BlockerWording {
 }
 
 const DEFAULT_LINES: Record<string, (wording: BlockerWording) => string> = {
-  [ORGANIZATION_DISABLED]: ({ organizationLabel }) =>
-    `Disabled ${organizationLabel}: Contact your administrator to enable this ${organizationLabel} before deleting it.`,
   ACTIVE_SUBSCRIPTION: ({ organizationLabel, basePlanTitle }) =>
     `Active subscription: Downgrade your subscription to the ${
       basePlanTitle || 'standard plan'
@@ -55,15 +51,19 @@ export function toDeleteBlockers(blockers: Blocker[]): DeleteBlocker[] {
   return blockers.map(({ type, subject, count }) => ({ type, subject, count }));
 }
 
-export function blockersFromError(err: ConnectError): DeleteBlocker[] {
-  const failures = err.details.filter(
+function preconditionFailures(err: ConnectError) {
+  return err.details.filter(
     detail =>
       'type' in detail && detail.type === 'google.rpc.PreconditionFailure'
   );
-  if (failures.length === 0) {
-    return [{ type: ORGANIZATION_DISABLED, subject: '' }];
-  }
-  return failures.flatMap(detail => {
+}
+
+export function isOrganizationDisabled(err: ConnectError): boolean {
+  return preconditionFailures(err).length === 0;
+}
+
+export function blockersFromError(err: ConnectError): DeleteBlocker[] {
+  return preconditionFailures(err).flatMap(detail => {
     const debug = (detail as { debug?: { violations?: unknown } }).debug;
     const violations = debug?.violations;
     return Array.isArray(violations)

@@ -6,6 +6,7 @@ import type { DeleteBlockedDialogHandle } from '../components/delete-blocked-dia
 import {
   GENERIC_DELETE_BLOCKED_MESSAGE,
   blockersFromError,
+  isOrganizationDisabled,
   toDeleteBlockers
 } from '../utils/delete-blockers';
 import { useTerminology } from './useTerminology';
@@ -37,6 +38,15 @@ export function useDeleteCheck<TPayload>({
   function handleDeleteError(error: unknown) {
     handleConnectError(error, {
       FailedPrecondition: err => {
+        if (isOrganizationDisabled(err)) {
+          const org = t.organization({ case: 'lower' });
+          toastManager.add({
+            title: `Unable to delete ${t[entity]({ case: 'lower' })}`,
+            description: `This ${org} is disabled. Contact your administrator to enable it, then try again.`,
+            type: 'error'
+          });
+          return;
+        }
         const blockers = blockersFromError(err);
         if (blockers.length > 0) {
           showBlocked(blockers);
