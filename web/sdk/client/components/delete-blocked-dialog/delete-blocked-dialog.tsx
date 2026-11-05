@@ -45,7 +45,10 @@ function defaultContent(
       };
     case 'user': {
       const org = t.organization({ case: 'lower' });
-      if (context.soleOwnerOf.length > 0) {
+      const blockers = context.organizationsToDelete.flatMap(
+        organization => organization.blockers
+      );
+      if (blockers.length === 0 && context.soleOwnerOf.length > 0) {
         return {
           title: `Transfer ${org} ownership`,
           description: `You’re the only owner of one or more ${t.organization({
@@ -55,9 +58,6 @@ function defaultContent(
           lines: []
         };
       }
-      const blockers = context.organizationsToDelete.flatMap(
-        organization => organization.blockers
-      );
       const orgs = t.organization({
         case: 'lower',
         plural: context.organizationsToDelete.length > 1
@@ -144,8 +144,12 @@ export function DeleteBlockedDialog({
     );
   }
 
+  const severalOrgs =
+    context.entity === 'user' && context.organizationsToDelete.length > 1;
   const wording = {
-    organizationLabel: t.organization({ case: 'lower' }),
+    organizationRef: severalOrgs
+      ? `your ${t.organization({ case: 'lower', plural: true })}`
+      : `this ${t.organization({ case: 'lower' })}`,
     basePlanTitle: basePlan?.title
   };
   const content = defaultContent(context, t, messages, wording);

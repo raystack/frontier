@@ -7,22 +7,23 @@ export const SOLE_OWNER_WITH_MEMBERS = 'SOLE_OWNER_WITH_MEMBERS';
 export const GENERIC_DELETE_BLOCKED_MESSAGE =
   'Something is blocking the delete right now. Please try again later or contact support.';
 
-// Words that come from the host app: what it calls an organization
-// and what it calls its base plan.
+// How the lines name the organization ("this workspace", or "your
+// workspaces" for an account delete that several of them block) and
+// what the host app calls its base plan.
 export interface BlockerWording {
-  organizationLabel: string;
+  organizationRef: string;
   basePlanTitle?: string;
 }
 
 const DEFAULT_LINES: Record<string, (wording: BlockerWording) => string> = {
-  ACTIVE_SUBSCRIPTION: ({ organizationLabel, basePlanTitle }) =>
+  ACTIVE_SUBSCRIPTION: ({ organizationRef, basePlanTitle }) =>
     `Active subscription: Downgrade your subscription to the ${
       basePlanTitle || 'standard plan'
-    } before deleting this ${organizationLabel}.`,
-  UNPAID_INVOICE: ({ organizationLabel }) =>
-    `Outstanding invoice: Pay all outstanding invoices before deleting this ${organizationLabel}.`,
-  NEGATIVE_TOKEN_BALANCE: ({ organizationLabel }) =>
-    `Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting this ${organizationLabel}.`,
+    } before deleting ${organizationRef}.`,
+  UNPAID_INVOICE: ({ organizationRef }) =>
+    `Outstanding invoice: Pay all outstanding invoices before deleting ${organizationRef}.`,
+  NEGATIVE_TOKEN_BALANCE: ({ organizationRef }) =>
+    `Negative token balance: Purchase enough tokens to clear your outstanding token balance before deleting ${organizationRef}.`,
   RESOURCES_EXIST: () =>
     'Existing resources: Delete the remaining resources, then try again.'
 };
