@@ -183,7 +183,7 @@ function DeleteUserForm({ onDeleted, onDeleteRefused }: DeleteUserFormProps) {
               data-test-id="frontier-sdk-delete-account-email-input"
             />
           </Field>
-          <Flex gap={3} align="start">
+          <Flex gap={3} align="start" render={<label />}>
             <Checkbox
               checked={isAcknowledged}
               onCheckedChange={(checked: boolean) => setIsAcknowledged(checked)}
