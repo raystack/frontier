@@ -17,7 +17,7 @@ export function DeleteProjectMenuItem({
     <Menu.Item
       leadingIcon={
         isChecking ? (
-          <Spinner size={2} />
+          <Spinner size={2} color="danger" />
         ) : (
           <Image src={deleteIcon as unknown as string} alt="Delete" width={16} height={16} />
         )
