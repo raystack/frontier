@@ -2,6 +2,7 @@ package product_test
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/product/mocks"
 	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stretchr/testify/mock"
 	"github.com/stripe/stripe-go/v79/client"
 )
@@ -1222,6 +1224,195 @@ func TestService_UpsertFeature(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("UpsertFeature() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_UpdateFeature(t *testing.T) {
+	ctx := context.Background()
+	tests := []struct {
+		name    string
+		feature product.Feature
+		want    product.Feature
+		wantErr error
+		setup   func() *product.Service
+	}{
+		{
+			name: "should write title, metadata and product ids as given",
+			feature: product.Feature{
+				ID:         "1",
+				Name:       "feature1",
+				ProductIDs: []string{"2", "2"},
+			},
+			want: product.Feature{
+				ID:         "1",
+				Name:       "feature1",
+				ProductIDs: []string{"2"},
+				Metadata:   metadata.Metadata{},
+			},
+			setup: func() *product.Service {
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				mockFeatureRepo.EXPECT().GetByName(ctx, "feature1").Return(product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Feature 1",
+					ProductIDs: []string{"1"},
+					Metadata:   metadata.Metadata{"info": "tooltip"},
+				}, nil)
+				mockFeatureRepo.EXPECT().UpdateByName(ctx, product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					ProductIDs: []string{"2"},
+					Metadata:   metadata.Metadata{},
+				}).Return(product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					ProductIDs: []string{"2"},
+					Metadata:   metadata.Metadata{},
+				}, nil)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+		{
+			name: "should write empty metadata when metadata is nil",
+			feature: product.Feature{
+				Name:     "feature1",
+				Title:    "Feature 1",
+				Metadata: nil,
+			},
+			want: product.Feature{
+				ID:       "1",
+				Name:     "feature1",
+				Title:    "Feature 1",
+				Metadata: metadata.Metadata{},
+			},
+			setup: func() *product.Service {
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				mockFeatureRepo.EXPECT().GetByName(ctx, "feature1").Return(product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Feature 1",
+					ProductIDs: []string{"1"},
+					Metadata:   metadata.Metadata{"info": "tooltip"},
+				}, nil)
+				mockFeatureRepo.EXPECT().UpdateByName(ctx, product.Feature{
+					ID:       "1",
+					Name:     "feature1",
+					Title:    "Feature 1",
+					Metadata: metadata.Metadata{},
+				}).Return(product.Feature{
+					ID:       "1",
+					Name:     "feature1",
+					Title:    "Feature 1",
+					Metadata: metadata.Metadata{},
+				}, nil)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+		{
+			name: "should write a non-empty title and metadata unchanged",
+			feature: product.Feature{
+				Name:       "feature1",
+				Title:      "Audit logs",
+				ProductIDs: []string{"1"},
+				Metadata:   metadata.Metadata{"info": "x"},
+			},
+			want: product.Feature{
+				ID:         "1",
+				Name:       "feature1",
+				Title:      "Audit logs",
+				ProductIDs: []string{"1"},
+				Metadata:   metadata.Metadata{"info": "x"},
+			},
+			setup: func() *product.Service {
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				mockFeatureRepo.EXPECT().GetByName(ctx, "feature1").Return(product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Feature 1",
+					ProductIDs: []string{"1"},
+					Metadata:   metadata.Metadata{"info": "tooltip"},
+				}, nil)
+				mockFeatureRepo.EXPECT().UpdateByName(ctx, product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Audit logs",
+					ProductIDs: []string{"1"},
+					Metadata:   metadata.Metadata{"info": "x"},
+				}).Return(product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Audit logs",
+					ProductIDs: []string{"1"},
+					Metadata:   metadata.Metadata{"info": "x"},
+				}, nil)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+		{
+			name: "should look up a feature by name even when the name looks like a uuid",
+			feature: product.Feature{
+				Name:  "7f1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+				Title: "Feature 1",
+			},
+			want: product.Feature{
+				ID:       "1",
+				Name:     "7f1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+				Title:    "Feature 1",
+				Metadata: metadata.Metadata{},
+			},
+			setup: func() *product.Service {
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				mockFeatureRepo.EXPECT().GetByName(ctx, "7f1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f").Return(product.Feature{
+					ID:   "1",
+					Name: "7f1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+				}, nil)
+				mockFeatureRepo.EXPECT().UpdateByName(ctx, product.Feature{
+					ID:       "1",
+					Name:     "7f1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+					Title:    "Feature 1",
+					Metadata: metadata.Metadata{},
+				}).Return(product.Feature{
+					ID:       "1",
+					Name:     "7f1c2d3e-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+					Title:    "Feature 1",
+					Metadata: metadata.Metadata{},
+				}, nil)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+		{
+			name: "should return not found if feature does not exist",
+			feature: product.Feature{
+				Name: "feature1",
+			},
+			wantErr: product.ErrFeatureNotFound,
+			setup: func() *product.Service {
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				mockFeatureRepo.EXPECT().GetByName(ctx, "feature1").Return(product.Feature{}, product.ErrFeatureNotFound)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+		{
+			name:    "should return invalid detail if name is empty",
+			feature: product.Feature{},
+			wantErr: product.ErrInvalidFeatureDetail,
+			setup: func() *product.Service {
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			got, err := s.UpdateFeature(ctx, tt.feature)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("UpdateFeature() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("UpdateFeature() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
