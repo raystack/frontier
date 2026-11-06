@@ -205,3 +205,49 @@ func TestBillingFeatureReconcilerValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestBillingFeatureReconcilerExport(t *testing.T) {
+	newAPI := func(t *testing.T) *fakeBillingFeatureAPI {
+		t.Helper()
+		return &fakeBillingFeatureAPI{features: []*frontierv1beta1.Feature{
+			featurePB(t, "f2", "workflows", "", nil, "p1"),
+			featurePB(t, "f1", "audit_logs", "Audit Logs", map[string]any{
+				"info":   "help",
+				"rank":   5,
+				"limits": map[string]any{"seats": 10, "plan": "pro"},
+				"tags":   []any{"beta", 2},
+			}, "p1", "p2"),
+			featurePB(t, "f3", "ab", "Short", nil),
+		}}
+	}
+
+	t.Run("writes in scope features sorted by name and leaves out empty title and metadata", func(t *testing.T) {
+		spec, err := NewBillingFeatureReconciler(newAPI(t), "").Export(context.Background())
+
+		assert.NoError(t, err)
+		assert.Equal(t, []BillingFeatureSpec{
+			{Name: "audit_logs", Title: "Audit Logs", Metadata: map[string]any{
+				"info":   "help",
+				"rank":   float64(5),
+				"limits": map[string]any{"seats": float64(10), "plan": "pro"},
+				"tags":   []any{"beta", float64(2)},
+			}},
+			{Name: "workflows"},
+		}, spec)
+	})
+
+	t.Run("reconciling the export plans no changes", func(t *testing.T) {
+		api := newAPI(t)
+		registry := map[string]Reconciler{KindBillingFeature: NewBillingFeatureReconciler(api, "")}
+
+		out, err := Export(context.Background(), registry, KindBillingFeature)
+		assert.NoError(t, err)
+		assert.NotContains(t, string(out), "product")
+
+		reports, err := Run(context.Background(), registry, out, true)
+		assert.NoError(t, err)
+		if assert.Len(t, reports, 1) {
+			assert.Empty(t, reports[0].Planned)
+		}
+	})
+}

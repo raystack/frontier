@@ -3,6 +3,7 @@ package reconcile
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -84,6 +85,25 @@ func (r *BillingFeatureReconciler) Reconcile(ctx context.Context, spec []byte, d
 		rep.Applied++
 	}
 	return rep, nil
+}
+
+func (r *BillingFeatureReconciler) Export(ctx context.Context) (any, error) {
+	all, err := r.fetchCurrent(ctx)
+	if err != nil {
+		return nil, err
+	}
+	current, _ := splitOutOfScopeFeatures(all)
+	sort.Slice(current, func(i, j int) bool { return current[i].Name < current[j].Name })
+
+	specs := make([]BillingFeatureSpec, 0, len(current))
+	for _, c := range current {
+		entry := BillingFeatureSpec{Name: c.Name, Title: c.Title}
+		if len(c.Metadata) > 0 {
+			entry.Metadata = c.Metadata
+		}
+		specs = append(specs, entry)
+	}
+	return specs, nil
 }
 
 func (r *BillingFeatureReconciler) fetchCurrent(ctx context.Context) ([]currentBillingFeature, error) {
