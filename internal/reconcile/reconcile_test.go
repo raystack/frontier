@@ -157,3 +157,20 @@ func TestRun_ReturnsPartialReportOnError(t *testing.T) {
 		assert.Len(t, reports[0].Planned, 3)
 	}
 }
+
+func TestRun_BillingProductBeforeBillingFeatureFailsFast(t *testing.T) {
+	featureAPI := &fakeBillingFeatureAPI{}
+	productAPI := &fakeBillingProductAPI{}
+	registry := map[string]Reconciler{
+		KindBillingFeature: NewBillingFeatureReconciler(featureAPI, ""),
+		KindBillingProduct: NewBillingProductReconciler(productAPI, ""),
+	}
+
+	_, err := Run(context.Background(), registry, []byte("kind: BillingProduct\nspec: []\n---\nkind: BillingFeature\nspec: []\n"), false)
+
+	assert.ErrorContains(t, err, `kind "BillingFeature" must come before kind "BillingProduct"`)
+	assert.Empty(t, featureAPI.created)
+
+	_, err = Run(context.Background(), registry, []byte("kind: BillingFeature\nspec: []\n---\nkind: BillingProduct\nspec: []\n"), true)
+	assert.NoError(t, err)
+}
