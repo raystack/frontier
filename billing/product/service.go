@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	billingerrors "github.com/raystack/frontier/billing/errors"
+	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/stripe/stripe-go/v79/client"
 )
@@ -592,6 +593,24 @@ func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, 
 	}
 	if len(feature.Metadata) > 0 {
 		existingFeature.Metadata = feature.Metadata
+	}
+	return s.featureRepository.UpdateByName(ctx, existingFeature)
+}
+
+func (s *Service) UpdateFeature(ctx context.Context, feature Feature) (Feature, error) {
+	if len(feature.Name) == 0 {
+		return Feature{}, fmt.Errorf("feature name is required: %w", ErrInvalidFeatureDetail)
+	}
+	existingFeature, err := s.featureRepository.GetByName(ctx, feature.Name)
+	if err != nil {
+		return Feature{}, err
+	}
+
+	existingFeature.Title = feature.Title
+	existingFeature.ProductIDs = utils.Deduplicate(feature.ProductIDs)
+	existingFeature.Metadata = feature.Metadata
+	if existingFeature.Metadata == nil {
+		existingFeature.Metadata = metadata.Metadata{}
 	}
 	return s.featureRepository.UpdateByName(ctx, existingFeature)
 }
