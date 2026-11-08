@@ -526,6 +526,35 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 	}
 }
 
+func (s *GroupRepositoryTestSuite) TestUpdateMetadataHandling() {
+	created, err := s.repository.Create(s.ctx, group.Group{
+		Name:           "meta-handling-" + uuid.NewString()[:8],
+		Title:          "before",
+		OrganizationID: s.orgs[0].ID,
+		Metadata:       metadata.Metadata{"team": "core", "size": "10"},
+	})
+	s.Require().NoError(err)
+
+	s.Run("keeps stored metadata when metadata is nil", func() {
+		got, err := s.repository.UpdateByID(s.ctx, group.Group{ID: created.ID, Name: created.Name, Title: "after"})
+		s.Require().NoError(err)
+		s.Equal("after", got.Title)
+		s.Equal(metadata.Metadata{"team": "core", "size": "10"}, got.Metadata)
+	})
+
+	s.Run("replaces stored metadata when metadata is set", func() {
+		got, err := s.repository.UpdateByID(s.ctx, group.Group{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
+		s.Require().NoError(err)
+		s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
+	})
+
+	s.Run("clears stored metadata when metadata is empty", func() {
+		got, err := s.repository.UpdateByID(s.ctx, group.Group{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{}})
+		s.Require().NoError(err)
+		s.Equal(metadata.Metadata{}, got.Metadata)
+	})
+}
+
 func (s *GroupRepositoryTestSuite) TestSetState() {
 	type testCase struct {
 		Description   string
