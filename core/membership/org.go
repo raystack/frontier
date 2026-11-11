@@ -283,7 +283,7 @@ func (s *Service) removeOrganizationMember(ctx context.Context, orgID, principal
 func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.Organization, principalID, principalType, ownerRoleID string) error {
 	orgID := org.ID
 
-	orgProjects, err := s.projectService.List(ctx, project.Filter{OrgID: orgID})
+	orgProjects, err := s.projectService.List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true})
 	if err != nil {
 		return fmt.Errorf("list org projects: %w", err)
 	}
@@ -294,7 +294,7 @@ func (s *Service) cascadeRemovePrincipal(ctx context.Context, org organization.O
 		orgProjectIDSet[p.ID] = struct{}{}
 	}
 
-	orgGroups, err := s.groupService.List(ctx, group.Filter{OrganizationID: orgID})
+	orgGroups, err := s.groupService.List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true})
 	if err != nil {
 		return fmt.Errorf("list org groups: %w", err)
 	}
