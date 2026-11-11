@@ -150,7 +150,12 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
         retry: false
       }
     );
-  const isDeleteBlocked = !!loadDeleteCheck && !loadDeleteCheck.canDelete;
+  // A disabled query keeps its last data, so a result fetched before the
+  // option turned on must not block the click check.
+  const isDeleteBlocked =
+    !config.enableDeleteCheck &&
+    !!loadDeleteCheck &&
+    !loadDeleteCheck.canDelete;
   const deleteBlockerLines = useMemo(
     () =>
       blockerLines(
