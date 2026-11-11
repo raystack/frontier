@@ -8,6 +8,7 @@ import { create } from '@bufbuild/protobuf';
 import {
   createConnectQueryKey,
   useMutation,
+  useQuery,
   useTransport
 } from '@connectrpc/connect-query';
 import { useQueryClient } from '@tanstack/react-query';
@@ -31,6 +32,7 @@ import { useFrontier } from '../../contexts/FrontierContext';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useTerminology } from '../../hooks/useTerminology';
 import { useDeleteCheck } from '../../hooks/useDeleteCheck';
+import { blockerLines, toDeleteBlockers } from '../../utils/delete-blockers';
 import { PERMISSIONS, shouldShowComponent } from '../../../utils';
 import { AuthTooltipMessage } from '../../utils';
 import { ViewContainer } from '../../components/view-container';
@@ -62,7 +64,9 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
   const {
     activeOrganization: organization,
     isActiveOrganizationLoading,
-    setActiveOrganization
+    setActiveOrganization,
+    config,
+    basePlan
   } = useFrontier();
   const queryClient = useQueryClient();
   const transport = useTransport();
@@ -130,6 +134,40 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
     confirmDialogHandle: deleteOrganizationDialogHandle,
     blockedDialogHandle: deleteBlockedDialogHandle
   });
+
+  // Without enableDeleteCheck, check on load instead. While the answer is
+  // loading, the delete button stays disabled. If this check itself fails,
+  // the button stays enabled: the server still refuses a blocked delete.
+  const { data: loadDeleteCheck, isLoading: isLoadDeleteCheckLoading } =
+    useQuery(
+      FrontierServiceQueries.checkOrganizationDelete,
+      create(CheckOrganizationDeleteRequestSchema, {
+        id: organization?.id ?? ''
+      }),
+      {
+        enabled:
+          !config.enableDeleteCheck && canDeleteWorkspace && !!organization?.id,
+        retry: false
+      }
+    );
+  // A disabled query keeps its last data, so a result fetched before the
+  // option turned on must not block the click check.
+  const isDeleteBlocked =
+    !config.enableDeleteCheck &&
+    !!loadDeleteCheck &&
+    !loadDeleteCheck.canDelete;
+  const deleteBlockerLines = useMemo(
+    () =>
+      blockerLines(
+        toDeleteBlockers(loadDeleteCheck?.blockers ?? []),
+        {},
+        {
+          organizationRef: `this ${t.organization({ case: 'lower' })}`,
+          basePlanTitle: basePlan?.title
+        }
+      ),
+    [loadDeleteCheck, t, basePlan]
+  );
 
   // Update organization form
   const { mutateAsync: updateOrganization } = useMutation(
@@ -312,14 +350,19 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                 </Text>
                 <Tooltip>
                   <Tooltip.Trigger
-                    disabled={canDeleteWorkspace}
+                    disabled={canDeleteWorkspace && !isDeleteBlocked}
                     render={<span className={styles.fitContent} />}
                   >
                     <Button
                       variant="solid"
                       color="danger"
                       onClick={() => startDelete(null)}
-                      disabled={!canDeleteWorkspace || isCheckingDelete}
+                      disabled={
+                        !canDeleteWorkspace ||
+                        isCheckingDelete ||
+                        isDeleteBlocked ||
+                        isLoadDeleteCheckLoading
+                      }
                       loading={isCheckingDelete}
                       loaderText={`Delete ${orgLabelLower}`}
                       data-test-id="frontier-sdk-delete-organization-btn"
@@ -327,9 +370,17 @@ export function GeneralView({ onDeleteSuccess, urlPrefix }: GeneralViewProps = {
                       Delete {orgLabelLower}
                     </Button>
                   </Tooltip.Trigger>
-                  {!canDeleteWorkspace && (
+                  {!canDeleteWorkspace ? (
                     <Tooltip.Content>{AuthTooltipMessage}</Tooltip.Content>
-                  )}
+                  ) : isDeleteBlocked ? (
+                    <Tooltip.Content>
+                      <Flex direction="column" gap={2}>
+                        {deleteBlockerLines.map(line => (
+                          <Text key={line}>{line}</Text>
+                        ))}
+                      </Flex>
+                    </Tooltip.Content>
+                  ) : null}
                 </Tooltip>
               </>
             )}

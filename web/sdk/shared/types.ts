@@ -58,6 +58,15 @@ export interface FrontierClientOptions {
   shortDateFormat?: string;
   billing?: FrontierClientBillingOptions;
   customization?: FrontierClientCustomizationOptions;
+  /**
+   * Check what blocks an organization, project or account delete when the
+   * delete button is clicked, and show the blockers in a dialog. The server
+   * must serve CheckOrganizationDelete, CheckProjectDelete and
+   * CheckCurrentUserDelete. Off by default: the delete button opens the
+   * confirm dialog directly, and the organization page checks on load and
+   * disables the button while blocked.
+   */
+  enableDeleteCheck?: boolean;
 }
 
 export interface InitialState {
