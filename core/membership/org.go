@@ -205,12 +205,19 @@ func (s *Service) SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleI
 // relations. Returns ErrNotMember if the principal has no policies on this org,
 // and ErrLastOwnerRole when removing the org's last owner.
 func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error {
-	return s.removeOrganizationMember(ctx, orgID, principalID, principalType, false)
+	removeErr := s.removeOrganizationMember(ctx, orgID, principalID, principalType, false)
+	if removeErr != nil && !errors.Is(removeErr, ErrNotMember) {
+		return removeErr
+	}
+	if patErr := s.revokeMemberPATs(ctx, orgID, principalID, principalType); patErr != nil {
+		return patErr
+	}
+	return removeErr
 }
 
 // RemoveOrganizationMemberOnDelete is RemoveOrganizationMember for deleting a
 // user. It also works on a disabled org, because the user has to leave every
-// org before the account can go.
+// org before the account can go. It leaves PATs to the user delete.
 func (s *Service) RemoveOrganizationMemberOnDelete(ctx context.Context, orgID, principalID, principalType string) error {
 	return s.removeOrganizationMember(ctx, orgID, principalID, principalType, true)
 }
@@ -388,6 +395,23 @@ func (s *Service) removeCustomResourceAccess(ctx context.Context, principalID, p
 	}
 	if err := s.resourceService.RemovePrincipalAccess(ctx, principalID, principalType, orgID, orgProjectIDs); err != nil {
 		return fmt.Errorf("remove custom-resource policies: %w", err)
+	}
+	return nil
+}
+
+func (s *Service) revokeMemberPATs(ctx context.Context, orgID, principalID, principalType string) error {
+	if principalType != schema.UserPrincipal {
+		return nil
+	}
+	if s.userPATService == nil {
+		s.log.ErrorContext(ctx, "user PAT service not set: PATs left behind",
+			"org_id", orgID,
+			"principal_id", principalID,
+		)
+		return nil
+	}
+	if err := s.userPATService.OnOrgMemberRemoved(ctx, orgID, principalID); err != nil {
+		return fmt.Errorf("revoke member PATs: %w", err)
 	}
 	return nil
 }
