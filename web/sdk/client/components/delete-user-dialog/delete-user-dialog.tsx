@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import type { ConnectError } from '@connectrpc/connect';
 import { useMutation } from '@connectrpc/connect-query';
 import { FrontierServiceQueries } from '@raystack/proton/frontier';
 import {
@@ -16,12 +15,8 @@ import {
 } from '@raystack/apsara';
 import type { DeleteBlockedPayload, Slot } from '../../../shared/types';
 import { useFrontier } from '../../contexts/FrontierContext';
-import { useTerminology } from '../../hooks/useTerminology';
 import {
   GENERIC_DELETE_BLOCKED_MESSAGE,
-  SOLE_OWNER_WITH_MEMBERS,
-  blockerLines,
-  blockersFromError,
   toUserDeleteBlocked
 } from '../../utils/delete-blockers';
 import { DeleteBlockedContent } from '../delete-blocked-dialog';
@@ -66,8 +61,7 @@ export function DeleteUserDialog({
   handle,
   onDeleted
 }: DeleteUserDialogProps) {
-  const { config, basePlan } = useFrontier();
-  const t = useTerminology();
+  const { config } = useFrontier();
   const [dialogHandle] = useState(() =>
     AlertDialog.createHandle<DeleteUserPayload>()
   );
@@ -106,27 +100,16 @@ export function DeleteUserDialog({
     };
   }, [handle, startDelete]);
 
-  async function onDeleteRefused(err: ConnectError) {
-    let description = GENERIC_DELETE_BLOCKED_MESSAGE;
+  async function onDeleteRefused() {
     if (config.enableDeleteCheck) {
       // The check opens the blocked step. Toast only when it finds nothing.
       if (!(await checkAndOpen())) return;
     } else {
-      // Without the check, list the blockers the refused delete returned.
       dialogHandle.close();
-      const org = t.organization({ case: 'lower' });
-      const lines = blockerLines(
-        blockersFromError(err),
-        {
-          [SOLE_OWNER_WITH_MEMBERS]: `Sole ownership: Transfer ownership of each ${org} where you are the only owner to another member before deleting your account.`
-        },
-        { organizationRef: `your ${org}`, basePlanTitle: basePlan?.title }
-      );
-      if (lines.length > 0) description = lines.join(' ');
     }
     toastManager.add({
       title: 'Unable to delete account',
-      description,
+      description: GENERIC_DELETE_BLOCKED_MESSAGE,
       type: 'error'
     });
   }
@@ -163,7 +146,7 @@ DeleteUserDialog.createHandle = createDeleteUserDialogHandle;
 
 interface DeleteUserFormProps {
   onDeleted: () => void;
-  onDeleteRefused: (err: ConnectError) => void;
+  onDeleteRefused: () => void;
 }
 
 function DeleteUserForm({ onDeleted, onDeleteRefused }: DeleteUserFormProps) {
