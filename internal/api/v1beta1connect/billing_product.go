@@ -229,7 +229,7 @@ func (h *ConnectHandler) CreateFeature(ctx context.Context, request *connect.Req
 
 func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Request[frontierv1beta1.UpdateFeatureRequest]) (*connect.Response[frontierv1beta1.UpdateFeatureResponse], error) {
 	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
-	updatedFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
+	updatedFeature, err := h.productService.UpdateFeature(ctx, product.Feature{
 		ID:         request.Msg.GetId(),
 		Name:       request.Msg.GetBody().GetName(),
 		Title:      request.Msg.GetBody().GetTitle(),
@@ -240,7 +240,7 @@ func (h *ConnectHandler) UpdateFeature(ctx context.Context, request *connect.Req
 		if errors.Is(err, product.ErrInvalidFeatureDetail) {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		}
-		return nil, mapBillingError(ctx, fmt.Errorf("UpdateFeature.UpsertFeature: feature_id=%s feature_name=%s feature_title=%s product_ids=%v: %w",
+		return nil, mapBillingError(ctx, fmt.Errorf("UpdateFeature.UpdateFeature: feature_id=%s feature_name=%s feature_title=%s product_ids=%v: %w",
 			request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), request.Msg.GetBody().GetProductIds(), err))
 	}
 

@@ -368,6 +368,63 @@ func (_c *ProductService_Update_Call) RunAndReturn(run func(context.Context, pro
 	return _c
 }
 
+// UpdateFeature provides a mock function with given fields: ctx, feature
+func (_m *ProductService) UpdateFeature(ctx context.Context, feature product.Feature) (product.Feature, error) {
+	ret := _m.Called(ctx, feature)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateFeature")
+	}
+
+	var r0 product.Feature
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, product.Feature) (product.Feature, error)); ok {
+		return rf(ctx, feature)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, product.Feature) product.Feature); ok {
+		r0 = rf(ctx, feature)
+	} else {
+		r0 = ret.Get(0).(product.Feature)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, product.Feature) error); ok {
+		r1 = rf(ctx, feature)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ProductService_UpdateFeature_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateFeature'
+type ProductService_UpdateFeature_Call struct {
+	*mock.Call
+}
+
+// UpdateFeature is a helper method to define mock.On call
+//   - ctx context.Context
+//   - feature product.Feature
+func (_e *ProductService_Expecter) UpdateFeature(ctx interface{}, feature interface{}) *ProductService_UpdateFeature_Call {
+	return &ProductService_UpdateFeature_Call{Call: _e.mock.On("UpdateFeature", ctx, feature)}
+}
+
+func (_c *ProductService_UpdateFeature_Call) Run(run func(ctx context.Context, feature product.Feature)) *ProductService_UpdateFeature_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(product.Feature))
+	})
+	return _c
+}
+
+func (_c *ProductService_UpdateFeature_Call) Return(_a0 product.Feature, _a1 error) *ProductService_UpdateFeature_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ProductService_UpdateFeature_Call) RunAndReturn(run func(context.Context, product.Feature) (product.Feature, error)) *ProductService_UpdateFeature_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpsertFeature provides a mock function with given fields: ctx, feature
 func (_m *ProductService) UpsertFeature(ctx context.Context, feature product.Feature) (product.Feature, error) {
 	ret := _m.Called(ctx, feature)
