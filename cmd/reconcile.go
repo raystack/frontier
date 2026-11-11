@@ -24,12 +24,13 @@ func ReconcileCommand(cliConfig *Config) *cli.Command {
 
 			Kinds: PlatformUser (platform admins and members), Permission (custom
 			permissions), Role (platform-level roles), Preference (platform
-			settings), Webhook (webhook endpoints), BillingProduct (billing products
-			and their prices), BillingPlan (billing plans and the products they
-			bundle), and MetaSchema (metadata validation schemas). Deleting a
-			permission, a custom role, or a webhook needs an explicit 'delete: true'
-			on its entry; nothing is deleted by omission, a predefined role cannot be
-			deleted, and a product or plan cannot be deleted through the API. A
+			settings), Webhook (webhook endpoints), BillingFeature (billing feature
+			titles and metadata), BillingProduct (billing products and their
+			prices), BillingPlan (billing plans and the products they bundle), and
+			MetaSchema (metadata validation schemas). Deleting a permission, a
+			custom role, or a webhook needs an explicit 'delete: true' on its entry;
+			nothing is deleted by omission, a predefined role cannot be deleted, and
+			a feature, product, or plan cannot be deleted through the API. A
 			preference left out of the file resets to its default.
 			Log in as a superuser (for example the bootstrap service account) with
 			--header.
@@ -93,6 +94,7 @@ func buildReconcileRegistry(host, header string) (map[string]reconcile.Reconcile
 		reconcile.KindRole:           reconcile.NewRoleReconciler(api, header),
 		reconcile.KindPreference:     reconcile.NewPreferenceReconciler(api, header),
 		reconcile.KindWebhook:        reconcile.NewWebhookReconciler(adminClient, header),
+		reconcile.KindBillingFeature: reconcile.NewBillingFeatureReconciler(api, header),
 		reconcile.KindBillingProduct: reconcile.NewBillingProductReconciler(api, header),
 		reconcile.KindBillingPlan:    reconcile.NewBillingPlanReconciler(api, header),
 		reconcile.KindMetaSchema:     reconcile.NewMetaSchemaReconciler(api, header),
