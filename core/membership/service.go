@@ -63,6 +63,7 @@ type ServiceuserService interface {
 
 type UserPATService interface {
 	GetByID(ctx context.Context, id string) (patmodels.PAT, error)
+	OnOrgMemberRemoved(ctx context.Context, orgID, userID string) error
 }
 
 type ResourceService interface {
