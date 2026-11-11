@@ -205,10 +205,14 @@ func (s *Service) SetPATAllProjectsRole(ctx context.Context, orgID, patID, roleI
 // relations. Returns ErrNotMember if the principal has no policies on this org,
 // and ErrLastOwnerRole when removing the org's last owner.
 func (s *Service) RemoveOrganizationMember(ctx context.Context, orgID, principalID, principalType string) error {
-	if err := s.removeOrganizationMember(ctx, orgID, principalID, principalType, false); err != nil {
-		return err
+	removeErr := s.removeOrganizationMember(ctx, orgID, principalID, principalType, false)
+	if removeErr != nil && !errors.Is(removeErr, ErrNotMember) {
+		return removeErr
 	}
-	return s.revokeMemberPATs(ctx, orgID, principalID, principalType)
+	if patErr := s.revokeMemberPATs(ctx, orgID, principalID, principalType); patErr != nil {
+		return patErr
+	}
+	return removeErr
 }
 
 // RemoveOrganizationMemberOnDelete is RemoveOrganizationMember for deleting a

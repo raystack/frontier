@@ -777,12 +777,22 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 			wantErr: organization.ErrDisabled,
 		},
 		{
-			name: "should return ErrNotMember if principal has no org policies",
+			name: "should revoke leftover PATs and return ErrNotMember if principal has no org policies",
 			setup: func(d testDeps) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(nil)
 			},
 			wantErr: membership.ErrNotMember,
+		},
+		{
+			name: "should return error if revoking leftover PATs fails for a principal with no org policies",
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(errors.New("pat boom"))
+			},
+			wantErrContain: "revoke member PATs",
 		},
 		{
 			name: "should return ErrLastOwnerRole when removing the last owner",
