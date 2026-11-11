@@ -61,6 +61,7 @@ export function DeleteUserDialog({
   handle,
   onDeleted
 }: DeleteUserDialogProps) {
+  const { config } = useFrontier();
   const [dialogHandle] = useState(() =>
     AlertDialog.createHandle<DeleteUserPayload>()
   );
@@ -84,8 +85,12 @@ export function DeleteUserDialog({
   }, [checkCurrentUserDelete, dialogHandle]);
 
   const startDelete = useCallback(() => {
+    if (!config.enableDeleteCheck) {
+      dialogHandle.openWithPayload({ step: 'confirm' });
+      return;
+    }
     void checkAndOpen();
-  }, [checkAndOpen]);
+  }, [config.enableDeleteCheck, dialogHandle, checkAndOpen]);
 
   useEffect(() => {
     if (!handle) return;
@@ -96,13 +101,17 @@ export function DeleteUserDialog({
   }, [handle, startDelete]);
 
   async function onDeleteRefused() {
-    if (await checkAndOpen()) {
-      toastManager.add({
-        title: 'Unable to delete account',
-        description: GENERIC_DELETE_BLOCKED_MESSAGE,
-        type: 'error'
-      });
+    if (config.enableDeleteCheck) {
+      // The check opens the blocked step. Toast only when it finds nothing.
+      if (!(await checkAndOpen())) return;
+    } else {
+      dialogHandle.close();
     }
+    toastManager.add({
+      title: 'Unable to delete account',
+      description: GENERIC_DELETE_BLOCKED_MESSAGE,
+      type: 'error'
+    });
   }
 
   return (

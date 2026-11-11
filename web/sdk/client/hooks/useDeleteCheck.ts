@@ -10,6 +10,7 @@ import {
   toDeleteBlockers
 } from '../utils/delete-blockers';
 import { useTerminology } from './useTerminology';
+import { useFrontier } from '../contexts/FrontierContext';
 import { handleConnectError } from '~/utils/error';
 
 export interface UseDeleteCheckOptions<TPayload> {
@@ -28,6 +29,7 @@ export function useDeleteCheck<TPayload>({
   blockedDialogHandle
 }: UseDeleteCheckOptions<TPayload>) {
   const t = useTerminology();
+  const { config } = useFrontier();
   const [isChecking, setIsChecking] = useState(false);
 
   function showBlocked(blockers: DeleteBlocker[]) {
@@ -79,6 +81,10 @@ export function useDeleteCheck<TPayload>({
   }
 
   async function startDelete(payload: TPayload) {
+    if (!config.enableDeleteCheck) {
+      confirmDialogHandle.openWithPayload(payload);
+      return;
+    }
     setIsChecking(true);
     try {
       const { canDelete, blockers } = await check(payload);
