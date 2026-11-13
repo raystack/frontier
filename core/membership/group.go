@@ -109,7 +109,7 @@ func (s *Service) SetGroupMemberRole(ctx context.Context, groupID, principalID, 
 // the principal has no policies on this group; ErrLastGroupOwnerRole if they
 // are the sole remaining owner (enforced atomically via the policy guard).
 func (s *Service) RemoveGroupMember(ctx context.Context, groupID, principalID, principalType string) error {
-	grp, err := s.groupService.Get(ctx, groupID)
+	grp, err := s.getGroupIncludingDisabled(ctx, groupID)
 	if err != nil {
 		return err
 	}
