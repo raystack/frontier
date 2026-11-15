@@ -21,6 +21,7 @@ import { ViewContainer } from '~/client/components/view-container';
 import { ViewHeader } from '~/client/components/view-header';
 import { UpcomingPlanChangeBanner } from '~/client/views/billing/components/upcoming-plan-change-banner';
 import { groupPlansPricingByInterval } from './helpers';
+import { buildFeatureRows } from '~/client/views/plans/helpers/feature-rows';
 import { IntervalKeys, IntervalPricingWithPlan } from '~/src/types';
 import { PlanCard } from './components/plan-card';
 import { FeatureTable } from './components/feature-table';
@@ -77,24 +78,7 @@ export function PlansView() {
     isActiveSubscriptionLoading ||
     isActiveOrganizationLoading;
 
-  const totalFeatures = features.length;
-
-  const sortedFeatures = useMemo(() => {
-    const featureTitleMap = features.reduce(
-      (acc, f) => {
-        const weightage =
-          (f.metadata as Record<string, number>)?.weightage || totalFeatures;
-        acc[f.title || ''] = weightage;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-
-    return Object.entries(featureTitleMap)
-      .sort((f1, f2) => f1[1] - f2[1])
-      .map(f => f[0])
-      .filter(Boolean);
-  }, [features, totalFeatures]);
+  const featureRows = useMemo(() => buildFeatureRows(features), [features]);
 
   const [intervalOverrides, setIntervalOverrides] = useState<
     Record<string, IntervalKeys>
@@ -192,7 +176,7 @@ export function PlansView() {
       </Flex>
 
       <FeatureTable
-        features={sortedFeatures}
+        features={featureRows}
         plans={groupedPlans}
         selectedIntervals={selectedIntervals}
         isLoading={isFeaturesLoading}

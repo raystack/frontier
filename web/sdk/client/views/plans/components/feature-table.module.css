@@ -43,3 +43,20 @@
   height: 16px;
   flex-shrink: 0;
 }
+
+.infoTrigger {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--rs-color-foreground-base-tertiary);
+}
+
+.infoContent {
+  max-width: 360px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}

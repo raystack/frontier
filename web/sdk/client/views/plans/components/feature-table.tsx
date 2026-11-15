@@ -1,7 +1,6 @@
 'use client';
 
 import { Flex, Image, Skeleton, Text } from '@raystack/apsara';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { get } from 'lodash';
 import {
   IntervalKeys,
@@ -9,6 +8,8 @@ import {
   PlanIntervalPricing
 } from '~/src/types';
 import checkCircle from '~/client/assets/check-circle.svg';
+import { FeatureRow, normalizeFeatureValue } from '~/client/views/plans/helpers/feature-rows';
+import { FeatureInfoPopover } from '~/client/views/plans/components/feature-info';
 import styles from './feature-table.module.css';
 
 interface FeatureValueCellProps {
@@ -21,8 +22,8 @@ function FeatureValueCell({ feature, plan }: FeatureValueCellProps) {
   const productMetaDataFeatureValues = plan?.productNames
     .map(name => get(planFeature.metadata, name))
     .filter(value => value !== undefined);
-  const value = productMetaDataFeatureValues?.[0] || '-';
-  const isAvailable = value?.toLowerCase() === 'true';
+  const value = normalizeFeatureValue(productMetaDataFeatureValues?.[0]);
+  const isAvailable = value.toLowerCase() === 'true';
 
   return (
     <Flex className={`${styles.cell} ${styles.valueCell}`}>
@@ -42,7 +43,7 @@ function FeatureValueCell({ feature, plan }: FeatureValueCellProps) {
 }
 
 export interface FeatureTableProps {
-  features: string[];
+  features: FeatureRow[];
   plans: PlanIntervalPricing[];
   selectedIntervals: Record<string, IntervalKeys>;
   isLoading?: boolean;
@@ -92,10 +93,13 @@ export function FeatureTable({
     <Flex className={styles.table}>
       <Flex direction="column" className={styles.featureColumn}>
         {features.map(feature => (
-          <Flex key={feature} className={styles.cell}>
+          <Flex key={feature.title} className={styles.cell}>
             <Text size="regular" className={styles.featureLabel}>
-              {feature}
+              {feature.title}
             </Text>
+            {feature.info && (
+              <FeatureInfoPopover title={feature.title} info={feature.info} />
+            )}
           </Flex>
         ))}
       </Flex>
@@ -111,8 +115,8 @@ export function FeatureTable({
           >
             {features.map(feature => (
               <FeatureValueCell
-                key={`${plan.slug}-${feature}`}
-                feature={feature}
+                key={`${plan.slug}-${feature.title}`}
+                feature={feature.title}
                 plan={planPricing}
               />
             ))}
