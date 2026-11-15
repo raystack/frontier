@@ -14,61 +14,48 @@ export type FeatureInfoPart =
 
 /*
  * Builds the feature table rows.
- * - Sorted by metadata.weightage; missing/falsy weightage falls back to the feature count.
- * - Duplicate titles collapse into one row: last weightage wins, first non-empty info wins.
- * - Empty titles are dropped.
+ * - Plain object keyed by title, so ordering matches the old inline sort exactly.
+ * - Missing/falsy weightage falls back to the feature count; last weightage wins.
+ * - First non-blank info wins; empty titles are dropped.
  */
 export function buildFeatureRows(features: FeatureLike[]): FeatureRow[] {
-  const totalFeatures = features.length;
-  const rows = new Map<string, { weightage: unknown; info?: string }>();
+  const weightages: Record<string, unknown> = {};
+  const infos = new Map<string, string>();
 
   features.forEach(feature => {
     const metadata = (feature.metadata || {}) as Record<string, unknown>;
     const title = feature.title || '';
-    const weightage = metadata.weightage || totalFeatures;
-    const info =
-      typeof metadata.info === 'string' && metadata.info.trim()
-        ? metadata.info
-        : undefined;
-
-    const existing = rows.get(title);
-    rows.set(title, { weightage, info: existing?.info ?? info });
+    weightages[title] = metadata.weightage || features.length;
+    const info = typeof metadata.info === 'string' ? metadata.info.trim() : '';
+    if (info && !infos.has(title)) infos.set(title, info);
   });
 
-  return Array.from(rows.entries())
-    .sort((a, b) => Number(a[1].weightage) - Number(b[1].weightage))
+  return Object.entries(weightages)
+    .sort((a, b) => Number(a[1]) - Number(b[1]))
     .filter(([title]) => Boolean(title))
-    .map(([title, { info }]) => (info ? { title, info } : { title }));
+    .map(([title]) => ({ title, info: infos.get(title) }));
 }
 
 const LINK_PATTERN = /\[([^\]]+)\]\(([^)\s]+)\)/g;
-const ALLOWED_URL_PATTERN = /^(https?|mailto):/i;
+const ALLOWED_URL_PATTERN = /^(https?|mailto):/;
 
 /*
  * Splits info text into text and link parts.
- * - Only [label](url) is parsed; the url must start with http:, https: or mailto:.
+ * - [label](url) becomes a link only with a non-blank label and an http:, https: or mailto: url.
  * - Everything else is kept as plain text exactly as written.
  */
 export function parseFeatureInfo(info: string): FeatureInfoPart[] {
   const parts: FeatureInfoPart[] = [];
-  const pushText = (text: string) => {
-    if (!text) return;
-    const last = parts[parts.length - 1];
-    if (last?.type === 'text') last.text += text;
-    else parts.push({ type: 'text', text });
-  };
-
   let cursor = 0;
-  for (const match of Array.from(info.matchAll(LINK_PATTERN))) {
+  for (const match of info.matchAll(LINK_PATTERN)) {
     const [raw, label, url] = match;
     const start = match.index ?? 0;
-    pushText(info.slice(cursor, start));
-    if (ALLOWED_URL_PATTERN.test(url)) parts.push({ type: 'link', label, url });
-    else pushText(raw);
+    const isLink = label.trim() !== '' && ALLOWED_URL_PATTERN.test(url);
+    parts.push({ type: 'text', text: info.slice(cursor, start) });
+    parts.push(isLink ? { type: 'link', label, url } : { type: 'text', text: raw });
     cursor = start + raw.length;
   }
-  pushText(info.slice(cursor));
-
+  parts.push({ type: 'text', text: info.slice(cursor) });
   return parts;
 }
 

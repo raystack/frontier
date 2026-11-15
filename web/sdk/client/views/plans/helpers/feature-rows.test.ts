@@ -66,54 +66,79 @@ describe('buildFeatureRows', () => {
       { title: 'F', info: 'Help' }
     ]);
   });
+
+  it('trims surrounding whitespace from info', () => {
+    const rows = buildFeatureRows([
+      { title: 'A', metadata: { weightage: 1, info: '\n  Help text\n' } }
+    ]);
+    expect(rows[0].info).toBe('Help text');
+  });
+
+  it('keeps the old ordering for tied integer-like titles', () => {
+    const rows = buildFeatureRows([
+      { title: 'Storage', metadata: {} },
+      { title: '2', metadata: {} },
+      { title: '1', metadata: {} }
+    ]);
+    expect(rows.map(r => r.title)).toEqual(['1', '2', 'Storage']);
+  });
 });
 
+/*
+ * - Renders parts the way the popover shows them: links as <url|label>.
+ * - Asserts on visible output, not on how text is split into parts.
+ */
+const show = (info: string) =>
+  parseFeatureInfo(info)
+    .map(p => (p.type === 'text' ? p.text : `<${p.url}|${p.label}>`))
+    .join('');
+
 describe('parseFeatureInfo', () => {
-  it('returns plain text as one part', () => {
-    expect(parseFeatureInfo('Just text.')).toEqual([
-      { type: 'text', text: 'Just text.' }
-    ]);
+  it('shows plain text unchanged', () => {
+    expect(show('Just text.')).toBe('Just text.');
   });
 
-  it('parses one link', () => {
-    expect(parseFeatureInfo('See [Details](https://example.com).')).toEqual([
-      { type: 'text', text: 'See ' },
-      { type: 'link', label: 'Details', url: 'https://example.com' },
-      { type: 'text', text: '.' }
-    ]);
+  it('turns one link into a link', () => {
+    expect(show('See [Details](https://example.com).')).toBe(
+      'See <https://example.com|Details>.'
+    );
   });
 
-  it('parses two links', () => {
+  it('turns two links into links', () => {
     expect(
-      parseFeatureInfo(
+      show(
         '[Docs](http://example.com/docs) or [support@example.com](mailto:support@example.com)'
       )
-    ).toEqual([
-      { type: 'link', label: 'Docs', url: 'http://example.com/docs' },
-      { type: 'text', text: ' or ' },
-      {
-        type: 'link',
-        label: 'support@example.com',
-        url: 'mailto:support@example.com'
-      }
-    ]);
+    ).toBe(
+      '<http://example.com/docs|Docs> or <mailto:support@example.com|support@example.com>'
+    );
   });
 
   it('keeps links with a disallowed scheme as plain text', () => {
-    const input = 'Click [here](javascript:alert(1)) now';
-    expect(parseFeatureInfo(input)).toEqual([{ type: 'text', text: input }]);
+    [
+      'Click [here](javascript:alert(1)) now',
+      'Go [there](/settings/billing)',
+      'Get [file](ftp://example.com/file)',
+      'Shout [docs](HTTPS://example.com)'
+    ].forEach(input => {
+      expect(show(input)).toBe(input);
+    });
   });
 
   it('keeps malformed markdown as plain text', () => {
-    const inputs = [
+    [
       '[Details](https://example.com',
       '[Details] (https://example.com)',
       '[](https://example.com)',
       'Details](https://example.com)'
-    ];
-    inputs.forEach(input => {
-      expect(parseFeatureInfo(input)).toEqual([{ type: 'text', text: input }]);
+    ].forEach(input => {
+      expect(show(input)).toBe(input);
     });
+  });
+
+  it('keeps a blank label as plain text', () => {
+    const input = 'Hidden [ ](https://example.com) link';
+    expect(show(input)).toBe(input);
   });
 });
 
