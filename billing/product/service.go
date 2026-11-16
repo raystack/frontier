@@ -598,21 +598,19 @@ func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, 
 }
 
 func (s *Service) UpdateFeature(ctx context.Context, feature Feature) (Feature, error) {
-	if len(feature.Name) == 0 {
+	if strings.TrimSpace(feature.Name) == "" {
 		return Feature{}, fmt.Errorf("feature name is required: %w", ErrInvalidFeatureDetail)
 	}
-	existingFeature, err := s.featureRepository.GetByName(ctx, feature.Name)
-	if err != nil {
-		return Feature{}, err
+	toUpdate := Feature{
+		Name:       feature.Name,
+		Title:      feature.Title,
+		ProductIDs: utils.Deduplicate(feature.ProductIDs),
+		Metadata:   feature.Metadata,
 	}
-
-	existingFeature.Title = feature.Title
-	existingFeature.ProductIDs = utils.Deduplicate(feature.ProductIDs)
-	existingFeature.Metadata = feature.Metadata
-	if existingFeature.Metadata == nil {
-		existingFeature.Metadata = metadata.Metadata{}
+	if toUpdate.Metadata == nil {
+		toUpdate.Metadata = metadata.Metadata{}
 	}
-	return s.featureRepository.UpdateByName(ctx, existingFeature)
+	return s.featureRepository.UpdateByName(ctx, toUpdate)
 }
 
 func (s *Service) updateProductFeatures(ctx context.Context, existingProduct Product, product Product) error {
