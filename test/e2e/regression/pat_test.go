@@ -12,6 +12,7 @@ import (
 	"github.com/raystack/frontier/core/userpat"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/pkg/logger"
@@ -858,6 +859,151 @@ func (s *PATRegressionTestSuite) TestPATOfDeletedOrgStopsAuthenticating() {
 	s.Run("the token has no access left in SpiceDB", func() {
 		s.Assert().False(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.OrganizationNamespace, orgID, schema.GetPermission))
 		s.Assert().False(s.patHasPermissionInSpiceDB(ctxAdmin, patID, schema.ProjectNamespace, proj1ID, schema.GetPermission))
+	})
+}
+
+func (s *PATRegressionTestSuite) TestPATOfRemovedOrgMemberIsRevoked() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	ownerID, ctxOwner := signUpUser(s.T(), s.testBench.Client, "pat-removed-member-owner@raystack.org")
+	orgResp, err := s.testBench.Client.CreateOrganization(ctxOwner, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Name: "org-pat-removed-member"},
+	}))
+	s.Require().NoError(err)
+	orgID := orgResp.Msg.GetOrganization().GetId()
+	projectResp, err := s.testBench.Client.CreateProject(ctxOwner, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{Name: "pat-removed-member-project", OrgId: orgID},
+	}))
+	s.Require().NoError(err)
+	projectID := projectResp.Msg.GetProject().GetId()
+	memberID, ctxMember := signUpUser(s.T(), s.testBench.Client, "pat-removed-member@raystack.org")
+
+	addMember := func() {
+		resp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxAdmin, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
+			OrgId:   orgID,
+			Members: []*frontierv1beta1.OrgMemberEntry{{UserId: memberID, RoleId: s.roleID(schema.RoleOrganizationViewer)}},
+		}))
+		requireAddOrgMembersSuccess(s.T(), resp, err)
+		_, err = s.testBench.Client.CreatePolicy(ctxAdmin, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleProjectViewer,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, memberID),
+			},
+		}))
+		s.Require().NoError(err)
+	}
+	orgPATIDs := func() []string {
+		resp, err := s.testBench.AdminClient.SearchOrganizationPATs(ctxAdmin, connect.NewRequest(&frontierv1beta1.SearchOrganizationPATsRequest{OrgId: orgID}))
+		s.Require().NoError(err)
+		return utils.Map(resp.Msg.GetOrganizationPats(), func(p *frontierv1beta1.SearchOrganizationPATsResponse_OrganizationPAT) string {
+			return p.GetId()
+		})
+	}
+
+	addMember()
+	orgPATID, orgPATToken := s.createPAT(ctxMember, orgID, "pat-of-removed-member", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleOrganizationViewer), ResourceType: schema.OrganizationNamespace},
+	})
+	projectPATID, projectPATToken := s.createPAT(ctxMember, orgID, "pat-of-removed-member-project", []*frontierv1beta1.PATScope{
+		{RoleId: s.roleID(schema.RoleProjectViewer), ResourceType: schema.ProjectNamespace, ResourceIds: []string{projectID}},
+	})
+	pats := []struct {
+		name       string
+		id         string
+		ctx        context.Context
+		namespace  string
+		resourceID string
+		policies   []*frontierv1beta1.Policy
+	}{
+		{name: "org PAT", id: orgPATID, ctx: getPATCtx(orgPATToken), namespace: schema.OrganizationNamespace, resourceID: orgID},
+		{name: "project PAT", id: projectPATID, ctx: getPATCtx(projectPATToken), namespace: schema.ProjectNamespace, resourceID: projectID},
+	}
+	for i, pat := range pats {
+		s.Require().Truef(s.checkPermission(pat.ctx, pat.namespace, pat.resourceID, schema.GetPermission), "%s works before the removal", pat.name)
+		s.Require().Truef(s.patHasPermissionInSpiceDB(ctxAdmin, pat.id, pat.namespace, pat.resourceID, schema.GetPermission), "%s has access in SpiceDB before the removal", pat.name)
+		s.Require().Contains(orgPATIDs(), pat.id)
+		policiesResp, err := s.testBench.Client.ListPolicies(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{UserId: pat.id}))
+		s.Require().NoError(err)
+		s.Require().Lenf(policiesResp.Msg.GetPolicies(), 1, "%s policies before the removal", pat.name)
+		pats[i].policies = policiesResp.Msg.GetPolicies()
+	}
+
+	_, err = s.testBench.Client.RemoveOrganizationMember(ctxOwner, connect.NewRequest(&frontierv1beta1.RemoveOrganizationMemberRequest{
+		OrgId:         orgID,
+		PrincipalId:   memberID,
+		PrincipalType: schema.UserPrincipal,
+	}))
+	s.Require().NoError(err)
+
+	s.Run("the tokens are rejected", func() {
+		for _, pat := range pats {
+			_, err := s.testBench.Client.GetCurrentUser(pat.ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+			s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err), pat.name)
+		}
+	})
+
+	s.Run("the tokens are hidden from their owner", func() {
+		for _, pat := range pats {
+			_, err := s.testBench.Client.GetCurrentUserPAT(ctxMember, connect.NewRequest(&frontierv1beta1.GetCurrentUserPATRequest{Id: pat.id}))
+			s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err), pat.name)
+		}
+	})
+
+	s.Run("no live policy is held by the tokens", func() {
+		for _, pat := range pats {
+			policiesResp, err := s.testBench.Client.ListPolicies(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListPoliciesRequest{UserId: pat.id}))
+			s.Require().NoError(err)
+			s.Assert().Empty(policiesResp.Msg.GetPolicies(), pat.name)
+			for _, policyBeforeRemoval := range pat.policies {
+				_, err := s.testBench.Client.GetPolicy(ctxAdmin, connect.NewRequest(&frontierv1beta1.GetPolicyRequest{Id: policyBeforeRemoval.GetId()}))
+				s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err), pat.name)
+			}
+		}
+	})
+
+	s.Run("the org token list no longer shows them", func() {
+		ids := orgPATIDs()
+		for _, pat := range pats {
+			s.Assert().NotContains(ids, pat.id, pat.name)
+		}
+	})
+
+	s.Run("each audit record names the remover and the reason", func() {
+		for _, pat := range pats {
+			recordsResp, err := s.testBench.AdminClient.ListAuditRecords(ctxAdmin, connect.NewRequest(&frontierv1beta1.ListAuditRecordsRequest{
+				Query: &frontierv1beta1.RQLRequest{
+					Filters: []*frontierv1beta1.RQLFilter{{
+						Name:     "target_id",
+						Operator: "eq",
+						Value:    &frontierv1beta1.RQLFilter_StringValue{StringValue: pat.id},
+					}},
+				},
+			}))
+			s.Require().NoError(err)
+			var revokedRecords []*frontierv1beta1.AuditRecord
+			for _, record := range recordsResp.Msg.GetAuditRecords() {
+				if record.GetEvent() == "pat.revoked" {
+					revokedRecords = append(revokedRecords, record)
+				}
+			}
+			if !s.Assert().Len(revokedRecords, 1, pat.name) {
+				continue
+			}
+			s.Assert().Equal(ownerID, revokedRecords[0].GetActor().GetId(), pat.name)
+			s.Assert().Equal(orgID, revokedRecords[0].GetResource().GetId(), pat.name)
+			targetMetadata := revokedRecords[0].GetTarget().GetMetadata().AsMap()
+			s.Assert().Equal("member_removed", targetMetadata["reason"], pat.name)
+			s.Assert().Equal(memberID, targetMetadata["user_id"], pat.name)
+		}
+	})
+
+	s.Run("adding the member back does not bring the tokens back", func() {
+		addMember()
+		for _, pat := range pats {
+			_, err := s.testBench.Client.GetCurrentUser(pat.ctx, connect.NewRequest(&frontierv1beta1.GetCurrentUserRequest{}))
+			s.Assert().Equal(connect.CodeUnauthenticated, connect.CodeOf(err), pat.name)
+			s.Assert().False(s.patHasPermissionInSpiceDB(ctxAdmin, pat.id, pat.namespace, pat.resourceID, schema.GetPermission), pat.name)
+		}
 	})
 }
 
