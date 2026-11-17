@@ -678,7 +678,13 @@ func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.Sear
 	})
 
 	if err != nil {
-		return user.SearchUserResponse{}, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return user.SearchUserResponse{}, fmt.Errorf("%w: value is not a valid uuid", ErrBadInput)
+		default:
+			return user.SearchUserResponse{}, err
+		}
 	}
 
 	var transformedUsers []user.User
@@ -733,12 +739,7 @@ func (r UserRepository) buildBaseQuery() *goqu.SelectDataset {
 }
 
 func (r UserRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) *goqu.SelectDataset {
-	var field string
-	if filter.Name == COLUMN_ID {
-		field = "CAST(" + TABLE_USERS + "." + filter.Name + " AS TEXT)"
-	} else {
-		field = TABLE_USERS + "." + filter.Name
-	}
+	field := TABLE_USERS + "." + filter.Name
 
 	switch filter.Operator {
 	case "empty":
@@ -747,10 +748,14 @@ func (r UserRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) 
 		return query.Where(goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq("")))
 	case "like":
 		value := "%" + filter.Value.(string) + "%"
-		return query.Where(goqu.Ex{field: goqu.Op{"ilike": value}})
+		return query.Where(goqu.Cast(goqu.I(field), "TEXT").ILike(value))
 	case "notlike":
 		value := "%" + filter.Value.(string) + "%"
-		return query.Where(goqu.Ex{field: goqu.Op{"notilike": value}})
+		return query.Where(goqu.Cast(goqu.I(field), "TEXT").NotILike(value))
+	case "ilike":
+		return query.Where(goqu.Cast(goqu.I(field), "TEXT").ILike(filter.Value))
+	case "notilike":
+		return query.Where(goqu.Cast(goqu.I(field), "TEXT").NotILike(filter.Value))
 	default:
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}})
 	}

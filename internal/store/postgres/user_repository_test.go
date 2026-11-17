@@ -717,7 +717,7 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 10,
 				Limit:  20,
 			},
-			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" ILIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
+			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."id" = $1) AND (CAST("users"."state" AS TEXT) ILIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
 			wantParams: []any{int64(123), "%active%", "", "%john%", "%john%", "%john%", "%john%", int64(20), int64(10)},
 		},
 		{
@@ -777,7 +777,7 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"state"},
 				Search:  "test",
 			},
-			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."state" = $1) AND ("CAST(users"."id AS TEXT)" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
+			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."state" = $1) AND ("users"."id" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
 			wantParams: []any{"active", int64(123), "%test%", "%test%", "%test%", "%test%"},
 		},
 		{
@@ -848,4 +848,55 @@ func (s *UserRepositoryTestSuite) TestSkipsSoftDeletedUsers() {
 
 	err = s.repository.SetState(s.ctx, deleted.ID, user.Disabled)
 	s.Assert().ErrorIs(err, user.ErrNotExist)
+}
+
+func (s *UserRepositoryTestSuite) TestSearchFiltersByID() {
+	target := s.users[0]
+
+	type testCase struct {
+		Description string
+		Filter      rql.Filter
+		ExpectedIDs []string
+		ErrIs       error
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "eq matches the user with that id",
+			Filter:      rql.Filter{Name: "id", Operator: "eq", Value: target.ID},
+			ExpectedIDs: []string{target.ID},
+		},
+		{
+			Description: "like matches part of the id",
+			Filter:      rql.Filter{Name: "id", Operator: "like", Value: target.ID[:8]},
+			ExpectedIDs: []string{target.ID},
+		},
+		{
+			Description: "ilike matches an id pattern",
+			Filter:      rql.Filter{Name: "id", Operator: "ilike", Value: target.ID[:8] + "%"},
+			ExpectedIDs: []string{target.ID},
+		},
+		{
+			Description: "a value that is not a uuid is bad input",
+			Filter:      rql.Filter{Name: "id", Operator: "eq", Value: "not-a-uuid"},
+			ErrIs:       postgres.ErrBadInput,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.Search(s.ctx, &rql.Query{Filters: []rql.Filter{tc.Filter}, Limit: 50})
+			if tc.ErrIs != nil {
+				s.Assert().ErrorIs(err, tc.ErrIs)
+				return
+			}
+			s.Require().NoError(err)
+
+			var gotIDs []string
+			for _, u := range got.Users {
+				gotIDs = append(gotIDs, u.ID)
+			}
+			s.Assert().Equal(tc.ExpectedIDs, gotIDs)
+		})
+	}
 }
