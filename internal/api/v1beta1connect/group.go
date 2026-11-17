@@ -325,10 +325,6 @@ func (h *ConnectHandler) ListGroupUsers(ctx context.Context, request *connect.Re
 }
 
 func (h *ConnectHandler) RemoveGroupUser(ctx context.Context, request *connect.Request[frontierv1beta1.RemoveGroupUserRequest]) (*connect.Response[frontierv1beta1.RemoveGroupUserResponse], error) {
-	if _, err := h.getGroup(ctx, request.Msg.GetId()); err != nil {
-		return nil, err
-	}
-
 	if err := h.membershipService.RemoveGroupMember(ctx, request.Msg.GetId(), request.Msg.GetUserId(), schema.UserPrincipal); err != nil {
 		switch {
 		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
