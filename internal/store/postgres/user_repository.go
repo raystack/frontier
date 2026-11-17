@@ -740,22 +740,25 @@ func (r UserRepository) buildBaseQuery() *goqu.SelectDataset {
 
 func (r UserRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) *goqu.SelectDataset {
 	field := TABLE_USERS + "." + filter.Name
+	asText := goqu.Cast(goqu.I(field), "TEXT")
 
 	switch filter.Operator {
 	case "empty":
-		return query.Where(goqu.Or(goqu.I(field).IsNull(), goqu.I(field).Eq("")))
+		return query.Where(goqu.Or(asText.IsNull(), asText.Eq("")))
 	case "notempty":
-		return query.Where(goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq("")))
+		return query.Where(goqu.And(asText.IsNotNull(), asText.Neq("")))
+	case "in", "notin":
+		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")}})
 	case "like":
 		value := "%" + filter.Value.(string) + "%"
-		return query.Where(goqu.Cast(goqu.I(field), "TEXT").ILike(value))
+		return query.Where(asText.ILike(value))
 	case "notlike":
 		value := "%" + filter.Value.(string) + "%"
-		return query.Where(goqu.Cast(goqu.I(field), "TEXT").NotILike(value))
+		return query.Where(asText.NotILike(value))
 	case "ilike":
-		return query.Where(goqu.Cast(goqu.I(field), "TEXT").ILike(filter.Value))
+		return query.Where(asText.ILike(filter.Value))
 	case "notilike":
-		return query.Where(goqu.Cast(goqu.I(field), "TEXT").NotILike(filter.Value))
+		return query.Where(asText.NotILike(filter.Value))
 	default:
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}})
 	}
