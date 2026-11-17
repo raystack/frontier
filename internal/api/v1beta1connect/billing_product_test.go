@@ -13,6 +13,7 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -1167,6 +1168,128 @@ func TestConnectHandler_GetFeature(t *testing.T) {
 				assert.Equal(t, wantFeature.GetTitle(), gotFeature.GetTitle())
 				assert.Equal(t, wantFeature.GetProductIds(), gotFeature.GetProductIds())
 			}
+		})
+	}
+}
+
+func TestConnectHandler_UpdateFeature(t *testing.T) {
+	populatedMetadata, err := structpb.NewStruct(map[string]any{"info": "See [docs](https://example.com)."})
+	assert.NoError(t, err)
+	tests := []struct {
+		name         string
+		setup        func(ps *mocks.ProductService)
+		req          *connect.Request[frontierv1beta1.UpdateFeatureRequest]
+		want         *frontierv1beta1.Feature
+		wantMetadata map[string]any
+		wantErrCode  connect.Code
+	}{
+		{
+			name: "should write empty title and metadata as given",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().UpdateFeature(mock.Anything, product.Feature{
+					ID:         "feature-1",
+					Name:       "basic-analytics",
+					ProductIDs: []string{"product-1"},
+					Metadata:   metadata.Metadata{},
+				}).Return(product.Feature{
+					ID:         "feature-1",
+					Name:       "basic-analytics",
+					ProductIDs: []string{"product-1"},
+					Metadata:   metadata.Metadata{},
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateFeatureRequest{
+				Id: "feature-1",
+				Body: &frontierv1beta1.FeatureRequestBody{
+					Name:       "basic-analytics",
+					ProductIds: []string{"product-1"},
+				},
+			}),
+			want: &frontierv1beta1.Feature{
+				Id:         "feature-1",
+				Name:       "basic-analytics",
+				ProductIds: []string{"product-1"},
+			},
+			wantMetadata: map[string]any{},
+		},
+		{
+			name: "should pass a populated title and metadata through",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().UpdateFeature(mock.Anything, product.Feature{
+					ID:         "feature-1",
+					Name:       "basic-analytics",
+					Title:      "Basic Analytics",
+					ProductIDs: []string{"product-1"},
+					Metadata:   metadata.Metadata{"info": "See [docs](https://example.com)."},
+				}).Return(product.Feature{
+					ID:         "feature-1",
+					Name:       "basic-analytics",
+					Title:      "Basic Analytics",
+					ProductIDs: []string{"product-1"},
+					Metadata:   metadata.Metadata{"info": "See [docs](https://example.com)."},
+				}, nil)
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateFeatureRequest{
+				Id: "feature-1",
+				Body: &frontierv1beta1.FeatureRequestBody{
+					Name:       "basic-analytics",
+					Title:      "Basic Analytics",
+					ProductIds: []string{"product-1"},
+					Metadata:   populatedMetadata,
+				},
+			}),
+			want: &frontierv1beta1.Feature{
+				Id:         "feature-1",
+				Name:       "basic-analytics",
+				Title:      "Basic Analytics",
+				ProductIds: []string{"product-1"},
+			},
+			wantMetadata: map[string]any{"info": "See [docs](https://example.com)."},
+		},
+		{
+			name: "should return not found if feature does not exist",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().UpdateFeature(mock.Anything, mock.Anything).Return(product.Feature{}, product.ErrFeatureNotFound)
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateFeatureRequest{
+				Id:   "feature-1",
+				Body: &frontierv1beta1.FeatureRequestBody{Name: "basic-analytics"},
+			}),
+			wantErrCode: connect.CodeNotFound,
+		},
+		{
+			name: "should return invalid argument if feature detail is invalid",
+			setup: func(ps *mocks.ProductService) {
+				ps.EXPECT().UpdateFeature(mock.Anything, mock.Anything).Return(product.Feature{}, product.ErrInvalidFeatureDetail)
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateFeatureRequest{
+				Id:   "feature-1",
+				Body: &frontierv1beta1.FeatureRequestBody{},
+			}),
+			wantErrCode: connect.CodeInvalidArgument,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			productService := mocks.NewProductService(t)
+			tt.setup(productService)
+			h := &ConnectHandler{
+				productService: productService,
+			}
+			got, err := h.UpdateFeature(context.Background(), tt.req)
+			if tt.wantErrCode != 0 {
+				assert.Equal(t, tt.wantErrCode, connect.CodeOf(err))
+				assert.Nil(t, got)
+				return
+			}
+			assert.NoError(t, err)
+			gotFeature := got.Msg.GetFeature()
+			assert.Equal(t, tt.want.GetId(), gotFeature.GetId())
+			assert.Equal(t, tt.want.GetName(), gotFeature.GetName())
+			assert.Equal(t, tt.want.GetTitle(), gotFeature.GetTitle())
+			assert.Equal(t, tt.want.GetProductIds(), gotFeature.GetProductIds())
+			assert.Equal(t, tt.wantMetadata, gotFeature.GetMetadata().AsMap())
 		})
 	}
 }
