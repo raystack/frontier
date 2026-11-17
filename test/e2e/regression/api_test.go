@@ -1381,19 +1381,20 @@ func (s *APIRegressionTestSuite) TestMemberRemovalFromDisabledProjectAndGroup() 
 	}
 	projectID := createProject("disabled-removal-project")
 	groupProjectID := createProject("disabled-removal-group-project")
+	deletedProjectID := createProject("disabled-removal-deleted-project")
 
-	groupResp, err := s.testBench.Client.CreateGroup(ownerCtx, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
-		OrgId: orgID,
-		Body:  &frontierv1beta1.GroupRequestBody{Name: "disabled-removal-group"},
-	}))
-	s.Require().NoError(err)
-	groupID := groupResp.Msg.GetGroup().GetId()
+	createGroup := func(name string) string {
+		resp, err := s.testBench.Client.CreateGroup(ownerCtx, connect.NewRequest(&frontierv1beta1.CreateGroupRequest{
+			OrgId: orgID,
+			Body:  &frontierv1beta1.GroupRequestBody{Name: name},
+		}))
+		s.Require().NoError(err)
+		return resp.Msg.GetGroup().GetId()
+	}
+	groupID := createGroup("disabled-removal-group")
+	deletedGroupID := createGroup("disabled-removal-deleted-group")
 
-	userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreateUserRequest{
-		Body: &frontierv1beta1.UserRequestBody{Email: "disabled-removal-member@raystack.org", Name: "disabled-removal-member"},
-	}))
-	s.Require().NoError(err)
-	userID := userResp.Msg.GetUser().GetId()
+	userID, userCtx := signUpUser(s.T(), s.testBench.Client, "disabled-removal-member@raystack.org")
 	userSubject := schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userID)
 
 	addMembersResp, err := s.testBench.AdminClient.AddOrganizationMembers(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.AddOrganizationMembersRequest{
@@ -1401,13 +1402,15 @@ func (s *APIRegressionTestSuite) TestMemberRemovalFromDisabledProjectAndGroup() 
 		Members: []*frontierv1beta1.OrgMemberEntry{{UserId: userID, RoleId: s.orgViewerRole}},
 	}))
 	requireAddOrgMembersSuccess(s.T(), addMembersResp, err)
-	_, err = s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
-		GroupId:       groupID,
-		PrincipalId:   userID,
-		PrincipalType: schema.UserPrincipal,
-		RoleId:        s.groupMemberRole,
-	}))
-	s.Require().NoError(err)
+	for _, id := range []string{groupID, deletedGroupID} {
+		_, err := s.testBench.Client.SetGroupMemberRole(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+			GroupId:       id,
+			PrincipalId:   userID,
+			PrincipalType: schema.UserPrincipal,
+			RoleId:        s.groupMemberRole,
+		}))
+		s.Require().NoError(err)
+	}
 
 	project := schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectID)
 	group := schema.JoinNamespaceAndResourceID(schema.GroupNamespace, groupID)
@@ -1415,6 +1418,7 @@ func (s *APIRegressionTestSuite) TestMemberRemovalFromDisabledProjectAndGroup() 
 	for _, grant := range []struct{ resource, principal string }{
 		{project, userSubject},
 		{groupProject, schema.JoinNamespaceAndResourceID(schema.GroupPrincipal, groupID)},
+		{schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, deletedProjectID), userSubject},
 	} {
 		_, err := s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{RoleId: schema.RoleProjectViewer, Resource: grant.resource, Principal: grant.principal},
@@ -1437,6 +1441,20 @@ func (s *APIRegressionTestSuite) TestMemberRemovalFromDisabledProjectAndGroup() 
 		s.Require().NoError(err)
 		return resp.Msg.GetStatus()
 	}
+	roleID := func(scope, name string) string {
+		resp, err := s.testBench.Client.ListRoles(ctxOrgAdminAuth, connect.NewRequest(&frontierv1beta1.ListRolesRequest{
+			State:  "enabled",
+			Scopes: []string{scope},
+		}))
+		s.Require().NoError(err)
+		for _, r := range resp.Msg.GetRoles() {
+			if r.GetName() == name {
+				return r.GetId()
+			}
+		}
+		s.Require().Failf("role not found", "%s in %s", name, scope)
+		return ""
+	}
 	s.Require().Equal(1, livePolicies(projectID), "live policy on the project before the removal")
 	s.Require().Equal(1, livePolicies(groupID), "live policy on the group before the removal")
 	s.Require().True(canGet(project), "access to the project before the removal")
@@ -1447,6 +1465,39 @@ func (s *APIRegressionTestSuite) TestMemberRemovalFromDisabledProjectAndGroup() 
 	s.Require().NoError(err)
 	_, err = s.testBench.Client.DisableGroup(ownerCtx, connect.NewRequest(&frontierv1beta1.DisableGroupRequest{Id: groupID}))
 	s.Require().NoError(err)
+
+	s.Run("a member without update permission cannot remove anyone from them", func() {
+		_, err := s.testBench.Client.RemoveProjectMember(userCtx, connect.NewRequest(&frontierv1beta1.RemoveProjectMemberRequest{
+			ProjectId:     projectID,
+			PrincipalId:   userID,
+			PrincipalType: schema.UserPrincipal,
+		}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.RemoveGroupUser(userCtx, connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+			Id:     groupID,
+			UserId: userID,
+		}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+	})
+
+	s.Run("role changes on them are still refused", func() {
+		_, err := s.testBench.Client.SetProjectMemberRole(ownerCtx, connect.NewRequest(&frontierv1beta1.SetProjectMemberRoleRequest{
+			ProjectId:     projectID,
+			PrincipalId:   userID,
+			PrincipalType: schema.UserPrincipal,
+			RoleId:        roleID(schema.ProjectNamespace, schema.RoleProjectOwner),
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.SetGroupMemberRole(ownerCtx, connect.NewRequest(&frontierv1beta1.SetGroupMemberRoleRequest{
+			GroupId:       groupID,
+			PrincipalId:   userID,
+			PrincipalType: schema.UserPrincipal,
+			RoleId:        roleID(schema.GroupNamespace, schema.GroupOwnerRole),
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
 
 	s.Run("the owner can remove the member from the disabled project", func() {
 		_, err := s.testBench.Client.RemoveProjectMember(ownerCtx, connect.NewRequest(&frontierv1beta1.RemoveProjectMemberRequest{
@@ -1482,6 +1533,26 @@ func (s *APIRegressionTestSuite) TestMemberRemovalFromDisabledProjectAndGroup() 
 
 	s.Run("the group no longer gives access", func() {
 		s.Assert().False(canGet(groupProject))
+	})
+
+	s.Run("a deleted project or group cannot be reached", func() {
+		_, err := s.testBench.Client.DeleteProject(ownerCtx, connect.NewRequest(&frontierv1beta1.DeleteProjectRequest{Id: deletedProjectID}))
+		s.Require().NoError(err)
+		_, err = s.testBench.Client.DeleteGroup(ownerCtx, connect.NewRequest(&frontierv1beta1.DeleteGroupRequest{Id: deletedGroupID}))
+		s.Require().NoError(err)
+
+		_, err = s.testBench.Client.RemoveProjectMember(ownerCtx, connect.NewRequest(&frontierv1beta1.RemoveProjectMemberRequest{
+			ProjectId:     deletedProjectID,
+			PrincipalId:   userID,
+			PrincipalType: schema.UserPrincipal,
+		}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
+
+		_, err = s.testBench.Client.RemoveGroupUser(ownerCtx, connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+			Id:     deletedGroupID,
+			UserId: userID,
+		}))
+		s.Assert().Equal(connect.CodePermissionDenied, connect.CodeOf(err))
 	})
 }
 

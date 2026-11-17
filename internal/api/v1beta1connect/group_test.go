@@ -1163,6 +1163,30 @@ func TestConnectHandler_RemoveGroupUser(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
 		},
 		{
+			name: "should return not found if group id is not a uuid",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(group.ErrInvalidUUID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
+		},
+		{
+			name: "should return not found if group id is invalid",
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
+				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(group.ErrInvalidID)
+			},
+			request: connect.NewRequest(&frontierv1beta1.RemoveGroupUserRequest{
+				Id:     randomID,
+				UserId: randomID,
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeNotFound, ErrGroupNotFound),
+		},
+		{
 			name: "should return not found if user does not exist",
 			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, ms *mocks.MembershipService) {
 				ms.EXPECT().RemoveGroupMember(mock.Anything, randomID, randomID, schema.UserPrincipal).Return(user.ErrNotExist)
