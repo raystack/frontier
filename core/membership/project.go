@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -61,7 +62,7 @@ func (s *Service) RemoveProjectMember(ctx context.Context, projectID, principalI
 		return ErrInvalidPrincipalType
 	}
 
-	prj, err := s.projectService.Get(ctx, projectID)
+	prj, err := s.getProjectIncludingDisabled(ctx, projectID)
 	if err != nil {
 		return err
 	}
@@ -76,6 +77,17 @@ func (s *Service) RemoveProjectMember(ctx context.Context, projectID, principalI
 
 	s.auditProjectMember(ctx, pkgAuditRecord.ProjectMemberRemovedEvent, prj, principalID, principalType, nil)
 	return nil
+}
+
+func (s *Service) getProjectIncludingDisabled(ctx context.Context, projectID string) (project.Project, error) {
+	projects, err := s.projectService.List(ctx, project.Filter{ProjectIDs: []string{projectID}, IncludeDisabled: true})
+	if err != nil {
+		return project.Project{}, err
+	}
+	if len(projects) == 0 {
+		return project.Project{}, project.ErrNotExist
+	}
+	return projects[0], nil
 }
 
 // OnProjectCreated runs right after a project is created. It links the project

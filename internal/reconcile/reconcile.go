@@ -54,7 +54,8 @@ type parsedDocument struct {
 // file, a dependency must not come after its dependent: that order would fail
 // mid-apply instead of up front.
 var kindDependencies = map[string][]string{
-	KindRole: {KindPermission},
+	KindRole:           {KindPermission},
+	KindBillingProduct: {KindBillingFeature},
 }
 
 // parseDocuments reads and checks every document in the file before anything

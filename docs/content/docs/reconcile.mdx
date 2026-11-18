@@ -46,8 +46,9 @@ Rules that apply to every document:
   document stops the run before any change is made.
 - Documents apply in the order they appear in the file.
 - Some kinds depend on others. A role can grant a permission, so a `Permission` document
-  must come before a `Role` document in the same file. The wrong order is rejected before
-  anything applies.
+  must come before a `Role` document in the same file. A product lists features, so a
+  `BillingFeature` document must come before a `BillingProduct` document in the same file.
+  The wrong order is rejected before anything applies.
 
 ## The PlatformUser kind
 
@@ -244,6 +245,50 @@ spec:
   empty, so reconciling an export plans nothing, and headers and metadata set through other
   tools are carried through an update untouched.
 
+## The BillingFeature kind
+
+`BillingFeature` manages the title and metadata of billing features. A feature is a line on
+a pricing page, like "Audit logs". The feature name is the identity and never changes.
+
+```yaml
+apiVersion: v1
+kind: BillingFeature
+spec:
+  - name: audit_logs
+    title: Audit Logs
+    metadata:
+      info: "Every action is recorded. See [the audit log docs](https://docs.example.com/audit-logs)."
+  - name: open_source_data
+    title: Open Source Data
+  - name: order_archive_images
+```
+
+- The feature name is the identity and must be at least three characters. Names are case
+  sensitive, the same as the API: `Foo` and `foo` are two features. A name that differs from
+  a server feature only by case is created as a new feature, so use the name exactly as the
+  server has it.
+- `title` and `metadata` are the managed fields. Each one states the whole desired value.
+  A value you write is used as given. Leaving `title` out sets it to empty. Leaving
+  `metadata` out sets it to `{}`. Metadata is one whole map: a key you drop is removed.
+- Metadata is compared by value. Key order does not matter, and `5` and `5.0` are the same.
+  The server stores every number as a floating point number, so prefer strings for text like tooltips and
+  links. A value the API cannot hold, like a date or a nested map with a number as a key, fails
+  when the file is validated.
+- Every feature on the server must appear in the file. A feature that is missing fails the
+  plan. There is no API to remove a feature, so `delete: true` is rejected. Run
+  `frontier export billingfeature` to get the full list. A feature with a name shorter than
+  three characters is out of scope: it is left untouched, not required in the file, and not
+  exported, and a file that names it fails the plan.
+- A new feature is created with its title and metadata and no products. Products are linked
+  by the `BillingProduct` kind, not by this one. An update keeps the feature's current
+  product links. If a feature's products change during a run, by hand or by a
+  `BillingProduct` run from another process, that change can be overwritten.
+- A `BillingProduct` can still list a feature that this kind has not set up. The product
+  creates it with an empty title and no metadata. Add it to the `BillingFeature` file too,
+  or the next run of that file fails because the feature is missing.
+- Export writes each feature sorted by name. It leaves out an empty title and empty
+  metadata, and never writes product links. Reconciling an export plans nothing.
+
 ## The BillingProduct kind
 
 `BillingProduct` manages billing products: the thing a customer buys, its prices, and the
@@ -434,8 +479,10 @@ The kind argument is case-insensitive and accepts a plural, so `platformuser` an
 ## More kinds
 
 This page covers `PlatformUser`, `Permission`, `Role`, `Preference`, `Webhook`,
-`BillingProduct`, `BillingPlan`, and `MetaSchema`. The design and
+`BillingFeature`, `BillingProduct`, `BillingPlan`, and `MetaSchema`. The design and
 the rules every kind follows live in
 [RFC 0001](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile.md),
-which also lists the kinds proposed next. The flag reference for both commands is in the
+which also lists the kinds proposed next. The BillingFeature kind is described in
+[its addendum](https://github.com/raystack/frontier/blob/main/docs/rfcs/0001-declarative-reconcile-addendum-billingfeature.md).
+The flag reference for both commands is in the
 [CLI reference](./reference/cli.md).

@@ -34,6 +34,8 @@ var supportedPATResourceTypes = []string{
 	schema.ProjectNamespace,
 }
 
+const patRemovalPageSize = 1000
+
 type OrganizationService interface {
 	GetRaw(ctx context.Context, id string) (organization.Organization, error)
 }
@@ -198,14 +200,42 @@ func (s *Service) DeleteAllByOrg(ctx context.Context, orgID string) error {
 		return fmt.Errorf("listing PATs for org: %w", err)
 	}
 	for _, pat := range pats {
-		if err := s.revokeOrgPAT(ctx, pat); err != nil {
+		if err := s.revokePAT(ctx, pat, nil); err != nil {
 			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
 		}
 	}
 	return nil
 }
 
-func (s *Service) revokeOrgPAT(ctx context.Context, pat patmodels.PAT) error {
+func (s *Service) OnOrgMemberRemoved(ctx context.Context, orgID, userID string) error {
+	pats, err := s.listAllByUserInOrg(ctx, userID, orgID)
+	if err != nil {
+		return fmt.Errorf("listing PATs for user in org: %w", err)
+	}
+	for _, pat := range pats {
+		if err := s.revokePAT(ctx, pat, map[string]any{"reason": "member_removed"}); err != nil {
+			return fmt.Errorf("deleting PAT[%s]: %w", pat.ID, err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) listAllByUserInOrg(ctx context.Context, userID, orgID string) ([]patmodels.PAT, error) {
+	var pats []patmodels.PAT
+	for offset := 0; ; offset += patRemovalPageSize {
+		query := pkgUtils.NewRQLQuery("", offset, patRemovalPageSize, []rql.Filter{}, []rql.Sort{}, []string{})
+		page, err := s.repo.List(ctx, userID, orgID, query)
+		if err != nil {
+			return nil, err
+		}
+		pats = append(pats, page.PATs...)
+		if len(page.PATs) < patRemovalPageSize {
+			return pats, nil
+		}
+	}
+}
+
+func (s *Service) revokePAT(ctx context.Context, pat patmodels.PAT, targetMetadata map[string]any) error {
 	softDeleted := false
 	if pat.DeletedAt == nil {
 		err := s.repo.Delete(ctx, pat.ID)
@@ -223,7 +253,7 @@ func (s *Service) revokeOrgPAT(ctx context.Context, pat patmodels.PAT) error {
 	}
 
 	if softDeleted {
-		if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRevokedEvent, pat, time.Now().UTC(), nil); err != nil {
+		if err := s.createAuditRecord(ctx, pkgAuditRecord.PATRevokedEvent, pat, time.Now().UTC(), targetMetadata); err != nil {
 			s.logger.ErrorContext(ctx, "failed to create audit record for PAT revocation", "pat_id", pat.ID, "error", err)
 		}
 	}

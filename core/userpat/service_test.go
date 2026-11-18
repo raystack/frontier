@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -24,6 +25,8 @@ import (
 	"github.com/raystack/frontier/core/userpat/mocks"
 	"github.com/raystack/frontier/core/userpat/models"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	pkgAuditRecord "github.com/raystack/frontier/pkg/auditrecord"
+	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -2040,6 +2043,7 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 		auditRepo.EXPECT().Create(mock.Anything, mock.Anything).
 			Run(func(_ context.Context, record auditmodels.AuditRecord) {
 				calls = append(calls, "audit:"+record.Target.ID)
+				assert.NotContains(t, record.Target.Metadata, "reason")
 			}).
 			Return(auditmodels.AuditRecord{}, nil).
 			Times(2)
@@ -2171,6 +2175,109 @@ func TestService_DeleteAllByOrg(t *testing.T) {
 		assert.ErrorIs(t, err, paterrors.ErrNotFound)
 		membershipSvc.AssertNotCalled(t, "RemoveAllPATPolicies", mock.Anything, mock.Anything)
 		repo.AssertNotCalled(t, "Delete", mock.Anything, mock.Anything)
+	})
+}
+
+func TestService_OnOrgMemberRemoved(t *testing.T) {
+	newService := func(t *testing.T) (*userpat.Service, *mocks.Repository, *mocks.MembershipService, *mocks.AuditRecordRepository) {
+		t.Helper()
+		repo := mocks.NewRepository(t)
+		membershipSvc := mocks.NewMembershipService(t)
+		orgSvc := mocks.NewOrganizationService(t)
+		orgSvc.On("GetRaw", mock.Anything, mock.Anything).
+			Return(organization.Organization{ID: "org-1", Title: "Test Org"}, nil).Maybe()
+		auditRepo := mocks.NewAuditRecordRepository(t)
+		svc := userpat.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), repo, defaultConfig,
+			orgSvc, nil, membershipSvc, nil, auditRepo)
+		return svc, repo, membershipSvc, auditRepo
+	}
+	pageAt := func(offset int) any {
+		return mock.MatchedBy(func(q *rql.Query) bool {
+			return q.Offset == offset && q.Limit == 1000
+		})
+	}
+	livePAT := func(id string) models.PAT {
+		return models.PAT{ID: id, UserID: "user-1", OrgID: "org-1", Title: id, ExpiresAt: time.Now().Add(time.Hour)}
+	}
+
+	t.Run("no-op when the user has no PATs in the org", func(t *testing.T) {
+		svc, repo, _, _ := newService(t)
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", pageAt(0)).Return(models.PATList{}, nil)
+		assert.NoError(t, svc.OnOrgMemberRemoved(context.Background(), "org-1", "user-1"))
+	})
+
+	t.Run("returns error when the list fails", func(t *testing.T) {
+		svc, repo, _, _ := newService(t)
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", pageAt(0)).Return(models.PATList{}, errors.New("db down"))
+		err := svc.OnOrgMemberRemoved(context.Background(), "org-1", "user-1")
+		assert.ErrorContains(t, err, "listing PATs for user in org")
+		assert.ErrorContains(t, err, "db down")
+	})
+
+	t.Run("revokes each PAT and records member_removed as the reason", func(t *testing.T) {
+		svc, repo, membershipSvc, auditRepo := newService(t)
+		pats := []models.PAT{livePAT("pat-1"), livePAT("pat-2")}
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", pageAt(0)).Return(models.PATList{PATs: pats}, nil)
+		for _, pat := range pats {
+			repo.EXPECT().Delete(mock.Anything, pat.ID).Return(nil).Once()
+			membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, pat.ID).Return(nil).Once()
+		}
+		var records []auditmodels.AuditRecord
+		auditRepo.EXPECT().Create(mock.Anything, mock.Anything).
+			Run(func(_ context.Context, record auditmodels.AuditRecord) { records = append(records, record) }).
+			Return(auditmodels.AuditRecord{}, nil).
+			Times(2)
+
+		assert.NoError(t, svc.OnOrgMemberRemoved(context.Background(), "org-1", "user-1"))
+		assert.Len(t, records, 2)
+		for i, record := range records {
+			assert.Equal(t, pkgAuditRecord.PATRevokedEvent, record.Event)
+			assert.Equal(t, pats[i].ID, record.Target.ID)
+			assert.Equal(t, "member_removed", record.Target.Metadata["reason"])
+			assert.Equal(t, "user-1", record.Target.Metadata["user_id"])
+		}
+	})
+
+	t.Run("reads every page before revoking", func(t *testing.T) {
+		svc, repo, membershipSvc, auditRepo := newService(t)
+		firstPage := make([]models.PAT, 1000)
+		for i := range firstPage {
+			firstPage[i] = livePAT(fmt.Sprintf("pat-%d", i))
+		}
+		lastPAT := livePAT("pat-last")
+
+		var calls []string
+		recordList := func(_ context.Context, _, _ string, q *rql.Query) {
+			calls = append(calls, fmt.Sprintf("list:%d", q.Offset))
+		}
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", pageAt(0)).
+			Run(recordList).Return(models.PATList{PATs: firstPage}, nil).Once()
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", pageAt(1000)).
+			Run(recordList).Return(models.PATList{PATs: []models.PAT{lastPAT}}, nil).Once()
+		repo.EXPECT().Delete(mock.Anything, mock.Anything).
+			Run(func(_ context.Context, id string) { calls = append(calls, "row:"+id) }).
+			Return(nil).Times(1001)
+		membershipSvc.EXPECT().RemoveAllPATPolicies(mock.Anything, mock.Anything).Return(nil).Times(1001)
+		auditRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(auditmodels.AuditRecord{}, nil).Times(1001)
+
+		assert.NoError(t, svc.OnOrgMemberRemoved(context.Background(), "org-1", "user-1"))
+		want := []string{"list:0", "list:1000"}
+		for _, pat := range firstPage {
+			want = append(want, "row:"+pat.ID)
+		}
+		want = append(want, "row:"+lastPAT.ID)
+		assert.Equal(t, want, calls)
+	})
+
+	t.Run("stops at the first PAT it cannot revoke", func(t *testing.T) {
+		svc, repo, _, _ := newService(t)
+		pats := []models.PAT{livePAT("pat-bad"), livePAT("pat-2")}
+		repo.EXPECT().List(mock.Anything, "user-1", "org-1", pageAt(0)).Return(models.PATList{PATs: pats}, nil)
+		repo.EXPECT().Delete(mock.Anything, "pat-bad").Return(errors.New("db down"))
+
+		err := svc.OnOrgMemberRemoved(context.Background(), "org-1", "user-1")
+		assert.ErrorContains(t, err, "deleting PAT[pat-bad]")
+		assert.ErrorContains(t, err, "db down")
 	})
 }
 

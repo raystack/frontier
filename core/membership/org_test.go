@@ -744,12 +744,14 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 		projSvc   *mocks.ProjectService
 		grpSvc    *mocks.GroupService
 		resSvc    *mocks.ResourceService
+		patSvc    *mocks.UserPATService
 		auditRepo *mocks.AuditRecordRepository
 	}
 
 	tests := []struct {
 		name           string
 		principalType  string
+		noPATService   bool
 		setup          func(d testDeps)
 		wantErr        error
 		wantErrContain string
@@ -775,12 +777,22 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 			wantErr: organization.ErrDisabled,
 		},
 		{
-			name: "should return ErrNotMember if principal has no org policies",
+			name: "should revoke leftover PATs and return ErrNotMember if principal has no org policies",
 			setup: func(d testDeps) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(nil)
 			},
 			wantErr: membership.ErrNotMember,
+		},
+		{
+			name: "should return error if revoking leftover PATs fails for a principal with no org policies",
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(errors.New("pat boom"))
+			},
+			wantErrContain: "revoke member PATs",
 		},
 		{
 			name: "should return ErrLastOwnerRole when removing the last owner",
@@ -798,7 +810,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return(nil, errors.New("db error"))
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return(nil, errors.New("db error"))
 			},
 			wantErrContain: "list org projects",
 		},
@@ -808,8 +820,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return(nil, errors.New("db error"))
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return(nil, errors.New("db error"))
 			},
 			wantErrContain: "list org groups",
 		},
@@ -819,14 +831,15 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
 				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(nil)
 			},
 			wantErr: nil,
 		},
@@ -837,8 +850,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: ownerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "org-p1"}, {ID: "other-owner-p"}}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: projectID}}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{{ID: groupID}}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{{ID: projectID}}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{{ID: groupID}}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 					{ID: "proj-p1", ResourceType: schema.ProjectNamespace, ResourceID: projectID},
@@ -851,6 +864,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{projectID}).Return(nil)
 				d.relSvc.EXPECT().Delete(ctx, relation.Relation{Object: grpObj, Subject: userSub, RelationName: schema.MemberRelationName}).Return(relation.ErrNotExist)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(nil)
 			},
 			wantErr: nil,
 		},
@@ -862,8 +876,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 					{ID: "other-org-p", ResourceType: schema.OrganizationNamespace, ResourceID: otherOrgID},
@@ -872,6 +886,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
 				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(nil)
 			},
 			wantErr: nil,
 		},
@@ -881,8 +896,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: projectID}}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{{ID: projectID}}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "proj-p1", ResourceType: schema.ProjectNamespace, ResourceID: projectID},
 				}, nil)
@@ -897,8 +912,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{{ID: groupID}}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{{ID: groupID}}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: viewerRoleID},
 				}, nil)
@@ -917,14 +932,15 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: projectID}, {ID: secondProjectID}}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{{ID: projectID}, {ID: secondProjectID}}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
 				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
 				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{projectID, secondProjectID}).Return(nil)
 				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(nil)
 			},
 			wantErr: nil,
 		},
@@ -934,8 +950,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: projectID}}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{{ID: projectID}}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 				}, nil)
@@ -951,8 +967,8 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: ownerRoleID}}, nil)
 				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, RoleID: ownerRoleID}).Return([]policy.Policy{{ID: "org-p1"}, {ID: "other-owner-p"}}, nil)
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: projectID}}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{{ID: projectID}}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
 				}, nil)
@@ -961,6 +977,59 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				// RemovePrincipalAccess must NOT be called — strict mock fails on unexpected call
 			},
 			wantErr: membership.ErrLastOwnerRole,
+		},
+		{
+			name: "should return error if PAT revocation fails after the member is removed",
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
+				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
+					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
+				}, nil)
+				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
+				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+				d.patSvc.EXPECT().OnOrgMemberRemoved(ctx, orgID, userID).Return(errors.New("pat boom"))
+			},
+			wantErrContain: "revoke member PATs",
+		},
+		{
+			name:          "should not revoke PATs when the removed principal is not a user",
+			principalType: schema.PATPrincipal,
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.PATPrincipal}).Return([]policy.Policy{
+					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
+				}, nil)
+				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.PATPrincipal, orgID, []string{}).Return(nil)
+				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name:         "should still remove the member when the PAT service is not set",
+			noPATService: true,
+			setup: func(d testDeps) {
+				d.orgSvc.EXPECT().Get(ctx, orgID).Return(enabledOrg, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
+				d.roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
+				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
+					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
+				}, nil)
+				d.policySvc.EXPECT().Delete(ctx, "org-p1").Return(nil)
+				d.resSvc.EXPECT().RemovePrincipalAccess(ctx, userID, schema.UserPrincipal, orgID, []string{}).Return(nil)
+				d.auditRepo.EXPECT().Create(ctx, mock.Anything).Return(auditrecord.AuditRecord{}, nil)
+			},
+			wantErr: nil,
 		},
 	}
 
@@ -974,6 +1043,7 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 				projSvc:   mocks.NewProjectService(t),
 				grpSvc:    mocks.NewGroupService(t),
 				resSvc:    mocks.NewResourceService(t),
+				patSvc:    mocks.NewUserPATService(t),
 				auditRepo: mocks.NewAuditRecordRepository(t),
 			}
 			if tt.setup != nil {
@@ -982,6 +1052,9 @@ func TestService_RemoveOrganizationMember(t *testing.T) {
 
 			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, d.relSvc, d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo)
 			svc.SetResourceService(d.resSvc)
+			if !tt.noPATService {
+				svc.SetUserPATService(d.patSvc)
+			}
 
 			principalType := tt.principalType
 			if principalType == "" {
@@ -1031,8 +1104,8 @@ func TestService_RemoveOrganizationMemberOnDelete(t *testing.T) {
 			name: "removes an owner from a disabled org with the owner guard",
 			setup: func(d testDeps) {
 				expectDisabledOrgOwner(d, []policy.Policy{{ID: "org-p1"}, {ID: "other-owner-p"}})
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
 				}, nil)
@@ -1045,8 +1118,8 @@ func TestService_RemoveOrganizationMemberOnDelete(t *testing.T) {
 			name: "skips policies that are already gone",
 			setup: func(d testDeps) {
 				expectDisabledOrgOwner(d, []policy.Policy{{ID: "org-p1"}, {ID: "other-owner-p"}})
-				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{{ID: "proj-1"}}, nil)
-				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+				d.projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{{ID: "proj-1"}}, nil)
+				d.grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 				d.policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 					{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID, RoleID: ownerRoleID},
 					{ID: "proj-p1", ResourceType: schema.ProjectNamespace, ResourceID: "proj-1"},
@@ -1096,6 +1169,7 @@ func TestService_RemoveOrganizationMemberOnDelete(t *testing.T) {
 
 			svc := membership.NewService(slog.New(slog.NewTextHandler(io.Discard, nil)), d.policySvc, mocks.NewRelationService(t), d.roleSvc, d.orgSvc, mocks.NewUserService(t), d.projSvc, d.grpSvc, mocks.NewServiceuserService(t), d.auditRepo)
 			svc.SetResourceService(d.resSvc)
+			svc.SetUserPATService(mocks.NewUserPATService(t))
 
 			err := svc.RemoveOrganizationMemberOnDelete(ctx, orgID, userID, schema.UserPrincipal)
 			if tt.wantErr != nil {
@@ -1127,8 +1201,8 @@ func TestService_RemoveOrganizationMember_WithoutResourceService(t *testing.T) {
 	orgSvc.EXPECT().Get(ctx, orgID).Return(organization.Organization{ID: orgID, Title: "Test Org"}, nil)
 	policySvc.EXPECT().List(ctx, policy.Filter{OrgID: orgID, PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{{ID: "org-p1", RoleID: viewerRoleID}}, nil)
 	roleSvc.EXPECT().Get(ctx, schema.RoleOrganizationOwner).Return(role.Role{ID: ownerRoleID, Name: schema.RoleOrganizationOwner}, nil)
-	projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID}).Return([]project.Project{}, nil)
-	grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID}).Return([]group.Group{}, nil)
+	projSvc.EXPECT().List(ctx, project.Filter{OrgID: orgID, IncludeDisabled: true}).Return([]project.Project{}, nil)
+	grpSvc.EXPECT().List(ctx, group.Filter{OrganizationID: orgID, IncludeDisabled: true}).Return([]group.Group{}, nil)
 	policySvc.EXPECT().List(ctx, policy.Filter{PrincipalID: userID, PrincipalType: schema.UserPrincipal}).Return([]policy.Policy{
 		{ID: "org-p1", ResourceType: schema.OrganizationNamespace, ResourceID: orgID},
 	}, nil)
