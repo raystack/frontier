@@ -2,15 +2,33 @@
 
 import { Flex, Image, Skeleton, Text } from '@raystack/apsara';
 import { get } from 'lodash';
+import { Feature } from '@raystack/proton/frontier';
 import {
   IntervalKeys,
   IntervalPricingWithPlan,
   PlanIntervalPricing
 } from '~/src/types';
 import checkCircle from '~/client/assets/check-circle.svg';
-import { FeatureRow, normalizeFeatureValue } from '~/client/views/plans/helpers/feature-rows';
-import { FeatureInfoPopover } from '~/client/views/plans/components/feature-info';
+import { FeatureInfo } from '~/client/views/plans/components/feature-info';
 import styles from './feature-table.module.css';
+
+/*
+ * Normalises a feature cell value to a string.
+ * - Falsy values (missing, '', false, 0) become '-'.
+ * - Everything else goes through String(), so lowercasing never throws.
+ */
+function normalizeFeatureValue(value: unknown): string {
+  return value ? String(value) : '-';
+}
+
+/*
+ * Reads the feature's info text.
+ * - Only a non-blank string shows the info icon.
+ */
+function getFeatureInfo(feature: Feature): string {
+  const info = feature.metadata?.info;
+  return typeof info === 'string' ? info.trim() : '';
+}
 
 interface FeatureValueCellProps {
   feature: string;
@@ -43,7 +61,7 @@ function FeatureValueCell({ feature, plan }: FeatureValueCellProps) {
 }
 
 export interface FeatureTableProps {
-  features: FeatureRow[];
+  features: Feature[];
   plans: PlanIntervalPricing[];
   selectedIntervals: Record<string, IntervalKeys>;
   isLoading?: boolean;
@@ -92,16 +110,17 @@ export function FeatureTable({
   return (
     <Flex className={styles.table}>
       <Flex direction="column" className={styles.featureColumn}>
-        {features.map(feature => (
-          <Flex key={feature.title} className={styles.cell}>
-            <Text size="regular" className={styles.featureLabel}>
-              {feature.title}
-            </Text>
-            {feature.info && (
-              <FeatureInfoPopover title={feature.title} info={feature.info} />
-            )}
-          </Flex>
-        ))}
+        {features.map(feature => {
+          const info = getFeatureInfo(feature);
+          return (
+            <Flex key={feature.title} className={styles.cell}>
+              <Text size="regular" className={styles.featureLabel}>
+                {feature.title}
+              </Text>
+              {info && <FeatureInfo title={feature.title} info={info} />}
+            </Flex>
+          );
+        })}
       </Flex>
 
       {plans.map(plan => {

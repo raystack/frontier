@@ -1,64 +1,57 @@
 'use client';
 
-import { Fragment, useId } from 'react';
-import { Link, Popover } from '@raystack/apsara';
+import { IconButton, Link, Popover } from '@raystack/apsara';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { parseFeatureInfo } from '~/client/views/plans/helpers/feature-rows';
 import styles from './feature-table.module.css';
 
+/*
+ * Matches [label](url) for http, https and mailto urls only.
+ * - Label needs a non-space character, so [ ](url) stays text.
+ * - Label can't hold brackets, so [[a](url) links only "a".
+ * - Url may hold balanced parentheses one level deep, e.g. .../Foo_(bar).
+ */
+const LINK_PATTERN =
+  /\[(\s*[^[\]\s][^[\]]*)\]\(((?:https?|mailto):(?:[^()\s]|\([^()\s]*\))+)\)/;
+
 interface FeatureInfoProps {
-  id: string;
-  info: string;
-}
-
-function FeatureInfo({ id, info }: FeatureInfoProps) {
-  return (
-    <span id={id}>
-      {parseFeatureInfo(info).map((part, index) =>
-        part.type === 'link' ? (
-          <Link
-            key={index}
-            href={part.url}
-            external={!part.url.startsWith('mailto:')}
-            underline
-            data-test-id="frontier-sdk-plans-feature-info-link"
-          >
-            {part.label}
-          </Link>
-        ) : (
-          <Fragment key={index}>{part.text}</Fragment>
-        )
-      )}
-    </span>
-  );
-}
-
-interface FeatureInfoPopoverProps {
   title: string;
   info: string;
 }
 
-export function FeatureInfoPopover({ title, info }: FeatureInfoPopoverProps) {
-  const descriptionId = useId();
+export function FeatureInfo({ title, info }: FeatureInfoProps) {
   return (
     <Popover>
       <Popover.Trigger
         openOnHover
-        className={styles.infoTrigger}
-        aria-label={`More information about ${title}`}
-        data-test-id="frontier-sdk-plans-feature-info-btn"
-      >
-        <InfoCircledIcon width={16} height={16} />
-      </Popover.Trigger>
-      <Popover.Content
-        side="top"
-        align="start"
-        className={styles.infoContent}
         render={
-          <div aria-label={`About ${title}`} aria-describedby={descriptionId} />
+          <IconButton
+            size={2}
+            aria-label={`About ${title}`}
+            className={styles.infoTrigger}
+            data-test-id="frontier-sdk-plans-feature-info-btn"
+          />
         }
       >
-        <FeatureInfo id={descriptionId} info={info} />
+        <InfoCircledIcon />
+      </Popover.Trigger>
+      <Popover.Content side="top">
+        {/* split() returns [text, label, url, text, label, url, ..., text] */}
+        {info.split(LINK_PATTERN).map((part, i, parts) => {
+          if (i % 3 === 0) return part;
+          if (i % 3 === 2) return null;
+          const url = parts[i + 1];
+          return (
+            <Link
+              key={i}
+              href={url}
+              external={url.startsWith('http')}
+              underline
+              data-test-id="frontier-sdk-plans-feature-info-link"
+            >
+              {part}
+            </Link>
+          );
+        })}
       </Popover.Content>
     </Popover>
   );
