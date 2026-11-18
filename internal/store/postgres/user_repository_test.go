@@ -717,8 +717,19 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 10,
 				Limit:  20,
 			},
-			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" ILIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
+			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."id" = $1) AND (CAST("users"."state" AS TEXT) ILIKE $2) AND ((CAST("users"."email" AS TEXT) IS NULL) OR (CAST("users"."email" AS TEXT) = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
 			wantParams: []any{int64(123), "%active%", "", "%john%", "%john%", "%john%", "%john%", int64(20), int64(10)},
+		},
+		{
+			name: "in splits a comma list",
+			rqlQuery: &rql.Query{
+				Filters: []rql.Filter{
+					{Name: "state", Operator: "in", Value: "enabled,disabled"},
+				},
+				Limit: 10,
+			},
+			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."state" IN ($1, $2))) LIMIT $3`,
+			wantParams: []any{"enabled", "disabled", int64(10)},
 		},
 		{
 			name: "query with group by",
@@ -777,7 +788,7 @@ func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
 				GroupBy: []string{"state"},
 				Search:  "test",
 			},
-			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."state" = $1) AND ("CAST(users"."id AS TEXT)" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
+			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."deleted_at" IS NULL) AND ("users"."state" = $1) AND ("users"."id" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
 			wantParams: []any{"active", int64(123), "%test%", "%test%", "%test%", "%test%"},
 		},
 		{
@@ -848,4 +859,94 @@ func (s *UserRepositoryTestSuite) TestSkipsSoftDeletedUsers() {
 
 	err = s.repository.SetState(s.ctx, deleted.ID, user.Disabled)
 	s.Assert().ErrorIs(err, user.ErrNotExist)
+}
+
+func (s *UserRepositoryTestSuite) TestSearchFiltersByID() {
+	target, other := s.users[0], s.users[1]
+
+	type testCase struct {
+		Description string
+		Filter      rql.Filter
+		ExpectedIDs []string
+		ErrIs       error
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "eq matches the user with that id",
+			Filter:      rql.Filter{Name: "id", Operator: "eq", Value: target.ID},
+			ExpectedIDs: []string{target.ID},
+		},
+		{
+			Description: "neq matches every other user",
+			Filter:      rql.Filter{Name: "id", Operator: "neq", Value: target.ID},
+			ExpectedIDs: []string{other.ID},
+		},
+		{
+			Description: "like matches part of the id",
+			Filter:      rql.Filter{Name: "id", Operator: "like", Value: target.ID[:8]},
+			ExpectedIDs: []string{target.ID},
+		},
+		{
+			Description: "notlike skips the user whose id has that part",
+			Filter:      rql.Filter{Name: "id", Operator: "notlike", Value: target.ID[:8]},
+			ExpectedIDs: []string{other.ID},
+		},
+		{
+			Description: "ilike matches an id pattern",
+			Filter:      rql.Filter{Name: "id", Operator: "ilike", Value: target.ID[:8] + "%"},
+			ExpectedIDs: []string{target.ID},
+		},
+		{
+			Description: "notilike skips the user whose id matches the pattern",
+			Filter:      rql.Filter{Name: "id", Operator: "notilike", Value: target.ID[:8] + "%"},
+			ExpectedIDs: []string{other.ID},
+		},
+		{
+			Description: "in matches each id in a comma list",
+			Filter:      rql.Filter{Name: "id", Operator: "in", Value: target.ID + "," + other.ID},
+			ExpectedIDs: []string{target.ID, other.ID},
+		},
+		{
+			Description: "notin skips each id in a comma list",
+			Filter:      rql.Filter{Name: "id", Operator: "notin", Value: target.ID + "," + uuid.NewString()},
+			ExpectedIDs: []string{other.ID},
+		},
+		{
+			Description: "empty matches no user, since every user has an id",
+			Filter:      rql.Filter{Name: "id", Operator: "empty"},
+		},
+		{
+			Description: "notempty matches every user",
+			Filter:      rql.Filter{Name: "id", Operator: "notempty"},
+			ExpectedIDs: []string{target.ID, other.ID},
+		},
+		{
+			Description: "a value that is not a uuid is bad input",
+			Filter:      rql.Filter{Name: "id", Operator: "eq", Value: "not-a-uuid"},
+			ErrIs:       postgres.ErrBadInput,
+		},
+		{
+			Description: "a list with a value that is not a uuid is bad input",
+			Filter:      rql.Filter{Name: "id", Operator: "in", Value: target.ID + ",not-a-uuid"},
+			ErrIs:       postgres.ErrBadInput,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.Search(s.ctx, &rql.Query{Filters: []rql.Filter{tc.Filter}, Limit: 50})
+			if tc.ErrIs != nil {
+				s.Assert().ErrorIs(err, tc.ErrIs)
+				return
+			}
+			s.Require().NoError(err)
+
+			var gotIDs []string
+			for _, u := range got.Users {
+				gotIDs = append(gotIDs, u.ID)
+			}
+			s.Assert().ElementsMatch(tc.ExpectedIDs, gotIDs)
+		})
+	}
 }
