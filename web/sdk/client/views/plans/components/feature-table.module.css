@@ -43,3 +43,13 @@
   height: 16px;
   flex-shrink: 0;
 }
+
+/*
+ * Figma: 16px icon in fg/Subtle.
+ * - IconButton adds 2px padding and a darker colour.
+ * - .cell raises specificity so this wins over Apsara's class in any load order.
+ */
+.cell .infoTrigger {
+  padding: 0;
+  color: var(--rs-color-foreground-base-tertiary);
+}

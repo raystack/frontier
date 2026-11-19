@@ -1,15 +1,34 @@
 'use client';
 
 import { Flex, Image, Skeleton, Text } from '@raystack/apsara';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { get } from 'lodash';
+import { Feature } from '@raystack/proton/frontier';
 import {
   IntervalKeys,
   IntervalPricingWithPlan,
   PlanIntervalPricing
 } from '~/src/types';
 import checkCircle from '~/client/assets/check-circle.svg';
+import { FeatureInfo } from '~/client/views/plans/components/feature-info';
 import styles from './feature-table.module.css';
+
+/*
+ * Normalises a feature cell value to a string.
+ * - Falsy values (missing, '', false, 0) become '-'.
+ * - Plain values go through String(), so lowercasing a number or boolean doesn't throw.
+ */
+function normalizeFeatureValue(value: unknown): string {
+  return value ? String(value) : '-';
+}
+
+/*
+ * Reads the feature's info text.
+ * - Only a non-blank string shows the info icon.
+ */
+function getFeatureInfo(feature: Feature): string {
+  const info = feature.metadata?.info;
+  return typeof info === 'string' ? info.trim() : '';
+}
 
 interface FeatureValueCellProps {
   feature: string;
@@ -21,8 +40,8 @@ function FeatureValueCell({ feature, plan }: FeatureValueCellProps) {
   const productMetaDataFeatureValues = plan?.productNames
     .map(name => get(planFeature.metadata, name))
     .filter(value => value !== undefined);
-  const value = productMetaDataFeatureValues?.[0] || '-';
-  const isAvailable = value?.toLowerCase() === 'true';
+  const value = normalizeFeatureValue(productMetaDataFeatureValues?.[0]);
+  const isAvailable = value.toLowerCase() === 'true';
 
   return (
     <Flex className={`${styles.cell} ${styles.valueCell}`}>
@@ -42,7 +61,7 @@ function FeatureValueCell({ feature, plan }: FeatureValueCellProps) {
 }
 
 export interface FeatureTableProps {
-  features: string[];
+  features: Feature[];
   plans: PlanIntervalPricing[];
   selectedIntervals: Record<string, IntervalKeys>;
   isLoading?: boolean;
@@ -91,13 +110,17 @@ export function FeatureTable({
   return (
     <Flex className={styles.table}>
       <Flex direction="column" className={styles.featureColumn}>
-        {features.map(feature => (
-          <Flex key={feature} className={styles.cell}>
-            <Text size="regular" className={styles.featureLabel}>
-              {feature}
-            </Text>
-          </Flex>
-        ))}
+        {features.map(feature => {
+          const info = getFeatureInfo(feature);
+          return (
+            <Flex key={feature.title} className={styles.cell}>
+              <Text size="regular" className={styles.featureLabel}>
+                {feature.title}
+              </Text>
+              {info && <FeatureInfo title={feature.title} info={info} />}
+            </Flex>
+          );
+        })}
       </Flex>
 
       {plans.map(plan => {
@@ -111,8 +134,8 @@ export function FeatureTable({
           >
             {features.map(feature => (
               <FeatureValueCell
-                key={`${plan.slug}-${feature}`}
-                feature={feature}
+                key={`${plan.slug}-${feature.title}`}
+                feature={feature.title}
                 plan={planPricing}
               />
             ))}

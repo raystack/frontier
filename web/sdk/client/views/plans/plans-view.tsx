@@ -82,18 +82,17 @@ export function PlansView() {
   const sortedFeatures = useMemo(() => {
     const featureTitleMap = features.reduce(
       (acc, f) => {
-        const weightage =
-          (f.metadata as Record<string, number>)?.weightage || totalFeatures;
-        acc[f.title || ''] = weightage;
+        acc[f.title || ''] = f;
         return acc;
       },
-      {} as Record<string, number>
+      {} as Record<string, Feature>
     );
+    const weightage = (f: Feature) =>
+      (f.metadata as Record<string, number>)?.weightage || totalFeatures;
 
-    return Object.entries(featureTitleMap)
-      .sort((f1, f2) => f1[1] - f2[1])
-      .map(f => f[0])
-      .filter(Boolean);
+    return Object.values(featureTitleMap)
+      .sort((f1, f2) => weightage(f1) - weightage(f2))
+      .filter(f => Boolean(f.title));
   }, [features, totalFeatures]);
 
   const [intervalOverrides, setIntervalOverrides] = useState<
