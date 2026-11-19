@@ -15,7 +15,7 @@ import styles from './feature-table.module.css';
 /*
  * Normalises a feature cell value to a string.
  * - Falsy values (missing, '', false, 0) become '-'.
- * - Everything else goes through String(), so lowercasing never throws.
+ * - Plain values go through String(), so lowercasing a number or boolean doesn't throw.
  */
 function normalizeFeatureValue(value: unknown): string {
   return value ? String(value) : '-';
