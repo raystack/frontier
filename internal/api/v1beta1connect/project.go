@@ -105,7 +105,10 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.BuildFromProto(request.Msg.GetBody().GetMetadata())
+	}
 
 	updatedProject, err := h.projectService.Update(ctx, project.Project{
 		ID:       request.Msg.GetId(),
