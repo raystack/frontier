@@ -35,6 +35,9 @@ jobs:
         with:
           node-version: 22.x
 
+      - name: Install npm 11
+        run: npm install -g npm@11.21.2
+
       - name: Install Dependencies 🔧
         run: pnpm i
 
