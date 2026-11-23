@@ -26,6 +26,11 @@
   },
   "author": "pyadav9678@gmail.com",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raystack/frontier.git",
+    "directory": "web/sdk"
+  },
   "lint-staged": {
     "*.{json,md,html,js,jsx,ts,tsx}": [
       "prettier --write"
