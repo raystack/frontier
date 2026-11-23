@@ -55,6 +55,12 @@ jobs:
         env:
           GIT_REFNAME: ${{ github.ref_name }}
 
+      - name: Check Version Matches Tag
+        run: test "$(node -p 'require("./package.json").version')" = "${GIT_REFNAME#v}"
+        working-directory: ./web/sdk
+        env:
+          GIT_REFNAME: ${{ github.ref_name }}
+
       - name: Pack Tarball 📦
         id: pack
         run: |
