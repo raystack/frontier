@@ -34,6 +34,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22.x
+          package-manager-cache: false
 
       - name: Install npm 11
         run: npm install -g npm@11.21.2
