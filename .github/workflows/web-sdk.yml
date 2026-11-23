@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: web-sdk-publish-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build
