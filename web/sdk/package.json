@@ -19,7 +19,7 @@
     "size": "size-limit",
     "lint": "eslint \"./**/*.ts*\" --ignore-pattern \"*.d.ts\" --ignore-pattern \"*.test.ts\"",
     "bump-version": "node scripts/bump-version.js",
-    "release:ci": "release-it --ci --no-increment --npm.ignoreVersion",
+    "release:ci": "release-it --ci --no-increment --npm.ignoreVersion --npm.skipChecks",
     "release:dry": "release-it --dry-run --npm.ignoreVersion",
     "release": "release-it",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"
