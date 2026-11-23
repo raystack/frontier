@@ -81,6 +81,98 @@ func (s *APIRegressionTestSuite) TestUpdateUserMetadata() {
 		})
 	})
 
+	s.Run("update user by email", func() {
+		email := "user-metadata-update-by-email@raystack.org"
+		userID := createUser("user_metadata_update_by_email", email)
+
+		s.Run("1. update without metadata keeps the stored metadata", func() {
+			resp, err := s.testBench.Client.UpdateUser(ctxAdmin, connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: email,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "user metadata update renamed",
+					Email: email,
+				},
+			}))
+			s.Require().NoError(err)
+			s.Assert().Equal("user metadata update renamed", resp.Msg.GetUser().GetTitle())
+			s.Assert().Equal(map[string]any{"description": "core user", "size": "10"}, getMetadata(userID))
+		})
+
+		s.Run("2. update with metadata replaces the stored metadata", func() {
+			_, err := s.testBench.Client.UpdateUser(ctxAdmin, connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: email,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title:    "user metadata update renamed",
+					Email:    email,
+					Metadata: newMetadata(map[string]any{"size": "20"}),
+				},
+			}))
+			s.Require().NoError(err)
+			s.Assert().Equal(map[string]any{"size": "20"}, getMetadata(userID))
+		})
+
+		s.Run("3. update with empty metadata clears the stored metadata", func() {
+			_, err := s.testBench.Client.UpdateUser(ctxAdmin, connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: email,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title:    "user metadata update renamed",
+					Email:    email,
+					Metadata: &structpb.Struct{},
+				},
+			}))
+			s.Require().NoError(err)
+			s.Assert().Empty(getMetadata(userID))
+		})
+	})
+
+	s.Run("update user by name", func() {
+		email := "user-metadata-update-by-name@raystack.org"
+		userName := "user_metadata_update_by_name"
+		userID := createUser(userName, email)
+
+		s.Run("1. update without metadata keeps the stored metadata", func() {
+			resp, err := s.testBench.Client.UpdateUser(ctxAdmin, connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: userName,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "user metadata update renamed",
+					Email: email,
+					Name:  userName,
+				},
+			}))
+			s.Require().NoError(err)
+			s.Assert().Equal("user metadata update renamed", resp.Msg.GetUser().GetTitle())
+			s.Assert().Equal(map[string]any{"description": "core user", "size": "10"}, getMetadata(userID))
+		})
+
+		s.Run("2. update with metadata replaces the stored metadata", func() {
+			_, err := s.testBench.Client.UpdateUser(ctxAdmin, connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: userName,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title:    "user metadata update renamed",
+					Email:    email,
+					Name:     userName,
+					Metadata: newMetadata(map[string]any{"size": "20"}),
+				},
+			}))
+			s.Require().NoError(err)
+			s.Assert().Equal(map[string]any{"size": "20"}, getMetadata(userID))
+		})
+
+		s.Run("3. update with empty metadata clears the stored metadata", func() {
+			_, err := s.testBench.Client.UpdateUser(ctxAdmin, connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: userName,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title:    "user metadata update renamed",
+					Email:    email,
+					Name:     userName,
+					Metadata: &structpb.Struct{},
+				},
+			}))
+			s.Require().NoError(err)
+			s.Assert().Empty(getMetadata(userID))
+		})
+	})
+
 	s.Run("update current user", func() {
 		email := "current-user-metadata-update@raystack.org"
 		userID := createUser("current_user_metadata_update", email)
