@@ -101,7 +101,14 @@ export function ProfileView({
   async function onSubmit(data: FormData) {
     try {
       if (!user?.id) return;
-      await updateCurrentUser({ body: data });
+      await updateCurrentUser({
+        body: {
+          title: data.title,
+          email: data.email,
+          avatar: data.avatar,
+          name: user.name
+        }
+      });
       toastManager.add({ title: 'Updated user', type: 'success' });
     } catch (err) {
       handleConnectError(err, {
