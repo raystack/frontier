@@ -82,6 +82,7 @@ jobs:
     name: Publish
     needs: build
     runs-on: ubuntu-latest
+    environment: npm-publish
     timeout-minutes: 10
     permissions:
       contents: read
