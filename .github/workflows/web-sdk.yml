@@ -41,7 +41,7 @@ jobs:
         run: npm install -g npm@11.21.2
 
       - name: Install Dependencies 🔧
-        run: pnpm i
+        run: pnpm i --frozen-lockfile
 
       - name: Build Step 🔧
         env:
