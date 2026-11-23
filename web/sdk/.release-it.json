@@ -1,7 +1,6 @@
 {
   "git": {
     "requireBranch": false,
-    "requireUpstream": false,
     "getLatestTagFromAllRefs": true,
     "push": false,
     "commit": false,
