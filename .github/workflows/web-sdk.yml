@@ -57,5 +57,3 @@ jobs:
       - name: Run Semantic Release 🚀
         run: npm run release:ci
         working-directory: ./web/sdk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
