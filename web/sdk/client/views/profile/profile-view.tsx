@@ -27,6 +27,7 @@ import { DeleteUserDialog } from '../../components/delete-user-dialog';
 import styles from './profile-view.module.css';
 
 import { handleConnectError } from '~/utils/error';
+import { profileUpdateBody } from './profile-update-body';
 
 const profileSchema = yup
   .object({
@@ -101,14 +102,7 @@ export function ProfileView({
   async function onSubmit(data: FormData) {
     try {
       if (!user?.id) return;
-      await updateCurrentUser({
-        body: {
-          title: data.title,
-          email: data.email,
-          avatar: data.avatar,
-          name: user.name
-        }
-      });
+      await updateCurrentUser({ body: profileUpdateBody(data, user.name) });
       toastManager.add({ title: 'Updated user', type: 'success' });
     } catch (err) {
       handleConnectError(err, {
