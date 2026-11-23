@@ -105,6 +105,9 @@ jobs:
           name: web-sdk-tarball
           path: ${{ runner.temp }}/sdk
 
+      - name: Show npm Version
+        run: npm --version
+
       - name: Publish to npm 🚀
         run: npm publish "$RUNNER_TEMP/sdk/raystack-frontier-$VERSION.tgz" --tag "$DIST_TAG"
         env:
