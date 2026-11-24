@@ -439,6 +439,26 @@ func TestConnectHandler_UpdateUser(t *testing.T) {
 			err:  connect.NewError(connect.CodeNotFound, ErrUserNotExist),
 		},
 		{
+			title: "should return bad request error if metadata does not match the schema",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(metadata.Metadata{"foo": "bar"}, userMetaSchema).Return(errors.New("schema mismatch"))
+			},
+			req: connect.NewRequest(&frontierv1beta1.UpdateUserRequest{
+				Id: randomID,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "some user",
+					Email: "test@test.com",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			}),
+			want: nil,
+			err:  connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError),
+		},
+		{
 			title: "should not touch metadata or validate it when metadata is not set in the request",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
@@ -605,6 +625,26 @@ func TestConnectHandler_UpdateCurrentUser(t *testing.T) {
 			},
 			want: nil,
 			err:  connect.CodeInternal,
+		},
+		{
+			title: "should return bad request error if metadata does not match the schema",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) {
+				as.EXPECT().GetPrincipal(mock.Anything).Return(authenticate.Principal{ID: userID}, nil)
+				ms.EXPECT().Validate(metadata.Metadata{"foo": "bar"}, userMetaSchema).Return(errors.New("schema mismatch"))
+			},
+			req: &frontierv1beta1.UpdateCurrentUserRequest{
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "abc user",
+					Email: "user@raystack.org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			},
+			want: nil,
+			err:  connect.CodeInvalidArgument,
 		},
 		{
 			title: "should not touch metadata or validate it when metadata is not set in the request",
