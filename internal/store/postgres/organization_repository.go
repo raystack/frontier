@@ -317,14 +317,9 @@ func buildOrgUpdateColumns(org organization.Organization) (goqu.Record, error) {
 		"avatar":     org.Avatar,
 		"updated_at": goqu.L("now()"),
 	}
-	if org.Metadata == nil {
-		return record, nil
+	if err := setMetadataColumn(record, org.Metadata); err != nil {
+		return nil, err
 	}
-	marshaledMetadata, err := json.Marshal(org.Metadata)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errParse, err)
-	}
-	record["metadata"] = marshaledMetadata
 	return record, nil
 }
 

@@ -266,14 +266,9 @@ func buildProjectUpdateColumns(prj project.Project) (goqu.Record, error) {
 		"title":      prj.Title,
 		"updated_at": goqu.L("now()"),
 	}
-	if prj.Metadata == nil {
-		return record, nil
+	if err := setMetadataColumn(record, prj.Metadata); err != nil {
+		return nil, err
 	}
-	marshaledMetadata, err := json.Marshal(prj.Metadata)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errParse, err)
-	}
-	record["metadata"] = marshaledMetadata
 	return record, nil
 }
 

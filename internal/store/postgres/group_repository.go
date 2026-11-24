@@ -226,14 +226,9 @@ func buildGroupUpdateColumns(grp group.Group) (goqu.Record, error) {
 		"name":       grp.Name,
 		"updated_at": goqu.L("now()"),
 	}
-	if grp.Metadata == nil {
-		return record, nil
+	if err := setMetadataColumn(record, grp.Metadata); err != nil {
+		return nil, err
 	}
-	marshaledMetadata, err := json.Marshal(grp.Metadata)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errParse, err)
-	}
-	record["metadata"] = marshaledMetadata
 	return record, nil
 }
 

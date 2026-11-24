@@ -350,14 +350,9 @@ func buildUserUpdateColumns(usr user.User) (goqu.Record, error) {
 		"avatar":     usr.Avatar,
 		"updated_at": goqu.L("now()"),
 	}
-	if usr.Metadata == nil {
-		return record, nil
+	if err := setMetadataColumn(record, usr.Metadata); err != nil {
+		return nil, err
 	}
-	marshaledMetadata, err := json.Marshal(usr.Metadata)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errParse, err)
-	}
-	record["metadata"] = marshaledMetadata
 	return record, nil
 }
 
