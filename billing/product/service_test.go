@@ -1213,6 +1213,43 @@ func TestService_UpsertFeature(t *testing.T) {
 				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
 			},
 		},
+		{
+			name: "should keep existing product links when upserting the feature for another product",
+			args: args{
+				feature: product.Feature{
+					Name:       "feature1",
+					ProductIDs: []string{"product-c"},
+				},
+			},
+			want: product.Feature{
+				ID:         "1",
+				Name:       "feature1",
+				Title:      "Feature 1",
+				ProductIDs: []string{"product-a", "product-b", "product-c"},
+			},
+			wantErr: false,
+			setup: func() *product.Service {
+				stripeClient, _, mockProductRepo, mockPriceRepo, mockFeatureRepo := mockService(t)
+				mockFeatureRepo.EXPECT().GetByName(ctx, "feature1").Return(product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Feature 1",
+					ProductIDs: []string{"product-a", "product-b"},
+				}, nil)
+				mockFeatureRepo.EXPECT().UpdateByName(ctx, product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Feature 1",
+					ProductIDs: []string{"product-a", "product-b", "product-c"},
+				}).Return(product.Feature{
+					ID:         "1",
+					Name:       "feature1",
+					Title:      "Feature 1",
+					ProductIDs: []string{"product-a", "product-b", "product-c"},
+				}, nil)
+				return product.NewService(stripeClient, mockProductRepo, mockPriceRepo, mockFeatureRepo)
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

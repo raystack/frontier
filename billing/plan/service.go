@@ -37,6 +37,7 @@ type ProductService interface {
 	List(ctx context.Context, flt product.Filter) ([]product.Product, error)
 
 	UpsertFeature(ctx context.Context, f product.Feature) (product.Feature, error)
+	UpdateFeature(ctx context.Context, f product.Feature) (product.Feature, error)
 	GetFeatureByID(ctx context.Context, id string) (product.Feature, error)
 	GetFeatureByProductID(ctx context.Context, id string) ([]product.Feature, error)
 }
@@ -274,7 +275,11 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 			return err
 		}
 		featureOb.ProductIDs = productIDs
-		if _, err = s.productService.UpsertFeature(ctx, featureOb); err != nil {
+		// UpdateFeature, not UpsertFeature: this loop converges the stored set
+		// to exactly what the plan file states, including removing the feature
+		// from products that no longer list it, while an upsert only ever adds
+		// product links.
+		if _, err = s.productService.UpdateFeature(ctx, featureOb); err != nil {
 			return err
 		}
 	}
