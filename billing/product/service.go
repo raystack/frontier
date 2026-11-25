@@ -587,7 +587,12 @@ func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, 
 		return s.featureRepository.Create(ctx, feature)
 	}
 
-	existingFeature.ProductIDs = feature.ProductIDs
+	// An upsert only ever adds product links: the stored set is unioned with
+	// the incoming one, so creating a product or a feature never unlinks the
+	// feature from the other products it already belongs to. Shrinking the
+	// set is a deliberate act and goes through UpdateFeature or
+	// RemoveFeatureFromProduct.
+	existingFeature.ProductIDs = utils.Deduplicate(append(existingFeature.ProductIDs, feature.ProductIDs...))
 	if len(feature.Title) > 0 {
 		existingFeature.Title = feature.Title
 	}
