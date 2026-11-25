@@ -252,10 +252,17 @@ func (s Service) List(ctx context.Context, f Filter) ([]Organization, error) {
 }
 
 func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
-	if org.ID != "" {
-		return s.repository.UpdateByID(ctx, org)
+	if org.ID == "" {
+		return Organization{}, ErrInvalidID
 	}
-	return s.repository.UpdateByName(ctx, org)
+	if !utils.IsValidUUID(org.ID) {
+		existing, err := s.repository.GetByName(ctx, org.ID)
+		if err != nil {
+			return Organization{}, err
+		}
+		org.ID = existing.ID
+	}
+	return s.repository.UpdateByID(ctx, org)
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {

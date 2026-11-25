@@ -337,3 +337,49 @@ func TestService_List(t *testing.T) {
 		assert.Empty(t, got)
 	})
 }
+
+func TestService_Update(t *testing.T) {
+	ctx := context.Background()
+	targetID := uuid.New().String()
+	newService := func(repo *mocks.Repository) *organization.Service {
+		return organization.NewService(repo, mocks.NewRelationService(t), mocks.NewUserService(t), mocks.NewAuthnService(t),
+			mocks.NewPolicyService(t), mocks.NewPreferencesService(t), mocks.NewRoleService(t))
+	}
+
+	t.Run("update by id writes to the request id", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		input := organization.Organization{ID: targetID, Name: "other-org", Title: "new title"}
+		want := organization.Organization{ID: targetID, Name: "target-org", Title: "new title"}
+		repo.EXPECT().UpdateByID(ctx, input).Return(want, nil)
+
+		got, err := newService(repo).Update(ctx, input)
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("update by name writes to the org named in the request id, not the body name", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		want := organization.Organization{ID: targetID, Name: "target-org", Title: "new title"}
+		repo.EXPECT().GetByName(ctx, "target-org").Return(organization.Organization{ID: targetID, Name: "target-org"}, nil)
+		repo.EXPECT().UpdateByID(ctx, organization.Organization{ID: targetID, Name: "other-org", Title: "new title"}).Return(want, nil)
+
+		got, err := newService(repo).Update(ctx, organization.Organization{ID: "target-org", Name: "other-org", Title: "new title"})
+		assert.NoError(t, err)
+		assert.Equal(t, want, got)
+	})
+
+	t.Run("update by unknown name returns not found without writing", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+		repo.EXPECT().GetByName(ctx, "missing-org").Return(organization.Organization{}, organization.ErrNotExist)
+
+		_, err := newService(repo).Update(ctx, organization.Organization{ID: "missing-org", Name: "other-org"})
+		assert.ErrorIs(t, err, organization.ErrNotExist)
+	})
+
+	t.Run("update without a request id returns invalid id without writing", func(t *testing.T) {
+		repo := mocks.NewRepository(t)
+
+		_, err := newService(repo).Update(ctx, organization.Organization{Name: "other-org"})
+		assert.ErrorIs(t, err, organization.ErrInvalidID)
+	})
+}

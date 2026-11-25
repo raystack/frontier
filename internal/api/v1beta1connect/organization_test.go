@@ -279,6 +279,20 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
 		},
 		{
+			name: "should return bad request error if the body name is empty",
+			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
+				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					ID: "org-slug",
+				}).Return(organization.Organization{}, organization.ErrInvalidDetail)
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+				Id:   "org-slug",
+				Body: &frontierv1beta1.OrganizationRequestBody{},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
+		},
+		{
 			name: "should not touch metadata or validate it when metadata is not set in the request",
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
@@ -314,6 +328,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			name: "should not touch metadata when it is not set and the org is addressed by name",
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					ID:       "org-slug",
 					Name:     "new-org",
 					Metadata: nil,
 				}).Return(organization.Organization{}, errors.New("test error"))
@@ -535,6 +550,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					ID:   "org-slug",
 					Name: "new-org",
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
@@ -553,6 +569,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+				Id: "org-slug",
 				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{

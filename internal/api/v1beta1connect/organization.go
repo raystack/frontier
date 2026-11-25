@@ -206,28 +206,19 @@ func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connec
 		}
 	}
 
-	var updatedOrg organization.Organization
-	var err error
-	if utils.IsValidUUID(request.Msg.GetId()) {
-		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
-			ID:       request.Msg.GetId(),
-			Name:     request.Msg.GetBody().GetName(),
-			Title:    request.Msg.GetBody().GetTitle(),
-			Avatar:   request.Msg.GetBody().GetAvatar(),
-			Metadata: metaDataMap,
-		})
-	} else {
-		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
-			Name:     request.Msg.GetBody().GetName(),
-			Title:    request.Msg.GetBody().GetTitle(),
-			Avatar:   request.Msg.GetBody().GetAvatar(),
-			Metadata: metaDataMap,
-		})
-	}
+	updatedOrg, err := h.orgService.Update(ctx, organization.Organization{
+		ID:       request.Msg.GetId(),
+		Name:     request.Msg.GetBody().GetName(),
+		Title:    request.Msg.GetBody().GetTitle(),
+		Avatar:   request.Msg.GetBody().GetAvatar(),
+		Metadata: metaDataMap,
+	})
 	if err != nil {
 		switch {
 		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
+		case errors.Is(err, organization.ErrInvalidDetail):
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, organization.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
