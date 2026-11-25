@@ -2,10 +2,13 @@ package postgres
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPrepareDataQuery(t *testing.T) {
@@ -216,6 +219,50 @@ func TestPrepareGroupByQuery(t *testing.T) {
 			assert.Equal(t, tc.wantSQL, gotSQL)
 		})
 	}
+}
+
+// Every field the AggregatedOrganization RQL schema exposes must be
+// filterable in the store query. Filtering on name used to fail with
+// "name is not supported in filters", which the handler surfaced as
+// an internal error.
+func TestPrepareDataQuery_SchemaFieldsFilterable(t *testing.T) {
+	stringFields := []string{"name", "created_by", "country", "avatar", "plan_id"}
+	for _, field := range stringFields {
+		t.Run(fmt.Sprintf("string filter on %s", field), func(t *testing.T) {
+			gotSQL, gotParams, err := prepareDataQuery(&rql.Query{
+				Filters: []rql.Filter{
+					{Name: field, Operator: "eq", Value: "some-value"},
+				},
+				Limit: 10,
+			})
+			require.NoError(t, err)
+			assert.Contains(t, gotSQL, fmt.Sprintf("(%q = $3)", field))
+			assert.Equal(t, []any{"canceled", int64(1), "some-value", int64(10)}, gotParams)
+		})
+	}
+
+	t.Run("datetime filter on updated_at", func(t *testing.T) {
+		gotSQL, gotParams, err := prepareDataQuery(&rql.Query{
+			Filters: []rql.Filter{
+				{Name: "updated_at", Operator: "gt", Value: "2026-01-01T00:00:00Z"},
+			},
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		assert.Contains(t, gotSQL, `("updated_at" > $3)`)
+		assert.Equal(t, []any{"canceled", int64(1), "2026-01-01T00:00:00Z", int64(10)}, gotParams)
+	})
+
+	t.Run("unsupported filter is bad input, not internal", func(t *testing.T) {
+		_, _, err := prepareDataQuery(&rql.Query{
+			Filters: []rql.Filter{
+				{Name: "not_a_field", Operator: "eq", Value: "value"},
+			},
+			Limit: 10,
+		})
+		require.Error(t, err)
+		assert.True(t, errors.Is(err, ErrBadInput), "expected ErrBadInput, got: %v", err)
+	})
 }
 
 func TestOrgBillingRepository_Search(t *testing.T) {

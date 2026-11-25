@@ -337,9 +337,15 @@ func getSubQuery() *goqu.SelectDataset {
 func addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu.SelectDataset, error) {
 	supportedFilters := []string{
 		COLUMN_ID,
+		COLUMN_NAME,
 		COLUMN_TITLE,
 		COLUMN_STATE,
 		COLUMN_CREATED_AT,
+		COLUMN_UPDATED_AT,
+		COLUMN_CREATED_BY,
+		COLUMN_COUNTRY,
+		COLUMN_AVATAR,
+		COLUMN_PLAN_ID,
 		COLUMN_PLAN_NAME,
 		COLUMN_SUBSCRIPTION_STATE,
 		COLUMN_SUBSCRIPTION_CYCLE_END_AT,
@@ -349,7 +355,7 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu
 
 	for _, filter := range rqlInput.Filters {
 		if !slices.Contains(supportedFilters, filter.Name) {
-			return nil, fmt.Errorf("%s is not supported in filters", filter.Name)
+			return nil, fmt.Errorf("%w: %s is not supported in filters", ErrBadInput, filter.Name)
 		}
 		datatype, err := rql.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
 		if err != nil {
