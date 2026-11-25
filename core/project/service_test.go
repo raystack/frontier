@@ -530,3 +530,66 @@ func TestService_DeleteModel(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Update(t *testing.T) {
+	ctx := context.Background()
+	targetID := uuid.New().String()
+	tests := []struct {
+		name    string
+		input   project.Project
+		setup   func(repo *mocks.Repository)
+		want    project.Project
+		wantErr error
+	}{
+		{
+			name:  "update by id writes to the request id",
+			input: project.Project{ID: targetID, Name: "other-project", Title: "new title"},
+			setup: func(repo *mocks.Repository) {
+				repo.EXPECT().UpdateByID(ctx, project.Project{ID: targetID, Name: "other-project", Title: "new title"}).
+					Return(project.Project{ID: targetID, Name: "target-project", Title: "new title"}, nil)
+			},
+			want: project.Project{ID: targetID, Name: "target-project", Title: "new title"},
+		},
+		{
+			name:  "update by name writes to the project named in the request id, not the body name",
+			input: project.Project{ID: "target-project", Name: "other-project", Title: "new title"},
+			setup: func(repo *mocks.Repository) {
+				repo.EXPECT().GetByName(ctx, "target-project").
+					Return(project.Project{ID: targetID, Name: "target-project"}, nil)
+				repo.EXPECT().UpdateByID(ctx, project.Project{ID: targetID, Name: "other-project", Title: "new title"}).
+					Return(project.Project{ID: targetID, Name: "target-project", Title: "new title"}, nil)
+			},
+			want: project.Project{ID: targetID, Name: "target-project", Title: "new title"},
+		},
+		{
+			name:  "update by unknown name returns not found without writing",
+			input: project.Project{ID: "missing-project", Name: "other-project", Title: "new title"},
+			setup: func(repo *mocks.Repository) {
+				repo.EXPECT().GetByName(ctx, "missing-project").Return(project.Project{}, project.ErrNotExist)
+			},
+			wantErr: project.ErrNotExist,
+		},
+		{
+			name:  "update without a request id returns invalid id without writing",
+			input: project.Project{Name: "other-project", Title: "new title"},
+			setup: func(repo *mocks.Repository) {
+				repo.EXPECT().GetByName(ctx, "").Return(project.Project{}, project.ErrInvalidID)
+			},
+			wantErr: project.ErrInvalidID,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo, relationService, policyService, authnService := mockService(t)
+			tt.setup(repo)
+			s := project.NewService(repo, relationService, policyService, authnService)
+			got, err := s.Update(ctx, tt.input)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("Update() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("Update() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}

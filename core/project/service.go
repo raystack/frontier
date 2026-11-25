@@ -139,10 +139,14 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
-	if utils.IsValidUUID(prj.ID) {
-		return s.repository.UpdateByID(ctx, prj)
+	if !utils.IsValidUUID(prj.ID) {
+		existing, err := s.repository.GetByName(ctx, prj.ID)
+		if err != nil {
+			return Project{}, err
+		}
+		prj.ID = existing.ID
 	}
-	return s.repository.UpdateByName(ctx, prj)
+	return s.repository.UpdateByID(ctx, prj)
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {
