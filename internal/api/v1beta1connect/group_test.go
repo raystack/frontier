@@ -613,9 +613,34 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 			wantErrMsg:  ErrBadBodyMetaSchemaError,
 		},
 		{
+			name: "should validate and pass empty metadata through when metadata is set to an empty object",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
+				ms.EXPECT().Validate(metadata.Metadata{}, groupMetaSchema).Return(nil)
+				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{
+					ID:             someGroupID,
+					OrganizationID: testOrgID,
+				}, nil)
+				gs.EXPECT().Update(mock.Anything, group.Group{
+					ID:       someGroupID,
+					Name:     "new-group",
+					Metadata: metadata.Metadata{},
+				}).Return(group.Group{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
+				Id: someGroupID,
+				Body: &frontierv1beta1.GroupRequestBody{
+					Name:     "new-group",
+					Metadata: &structpb.Struct{},
+				},
+			}),
+			want:        nil,
+			wantErr:     true,
+			wantErrCode: connect.CodeInternal,
+			wantErrMsg:  fmt.Errorf("UpdateGroup.Update: group_id=%s group_name=%s: %w", someGroupID, "new-group", errors.New("test error")),
+		},
+		{
 			name: "should return not found error if group id is not uuid (slug) and does not exist",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Get(mock.Anything, "some-id").Return(group.Group{}, group.ErrInvalidUUID)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
@@ -632,7 +657,6 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return not found error if group id is uuid and does not exist",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{}, group.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
@@ -649,7 +673,6 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return not found error if group service update returns not exist",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{
 					ID:             someGroupID,
 					OrganizationID: testOrgID,
@@ -658,7 +681,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 				gs.EXPECT().Update(mock.Anything, group.Group{
 					ID:       someGroupID,
 					Name:     "new-group",
-					Metadata: metadata.Metadata{},
+					Metadata: nil,
 				}).Return(group.Group{}, group.ErrNotExist)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
@@ -676,7 +699,6 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 			name: "should return already exist error if group service return error conflict",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{
 					ID:             someGroupID,
 					OrganizationID: testOrgID,
@@ -684,7 +706,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 				gs.EXPECT().Update(mock.Anything, group.Group{
 					ID:       someGroupID,
 					Name:     "new-group",
-					Metadata: metadata.Metadata{},
+					Metadata: nil,
 				}).Return(group.Group{}, group.ErrConflict)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
@@ -702,7 +724,6 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 			name: "should return bad request error if name is empty",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{
 					ID:             someGroupID,
 					OrganizationID: testOrgID,
@@ -710,7 +731,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 				gs.EXPECT().Update(mock.Anything, group.Group{
 					ID:       someGroupID,
 					Name:     "new-group",
-					Metadata: metadata.Metadata{},
+					Metadata: nil,
 				}).Return(group.Group{}, group.ErrInvalidDetail)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
@@ -728,7 +749,6 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{
 					ID:             someGroupID,
 					OrganizationID: testOrgID,
@@ -736,7 +756,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 				gs.EXPECT().Update(mock.Anything, group.Group{
 					ID:       someGroupID,
 					Name:     "new-group",
-					Metadata: metadata.Metadata{},
+					Metadata: nil,
 				}).Return(group.Group{}, errors.New("test error"))
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateGroupRequest{
@@ -754,7 +774,6 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 			name: "should return success if updated by id and group service return nil error",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), groupMetaSchema).Return(nil)
 				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{
 					ID:             someGroupID,
 					OrganizationID: testOrgID,
@@ -762,7 +781,7 @@ func TestConnectHandler_UpdateGroup(t *testing.T) {
 				gs.EXPECT().Update(mock.Anything, group.Group{
 					ID:       someGroupID,
 					Name:     "new-group",
-					Metadata: metadata.Metadata{},
+					Metadata: nil,
 				}).Return(group.Group{
 					ID:             someGroupID,
 					Name:           "new-group",

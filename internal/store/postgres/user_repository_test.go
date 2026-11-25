@@ -689,6 +689,53 @@ func (s *UserRepositoryTestSuite) TestUpdateByName() {
 	}
 }
 
+func (s *UserRepositoryTestSuite) TestUpdateMetadataHandling() {
+	type updateFn func(usr user.User) (user.User, error)
+	updaters := map[string]updateFn{
+		"by email": func(usr user.User) (user.User, error) {
+			return s.repository.UpdateByEmail(s.ctx, usr)
+		},
+		"by id": func(usr user.User) (user.User, error) {
+			return s.repository.UpdateByID(s.ctx, usr)
+		},
+		"by name": func(usr user.User) (user.User, error) {
+			return s.repository.UpdateByName(s.ctx, usr)
+		},
+	}
+
+	for name, update := range updaters {
+		s.Run(name, func() {
+			suffix := uuid.NewString()[:8]
+			created, err := s.repository.Create(s.ctx, user.User{
+				Name:     "meta-handling-" + suffix,
+				Email:    "meta-handling-" + suffix + "@raystack.org",
+				Title:    "before",
+				Metadata: metadata.Metadata{"team": "core", "size": "10"},
+			})
+			s.Require().NoError(err)
+
+			s.Run("keeps stored metadata when metadata is nil", func() {
+				got, err := update(user.User{ID: created.ID, Name: created.Name, Email: created.Email, Title: "after"})
+				s.Require().NoError(err)
+				s.Equal("after", got.Title)
+				s.Equal(metadata.Metadata{"team": "core", "size": "10"}, got.Metadata)
+			})
+
+			s.Run("replaces stored metadata when metadata is set", func() {
+				got, err := update(user.User{ID: created.ID, Name: created.Name, Email: created.Email, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
+				s.Require().NoError(err)
+				s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
+			})
+
+			s.Run("clears stored metadata when metadata is empty", func() {
+				got, err := update(user.User{ID: created.ID, Name: created.Name, Email: created.Email, Title: "after", Metadata: metadata.Metadata{}})
+				s.Require().NoError(err)
+				s.Equal(metadata.Metadata{}, got.Metadata)
+			})
+		})
+	}
+}
+
 func TestUserRepository(t *testing.T) {
 	suite.Run(t, new(UserRepositoryTestSuite))
 }

@@ -261,22 +261,28 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 	return transformedProjects, nil
 }
 
+func buildProjectUpdateColumns(prj project.Project) (goqu.Record, error) {
+	record := goqu.Record{
+		"title":      prj.Title,
+		"updated_at": goqu.L("now()"),
+	}
+	if err := setMetadataColumn(record, prj.Metadata); err != nil {
+		return nil, err
+	}
+	return record, nil
+}
+
 func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) (project.Project, error) {
 	if strings.TrimSpace(prj.ID) == "" {
 		return project.Project{}, project.ErrInvalidID
 	}
 
-	marshaledMetadata, err := json.Marshal(prj.Metadata)
+	updateRecord, err := buildProjectUpdateColumns(prj)
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", errParse, err)
+		return project.Project{}, err
 	}
 
-	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
-		goqu.Record{
-			"title":      prj.Title,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{"id": prj.ID}, live(TABLE_PROJECTS)).Returning(&Project{}).ToSQL()
+	query, params, err := dialect.Update(TABLE_PROJECTS).Set(updateRecord).Where(goqu.Ex{"id": prj.ID}, live(TABLE_PROJECTS)).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", errQuery, err)
 	}
@@ -311,17 +317,12 @@ func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project
 		return project.Project{}, project.ErrInvalidID
 	}
 
-	marshaledMetadata, err := json.Marshal(prj.Metadata)
+	updateRecord, err := buildProjectUpdateColumns(prj)
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", errParse, err)
+		return project.Project{}, err
 	}
 
-	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
-		goqu.Record{
-			"title":      prj.Title,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.Ex{"name": prj.Name}, live(TABLE_PROJECTS)).Returning(&Project{}).ToSQL()
+	query, params, err := dialect.Update(TABLE_PROJECTS).Set(updateRecord).Where(goqu.Ex{"name": prj.Name}, live(TABLE_PROJECTS)).Returning(&Project{}).ToSQL()
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", errQuery, err)
 	}

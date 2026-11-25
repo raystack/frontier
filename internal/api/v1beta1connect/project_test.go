@@ -454,6 +454,38 @@ func TestHandler_UpdateProject(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest),
 		},
 		{
+			name: "should not touch metadata when metadata is not set in the request",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), project.Project{
+					ID:       testProjectID,
+					Name:     testProjectMap[testProjectID].Name,
+					Metadata: nil,
+				}).Return(project.Project{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
+				Id:   testProjectID,
+				Body: &frontierv1beta1.UpdateProjectRequestBody{Name: testProjectMap[testProjectID].Name},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", errors.New("test error"))),
+		},
+		{
+			name: "should pass empty metadata through when metadata is set to an empty object",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), project.Project{
+					ID:       testProjectID,
+					Name:     testProjectMap[testProjectID].Name,
+					Metadata: metadata.Metadata{},
+				}).Return(project.Project{}, errors.New("test error"))
+			},
+			request: connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
+				Id:   testProjectID,
+				Body: &frontierv1beta1.UpdateProjectRequestBody{Name: testProjectMap[testProjectID].Name, Metadata: &structpb.Struct{}},
+			}),
+			want:    nil,
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("translateProjectServiceError: %w", errors.New("test error"))),
+		},
+		{
 			name: "should return success if project service return nil error",
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), updateInput).Return(testProjectMap[testProjectID], nil)

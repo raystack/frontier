@@ -232,10 +232,12 @@ func (h *ConnectHandler) UpdateGroup(ctx context.Context, request *connect.Reque
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
-
-	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	var metaDataMap metadata.Metadata
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.BuildFromProto(request.Msg.GetBody().GetMetadata())
+		if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+		}
 	}
 
 	if _, err := h.getGroup(ctx, request.Msg.GetId()); err != nil {

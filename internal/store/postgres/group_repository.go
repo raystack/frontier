@@ -220,6 +220,18 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	return transformedGroups, nil
 }
 
+func buildGroupUpdateColumns(grp group.Group) (goqu.Record, error) {
+	record := goqu.Record{
+		"title":      grp.Title,
+		"name":       grp.Name,
+		"updated_at": goqu.L("now()"),
+	}
+	if err := setMetadataColumn(record, grp.Metadata); err != nil {
+		return nil, err
+	}
+	return record, nil
+}
+
 func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group.Group, error) {
 	if strings.TrimSpace(grp.ID) == "" {
 		return group.Group{}, group.ErrInvalidID
@@ -229,18 +241,12 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
-	marshaledMetadata, err := json.Marshal(grp.Metadata)
+	updateRecord, err := buildGroupUpdateColumns(grp)
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %w", errParse, err)
+		return group.Group{}, err
 	}
 
-	query, params, err := dialect.Update(TABLE_GROUPS).Set(
-		goqu.Record{
-			"title":      grp.Title,
-			"name":       grp.Name,
-			"metadata":   marshaledMetadata,
-			"updated_at": goqu.L("now()"),
-		}).Where(goqu.ExOr{
+	query, params, err := dialect.Update(TABLE_GROUPS).Set(updateRecord).Where(goqu.ExOr{
 		"id": grp.ID,
 	}, live(TABLE_GROUPS)).Returning(&Group{}).ToSQL()
 	if err != nil {

@@ -344,24 +344,30 @@ func (r UserRepository) getByIDs(ctx context.Context, userIDs []string, includeD
 	return transformedUsers, nil
 }
 
+func buildUserUpdateColumns(usr user.User) (goqu.Record, error) {
+	record := goqu.Record{
+		"title":      usr.Title,
+		"avatar":     usr.Avatar,
+		"updated_at": goqu.L("now()"),
+	}
+	if err := setMetadataColumn(record, usr.Metadata); err != nil {
+		return nil, err
+	}
+	return record, nil
+}
+
 func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.User, error) {
 	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
-	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	updateRecord, err := buildUserUpdateColumns(usr)
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %w", errParse, err)
+		return user.User{}, err
 	}
 	var transformedUser user.User
 
 	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
-			goqu.Record{
-				"title":      usr.Title,
-				"avatar":     usr.Avatar,
-				"metadata":   marshaledMetadata,
-				"updated_at": goqu.L("now()"),
-			}).Where(
+		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(updateRecord).Where(
 			goqu.Ex{
 				"email": strings.ToLower(usr.Email),
 			},
@@ -401,19 +407,13 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return user.User{}, user.ErrInvalidID
 	}
 
-	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	updateRecord, err := buildUserUpdateColumns(usr)
 	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", errParse, err)
+		return user.User{}, err
 	}
 	var transformedUser user.User
 	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-		query, params, err := dialect.Update(TABLE_USERS).Set(
-			goqu.Record{
-				"title":      usr.Title,
-				"avatar":     usr.Avatar,
-				"metadata":   marshaledMetadata,
-				"updated_at": goqu.L("now()"),
-			}).Where(
+		query, params, err := dialect.Update(TABLE_USERS).Set(updateRecord).Where(
 			goqu.Ex{
 				"id": usr.ID,
 			},
@@ -458,17 +458,9 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 		return user.User{}, user.ErrMissingName
 	}
 
-	updateRecord := goqu.Record{
-		"title":      usr.Title,
-		"avatar":     usr.Avatar,
-		"updated_at": goqu.L("now()"),
-	}
-	if len(usr.Metadata) > 0 {
-		marshaledMetadata, err := json.Marshal(usr.Metadata)
-		if err != nil {
-			return user.User{}, fmt.Errorf("%w: %s", errParse, err)
-		}
-		updateRecord["metadata"] = marshaledMetadata
+	updateRecord, err := buildUserUpdateColumns(usr)
+	if err != nil {
+		return user.User{}, err
 	}
 
 	query, params, err := dialect.Update(TABLE_USERS).Set(updateRecord).Where(

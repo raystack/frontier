@@ -232,9 +232,12 @@ func (h *ConnectHandler) UpdateUser(ctx context.Context, request *connect.Reques
 		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 	}
 
-	metaDataMap := metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
-	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+	var metaDataMap metadata.Metadata
+	if request.Msg.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.BuildFromProto(request.Msg.GetBody().GetMetadata())
+		if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
+		}
 	}
 
 	var err error
@@ -322,7 +325,7 @@ func (h *ConnectHandler) UpdateCurrentUser(ctx context.Context, request *connect
 
 	var metaDataMap metadata.Metadata
 	if request.Msg.GetBody().GetMetadata() != nil {
-		metaDataMap = metadata.Build(request.Msg.GetBody().GetMetadata().AsMap())
+		metaDataMap = metadata.BuildFromProto(request.Msg.GetBody().GetMetadata())
 		if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadBodyMetaSchemaError)
 		}
