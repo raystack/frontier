@@ -220,7 +220,7 @@ func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connec
 		case errors.Is(err, organization.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", request.Msg.GetId(), request.Msg.GetBody().GetName(), request.Msg.GetBody().GetTitle(), err))
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_title=%s: %w", request.Msg.GetId(), request.Msg.GetBody().GetTitle(), err))
 		}
 	}
 

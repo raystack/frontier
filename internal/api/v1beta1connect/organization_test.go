@@ -324,7 +324,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				Body: &frontierv1beta1.OrganizationRequestBody{Name: "new-org"},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", "org-slug", "new-org", "", errors.New("test error"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_title=%s: %w", "org-slug", "", errors.New("test error"))),
 		},
 		{
 			name: "should pass empty metadata through when metadata is set to an empty object",
@@ -341,7 +341,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				Body: &frontierv1beta1.OrganizationRequestBody{Name: "new-org", Metadata: &structpb.Struct{}},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", someOrgID, "new-org", "", errors.New("test error"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_title=%s: %w", someOrgID, "", errors.New("test error"))),
 		},
 		{
 			name: "should return error if meta schema service gives error",
@@ -386,7 +386,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", someOrgID, "new-org", "", errors.New("test error"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_title=%s: %w", someOrgID, "", errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org id is not uuid (slug) and not exist",
