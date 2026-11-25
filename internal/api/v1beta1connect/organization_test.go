@@ -279,20 +279,6 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
 		},
 		{
-			name: "should return bad request error if the body name is empty",
-			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
-				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
-					ID: "org-slug",
-				}).Return(organization.Organization{}, organization.ErrInvalidDetail)
-			},
-			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
-				Id:   "org-slug",
-				Body: &frontierv1beta1.OrganizationRequestBody{},
-			}),
-			want:    nil,
-			wantErr: connect.NewError(connect.CodeInvalidArgument, ErrBadRequest),
-		},
-		{
 			name: "should not touch metadata or validate it when metadata is not set in the request",
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{

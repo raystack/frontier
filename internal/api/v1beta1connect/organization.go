@@ -217,8 +217,6 @@ func (h *ConnectHandler) UpdateOrganization(ctx context.Context, request *connec
 		switch {
 		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
 			return nil, connect.NewError(connect.CodeNotFound, ErrNotFound)
-		case errors.Is(err, organization.ErrInvalidDetail):
-			return nil, connect.NewError(connect.CodeInvalidArgument, ErrBadRequest)
 		case errors.Is(err, organization.ErrConflict):
 			return nil, connect.NewError(connect.CodeAlreadyExists, ErrConflictRequest)
 		default:
