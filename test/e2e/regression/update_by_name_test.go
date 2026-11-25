@@ -114,3 +114,50 @@ func (s *APIRegressionTestSuite) TestUpdateOrganizationByNameTargetsRequestID() 
 		s.Assert().Equal(otherOrg.Msg.GetOrganization().GetMetadata().AsMap(), other.Msg.GetOrganization().GetMetadata().AsMap())
 	})
 }
+
+func (s *APIRegressionTestSuite) TestUpdateByNameOnDisabledTargets() {
+	ctxAdmin := testbench.ContextWithAuth(context.Background(), s.adminCookie)
+	_, userCtx := signUpUser(s.T(), s.testBench.Client, "update-by-name-disabled@raystack.org")
+
+	projectOrg, err := s.testBench.Client.CreateOrganization(userCtx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Title: "project org", Name: "update-by-name-disabled-project-org"},
+	}))
+	s.Require().NoError(err)
+	disabledProject, err := s.testBench.Client.CreateProject(userCtx, connect.NewRequest(&frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{
+			Title: "disabled project",
+			Name:  "update-by-name-disabled-project",
+			OrgId: projectOrg.Msg.GetOrganization().GetId(),
+		},
+	}))
+	s.Require().NoError(err)
+	_, err = s.testBench.Client.DisableProject(ctxAdmin, connect.NewRequest(&frontierv1beta1.DisableProjectRequest{
+		Id: disabledProject.Msg.GetProject().GetId(),
+	}))
+	s.Require().NoError(err)
+
+	disabledOrg, err := s.testBench.Client.CreateOrganization(userCtx, connect.NewRequest(&frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{Title: "disabled org", Name: "update-by-name-disabled-org"},
+	}))
+	s.Require().NoError(err)
+	_, err = s.testBench.Client.DisableOrganization(ctxAdmin, connect.NewRequest(&frontierv1beta1.DisableOrganizationRequest{
+		Id: disabledOrg.Msg.GetOrganization().GetId(),
+	}))
+	s.Require().NoError(err)
+
+	s.Run("a disabled project addressed by name is not found", func() {
+		_, err := s.testBench.Client.UpdateProject(userCtx, connect.NewRequest(&frontierv1beta1.UpdateProjectRequest{
+			Id:   "update-by-name-disabled-project",
+			Body: &frontierv1beta1.UpdateProjectRequestBody{Name: "update-by-name-disabled-project", Title: "changed"},
+		}))
+		s.Assert().Equal(connect.CodeNotFound, connect.CodeOf(err))
+	})
+
+	s.Run("a disabled org addressed by name fails the org state check", func() {
+		_, err := s.testBench.Client.UpdateOrganization(userCtx, connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+			Id:   "update-by-name-disabled-org",
+			Body: &frontierv1beta1.OrganizationRequestBody{Name: "update-by-name-disabled-org", Title: "changed"},
+		}))
+		s.Assert().Equal(connect.CodeFailedPrecondition, connect.CodeOf(err))
+	})
+}
