@@ -328,10 +328,6 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	if strings.TrimSpace(org.Name) == "" {
-		return organization.Organization{}, organization.ErrInvalidDetail
-	}
-
 	updateRecord, err := buildOrgUpdateColumns(org)
 	if err != nil {
 		return organization.Organization{}, err

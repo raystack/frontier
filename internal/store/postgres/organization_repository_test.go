@@ -346,6 +346,18 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 			},
 		},
 		{
+			Description: "should update a organization when the body name is empty",
+			OrganizationToUpdate: organization.Organization{
+				ID:    s.orgs[0].ID,
+				Title: "title without a body name",
+			},
+			ExpectedOrganization: organization.Organization{
+				Name:  "org-1",
+				Title: "title without a body name",
+				State: organization.Enabled,
+			},
+		},
+		{
 			Description: "should return error if organization not found",
 			OrganizationToUpdate: organization.Organization{
 				ID:       uuid.NewString(),
