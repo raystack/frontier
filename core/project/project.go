@@ -32,7 +32,6 @@ type Repository interface {
 	Create(ctx context.Context, org Project) (Project, error)
 	List(ctx context.Context, f Filter) ([]Project, error)
 	UpdateByID(ctx context.Context, toUpdate Project) (Project, error)
-	UpdateByName(ctx context.Context, toUpdate Project) (Project, error)
 	Delete(ctx context.Context, id string) error
 	SetState(ctx context.Context, id string, state State) error
 }

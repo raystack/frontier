@@ -455,67 +455,11 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 	}
 }
 
-func (s *ProjectRepositoryTestSuite) TestUpdateByName() {
-	type testCase struct {
-		Description     string
-		ProjectToUpdate project.Project
-		ExpectedProject project.Project
-		ErrString       string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should update a project",
-			ProjectToUpdate: project.Project{
-				Name: "project-1",
-				Organization: organization.Organization{
-					ID: s.orgs[0].ID,
-				},
-			},
-			ExpectedProject: project.Project{
-				Name:  "project-1",
-				State: project.Enabled,
-			},
-		},
-		{
-			Description: "should return error if project not found",
-			ProjectToUpdate: project.Project{
-				Name: "not-exist",
-				Organization: organization.Organization{
-					ID: s.orgs[0].ID,
-				},
-			},
-			ErrString: project.ErrNotExist.Error(),
-		},
-		{
-			Description: "should return error if project slug is empty",
-			ErrString:   project.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.UpdateByName(s.ctx, tc.ProjectToUpdate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			}
-			if !cmp.Equal(got, tc.ExpectedProject, cmpopts.IgnoreFields(project.Project{}, "ID", "Organization", "Metadata", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedProject)
-			}
-		})
-	}
-}
-
 func (s *ProjectRepositoryTestSuite) TestUpdateMetadataHandling() {
 	type updateFn func(prj project.Project) (project.Project, error)
 	updaters := map[string]updateFn{
 		"by id": func(prj project.Project) (project.Project, error) {
 			return s.repository.UpdateByID(s.ctx, prj)
-		},
-		"by name": func(prj project.Project) (project.Project, error) {
-			return s.repository.UpdateByName(s.ctx, prj)
 		},
 	}
 
@@ -574,9 +518,6 @@ func (s *ProjectRepositoryTestSuite) TestSkipsSoftDeletedProjects() {
 	for _, p := range got {
 		s.Assert().NotEqual(deleted.ID, p.ID)
 	}
-
-	_, err = s.repository.UpdateByName(s.ctx, project.Project{Name: deleted.Name, Title: "changed"})
-	s.Assert().ErrorIs(err, project.ErrNotExist)
 
 	byID := deleted
 	byID.Title = "changed"
