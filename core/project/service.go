@@ -139,6 +139,9 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
+	if prj.ID == "" {
+		return Project{}, ErrInvalidID
+	}
 	if !utils.IsValidUUID(prj.ID) {
 		existing, err := s.repository.GetByName(ctx, prj.ID)
 		if err != nil {

@@ -570,11 +570,9 @@ func TestService_Update(t *testing.T) {
 			wantErr: project.ErrNotExist,
 		},
 		{
-			name:  "update without a request id returns invalid id without writing",
-			input: project.Project{Name: "other-project", Title: "new title"},
-			setup: func(repo *mocks.Repository) {
-				repo.EXPECT().GetByName(ctx, "").Return(project.Project{}, project.ErrInvalidID)
-			},
+			name:    "update without a request id returns invalid id without writing",
+			input:   project.Project{Name: "other-project", Title: "new title"},
+			setup:   func(repo *mocks.Repository) {},
 			wantErr: project.ErrInvalidID,
 		},
 	}
