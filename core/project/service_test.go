@@ -158,7 +158,7 @@ func TestService_Create(t *testing.T) {
 			},
 		},
 		{
-			name:    "delete the project row when membership setup fails",
+			name:    "purge the project row when membership setup fails",
 			prj:     testProj,
 			wantErr: true,
 			setup: func() *project.Service {
@@ -178,7 +178,7 @@ func TestService_Create(t *testing.T) {
 
 				membershipService := mocks.NewMembershipService(t)
 				membershipService.EXPECT().OnProjectCreated(ctx, "project-id", "org-id", "test-user", schema.UserPrincipal).Return(errors.New("spicedb unavailable"))
-				repo.EXPECT().Delete(ctx, "project-id").Return(nil)
+				repo.EXPECT().Purge(ctx, "project-id").Return(nil)
 
 				svc := project.NewService(repo, relationService, policyService, authnService)
 				svc.SetMembershipService(membershipService)

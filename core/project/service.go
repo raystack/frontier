@@ -80,7 +80,9 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	// PAT → resolve to underlying user so ownership is on the user, not the token
 	subjectID, subjectType := currentPrincipal.ResolveSubject()
 	if err = s.membershipService.OnProjectCreated(ctx, newProject.ID, prj.Organization.ID, subjectID, subjectType); err != nil {
-		if cleanupErr := s.repository.Delete(ctx, newProject.ID); cleanupErr != nil {
+		// the create failed after the insert, so remove the row outright
+		// instead of leaving a soft-deleted row behind
+		if cleanupErr := s.repository.Purge(ctx, newProject.ID); cleanupErr != nil {
 			return Project{}, errors.Join(err, fmt.Errorf("rollback project create: %w", cleanupErr))
 		}
 		return Project{}, err

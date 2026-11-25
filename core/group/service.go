@@ -77,7 +77,9 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	// PAT → resolve to underlying user so ownership is on the user, not the token
 	subjectID, subjectType := principal.ResolveSubject()
 	if err = s.membershipService.OnGroupCreated(ctx, newGroup.ID, newGroup.OrganizationID, subjectID, subjectType); err != nil {
-		if cleanupErr := s.repository.Delete(ctx, newGroup.ID); cleanupErr != nil {
+		// the create failed after the insert, so remove the row outright
+		// instead of leaving a soft-deleted row behind
+		if cleanupErr := s.repository.Purge(ctx, newGroup.ID); cleanupErr != nil {
 			return Group{}, errors.Join(err, fmt.Errorf("rollback group create: %w", cleanupErr))
 		}
 		return Group{}, err

@@ -118,7 +118,7 @@ func TestService_Create(t *testing.T) {
 		groupInRepo.ID = uuid.New().String()
 		mockRepo.On("Create", mock.Anything, groupParam).Return(groupInRepo, nil)
 		mockMembershipSvc.EXPECT().OnGroupCreated(mock.Anything, groupInRepo.ID, groupInRepo.OrganizationID, mockUserID, schema.UserPrincipal).Return(errors.New("spicedb down"))
-		mockRepo.On("Delete", mock.Anything, groupInRepo.ID).Return(nil).Once()
+		mockRepo.On("Purge", mock.Anything, groupInRepo.ID).Return(nil).Once()
 
 		_, err := svc.Create(context.Background(), groupParam)
 		assert.ErrorContains(t, err, "spicedb down")
@@ -146,7 +146,7 @@ func TestService_Create(t *testing.T) {
 		groupInRepo.ID = uuid.New().String()
 		mockRepo.On("Create", mock.Anything, groupParam).Return(groupInRepo, nil)
 		mockMembershipSvc.EXPECT().OnGroupCreated(mock.Anything, groupInRepo.ID, groupInRepo.OrganizationID, mockUserID, schema.UserPrincipal).Return(errors.New("spicedb down"))
-		mockRepo.On("Delete", mock.Anything, groupInRepo.ID).Return(errors.New("pg gone")).Once()
+		mockRepo.On("Purge", mock.Anything, groupInRepo.ID).Return(errors.New("pg gone")).Once()
 
 		_, err := svc.Create(context.Background(), groupParam)
 		assert.ErrorContains(t, err, "spicedb down")

@@ -34,6 +34,10 @@ type Repository interface {
 	UpdateByID(ctx context.Context, toUpdate Project) (Project, error)
 	UpdateByName(ctx context.Context, toUpdate Project) (Project, error)
 	Delete(ctx context.Context, id string) error
+	// Purge removes the row outright instead of soft-deleting it. It exists
+	// for rolling back a create that failed after the insert, where no
+	// soft-deleted row should be left behind.
+	Purge(ctx context.Context, id string) error
 	SetState(ctx context.Context, id string, state State) error
 }
 
