@@ -456,43 +456,32 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 }
 
 func (s *ProjectRepositoryTestSuite) TestUpdateMetadataHandling() {
-	type updateFn func(prj project.Project) (project.Project, error)
-	updaters := map[string]updateFn{
-		"by id": func(prj project.Project) (project.Project, error) {
-			return s.repository.UpdateByID(s.ctx, prj)
-		},
-	}
+	created, err := s.repository.Create(s.ctx, project.Project{
+		Name:         "meta-handling-" + uuid.NewString()[:8],
+		Title:        "before",
+		Organization: organization.Organization{ID: s.orgs[0].ID},
+		Metadata:     metadata.Metadata{"team": "core", "size": "10"},
+	})
+	s.Require().NoError(err)
 
-	for name, update := range updaters {
-		s.Run(name, func() {
-			created, err := s.repository.Create(s.ctx, project.Project{
-				Name:         "meta-handling-" + uuid.NewString()[:8],
-				Title:        "before",
-				Organization: organization.Organization{ID: s.orgs[0].ID},
-				Metadata:     metadata.Metadata{"team": "core", "size": "10"},
-			})
-			s.Require().NoError(err)
+	s.Run("keeps stored metadata when metadata is nil", func() {
+		got, err := s.repository.UpdateByID(s.ctx, project.Project{ID: created.ID, Name: created.Name, Title: "after"})
+		s.Require().NoError(err)
+		s.Equal("after", got.Title)
+		s.Equal(metadata.Metadata{"team": "core", "size": "10"}, got.Metadata)
+	})
 
-			s.Run("keeps stored metadata when metadata is nil", func() {
-				got, err := update(project.Project{ID: created.ID, Name: created.Name, Title: "after"})
-				s.Require().NoError(err)
-				s.Equal("after", got.Title)
-				s.Equal(metadata.Metadata{"team": "core", "size": "10"}, got.Metadata)
-			})
+	s.Run("replaces stored metadata when metadata is set", func() {
+		got, err := s.repository.UpdateByID(s.ctx, project.Project{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
+		s.Require().NoError(err)
+		s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
+	})
 
-			s.Run("replaces stored metadata when metadata is set", func() {
-				got, err := update(project.Project{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
-				s.Require().NoError(err)
-				s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
-			})
-
-			s.Run("clears stored metadata when metadata is empty", func() {
-				got, err := update(project.Project{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{}})
-				s.Require().NoError(err)
-				s.Equal(metadata.Metadata{}, got.Metadata)
-			})
-		})
-	}
+	s.Run("clears stored metadata when metadata is empty", func() {
+		got, err := s.repository.UpdateByID(s.ctx, project.Project{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{}})
+		s.Require().NoError(err)
+		s.Equal(metadata.Metadata{}, got.Metadata)
+	})
 }
 
 func TestProjectRepository(t *testing.T) {
