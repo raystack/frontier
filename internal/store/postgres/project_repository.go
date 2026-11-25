@@ -410,3 +410,33 @@ func (r ProjectRepository) Delete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (r ProjectRepository) Purge(ctx context.Context, id string) error {
+	query, params, err := dialect.Delete(TABLE_PROJECTS).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).Returning(projectReturning()...).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", errQuery, err)
+	}
+
+	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var result projectWithOrgName
+		if err := r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "Purge", func(ctx context.Context) error {
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&result)
+		}); err != nil {
+			return err
+		}
+		return InsertAuditRecordInTx(ctx, tx, buildProjectAuditRecord(ctx, auditrecord.ProjectDeletedEvent, result, time.Now()))
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return project.ErrNotExist
+		default:
+			return err
+		}
+	}
+	return nil
+}

@@ -335,3 +335,30 @@ func (r GroupRepository) Delete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (r GroupRepository) Purge(ctx context.Context, id string) error {
+	query, params, err := dialect.Delete(TABLE_GROUPS).Where(
+		goqu.Ex{
+			"id": id,
+		},
+	).Returning(&Group{}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", errQuery, err)
+	}
+
+	var groupModel Group
+	if err = r.dbc.WithTimeout(ctx, TABLE_GROUPS, "Purge", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return group.ErrNotExist
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return group.ErrInvalidUUID
+		default:
+			return err
+		}
+	}
+	return nil
+}
