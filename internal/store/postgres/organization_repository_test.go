@@ -390,9 +390,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateMetadataHandling() {
 		"by id": func(org organization.Organization) (organization.Organization, error) {
 			return s.repository.UpdateByID(s.ctx, org)
 		},
-		"by name": func(org organization.Organization) (organization.Organization, error) {
-			return s.repository.UpdateByName(s.ctx, org)
-		},
 	}
 
 	lastAuditMetadata := func(orgID string) map[string]any {
@@ -438,60 +435,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateMetadataHandling() {
 
 				s.Empty(lastAuditMetadata(created.ID))
 			})
-		})
-	}
-}
-
-func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
-	type testCase struct {
-		Description          string
-		OrganizationToUpdate organization.Organization
-		ExpectedOrganization organization.Organization
-		ErrString            string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should update a organization",
-			OrganizationToUpdate: organization.Organization{
-				Name:     "org-1",
-				Title:    "org 1",
-				Metadata: metadata.Metadata{},
-			},
-			ExpectedOrganization: organization.Organization{
-				Name:     "org-1",
-				Title:    "org 1",
-				State:    organization.Enabled,
-				Metadata: metadata.Metadata{},
-			},
-		},
-		{
-			Description: "should return error if organization not found",
-			OrganizationToUpdate: organization.Organization{
-				Name:     "not-exist",
-				Metadata: metadata.Metadata{},
-			},
-			ErrString: organization.ErrNotExist.Error(),
-		},
-		{
-			Description: "should return error if organization slug is empty",
-			ErrString:   organization.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.UpdateByName(s.ctx, tc.OrganizationToUpdate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			} else {
-				s.Assert().NoError(err)
-			}
-			if !cmp.Equal(got, tc.ExpectedOrganization, cmpopts.IgnoreFields(organization.Organization{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganization)
-			}
 		})
 	}
 }
@@ -631,9 +574,6 @@ func (s *OrganizationRepositoryTestSuite) TestSkipsSoftDeletedOrganizations() {
 	for _, o := range got {
 		s.Assert().NotEqual(deleted.ID, o.ID)
 	}
-
-	_, err = s.repository.UpdateByName(s.ctx, organization.Organization{Name: deleted.Name, Title: "changed"})
-	s.Assert().ErrorIs(err, organization.ErrNotExist)
 
 	byID := deleted
 	byID.Title = "changed"

@@ -31,7 +31,6 @@ type Repository interface {
 	Create(ctx context.Context, org Organization) (Organization, error)
 	List(ctx context.Context, flt Filter) ([]Organization, error)
 	UpdateByID(ctx context.Context, org Organization) (Organization, error)
-	UpdateByName(ctx context.Context, org Organization) (Organization, error)
 	SetState(ctx context.Context, id string, state State) error
 	Delete(ctx context.Context, id string) error
 }
