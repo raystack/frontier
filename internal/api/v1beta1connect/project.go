@@ -118,8 +118,7 @@ func (h *ConnectHandler) UpdateProject(ctx context.Context, request *connect.Req
 	})
 	if err != nil {
 		errorLogger.LogServiceError(ctx, request, "UpdateProject", err,
-			"project_id", request.Msg.GetId(),
-			"project_name", request.Msg.GetBody().GetName())
+			"project_id", request.Msg.GetId())
 		return nil, translateProjectServiceError(err)
 	}
 

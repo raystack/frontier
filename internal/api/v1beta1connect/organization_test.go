@@ -314,6 +314,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			name: "should not touch metadata when it is not set and the org is addressed by name",
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					ID:       "org-slug",
 					Name:     "new-org",
 					Metadata: nil,
 				}).Return(organization.Organization{}, errors.New("test error"))
@@ -323,7 +324,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				Body: &frontierv1beta1.OrganizationRequestBody{Name: "new-org"},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", "org-slug", "new-org", "", errors.New("test error"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_title=%s: %w", "org-slug", "", errors.New("test error"))),
 		},
 		{
 			name: "should pass empty metadata through when metadata is set to an empty object",
@@ -340,7 +341,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				Body: &frontierv1beta1.OrganizationRequestBody{Name: "new-org", Metadata: &structpb.Struct{}},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", someOrgID, "new-org", "", errors.New("test error"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_title=%s: %w", someOrgID, "", errors.New("test error"))),
 		},
 		{
 			name: "should return error if meta schema service gives error",
@@ -385,7 +386,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				},
 			}),
 			want:    nil,
-			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_name=%s org_title=%s: %w", someOrgID, "new-org", "", errors.New("test error"))),
+			wantErr: connect.NewError(connect.CodeInternal, fmt.Errorf("UpdateOrganization.Update: org_id=%s org_title=%s: %w", someOrgID, "", errors.New("test error"))),
 		},
 		{
 			name: "should return not found error if org id is not uuid (slug) and not exist",
@@ -535,6 +536,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 			setup: func(os *mocks.OrganizationService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(nil)
 				os.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), organization.Organization{
+					ID:   "org-slug",
 					Name: "new-org",
 					Metadata: metadata.Metadata{
 						"email": "org1@org1.com",
@@ -553,6 +555,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				}, nil)
 			},
 			request: connect.NewRequest(&frontierv1beta1.UpdateOrganizationRequest{
+				Id: "org-slug",
 				Body: &frontierv1beta1.OrganizationRequestBody{
 					Name: "new-org",
 					Metadata: &structpb.Struct{

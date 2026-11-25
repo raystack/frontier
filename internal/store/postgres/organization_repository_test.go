@@ -346,6 +346,18 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 			},
 		},
 		{
+			Description: "should update a organization when the body name is empty",
+			OrganizationToUpdate: organization.Organization{
+				ID:    s.orgs[0].ID,
+				Title: "title without a body name",
+			},
+			ExpectedOrganization: organization.Organization{
+				Name:  "org-1",
+				Title: "title without a body name",
+				State: organization.Enabled,
+			},
+		},
+		{
 			Description: "should return error if organization not found",
 			OrganizationToUpdate: organization.Organization{
 				ID:       uuid.NewString(),
@@ -385,16 +397,6 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 }
 
 func (s *OrganizationRepositoryTestSuite) TestUpdateMetadataHandling() {
-	type updateFn func(org organization.Organization) (organization.Organization, error)
-	updaters := map[string]updateFn{
-		"by id": func(org organization.Organization) (organization.Organization, error) {
-			return s.repository.UpdateByID(s.ctx, org)
-		},
-		"by name": func(org organization.Organization) (organization.Organization, error) {
-			return s.repository.UpdateByName(s.ctx, org)
-		},
-	}
-
 	lastAuditMetadata := func(orgID string) map[string]any {
 		raw := scalarSQL(s.T(), s.ctx, s.client,
 			"SELECT COALESCE(resource_metadata::text, '{}') FROM audit_records WHERE event = 'organization.update' AND resource_id = $1 ORDER BY created_at DESC LIMIT 1", orgID)
@@ -403,97 +405,39 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateMetadataHandling() {
 		return out
 	}
 
-	for name, update := range updaters {
-		s.Run(name, func() {
-			created, err := s.repository.Create(s.ctx, organization.Organization{
-				Name:     "meta-handling-" + uuid.NewString()[:8],
-				Title:    "before",
-				Metadata: metadata.Metadata{"poc": "owner@example.com", "size": "10"},
-			})
-			s.Require().NoError(err)
+	created, err := s.repository.Create(s.ctx, organization.Organization{
+		Name:     "meta-handling-" + uuid.NewString()[:8],
+		Title:    "before",
+		Metadata: metadata.Metadata{"poc": "owner@example.com", "size": "10"},
+	})
+	s.Require().NoError(err)
 
-			s.Run("keeps stored metadata when metadata is nil", func() {
-				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after"})
-				s.Require().NoError(err)
-				s.Equal("after", got.Title)
-				s.Equal(metadata.Metadata{"poc": "owner@example.com", "size": "10"}, got.Metadata)
+	s.Run("keeps stored metadata when metadata is nil", func() {
+		got, err := s.repository.UpdateByID(s.ctx, organization.Organization{ID: created.ID, Name: created.Name, Title: "after"})
+		s.Require().NoError(err)
+		s.Equal("after", got.Title)
+		s.Equal(metadata.Metadata{"poc": "owner@example.com", "size": "10"}, got.Metadata)
 
-				recorded := lastAuditMetadata(created.ID)
-				s.Equal("owner@example.com", recorded["poc"])
-				s.Equal("10", recorded["size"])
-			})
+		recorded := lastAuditMetadata(created.ID)
+		s.Equal("owner@example.com", recorded["poc"])
+		s.Equal("10", recorded["size"])
+	})
 
-			s.Run("replaces stored metadata when metadata is set", func() {
-				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
-				s.Require().NoError(err)
-				s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
+	s.Run("replaces stored metadata when metadata is set", func() {
+		got, err := s.repository.UpdateByID(s.ctx, organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{"size": "20"}})
+		s.Require().NoError(err)
+		s.Equal(metadata.Metadata{"size": "20"}, got.Metadata)
 
-				s.Equal(map[string]any{"size": "20"}, lastAuditMetadata(created.ID))
-			})
+		s.Equal(map[string]any{"size": "20"}, lastAuditMetadata(created.ID))
+	})
 
-			s.Run("clears stored metadata when metadata is empty", func() {
-				got, err := update(organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{}})
-				s.Require().NoError(err)
-				s.Equal(metadata.Metadata{}, got.Metadata)
+	s.Run("clears stored metadata when metadata is empty", func() {
+		got, err := s.repository.UpdateByID(s.ctx, organization.Organization{ID: created.ID, Name: created.Name, Title: "after", Metadata: metadata.Metadata{}})
+		s.Require().NoError(err)
+		s.Equal(metadata.Metadata{}, got.Metadata)
 
-				s.Empty(lastAuditMetadata(created.ID))
-			})
-		})
-	}
-}
-
-func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
-	type testCase struct {
-		Description          string
-		OrganizationToUpdate organization.Organization
-		ExpectedOrganization organization.Organization
-		ErrString            string
-	}
-
-	var testCases = []testCase{
-		{
-			Description: "should update a organization",
-			OrganizationToUpdate: organization.Organization{
-				Name:     "org-1",
-				Title:    "org 1",
-				Metadata: metadata.Metadata{},
-			},
-			ExpectedOrganization: organization.Organization{
-				Name:     "org-1",
-				Title:    "org 1",
-				State:    organization.Enabled,
-				Metadata: metadata.Metadata{},
-			},
-		},
-		{
-			Description: "should return error if organization not found",
-			OrganizationToUpdate: organization.Organization{
-				Name:     "not-exist",
-				Metadata: metadata.Metadata{},
-			},
-			ErrString: organization.ErrNotExist.Error(),
-		},
-		{
-			Description: "should return error if organization slug is empty",
-			ErrString:   organization.ErrInvalidID.Error(),
-		},
-	}
-
-	for _, tc := range testCases {
-		s.Run(tc.Description, func() {
-			got, err := s.repository.UpdateByName(s.ctx, tc.OrganizationToUpdate)
-			if tc.ErrString != "" {
-				if err.Error() != tc.ErrString {
-					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
-				}
-			} else {
-				s.Assert().NoError(err)
-			}
-			if !cmp.Equal(got, tc.ExpectedOrganization, cmpopts.IgnoreFields(organization.Organization{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganization)
-			}
-		})
-	}
+		s.Empty(lastAuditMetadata(created.ID))
+	})
 }
 
 func (s *OrganizationRepositoryTestSuite) TestDelete() {
@@ -631,9 +575,6 @@ func (s *OrganizationRepositoryTestSuite) TestSkipsSoftDeletedOrganizations() {
 	for _, o := range got {
 		s.Assert().NotEqual(deleted.ID, o.ID)
 	}
-
-	_, err = s.repository.UpdateByName(s.ctx, organization.Organization{Name: deleted.Name, Title: "changed"})
-	s.Assert().ErrorIs(err, organization.ErrNotExist)
 
 	byID := deleted
 	byID.Title = "changed"

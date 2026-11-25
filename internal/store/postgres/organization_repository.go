@@ -328,10 +328,6 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		return organization.Organization{}, organization.ErrInvalidID
 	}
 
-	if strings.TrimSpace(org.Name) == "" {
-		return organization.Organization{}, organization.ErrInvalidDetail
-	}
-
 	updateRecord, err := buildOrgUpdateColumns(org)
 	if err != nil {
 		return organization.Organization{}, err
@@ -385,70 +381,6 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 			return organization.Organization{}, organization.ErrConflict
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
-		default:
-			return organization.Organization{}, fmt.Errorf("%w: %w", errTxn, err)
-		}
-	}
-
-	return updatedOrg, nil
-}
-
-func (r OrganizationRepository) UpdateByName(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	if strings.TrimSpace(org.Name) == "" {
-		return organization.Organization{}, organization.ErrInvalidID
-	}
-
-	updateRecord, err := buildOrgUpdateColumns(org)
-	if err != nil {
-		return organization.Organization{}, err
-	}
-
-	// Query to fetch org data before update
-	getQuery, getParams, err := fromLive(TABLE_ORGANIZATIONS).
-		Select("title").
-		Where(goqu.Ex{"name": org.Name}).ToSQL()
-	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
-	}
-
-	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(updateRecord).Where(
-		goqu.Ex{
-			"name": org.Name,
-		}, live(TABLE_ORGANIZATIONS)).Returning(&Organization{}).ToSQL()
-	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%w: %w", errQuery, err)
-	}
-
-	var updatedOrg organization.Organization
-	if err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-		return r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "UpdateByName", func(ctx context.Context) error {
-			// Fetch title before update
-			var orgBeforeUpdate Organization
-			if err := tx.QueryRowxContext(ctx, getQuery, getParams...).StructScan(&orgBeforeUpdate); err != nil {
-				return err
-			}
-
-			// Execute update
-			var orgModel Organization
-			if err := tx.QueryRowxContext(ctx, query, params...).StructScan(&orgModel); err != nil {
-				return err
-			}
-			transformed, err := orgModel.transformToOrg()
-			if err != nil {
-				return fmt.Errorf("%w: %w", errParse, err)
-			}
-			updatedOrg = transformed
-
-			auditRecord := buildOrgUpdateAuditRecord(ctx, orgBeforeUpdate, orgModel, updatedOrg.Metadata)
-			return InsertAuditRecordInTx(ctx, tx, auditRecord)
-		})
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return organization.Organization{}, organization.ErrNotExist
-		case errors.Is(err, ErrDuplicateKey):
-			return organization.Organization{}, organization.ErrConflict
 		default:
 			return organization.Organization{}, fmt.Errorf("%w: %w", errTxn, err)
 		}

@@ -312,46 +312,6 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 	return prj, nil
 }
 
-func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project) (project.Project, error) {
-	if strings.TrimSpace(prj.Name) == "" {
-		return project.Project{}, project.ErrInvalidID
-	}
-
-	updateRecord, err := buildProjectUpdateColumns(prj)
-	if err != nil {
-		return project.Project{}, err
-	}
-
-	query, params, err := dialect.Update(TABLE_PROJECTS).Set(updateRecord).Where(goqu.Ex{"name": prj.Name}, live(TABLE_PROJECTS)).Returning(&Project{}).ToSQL()
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", errQuery, err)
-	}
-
-	var projectModel Project
-	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "UpdateByName", func(ctx context.Context) error {
-		return r.dbc.GetContext(ctx, &projectModel, query, params...)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return project.Project{}, project.ErrNotExist
-		case errors.Is(err, ErrInvalidTextRepresentation):
-			return project.Project{}, project.ErrInvalidUUID
-		case errors.Is(err, ErrDuplicateKey):
-			return project.Project{}, project.ErrConflict
-		default:
-			return project.Project{}, fmt.Errorf("%w: %s", errDB, err)
-		}
-	}
-
-	prj, err = projectModel.transformToProject()
-	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %w", errParse, err)
-	}
-
-	return prj, nil
-}
-
 func (r ProjectRepository) SetState(ctx context.Context, id string, state project.State) error {
 	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
 		goqu.Record{

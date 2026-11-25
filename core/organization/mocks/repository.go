@@ -463,63 +463,6 @@ func (_c *Repository_UpdateByID_Call) RunAndReturn(run func(context.Context, org
 	return _c
 }
 
-// UpdateByName provides a mock function with given fields: ctx, org
-func (_m *Repository) UpdateByName(ctx context.Context, org organization.Organization) (organization.Organization, error) {
-	ret := _m.Called(ctx, org)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateByName")
-	}
-
-	var r0 organization.Organization
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, organization.Organization) (organization.Organization, error)); ok {
-		return rf(ctx, org)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, organization.Organization) organization.Organization); ok {
-		r0 = rf(ctx, org)
-	} else {
-		r0 = ret.Get(0).(organization.Organization)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, organization.Organization) error); ok {
-		r1 = rf(ctx, org)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Repository_UpdateByName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateByName'
-type Repository_UpdateByName_Call struct {
-	*mock.Call
-}
-
-// UpdateByName is a helper method to define mock.On call
-//   - ctx context.Context
-//   - org organization.Organization
-func (_e *Repository_Expecter) UpdateByName(ctx interface{}, org interface{}) *Repository_UpdateByName_Call {
-	return &Repository_UpdateByName_Call{Call: _e.mock.On("UpdateByName", ctx, org)}
-}
-
-func (_c *Repository_UpdateByName_Call) Run(run func(ctx context.Context, org organization.Organization)) *Repository_UpdateByName_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(organization.Organization))
-	})
-	return _c
-}
-
-func (_c *Repository_UpdateByName_Call) Return(_a0 organization.Organization, _a1 error) *Repository_UpdateByName_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *Repository_UpdateByName_Call) RunAndReturn(run func(context.Context, organization.Organization) (organization.Organization, error)) *Repository_UpdateByName_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRepository(t interface {
